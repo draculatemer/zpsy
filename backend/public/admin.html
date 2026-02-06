@@ -466,6 +466,15 @@
                 </div>
                 
                 <div class="nav-section">
+                    <div class="nav-section-title">Suporte</div>
+                    <div class="nav-item" onclick="switchTab('refunds')">
+                        <span class="nav-item-icon">💸</span>
+                        Reembolsos
+                        <span class="nav-item-badge danger" id="navRefundCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
                     <div class="nav-section-title">Configurações</div>
                     <div class="nav-item" onclick="switchTab('settings')">
                         <span class="nav-item-icon">⚙️</span>
@@ -967,6 +976,108 @@
                     </div>
                 </div>
                 
+                <!-- Tab: Refunds -->
+                <div class="tab-content" id="tab-refunds">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Pendentes</span>
+                                <div class="stat-icon yellow">⏳</div>
+                            </div>
+                            <div class="stat-value yellow" id="refundsPending">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Processando</span>
+                                <div class="stat-icon blue">🔄</div>
+                            </div>
+                            <div class="stat-value blue" id="refundsProcessing">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Aprovados</span>
+                                <div class="stat-icon green">✅</div>
+                            </div>
+                            <div class="stat-value green" id="refundsApproved">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Rejeitados</span>
+                                <div class="stat-icon red">❌</div>
+                            </div>
+                            <div class="stat-value red" id="refundsRejected">0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <h3>🔍 Filtros</h3>
+                        </div>
+                        <div class="card-body" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                            <div class="form-group" style="margin: 0; flex: 1; min-width: 150px;">
+                                <label class="form-label">Status</label>
+                                <select class="form-input" id="refundFilterStatus" onchange="loadRefunds()">
+                                    <option value="">Todos</option>
+                                    <option value="pending">Pendentes</option>
+                                    <option value="processing">Processando</option>
+                                    <option value="approved">Aprovados</option>
+                                    <option value="rejected">Rejeitados</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0; flex: 2; min-width: 200px;">
+                                <label class="form-label">Buscar</label>
+                                <input type="text" class="form-input" id="refundSearchInput" placeholder="Nome, email, protocolo..." onkeyup="filterRefunds()">
+                            </div>
+                            <button class="btn-secondary" onclick="loadRefunds()">Atualizar</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Refunds Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>💸 Solicitações de Reembolso</h3>
+                            <span class="text-muted" id="refundsTotalCount">0 solicitações</span>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Protocolo</th>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
+                                        <th>Motivo</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="refundsTable">
+                                    <tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Refund Detail Modal -->
+                <div class="modal-overlay" id="refundModal" style="display: none;">
+                    <div class="modal-content" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3>📋 Detalhes do Reembolso</h3>
+                            <button class="modal-close" onclick="closeRefundModal()">×</button>
+                        </div>
+                        <div class="modal-body" id="refundModalBody">
+                            <!-- Content loaded dynamically -->
+                        </div>
+                        <div class="modal-footer" id="refundModalFooter">
+                            <!-- Actions loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Tab: Settings -->
                 <div class="tab-content" id="tab-settings">
                     <div class="config-box">
@@ -1113,6 +1224,7 @@ Posso ajudar com alguma dúvida?</textarea>
             'recovery': { title: 'Recuperação', subtitle: 'Recupere vendas perdidas' },
             'funnel': { title: 'Funil', subtitle: 'Visualize a jornada dos visitantes' },
             'sales': { title: 'Vendas', subtitle: 'Acompanhe suas transações' },
+            'refunds': { title: 'Reembolsos', subtitle: 'Gerencie solicitações de reembolso' },
             'settings': { title: 'Configurações', subtitle: 'Configure integrações' }
         };
         
@@ -1186,6 +1298,7 @@ Estou aqui para esclarecer tudo! 😊`
             loadOverviewData();
             loadFunnelData();
             loadRecoveryData();
+            loadRefunds();
         }
         
         function switchTab(tabName) {
@@ -1203,6 +1316,7 @@ Estou aqui para esclarecer tudo! 😊`
             if (tabName === 'funnel') loadFunnelData();
             else if (tabName === 'sales') loadSalesData();
             else if (tabName === 'recovery') loadRecoveryData();
+            else if (tabName === 'refunds') loadRefunds();
             else if (tabName === 'settings') document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
         }
         
@@ -1914,6 +2028,241 @@ Estou aqui para esclarecer tudo! 😊`
             } catch (error) {
                 console.error('Error deleting transaction:', error);
                 showToast('Erro', 'Falha ao deletar transação', 'error');
+            }
+        }
+        
+        // ==================== REFUNDS ====================
+        
+        let allRefunds = [];
+        
+        async function loadRefunds() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/refunds`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401) { logout(); return; }
+                
+                const data = await response.json();
+                allRefunds = data.refunds || [];
+                
+                // Update stats
+                const pending = allRefunds.filter(r => r.status === 'pending').length;
+                const processing = allRefunds.filter(r => r.status === 'processing').length;
+                const approved = allRefunds.filter(r => r.status === 'approved').length;
+                const rejected = allRefunds.filter(r => r.status === 'rejected').length;
+                
+                document.getElementById('refundsPending').textContent = pending;
+                document.getElementById('refundsProcessing').textContent = processing;
+                document.getElementById('refundsApproved').textContent = approved;
+                document.getElementById('refundsRejected').textContent = rejected;
+                document.getElementById('refundsTotalCount').textContent = `${allRefunds.length} solicitações`;
+                document.getElementById('navRefundCount').textContent = pending + processing;
+                
+                renderRefunds(allRefunds);
+                
+            } catch (error) {
+                console.error('Error loading refunds:', error);
+            }
+        }
+        
+        function filterRefunds() {
+            const search = document.getElementById('refundSearchInput').value.toLowerCase();
+            const status = document.getElementById('refundFilterStatus').value;
+            
+            let filtered = allRefunds;
+            
+            if (status) {
+                filtered = filtered.filter(r => r.status === status);
+            }
+            
+            if (search) {
+                filtered = filtered.filter(r => 
+                    (r.full_name || '').toLowerCase().includes(search) ||
+                    (r.email || '').toLowerCase().includes(search) ||
+                    (r.protocol || '').toLowerCase().includes(search) ||
+                    (r.phone || '').toLowerCase().includes(search)
+                );
+            }
+            
+            renderRefunds(filtered);
+        }
+        
+        function renderRefunds(refunds) {
+            const table = document.getElementById('refundsTable');
+            
+            if (!refunds || refunds.length === 0) {
+                table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma solicitação de reembolso encontrada</td></tr>';
+                return;
+            }
+            
+            const statusLabels = {
+                'pending': { text: 'Pendente', class: 'badge-pending' },
+                'processing': { text: 'Processando', class: 'badge-pending' },
+                'approved': { text: 'Aprovado', class: 'badge-approved' },
+                'rejected': { text: 'Rejeitado', class: 'badge-cancelled' }
+            };
+            
+            const reasonLabels = {
+                'not_expected': 'Não atendeu expectativas',
+                'technical': 'Problema técnico',
+                'duplicate': 'Cobrança duplicada',
+                'unauthorized': 'Não autorizado',
+                'changed_mind': 'Desistiu da compra',
+                'no_access': 'Sem acesso ao produto',
+                'other': 'Outro motivo'
+            };
+            
+            let html = '';
+            refunds.forEach(r => {
+                const status = statusLabels[r.status] || { text: r.status, class: 'badge-pending' };
+                const reason = reasonLabels[r.reason] || r.reason || '-';
+                const date = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : '-';
+                
+                html += `<tr>
+                    <td><code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${r.protocol || '-'}</code></td>
+                    <td><strong>${r.full_name || '-'}</strong></td>
+                    <td>${r.email || '-'}</td>
+                    <td>${r.phone || '-'}</td>
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${reason}">${reason}</td>
+                    <td><span class="lead-status ${status.class}">${status.text}</span></td>
+                    <td>${date}</td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn-action" onclick="openRefundModal(${r.id})" title="Ver detalhes">👁️</button>
+                            ${r.status === 'pending' || r.status === 'processing' ? `
+                                <button class="btn-action" style="background: var(--success);" onclick="updateRefundStatus(${r.id}, 'approved')" title="Aprovar">✅</button>
+                                <button class="btn-action" style="background: var(--danger);" onclick="updateRefundStatus(${r.id}, 'rejected')" title="Rejeitar">❌</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            table.innerHTML = html;
+        }
+        
+        function openRefundModal(id) {
+            const refund = allRefunds.find(r => r.id === id);
+            if (!refund) return;
+            
+            const statusLabels = {
+                'pending': 'Pendente',
+                'processing': 'Processando',
+                'approved': 'Aprovado',
+                'rejected': 'Rejeitado'
+            };
+            
+            const reasonLabels = {
+                'not_expected': 'Produto não atendeu expectativas',
+                'technical': 'Problema técnico de acesso',
+                'duplicate': 'Cobrança duplicada no cartão',
+                'unauthorized': 'Compra não autorizada',
+                'changed_mind': 'Desistiu da compra',
+                'no_access': 'Não recebeu acesso ao produto',
+                'other': 'Outro motivo'
+            };
+            
+            const date = refund.created_at ? new Date(refund.created_at).toLocaleString('pt-BR') : '-';
+            const purchaseDate = refund.purchase_date ? new Date(refund.purchase_date).toLocaleDateString('pt-BR') : '-';
+            
+            document.getElementById('refundModalBody').innerHTML = `
+                <div style="display: grid; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <code style="background: var(--bg-tertiary); padding: 6px 12px; border-radius: 6px; font-size: 14px;">${refund.protocol || '-'}</code>
+                        </div>
+                        <span class="lead-status ${refund.status === 'approved' ? 'badge-approved' : refund.status === 'rejected' ? 'badge-cancelled' : 'badge-pending'}">${statusLabels[refund.status] || refund.status}</span>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">👤 INFORMAÇÕES DO CLIENTE</h4>
+                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; display: grid; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Nome:</span> <strong>${refund.full_name || '-'}</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Email:</span> <span>${refund.email || '-'}</span></div>
+                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Telefone:</span> <span>${refund.phone || '-'}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">📦 DETALHES DA COMPRA</h4>
+                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; display: grid; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Data da Compra:</span> <span>${purchaseDate}</span></div>
+                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Motivo:</span> <strong style="color: var(--warning);">${reasonLabels[refund.reason] || refund.reason || '-'}</strong></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">💬 DESCRIÇÃO</h4>
+                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; white-space: pre-wrap; line-height: 1.6;">
+                            ${refund.details || 'Nenhuma descrição fornecida.'}
+                        </div>
+                    </div>
+                    
+                    ${refund.admin_notes ? `
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">📝 NOTAS DO ADMIN</h4>
+                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; white-space: pre-wrap; line-height: 1.6;">
+                            ${refund.admin_notes}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="font-size: 12px; color: var(--text-muted); text-align: right;">
+                        Solicitado em: ${date}
+                    </div>
+                </div>
+            `;
+            
+            // Actions footer
+            if (refund.status === 'pending' || refund.status === 'processing') {
+                document.getElementById('refundModalFooter').innerHTML = `
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="btn-secondary" onclick="updateRefundStatus(${refund.id}, 'processing'); closeRefundModal();">🔄 Marcar como Processando</button>
+                        <button class="btn-secondary" style="background: var(--danger);" onclick="updateRefundStatus(${refund.id}, 'rejected'); closeRefundModal();">❌ Rejeitar</button>
+                        <button class="btn-primary" onclick="updateRefundStatus(${refund.id}, 'approved'); closeRefundModal();">✅ Aprovar Reembolso</button>
+                    </div>
+                `;
+            } else {
+                document.getElementById('refundModalFooter').innerHTML = `
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="btn-secondary" onclick="closeRefundModal();">Fechar</button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('refundModal').style.display = 'flex';
+        }
+        
+        function closeRefundModal() {
+            document.getElementById('refundModal').style.display = 'none';
+        }
+        
+        async function updateRefundStatus(id, status) {
+            const notes = status === 'rejected' ? prompt('Motivo da rejeição (opcional):') : '';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/refunds/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status, notes })
+                });
+                
+                if (response.status === 401) { logout(); return; }
+                
+                if (response.ok) {
+                    const statusText = status === 'approved' ? 'aprovado' : status === 'rejected' ? 'rejeitado' : 'atualizado';
+                    showToast('Sucesso!', `Reembolso ${statusText} com sucesso`, 'success');
+                    loadRefunds();
+                } else {
+                    showToast('Erro', 'Falha ao atualizar reembolso', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating refund:', error);
+                showToast('Erro', 'Falha ao atualizar reembolso', 'error');
             }
         }
         
