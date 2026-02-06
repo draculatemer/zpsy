@@ -909,6 +909,108 @@ app.post('/api/postback/monetizze', async (req, res) => {
     }
 });
 
+// ==================== REFUND REQUESTS API ====================
+
+// Submit refund request (public)
+app.post('/api/refund', async (req, res) => {
+    try {
+        const {
+            fullName,
+            email,
+            phone,
+            countryCode,
+            purchaseDate,
+            product,
+            reason,
+            details,
+            protocol
+        } = req.body;
+
+        // Validation
+        if (!email || !fullName || !product || !reason) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const userAgent = req.headers['user-agent'] || null;
+
+        // Store refund request
+        await pool.query(`
+            INSERT INTO refund_requests (
+                protocol, full_name, email, phone, country_code,
+                purchase_date, product, reason, details,
+                ip_address, user_agent, status, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', NOW())
+        `, [
+            protocol,
+            fullName,
+            email,
+            phone,
+            countryCode,
+            purchaseDate,
+            product,
+            reason,
+            details,
+            ipAddress,
+            userAgent
+        ]);
+
+        console.log(`📥 Refund request received: ${protocol} - ${email} - ${product}`);
+
+        res.status(201).json({
+            success: true,
+            message: 'Refund request submitted successfully',
+            protocol
+        });
+
+    } catch (error) {
+        console.error('Error submitting refund:', error);
+        res.status(500).json({ error: 'Failed to submit refund request' });
+    }
+});
+
+// Get all refund requests (protected)
+app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * FROM refund_requests 
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `);
+
+        res.json({ refunds: result.rows });
+
+    } catch (error) {
+        console.error('Error fetching refunds:', error);
+        res.status(500).json({ error: 'Failed to fetch refund requests' });
+    }
+});
+
+// Update refund status (protected)
+app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, notes } = req.body;
+
+        const result = await pool.query(`
+            UPDATE refund_requests 
+            SET status = $1, admin_notes = $2, updated_at = NOW()
+            WHERE id = $3
+            RETURNING *
+        `, [status, notes, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Refund request not found' });
+        }
+
+        res.json({ success: true, refund: result.rows[0] });
+
+    } catch (error) {
+        console.error('Error updating refund:', error);
+        res.status(500).json({ error: 'Failed to update refund request' });
+    }
+});
+
 // Get transactions (protected)
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
@@ -1126,6 +1228,33 @@ async function initDatabase() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_email ON transactions(email);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at DESC);`);
+        
+        // Create refund_requests table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS refund_requests (
+                id SERIAL PRIMARY KEY,
+                protocol VARCHAR(50) UNIQUE NOT NULL,
+                full_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                country_code VARCHAR(10),
+                purchase_date DATE,
+                product VARCHAR(255),
+                reason VARCHAR(100),
+                details TEXT,
+                status VARCHAR(50) DEFAULT 'pending',
+                admin_notes TEXT,
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
+        // Create indexes for refund_requests
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_email ON refund_requests(email);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_status ON refund_requests(status);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_protocol ON refund_requests(protocol);`);
         
         console.log('✅ Database ready');
     } catch (error) {
