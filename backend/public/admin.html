@@ -161,7 +161,9 @@
         [data-theme="light"] .funnel-step-name,
         [data-theme="light"] .funnel-step-value { color: #ffffff; }
         
-        [data-theme="light"] .recovery-card { background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(220, 38, 38, 0.04)); border: 1px solid rgba(217, 119, 6, 0.25); }
+        [data-theme="light"] .recovery-card { background: linear-gradient(135deg, rgba(217, 119, 6, 0.12), rgba(220, 38, 38, 0.06)); border: 1px solid rgba(217, 119, 6, 0.3); }
+        [data-theme="light"] .recovery-stat { background: rgba(255, 255, 255, 0.8); border: 1px solid var(--border); }
+        [data-theme="light"] .recovery-stat-value { color: var(--warning); }
         
         [data-theme="light"] .quick-action { background: #ffffff; border: 1px solid var(--border); }
         [data-theme="light"] .quick-action:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
@@ -179,6 +181,82 @@
         [data-theme="light"] .login-wrapper { background: var(--bg-primary); }
         [data-theme="light"] .login-card { background: #ffffff; border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
         [data-theme="light"] .login-card::before { background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.3; }
+        
+        /* Light theme - Modal buttons */
+        [data-theme="light"] .modal-btn { font-weight: 700; }
+        [data-theme="light"] .modal-btn-handling { background: var(--purple); color: #ffffff; border: none; }
+        [data-theme="light"] .modal-btn-handling:hover { background: #6d28d9; }
+        [data-theme="light"] .modal-btn-processing { background: var(--info); color: #ffffff; border: none; }
+        [data-theme="light"] .modal-btn-processing:hover { background: #1d4ed8; }
+        [data-theme="light"] .modal-btn-reject { background: var(--danger); color: #ffffff; border: none; }
+        [data-theme="light"] .modal-btn-reject:hover { background: #b91c1c; }
+        [data-theme="light"] .modal-btn-approve { background: var(--success); color: #ffffff; border: none; }
+        [data-theme="light"] .modal-btn-approve:hover { background: #047857; }
+        
+        /* Light theme - Action buttons in table */
+        [data-theme="light"] .action-btn-view { background: var(--bg-tertiary); border: 1px solid var(--border); }
+        [data-theme="light"] .action-btn-approve { background: var(--success); color: #ffffff; }
+        [data-theme="light"] .action-btn-reject { background: var(--danger); color: #ffffff; }
+        
+        /* Light theme - Status badges with better contrast */
+        [data-theme="light"] .status-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        [data-theme="light"] .status-handling { background: #ede9fe; color: #5b21b6; border: 1px solid #8b5cf6; }
+        [data-theme="light"] .status-processing { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+        [data-theme="light"] .status-approved { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        [data-theme="light"] .status-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        
+        /* Light theme - Badges */
+        [data-theme="light"] .badge-new { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+        [data-theme="light"] .badge-contacted { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        [data-theme="light"] .badge-converted { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        [data-theme="light"] .badge-lost { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        [data-theme="light"] .badge-approved { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        [data-theme="light"] .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        [data-theme="light"] .badge-cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        
+        /* Light theme - Tags */
+        [data-theme="light"] .tag { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
+        [data-theme="light"] .tag.hot { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        [data-theme="light"] .tag.warm { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        [data-theme="light"] .tag.cold { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+        [data-theme="light"] .tag.abandoned { background: #ede9fe; color: #5b21b6; border: 1px solid #8b5cf6; }
+        
+        /* Light theme - Links */
+        [data-theme="light"] a { color: var(--accent); }
+        [data-theme="light"] .data-table a { color: var(--accent); font-weight: 600; }
+        [data-theme="light"] .data-table .mono { color: var(--accent); }
+        
+        /* Light theme - Nav badges */
+        [data-theme="light"] .nav-item-badge { background: var(--accent); color: #ffffff; }
+        [data-theme="light"] .nav-item-badge.warning { background: var(--warning); color: #ffffff; }
+        [data-theme="light"] .nav-item-badge.danger { background: var(--danger); color: #ffffff; }
+        
+        /* Light theme - Stat icons */
+        [data-theme="light"] .stat-icon { border: 1px solid var(--border); }
+        [data-theme="light"] .stat-icon.green { background: #d1fae5; }
+        [data-theme="light"] .stat-icon.blue { background: #dbeafe; }
+        [data-theme="light"] .stat-icon.yellow { background: #fef3c7; }
+        [data-theme="light"] .stat-icon.purple { background: #ede9fe; }
+        [data-theme="light"] .stat-icon.red { background: #fee2e2; }
+        [data-theme="light"] .stat-icon.orange { background: #ffedd5; }
+        
+        /* Light theme - Filter buttons */
+        [data-theme="light"] .btn-filter-refresh { background: var(--accent); color: #ffffff; border: none; }
+        [data-theme="light"] .btn-filter-refresh:hover { background: #047857; }
+        
+        /* Light theme - URL box */
+        [data-theme="light"] .url-box { background: #fef3c7; border: 1px solid #f59e0b; }
+        [data-theme="light"] .url-box code { color: #92400e; }
+        
+        /* Light theme - Template items */
+        [data-theme="light"] .template-item { background: #ffffff; border: 1px solid var(--border); }
+        [data-theme="light"] .template-item:hover { border-color: var(--accent); }
+        [data-theme="light"] .template-item.active { background: #d1fae5; border-color: var(--accent); }
+        
+        /* Light theme - Journey tags */
+        [data-theme="light"] .journey-tag { background: var(--bg-tertiary); color: var(--text-secondary); }
+        [data-theme="light"] .journey-tag.completed { background: #d1fae5; color: #065f46; }
+        [data-theme="light"] .journey-tag.checkout { background: #fef3c7; color: #92400e; }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
