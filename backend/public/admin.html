@@ -316,6 +316,22 @@
             color: var(--orange);
         }
         
+        /* Transaction Status Badges */
+        .status-approved {
+            background: rgba(37, 211, 102, 0.2);
+            color: var(--green);
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--orange);
+        }
+        
+        .status-cancelled, .status-refunded, .status-chargeback {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
+        
         @media (max-width: 1024px) {
             .funnel-container {
                 grid-template-columns: 1fr;
@@ -651,6 +667,7 @@
             <div class="tab-nav">
                 <button class="tab-btn active" onclick="switchTab('leads')">📋 Leads</button>
                 <button class="tab-btn" onclick="switchTab('funnel')">📊 Funil</button>
+                <button class="tab-btn" onclick="switchTab('sales')">💰 Vendas</button>
             </div>
             
             <!-- Tab: Leads -->
@@ -766,6 +783,71 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Tab: Vendas -->
+            <div class="tab-content" id="tab-sales">
+                <!-- Estatísticas de Vendas -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Vendas Aprovadas</h3>
+                        <div class="value green" id="salesApproved">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Faturamento</h3>
+                        <div class="value" id="salesRevenue">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Taxa de Conversão</h3>
+                        <div class="value" id="salesConversion">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Reembolsos/Chargebacks</h3>
+                        <div class="value" style="color: var(--red);" id="salesRefunded">-</div>
+                    </div>
+                </div>
+                
+                <!-- Info do Postback -->
+                <div class="table-container" style="margin-bottom: 24px; padding: 20px;">
+                    <h3 style="margin-bottom: 16px;">⚙️ Configuração do Postback Monetizze</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 12px;">Configure a URL abaixo no painel da Monetizze para receber notificações de vendas:</p>
+                    <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                        <code style="flex: 1; color: var(--green); word-break: break-all;" id="postbackUrl">-</code>
+                        <button class="btn-secondary" onclick="copyPostbackUrl()" style="white-space: nowrap;">📋 Copiar</button>
+                    </div>
+                    <p style="color: var(--text-muted); margin-top: 12px; font-size: 13px;">
+                        <strong>Instruções:</strong><br>
+                        1. Acesse Monetizze → Ferramentas → Postback<br>
+                        2. Cole a URL acima no campo "URL a ser executada"<br>
+                        3. Selecione todos os eventos (Finalizada, Cancelada, etc.)<br>
+                        4. Clique em "Testar" para verificar a conexão
+                    </p>
+                </div>
+                
+                <!-- Tabela de Transações -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>📦 Transações Monetizze</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Transação</th>
+                                <th>Cliente</th>
+                                <th>Email</th>
+                                <th>Produto</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Carregando transações...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
     
@@ -863,6 +945,8 @@
             
             if (tabName === 'funnel') {
                 loadFunnelData();
+            } else if (tabName === 'sales') {
+                loadSalesData();
             }
         }
         
@@ -1024,6 +1108,107 @@
             });
             
             document.getElementById('journeysTable').innerHTML = html;
+        }
+        
+        // ==================== VENDAS ====================
+        
+        // Carregar dados de vendas
+        async function loadSalesData() {
+            try {
+                // Set postback URL
+                document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
+                
+                // Load stats and transactions in parallel
+                const [statsResponse, transactionsResponse] = await Promise.all([
+                    fetch(`${API_URL}/api/admin/sales`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }),
+                    fetch(`${API_URL}/api/admin/transactions`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    })
+                ]);
+                
+                if (statsResponse.status === 401 || transactionsResponse.status === 401) {
+                    logout();
+                    return;
+                }
+                
+                const stats = await statsResponse.json();
+                const transactionsData = await transactionsResponse.json();
+                
+                renderSalesStats(stats);
+                renderTransactions(transactionsData.transactions);
+                
+            } catch (error) {
+                console.error('Erro ao carregar vendas:', error);
+            }
+        }
+        
+        // Renderizar estatísticas de vendas
+        function renderSalesStats(stats) {
+            document.getElementById('salesApproved').textContent = stats.approved.toLocaleString('pt-BR');
+            document.getElementById('salesRevenue').textContent = 'R$ ' + stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('salesConversion').textContent = stats.conversionRate + '%';
+            document.getElementById('salesRefunded').textContent = stats.refunded.toLocaleString('pt-BR');
+        }
+        
+        // Renderizar transações
+        function renderTransactions(transactions) {
+            if (!transactions || transactions.length === 0) {
+                document.getElementById('transactionsTable').innerHTML = '<tr><td colspan="7" class="empty-state">Nenhuma transação registrada. Configure o postback da Monetizze para começar a receber dados.</td></tr>';
+                return;
+            }
+            
+            const statusLabelsTransaction = {
+                'approved': 'Aprovada',
+                'pending_payment': 'Aguardando',
+                'cancelled': 'Cancelada',
+                'refunded': 'Reembolsada',
+                'chargeback': 'Chargeback',
+                'abandoned_checkout': 'Abandonado',
+                'blocked': 'Bloqueada',
+                'complete': 'Completa',
+                'subscription_active': 'Assinatura Ativa',
+                'subscription_cancelled': 'Assinatura Cancelada',
+                'subscription_overdue': 'Inadimplente',
+                'unknown': 'Desconhecido'
+            };
+            
+            let html = '';
+            transactions.forEach(t => {
+                const statusClass = t.status === 'approved' ? 'status-approved' : 
+                                   t.status === 'pending_payment' ? 'status-pending' : 
+                                   ['cancelled', 'refunded', 'chargeback'].includes(t.status) ? 'status-cancelled' : '';
+                
+                html += `<tr>
+                    <td style="font-family: monospace; font-size: 12px;">${t.transaction_id ? t.transaction_id.substring(0, 15) + '...' : '-'}</td>
+                    <td>${t.name || '-'}</td>
+                    <td>${t.email || '-'}</td>
+                    <td>${t.product || '-'}</td>
+                    <td style="color: var(--green);">R$ ${t.value || '0'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabelsTransaction[t.status] || t.status}</span></td>
+                    <td>${formatDate(t.created_at)}</td>
+                </tr>`;
+            });
+            
+            document.getElementById('transactionsTable').innerHTML = html;
+        }
+        
+        // Copiar URL do postback
+        function copyPostbackUrl() {
+            const url = document.getElementById('postbackUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copiada para a área de transferência!');
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('URL copiada!');
+            });
         }
         
         // Logout
