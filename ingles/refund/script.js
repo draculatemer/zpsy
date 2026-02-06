@@ -90,8 +90,13 @@ function initCountrySelector() {
             c.dial.includes(filter)
         );
 
+        if (filtered.length === 0) {
+            countryList.innerHTML = '<div class="no-results">No country found</div>';
+            return;
+        }
+
         countryList.innerHTML = filtered.map(country => `
-            <div class="country-item" data-code="${country.code}">
+            <div class="country-item ${country.code === selectedCountry.code ? 'selected' : ''}" data-code="${country.code}">
                 <span class="flag">${country.flag}</span>
                 <span class="name">${country.name}</span>
                 <span class="dial-code">${country.dial}</span>
@@ -103,7 +108,7 @@ function initCountrySelector() {
             item.addEventListener('click', function() {
                 const code = this.dataset.code;
                 selectCountry(code);
-                countryDropdown.classList.remove('active');
+                closeDropdown();
             });
         });
     }
@@ -116,15 +121,40 @@ function initCountrySelector() {
             <span class="code">${selectedCountry.dial}</span>
             <span class="arrow">▼</span>
         `;
+        // Re-render to update selected state
+        renderCountries(countrySearch.value);
+    }
+
+    // Open dropdown
+    function openDropdown() {
+        countryDropdown.classList.add('active');
+        countrySelector.classList.add('open');
+        countrySearch.value = '';
+        countrySearch.focus();
+        renderCountries();
+        
+        // Scroll to selected country
+        setTimeout(() => {
+            const selectedItem = countryList.querySelector('.country-item.selected');
+            if (selectedItem) {
+                selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }, 100);
+    }
+
+    // Close dropdown
+    function closeDropdown() {
+        countryDropdown.classList.remove('active');
+        countrySelector.classList.remove('open');
     }
 
     // Toggle dropdown
     selectedCountryEl.addEventListener('click', function(e) {
         e.stopPropagation();
-        countryDropdown.classList.toggle('active');
         if (countryDropdown.classList.contains('active')) {
-            countrySearch.focus();
-            renderCountries();
+            closeDropdown();
+        } else {
+            openDropdown();
         }
     });
 
@@ -133,10 +163,23 @@ function initCountrySelector() {
         renderCountries(this.value);
     });
 
+    // Keyboard navigation
+    countrySearch.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDropdown();
+        } else if (e.key === 'Enter') {
+            const firstItem = countryList.querySelector('.country-item');
+            if (firstItem) {
+                selectCountry(firstItem.dataset.code);
+                closeDropdown();
+            }
+        }
+    });
+
     // Close on outside click
     document.addEventListener('click', function(e) {
         if (!countrySelector.contains(e.target)) {
-            countryDropdown.classList.remove('active');
+            closeDropdown();
         }
     });
 
