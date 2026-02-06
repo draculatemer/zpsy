@@ -70,8 +70,22 @@ const authenticateToken = (req, res, next) => {
 // ==================== PUBLIC API ROUTES ====================
 
 // Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({ 
+        name: 'ZapSpy.ai API',
+        version: '1.0.0',
+        status: 'running',
+        admin: '/admin.html'
+    });
 });
 
 // Capture lead (from frontend form)
