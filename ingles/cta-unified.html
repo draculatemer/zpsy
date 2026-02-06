@@ -22,16 +22,20 @@
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '955477126807496');
+    fbq('init', '726299943423075');
     fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=955477126807496&ev=PageView&noscript=1"
+    /><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
 
     <!-- Enhanced Tracking -->
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
+    <script src="js/facebook-capi.js"></script>
     
     <!-- Email Capture Modal -->
     <script src="js/email-capture.js"></script>
@@ -2254,13 +2258,18 @@
         
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
-            // Track InitiateCheckout event
+            // Track InitiateCheckout event (Browser Pixel)
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'InitiateCheckout', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
                     value: 47.00
                 });
+            }
+            
+            // Track InitiateCheckout event (Server CAPI)
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackInitiateCheckout(47.00, 'ZapSpy.ai VIP Access');
             }
             
             // Track AddToCart for granular tracking
@@ -2370,8 +2379,13 @@
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track('checkout_50off_clicked', { discount: '50%' });
             }
+            // Browser Pixel
             if (typeof fbq !== 'undefined') {
-                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer' });
+                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
+            }
+            // Server CAPI
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackInitiateCheckout(23.50, '50% OFF Offer');
             }
             
             // Build checkout URL with user data

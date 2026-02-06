@@ -1,6 +1,7 @@
 /**
  * ZapSpy.ai Backend API
  * Lead capture and admin panel API
+ * With Facebook Conversions API integration
  */
 
 require('dotenv').config();
@@ -11,9 +12,126 @@ const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ==================== FACEBOOK CONVERSIONS API ====================
+
+// Pixel configurations (both pixels)
+const FB_PIXELS = [
+    {
+        id: '955477126807496',
+        token: process.env.FB_PIXEL_TOKEN_1 || 'EAALZCphpZCmcIBQlQHRs2JIRPdsRXG8RYa25OuW5yct9zASVIZAXUyhNPPc0yNdPl7bKNGZBldKM9HXSPuGaj1sggT3Ogco9PfSTDVf6wUNWguVEWLYdtvwpm98Qy0sd5gwvotspZBDyjxserjHVAMGFZAMeYC7aaanSIamK9OUQtRLWwjEpP28Cq5CydGZCoqPDwZDZD',
+        name: 'SPY INGLES 2026 - PABLO'
+    },
+    {
+        id: '726299943423075',
+        token: process.env.FB_PIXEL_TOKEN_2 || 'EAALZCphpZCmcIBQodgl2fJ81kKfOWRmhYmJPBVQSfOuBBbxfjOxg3HH6y03bqp8fAbZCoghz8d9HglfpbBeZBl7wTaBGvIWRqtNgoJCFz5lts434LKD5EhF26KZCFjICN9jwsEdDu4afDUYH8Ld5ZC9D8gRFq3Y884qotjlqIszrQAzZAju7qkt9OgMhX7X093PNQZDZD',
+        name: '[PABLO NOVO] - [SPY INGLES] - [2025]'
+    }
+];
+
+const FB_API_VERSION = 'v18.0';
+
+// Hash function for user data (required by Facebook)
+function hashData(data) {
+    if (!data) return null;
+    return crypto.createHash('sha256').update(data.toLowerCase().trim()).digest('hex');
+}
+
+// Normalize phone number for Facebook
+function normalizePhone(phone) {
+    if (!phone) return null;
+    // Remove all non-numeric characters
+    return phone.replace(/\D/g, '');
+}
+
+// Send event to Facebook Conversions API
+async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSourceUrl = null) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const eventId = `${eventName}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Build user_data object
+    const user_data = {};
+    
+    if (userData.email) {
+        user_data.em = [hashData(userData.email)];
+    }
+    if (userData.phone) {
+        user_data.ph = [hashData(normalizePhone(userData.phone))];
+    }
+    if (userData.firstName) {
+        user_data.fn = [hashData(userData.firstName.split(' ')[0])];
+    }
+    if (userData.lastName) {
+        user_data.ln = [hashData(userData.lastName || userData.firstName?.split(' ').slice(1).join(' '))];
+    }
+    if (userData.ip) {
+        user_data.client_ip_address = userData.ip;
+    }
+    if (userData.userAgent) {
+        user_data.client_user_agent = userData.userAgent;
+    }
+    if (userData.fbc) {
+        user_data.fbc = userData.fbc;
+    }
+    if (userData.fbp) {
+        user_data.fbp = userData.fbp;
+    }
+    
+    // Build event payload
+    const eventPayload = {
+        event_name: eventName,
+        event_time: timestamp,
+        event_id: eventId,
+        action_source: 'website',
+        user_data: user_data
+    };
+    
+    if (eventSourceUrl) {
+        eventPayload.event_source_url = eventSourceUrl;
+    }
+    
+    if (Object.keys(customData).length > 0) {
+        eventPayload.custom_data = customData;
+    }
+    
+    // Send to both pixels
+    const results = [];
+    
+    for (const pixel of FB_PIXELS) {
+        try {
+            const url = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}/events?access_token=${pixel.token}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: [eventPayload]
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                console.log(`✅ CAPI [${pixel.name}] ${eventName}: success (events_received: ${result.events_received || 1})`);
+                results.push({ pixel: pixel.id, success: true, result });
+            } else {
+                console.error(`❌ CAPI [${pixel.name}] ${eventName}: error`, result);
+                results.push({ pixel: pixel.id, success: false, error: result });
+            }
+        } catch (error) {
+            console.error(`❌ CAPI [${pixel.name}] ${eventName}: exception`, error.message);
+            results.push({ pixel: pixel.id, success: false, error: error.message });
+        }
+    }
+    
+    return results;
+}
 
 // Database connection
 const pool = new Pool({
@@ -98,7 +216,9 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             targetPhone,
             targetGender,
             referrer,
-            userAgent
+            userAgent,
+            fbc,  // Facebook click ID (from URL param or cookie)
+            fbp   // Facebook browser ID (from cookie)
         } = req.body;
         
         // Validation
@@ -108,16 +228,35 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         
         // Get IP address
         const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const ua = userAgent || req.headers['user-agent'];
         
         // Insert lead into database
         const result = await pool.query(
             `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, created_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
              RETURNING id, created_at`,
-            [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, userAgent || null]
+            [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null]
         );
         
         console.log(`New lead captured: ${name || 'No name'} - ${email} - ${whatsapp}`);
+        
+        // Send Lead event to Facebook Conversions API
+        try {
+            await sendToFacebookCAPI('Lead', {
+                email: email,
+                phone: whatsapp,
+                firstName: name,
+                ip: ipAddress,
+                userAgent: ua,
+                fbc: fbc,
+                fbp: fbp
+            }, {
+                content_name: 'Lead Capture Form',
+                content_category: 'Lead'
+            }, referrer);
+        } catch (capiError) {
+            console.error('CAPI Lead error (non-blocking):', capiError.message);
+        }
         
         res.status(201).json({
             success: true,
@@ -128,6 +267,70 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error capturing lead:', error);
         res.status(500).json({ error: 'Failed to capture lead' });
+    }
+});
+
+// ==================== FACEBOOK CAPI ENDPOINT ====================
+
+// Send event to Facebook CAPI (from frontend)
+app.post('/api/capi/event', async (req, res) => {
+    try {
+        const {
+            eventName,
+            email,
+            phone,
+            firstName,
+            lastName,
+            value,
+            currency,
+            contentName,
+            contentIds,
+            contentType,
+            fbc,
+            fbp,
+            eventSourceUrl
+        } = req.body;
+        
+        if (!eventName) {
+            return res.status(400).json({ error: 'eventName is required' });
+        }
+        
+        // Get IP and User Agent from request
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const userAgent = req.headers['user-agent'];
+        
+        // Build user data
+        const userData = {
+            email,
+            phone,
+            firstName,
+            lastName,
+            ip: ipAddress,
+            userAgent,
+            fbc,
+            fbp
+        };
+        
+        // Build custom data
+        const customData = {};
+        if (value) customData.value = parseFloat(value);
+        if (currency) customData.currency = currency;
+        if (contentName) customData.content_name = contentName;
+        if (contentIds) customData.content_ids = Array.isArray(contentIds) ? contentIds : [contentIds];
+        if (contentType) customData.content_type = contentType;
+        
+        // Send to Facebook CAPI
+        const results = await sendToFacebookCAPI(eventName, userData, customData, eventSourceUrl);
+        
+        res.json({ 
+            success: true, 
+            message: `Event ${eventName} sent to CAPI`,
+            results 
+        });
+        
+    } catch (error) {
+        console.error('CAPI endpoint error:', error);
+        res.status(500).json({ error: 'Failed to send event' });
     }
 });
 
@@ -580,6 +783,7 @@ app.post('/api/postback/monetizze', async (req, res) => {
         const buyerPhone = telefone || comprador?.telefone;
         const buyerName = nome || comprador?.nome;
         const productName = typeof produto === 'object' ? produto.nome : produto;
+        const productCode = typeof produto === 'object' ? produto.codigo : null;
         const transactionValue = valor || venda?.valor;
         
         // Store transaction in database
@@ -627,6 +831,53 @@ app.post('/api/postback/monetizze', async (req, res) => {
             } else {
                 console.log(`⚠️ No matching lead found for: ${buyerEmail}`);
             }
+        }
+        
+        // ==================== FACEBOOK CONVERSIONS API EVENTS ====================
+        
+        // User data for Facebook CAPI
+        const fbUserData = {
+            email: buyerEmail,
+            phone: buyerPhone,
+            firstName: buyerName
+        };
+        
+        // Custom data for Facebook CAPI
+        const fbCustomData = {
+            content_name: productName,
+            content_ids: [productCode || chave_unica],
+            content_type: 'product',
+            value: parseFloat(transactionValue) || 0,
+            currency: 'BRL'
+        };
+        
+        try {
+            // Status 5 = Abandono de Checkout -> InitiateCheckout event
+            if (status === '5') {
+                console.log('📤 Sending InitiateCheckout to Facebook CAPI...');
+                await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
+            }
+            
+            // Status 1 = Aguardando pagamento -> Also InitiateCheckout (they started checkout)
+            if (status === '1') {
+                console.log('📤 Sending InitiateCheckout (pending) to Facebook CAPI...');
+                await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
+            }
+            
+            // Status 2 = Aprovada -> Purchase event
+            if (status === '2') {
+                console.log('📤 Sending Purchase to Facebook CAPI...');
+                await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData);
+            }
+            
+            // Status 4 = Refund -> Refund event (custom)
+            if (status === '4') {
+                console.log('📤 Sending Refund to Facebook CAPI...');
+                await sendToFacebookCAPI('Refund', fbUserData, fbCustomData);
+            }
+            
+        } catch (capiError) {
+            console.error('CAPI error (non-blocking):', capiError.message);
         }
         
         // Return success (Monetizze expects 200 OK)

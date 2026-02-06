@@ -1,0 +1,17 @@
+# Arquivos de configuração com credenciais
+db-config.php
+
+# Logs
+*.log
+ac-error.log
+ac-success.log
+
+# Arquivos temporários
+*.tmp
+*.bak
+*~
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+

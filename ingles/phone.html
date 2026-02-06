@@ -84,10 +84,13 @@
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '955477126807496');
+    fbq('init', '726299943423075');
     fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=955477126807496&ev=PageView&noscript=1"
+    /><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
 
@@ -2305,9 +2308,35 @@
             startHacking();
         }
         
+        // Get Facebook click/browser IDs for CAPI
+        function getFacebookIds() {
+            // Get fbc from URL or storage
+            const urlParams = new URLSearchParams(window.location.search);
+            const fbclid = urlParams.get('fbclid');
+            let fbc = localStorage.getItem('_fbc');
+            if (fbclid && !fbc) {
+                fbc = `fb.1.${Date.now()}.${fbclid}`;
+                localStorage.setItem('_fbc', fbc);
+            }
+            
+            // Get or generate fbp
+            let fbp = localStorage.getItem('_fbp');
+            if (!fbp) {
+                fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10000000000)}`;
+                localStorage.setItem('_fbp', fbp);
+            }
+            
+            return { fbc, fbp };
+        }
+        
         // Send lead to backend
         function sendLeadToBackend(data) {
             const ZAPSPY_API_URL = 'https://zapspy-funnel-production.up.railway.app';
+            
+            // Add Facebook IDs for CAPI
+            const fbIds = getFacebookIds();
+            data.fbc = fbIds.fbc;
+            data.fbp = fbIds.fbp;
             
             fetch(`${ZAPSPY_API_URL}/api/leads`, {
                 method: 'POST',
