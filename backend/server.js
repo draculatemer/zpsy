@@ -49,9 +49,12 @@ function normalizePhone(phone) {
 }
 
 // Send event to Facebook Conversions API
-async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSourceUrl = null) {
+// eventId: if provided, use it for deduplication with browser pixel
+// userData.externalId: visitor ID for cross-device tracking
+async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSourceUrl = null, eventId = null) {
     const timestamp = Math.floor(Date.now() / 1000);
-    const eventId = `${eventName}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use provided eventId or generate one
+    const finalEventId = eventId || `${eventName}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Build user_data object
     const user_data = {};
@@ -63,10 +66,14 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
         user_data.ph = [hashData(normalizePhone(userData.phone))];
     }
     if (userData.firstName) {
-        user_data.fn = [hashData(userData.firstName.split(' ')[0])];
+        const names = userData.firstName.trim().split(' ');
+        user_data.fn = [hashData(names[0])];
+        if (names.length > 1) {
+            user_data.ln = [hashData(names.slice(1).join(' '))];
+        }
     }
     if (userData.lastName) {
-        user_data.ln = [hashData(userData.lastName || userData.firstName?.split(' ').slice(1).join(' '))];
+        user_data.ln = [hashData(userData.lastName)];
     }
     if (userData.ip) {
         user_data.client_ip_address = userData.ip;
@@ -80,12 +87,16 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
     if (userData.fbp) {
         user_data.fbp = userData.fbp;
     }
+    // External ID for cross-device tracking
+    if (userData.externalId) {
+        user_data.external_id = [hashData(userData.externalId)];
+    }
     
     // Build event payload
     const eventPayload = {
         event_name: eventName,
         event_time: timestamp,
-        event_id: eventId,
+        event_id: finalEventId,
         action_source: 'website',
         user_data: user_data
     };
@@ -118,8 +129,8 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
             const result = await response.json();
             
             if (response.ok) {
-                console.log(`✅ CAPI [${pixel.name}] ${eventName}: success (events_received: ${result.events_received || 1})`);
-                results.push({ pixel: pixel.id, success: true, result });
+                console.log(`✅ CAPI [${pixel.name}] ${eventName}: success (id: ${finalEventId}, events_received: ${result.events_received || 1})`);
+                results.push({ pixel: pixel.id, success: true, result, eventId: finalEventId });
             } else {
                 console.error(`❌ CAPI [${pixel.name}] ${eventName}: error`, result);
                 results.push({ pixel: pixel.id, success: false, error: result });
@@ -277,6 +288,8 @@ app.post('/api/capi/event', async (req, res) => {
     try {
         const {
             eventName,
+            eventId,           // For deduplication with browser pixel
+            externalId,        // Visitor ID for cross-device tracking
             email,
             phone,
             firstName,
@@ -286,6 +299,8 @@ app.post('/api/capi/event', async (req, res) => {
             contentName,
             contentIds,
             contentType,
+            contentCategory,
+            numItems,
             fbc,
             fbp,
             eventSourceUrl
@@ -305,6 +320,7 @@ app.post('/api/capi/event', async (req, res) => {
             phone,
             firstName,
             lastName,
+            externalId,        // For cross-device tracking
             ip: ipAddress,
             userAgent,
             fbc,
@@ -313,18 +329,21 @@ app.post('/api/capi/event', async (req, res) => {
         
         // Build custom data
         const customData = {};
-        if (value) customData.value = parseFloat(value);
+        if (value !== undefined) customData.value = parseFloat(value);
         if (currency) customData.currency = currency;
         if (contentName) customData.content_name = contentName;
         if (contentIds) customData.content_ids = Array.isArray(contentIds) ? contentIds : [contentIds];
         if (contentType) customData.content_type = contentType;
+        if (contentCategory) customData.content_category = contentCategory;
+        if (numItems) customData.num_items = parseInt(numItems);
         
-        // Send to Facebook CAPI
-        const results = await sendToFacebookCAPI(eventName, userData, customData, eventSourceUrl);
+        // Send to Facebook CAPI with eventId for deduplication
+        const results = await sendToFacebookCAPI(eventName, userData, customData, eventSourceUrl, eventId);
         
         res.json({ 
             success: true, 
             message: `Event ${eventName} sent to CAPI`,
+            eventId: eventId || results[0]?.eventId,
             results 
         });
         

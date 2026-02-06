@@ -93,6 +93,16 @@
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Phone Capture');
+            }
+        });
+    </script>
 
     <style>
         * {

@@ -56,6 +56,17 @@
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                // Track ViewContent via CAPI (browser already tracked above)
+                FacebookCAPI.trackViewContent('Conversations List', 'Funnel Step', 0);
+            }
+        });
+    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap');

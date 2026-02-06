@@ -52,6 +52,17 @@
     <!-- Enhanced Tracking -->
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                // Track ViewContent via CAPI (browser already tracked above)
+                FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 0);
+            }
+        });
+    </script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }

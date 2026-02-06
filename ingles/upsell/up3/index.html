@@ -41,6 +41,17 @@
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="../../js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Upsell 3 - Instant Access');
+            }
+        });
+    </script>
+    
     <meta name="description" content="Skip the line and get instant access to deleted messages, photos, and real-time locations.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">

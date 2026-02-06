@@ -53,6 +53,13 @@
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
     <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('CTA Page');
+            }
+        });
+    </script>
     
     <!-- Email Capture Modal -->
     <script src="js/email-capture.js"></script>
@@ -2275,18 +2282,16 @@
         
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
-            // Track InitiateCheckout event (Browser Pixel)
-            if (typeof fbq !== 'undefined') {
+            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackInitiateCheckout(47.00, 'ZapSpy.ai VIP Access');
+            } else if (typeof fbq !== 'undefined') {
+                // Fallback to browser only
                 fbq('track', 'InitiateCheckout', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
                     value: 47.00
                 });
-            }
-            
-            // Track InitiateCheckout event (Server CAPI)
-            if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackInitiateCheckout(47.00, 'ZapSpy.ai VIP Access');
             }
             
             // Track AddToCart for granular tracking
@@ -2396,13 +2401,11 @@
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track('checkout_50off_clicked', { discount: '50%' });
             }
-            // Browser Pixel
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
-            }
-            // Server CAPI
+            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.trackInitiateCheckout(23.50, '50% OFF Offer');
+            } else if (typeof fbq !== 'undefined') {
+                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
             }
             
             // Build checkout URL with user data
