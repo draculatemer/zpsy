@@ -337,6 +337,127 @@ app.get('/admin', (req, res) => {
     res.sendFile(__dirname + '/public/admin.html');
 });
 
+// ==================== FUNNEL TRACKING API ====================
+
+// Track funnel event (public - no auth required)
+app.post('/api/track', async (req, res) => {
+    try {
+        const {
+            visitorId,
+            event,
+            page,
+            targetPhone,
+            targetGender,
+            metadata
+        } = req.body;
+        
+        if (!visitorId || !event) {
+            return res.status(400).json({ error: 'visitorId and event are required' });
+        }
+        
+        const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const userAgent = req.headers['user-agent'] || null;
+        
+        await pool.query(
+            `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, metadata, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+            [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, JSON.stringify(metadata || {})]
+        );
+        
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Error tracking event:', error);
+        res.status(500).json({ error: 'Failed to track event' });
+    }
+});
+
+// Get funnel analytics (protected)
+app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
+    try {
+        // Get funnel stats by step
+        const funnelStats = await pool.query(`
+            SELECT 
+                event,
+                COUNT(DISTINCT visitor_id) as unique_visitors,
+                COUNT(*) as total_events
+            FROM funnel_events
+            WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+            GROUP BY event
+            ORDER BY 
+                CASE event
+                    WHEN 'page_view_landing' THEN 1
+                    WHEN 'page_view_phone' THEN 2
+                    WHEN 'phone_submitted' THEN 3
+                    WHEN 'page_view_conversas' THEN 4
+                    WHEN 'page_view_chat' THEN 5
+                    WHEN 'page_view_cta' THEN 6
+                    WHEN 'email_captured' THEN 7
+                    WHEN 'checkout_clicked' THEN 8
+                    ELSE 9
+                END
+        `);
+        
+        // Get daily funnel data
+        const dailyStats = await pool.query(`
+            SELECT 
+                DATE(created_at) as date,
+                event,
+                COUNT(DISTINCT visitor_id) as unique_visitors
+            FROM funnel_events
+            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            GROUP BY DATE(created_at), event
+            ORDER BY date DESC, event
+        `);
+        
+        // Get visitor journeys (last 50)
+        const journeys = await pool.query(`
+            SELECT 
+                visitor_id,
+                target_phone,
+                target_gender,
+                array_agg(event ORDER BY created_at) as events,
+                MIN(created_at) as first_seen,
+                MAX(created_at) as last_seen,
+                COUNT(*) as total_events
+            FROM funnel_events
+            GROUP BY visitor_id, target_phone, target_gender
+            ORDER BY MAX(created_at) DESC
+            LIMIT 50
+        `);
+        
+        res.json({
+            funnelStats: funnelStats.rows,
+            dailyStats: dailyStats.rows,
+            journeys: journeys.rows
+        });
+        
+    } catch (error) {
+        console.error('Error fetching funnel data:', error);
+        res.status(500).json({ error: 'Failed to fetch funnel data' });
+    }
+});
+
+// Get specific visitor journey (protected)
+app.get('/api/admin/funnel/visitor/:visitorId', authenticateToken, async (req, res) => {
+    try {
+        const { visitorId } = req.params;
+        
+        const events = await pool.query(`
+            SELECT *
+            FROM funnel_events
+            WHERE visitor_id = $1
+            ORDER BY created_at ASC
+        `, [visitorId]);
+        
+        res.json({ events: events.rows });
+        
+    } catch (error) {
+        console.error('Error fetching visitor journey:', error);
+        res.status(500).json({ error: 'Failed to fetch visitor journey' });
+    }
+});
+
 // Auto-migrate database on startup
 async function initDatabase() {
     try {
@@ -359,6 +480,27 @@ async function initDatabase() {
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        
+        // Create funnel_events table for tracking
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS funnel_events (
+                id SERIAL PRIMARY KEY,
+                visitor_id VARCHAR(100) NOT NULL,
+                event VARCHAR(100) NOT NULL,
+                page VARCHAR(100),
+                target_phone VARCHAR(50),
+                target_gender VARCHAR(20),
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                metadata JSONB DEFAULT '{}',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
+        // Create indexes for funnel_events
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_visitor ON funnel_events(visitor_id);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_event ON funnel_events(event);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_created ON funnel_events(created_at DESC);`);
         
         // Create indexes
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);`);

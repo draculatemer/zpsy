@@ -32,6 +32,9 @@
     <!-- Enhanced Tracking -->
     <script src="js/tracking.js"></script>
     
+    <!-- Funnel Tracking -->
+    <script src="js/funnel-tracking.js"></script>
+    
     <!-- Matrix Effect -->
     <script src="js/matrix.js"></script>
 
@@ -677,6 +680,11 @@
             
             // Store gender
             localStorage.setItem('targetGender', gender);
+            
+            // Track gender selection in funnel
+            if (typeof FunnelTracker !== 'undefined') {
+                FunnelTracker.track(FunnelTracker.events.GENDER_SELECTED, { gender: gender });
+            }
         }
 
         function startSpy() {

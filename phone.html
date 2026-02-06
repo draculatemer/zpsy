@@ -17,6 +17,7 @@
     
     <!-- Enhanced Tracking -->
     <script src="js/tracking.js"></script>
+    <script src="js/funnel-tracking.js"></script>
     
     <!-- Matrix Effect -->
     <script src="js/matrix.js"></script>
@@ -1871,6 +1872,11 @@
             localStorage.setItem('funnelProgress', 'confirmation');
             if (profilePictureUrl) {
                 localStorage.setItem('targetAvatar', profilePictureUrl);
+            }
+            
+            // Track phone submitted in funnel
+            if (typeof FunnelTracker !== 'undefined') {
+                FunnelTracker.track(FunnelTracker.events.PHONE_SUBMITTED);
             }
 
             // Show confirmation screen

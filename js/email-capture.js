@@ -374,6 +374,11 @@ const EmailCapture = {
                 });
             }
             
+            // Track in funnel
+            if (typeof FunnelTracker !== 'undefined') {
+                FunnelTracker.track(FunnelTracker.events.EMAIL_CAPTURED);
+            }
+            
             // Close modal
             modal.remove();
             this.modalShown = false;
