@@ -3,7 +3,8 @@
  * Run this to create/update tables
  * 
  * v1: Initial leads table
- * v2: Added name and funnel_language columns
+ * v2: Added name and funnel_language columns to leads
+ * v3: Added funnel_language column to transactions
  */
 
 require('dotenv').config();
@@ -67,6 +68,20 @@ async function migrate() {
             CREATE INDEX IF NOT EXISTS idx_leads_funnel_language ON leads(funnel_language);
         `);
         console.log('✅ Indexes created/verified');
+        
+        // Migration v3: Add funnel_language column to transactions if not exists
+        try {
+            await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10) DEFAULT 'en';`);
+            console.log('✅ Column "funnel_language" added/verified in transactions');
+        } catch (e) {
+            console.log('ℹ️ Column "funnel_language" in transactions already exists or cannot be added');
+        }
+        
+        // Create index for transactions funnel_language
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_transactions_funnel_language ON transactions(funnel_language);
+        `);
+        console.log('✅ Transactions indexes created/verified');
         
         console.log('');
         console.log('🎉 Migration completed successfully!');

@@ -670,6 +670,17 @@ app.post('/api/track', async (req, res) => {
 // Get funnel analytics (protected)
 app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
     try {
+        const { language } = req.query;
+        
+        // Build language filter condition
+        // The metadata column stores JSON with funnelLanguage field
+        let langCondition = '';
+        let langParams = [];
+        if (language === 'en' || language === 'es') {
+            langCondition = `AND (metadata->>'funnelLanguage' = $1 OR (metadata->>'funnelLanguage' IS NULL AND $1 = 'en'))`;
+            langParams = [language];
+        }
+        
         // Get funnel stats by step
         const funnelStats = await pool.query(`
             SELECT 
@@ -678,6 +689,7 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 COUNT(*) as total_events
             FROM funnel_events
             WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+            ${langCondition}
             GROUP BY event
             ORDER BY 
                 CASE event
@@ -700,7 +712,7 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                     WHEN 'thankyou_view' THEN 17
                     ELSE 99
                 END
-        `);
+        `, langParams);
         
         // Get daily funnel data
         const dailyStats = await pool.query(`
@@ -710,9 +722,10 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 COUNT(DISTINCT visitor_id) as unique_visitors
             FROM funnel_events
             WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            ${langCondition}
             GROUP BY DATE(created_at), event
             ORDER BY date DESC, event
-        `);
+        `, langParams);
         
         // Get visitor journeys (last 50)
         const journeys = await pool.query(`
@@ -725,15 +738,17 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 MAX(created_at) as last_seen,
                 COUNT(*) as total_events
             FROM funnel_events
+            WHERE 1=1 ${langCondition}
             GROUP BY visitor_id, target_phone, target_gender
             ORDER BY MAX(created_at) DESC
             LIMIT 50
-        `);
+        `, langParams);
         
         res.json({
             funnelStats: funnelStats.rows,
             dailyStats: dailyStats.rows,
-            journeys: journeys.rows
+            journeys: journeys.rows,
+            language: language || 'all'
         });
         
     } catch (error) {
@@ -873,20 +888,41 @@ app.post('/api/postback/monetizze', async (req, res) => {
         const buyerPhone = telefone || comprador?.telefone;
         const buyerName = nome || comprador?.nome;
         const productName = typeof produto === 'object' ? produto.nome : produto;
-        const productCode = typeof produto === 'object' ? produto.codigo : null;
+        const productCode = typeof produto === 'object' ? (produto.codigo || produto.id) : null;
         const transactionValue = valor || venda?.valor;
         
-        // Store transaction in database
+        // Determine funnel language based on product code
+        // Spanish product codes (Monetizze IDs):
+        // - KCH455963: X Ai - Detector de Infidelidad (Front)
+        // - KMS455971: X Ai - Detector de Infidelidad 50% OFF
+        // - 455966 / up1: X Ai - Recuperación Total
+        // - 455968 / up2: X Ai - Visión Total
+        // - 455970 / up3: X Ai - VIP Sin Esperas
+        // Spanish product names contain: "Infidelidad", "Recuperación", "Visión", "VIP Sin Esperas"
+        const spanishProductCodes = ['455963', '455971', '455966', '455968', '455970', 'KCH455963', 'KMS455971'];
+        const spanishProductKeywords = ['Infidelidad', 'Recuperación', 'Visión Total', 'VIP Sin Esperas'];
+        
+        let funnelLanguage = 'en'; // default to English
+        if (productCode && spanishProductCodes.some(code => String(productCode).includes(code))) {
+            funnelLanguage = 'es';
+        } else if (productName && spanishProductKeywords.some(kw => productName.includes(kw))) {
+            funnelLanguage = 'es';
+        }
+        
+        console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode})`);
+        
+        // Store transaction in database with funnel_language
         await pool.query(`
             INSERT INTO transactions (
                 transaction_id, email, phone, name, product, value, 
-                monetizze_status, status, raw_data, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+                monetizze_status, status, raw_data, funnel_language, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
             ON CONFLICT (transaction_id) 
             DO UPDATE SET 
                 monetizze_status = $7,
                 status = $8,
                 raw_data = $9,
+                funnel_language = $10,
                 updated_at = NOW()
         `, [
             chave_unica,
@@ -897,7 +933,8 @@ app.post('/api/postback/monetizze', async (req, res) => {
             transactionValue,
             status,
             mappedStatus,
-            JSON.stringify(req.body)
+            JSON.stringify(req.body),
+            funnelLanguage
         ]);
         
         // Try to match with existing lead and update status
@@ -1085,13 +1122,21 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
 // Get transactions (protected)
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT * FROM transactions 
-            ORDER BY created_at DESC 
-            LIMIT 100
-        `);
+        const { language } = req.query;
         
-        res.json({ transactions: result.rows });
+        let query = `SELECT * FROM transactions`;
+        let params = [];
+        
+        if (language === 'en' || language === 'es') {
+            query += ` WHERE (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))`;
+            params = [language];
+        }
+        
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        
+        const result = await pool.query(query, params);
+        
+        res.json({ transactions: result.rows, language: language || 'all' });
         
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -1125,26 +1170,36 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
+        const { language } = req.query;
+        
+        // Build language filter
+        let langCondition = '';
+        let langParams = [];
+        if (language === 'en' || language === 'es') {
+            langCondition = `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))`;
+            langParams = [language];
+        }
+        
         const [totalResult, approvedResult, refundedResult, revenueResult] = await Promise.all([
-            pool.query('SELECT COUNT(*) FROM transactions'),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved'`),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback')`),
-            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved'`)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE 1=1 ${langCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}`, langParams),
+            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}`, langParams)
         ]);
         
         // Get today and this week
         const [todayResult, weekResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE`),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days'`)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE ${langCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}`, langParams)
         ]);
         
-        // Calculate conversion rate (leads -> sales)
-        const leadsCount = await pool.query('SELECT COUNT(*) FROM leads');
+        // Calculate conversion rate (leads -> sales) - also filtered by language
+        const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${language ? `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))` : ''}`, langParams);
         const conversionRate = parseInt(leadsCount.rows[0].count) > 0 
             ? ((parseInt(approvedResult.rows[0].count) / parseInt(leadsCount.rows[0].count)) * 100).toFixed(2)
             : 0;
         
-        // Get stats by product
+        // Get stats by product (filtered)
         const productStats = await pool.query(`
             SELECT 
                 product,
@@ -1153,43 +1208,67 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
                 COALESCE(SUM(CAST(value AS DECIMAL)) FILTER (WHERE status = 'approved'), 0) as revenue,
                 COUNT(*) as total
             FROM transactions
-            WHERE product IS NOT NULL
+            WHERE product IS NOT NULL ${langCondition}
             GROUP BY product
             ORDER BY approved DESC
-        `);
+        `, langParams);
         
-        // Calculate upsell take rates
-        // Front: X AI Monitor (341972)
+        // Calculate upsell take rates based on language
+        // English products
+        const enFrontKeywords = "product ILIKE '%Monitor%' OR product ILIKE '%341972%'";
+        const enUp1Keywords = "product ILIKE '%Message Vault%' OR product ILIKE '%349241%'";
+        const enUp2Keywords = "product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%'";
+        const enUp3Keywords = "product ILIKE '%Instant Access%' OR product ILIKE '%349243%'";
+        
+        // Spanish products
+        const esFrontKeywords = "product ILIKE '%Infidelidad%' OR product ILIKE '%455963%' OR product ILIKE '%455971%'";
+        const esUp1Keywords = "product ILIKE '%Recuperación%' OR product ILIKE '%455966%'";
+        const esUp2Keywords = "product ILIKE '%Visión Total%' OR product ILIKE '%455968%'";
+        const esUp3Keywords = "product ILIKE '%VIP Sin Esperas%' OR product ILIKE '%455970%'";
+        
+        // Select keywords based on language filter
+        let frontKeywords, up1Keywords, up2Keywords, up3Keywords;
+        if (language === 'es') {
+            frontKeywords = esFrontKeywords;
+            up1Keywords = esUp1Keywords;
+            up2Keywords = esUp2Keywords;
+            up3Keywords = esUp3Keywords;
+        } else if (language === 'en') {
+            frontKeywords = enFrontKeywords;
+            up1Keywords = enUp1Keywords;
+            up2Keywords = enUp2Keywords;
+            up3Keywords = enUp3Keywords;
+        } else {
+            // All languages - combine both
+            frontKeywords = `(${enFrontKeywords}) OR (${esFrontKeywords})`;
+            up1Keywords = `(${enUp1Keywords}) OR (${esUp1Keywords})`;
+            up2Keywords = `(${enUp2Keywords}) OR (${esUp2Keywords})`;
+            up3Keywords = `(${enUp3Keywords}) OR (${esUp3Keywords})`;
+        }
+        
         const frontSales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' 
-            AND (product ILIKE '%Monitor%' OR product ILIKE '%341972%')
-        `);
+            WHERE status = 'approved' AND (${frontKeywords}) ${langCondition}
+        `, langParams);
         
-        // Upsell 1: X Ai - Message Vault (349241)
         const upsell1Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' 
-            AND (product ILIKE '%Message Vault%' OR product ILIKE '%349241%')
-        `);
+            WHERE status = 'approved' AND (${up1Keywords}) ${langCondition}
+        `, langParams);
         
-        // Upsell 2: X Ai - 360° Tracker (349242)
         const upsell2Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' 
-            AND (product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%')
-        `);
+            WHERE status = 'approved' AND (${up2Keywords}) ${langCondition}
+        `, langParams);
         
-        // Upsell 3: X Ai - Instant Access (349243)
         const upsell3Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' 
-            AND (product ILIKE '%Instant Access%' OR product ILIKE '%349243%')
-        `);
+            WHERE status = 'approved' AND (${up3Keywords}) ${langCondition}
+        `, langParams);
         
         const frontCount = parseInt(frontSales.rows[0].count) || 0;
         const up1Count = parseInt(upsell1Sales.rows[0].count) || 0;
@@ -1205,6 +1284,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             thisWeek: parseInt(weekResult.rows[0].count),
             conversionRate: parseFloat(conversionRate),
             byProduct: productStats.rows,
+            language: language || 'all',
             upsellStats: {
                 front: frontCount,
                 upsell1: up1Count,
