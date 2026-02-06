@@ -323,8 +323,45 @@ app.get('/admin', (req, res) => {
     res.sendFile(__dirname + '/public/admin.html');
 });
 
+// Auto-migrate database on startup
+async function initDatabase() {
+    try {
+        console.log('🔄 Checking database...');
+        
+        // Create leads table if not exists
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS leads (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) NOT NULL,
+                whatsapp VARCHAR(50) NOT NULL,
+                target_phone VARCHAR(50),
+                target_gender VARCHAR(20),
+                status VARCHAR(50) DEFAULT 'new',
+                notes TEXT,
+                ip_address VARCHAR(45),
+                referrer TEXT,
+                user_agent TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
+        // Create indexes
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);`);
+        
+        console.log('✅ Database ready');
+    } catch (error) {
+        console.error('❌ Database init error:', error.message);
+    }
+}
+
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 ZapSpy API running on port ${PORT}`);
     console.log(`📊 Admin panel: http://localhost:${PORT}/admin`);
+    
+    // Initialize database
+    await initDatabase();
 });
