@@ -956,10 +956,11 @@
                                     <th>Valor</th>
                                     <th>Status</th>
                                     <th>Data</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="transactionsTable">
-                                <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3><p>Configure o postback nas configurações.</p></div></td></tr>
+                                <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3><p>Configure o postback nas configurações.</p></div></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1738,14 +1739,46 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderTransactions(transactions) {
-            if (!transactions?.length) { document.getElementById('transactionsTable').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3></div></td></tr>'; return; }
+            if (!transactions?.length) { document.getElementById('transactionsTable').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3></div></td></tr>'; return; }
             const statusLabelsT = { 'approved': 'Aprovada', 'pending_payment': 'Aguardando', 'cancelled': 'Cancelada', 'refunded': 'Reembolsada' };
             let html = '';
             transactions.forEach(t => {
                 const badgeClass = t.status === 'approved' ? 'badge-approved' : t.status === 'pending_payment' ? 'badge-pending' : 'badge-cancelled';
-                html += `<tr><td class="mono">${t.transaction_id?.substring(0, 12) || '-'}...</td><td>${t.name || '-'}</td><td>${t.email || '-'}</td><td>${t.product || '-'}</td><td style="color:var(--accent-light)">R$ ${t.value || '0'}</td><td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusLabelsT[t.status] || t.status}</span></td><td>${formatDate(t.created_at)}</td></tr>`;
+                html += `<tr>
+                    <td class="mono">${t.transaction_id?.substring(0, 12) || '-'}...</td>
+                    <td>${t.name || '-'}</td>
+                    <td>${t.email || '-'}</td>
+                    <td>${t.product || '-'}</td>
+                    <td style="color:var(--accent-light)">R$ ${t.value || '0'}</td>
+                    <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusLabelsT[t.status] || t.status}</span></td>
+                    <td>${formatDate(t.created_at)}</td>
+                    <td><button class="action-btn danger" onclick="deleteTransaction(${t.id}, '${(t.product || '').replace(/'/g, "\\'")}' )" title="Deletar">🗑️</button></td>
+                </tr>`;
             });
             document.getElementById('transactionsTable').innerHTML = html;
+        }
+        
+        async function deleteTransaction(id, productName) {
+            if (!confirm(`Tem certeza que deseja deletar a transação do produto "${productName}"?`)) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/transactions/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401) { logout(); return; }
+                
+                if (response.ok) {
+                    showToast('Deletado!', 'Transação removida com sucesso', 'success');
+                    loadSalesData();
+                } else {
+                    showToast('Erro', 'Falha ao deletar transação', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                showToast('Erro', 'Falha ao deletar transação', 'error');
+            }
         }
         
         // Export

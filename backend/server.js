@@ -622,6 +622,29 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     }
 });
 
+// Delete transaction (protected)
+app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const result = await pool.query(
+            'DELETE FROM transactions WHERE id = $1 RETURNING *',
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+        
+        console.log(`Transaction deleted: ${id}`);
+        res.json({ success: true, message: 'Transaction deleted' });
+        
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        res.status(500).json({ error: 'Failed to delete transaction' });
+    }
+});
+
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
