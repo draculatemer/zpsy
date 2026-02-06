@@ -2277,8 +2277,20 @@
                 FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
             }
             
+            // Build checkout URL with user data
+            let checkoutUrl = 'https://pay.monetizze.com.br/KKM446018?utm_source=zapspy&utm_medium=funnel&utm_campaign=' + utmCampaign;
+            
+            // Add user data from localStorage to pre-fill Monetizze checkout
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            const userWhatsApp = localStorage.getItem('userWhatsApp');
+            
+            if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
+            if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
+            if (userWhatsApp) checkoutUrl += '&telefone=' + encodeURIComponent(userWhatsApp);
+            
             // Redirect to checkout
-            window.location.href = 'https://pay.monetizze.com.br/KKM446018?utm_source=zapspy&utm_medium=funnel&utm_campaign=' + utmCampaign;
+            window.location.href = checkoutUrl;
         }
 
         // Initialize
@@ -2348,7 +2360,7 @@
         setTimeout(showTypingIndicator, 5000);
 
         // 50% OFF Checkout URL
-        const CHECKOUT_50_OFF = 'https://pay.monetizze.com.br/KGQ455954';
+        const CHECKOUT_50_OFF_BASE = 'https://pay.monetizze.com.br/KGQ455954';
         
         function goToCheckout50Off() {
             // Track 50% off click
@@ -2358,7 +2370,20 @@
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer' });
             }
-            window.location.href = CHECKOUT_50_OFF;
+            
+            // Build checkout URL with user data
+            let checkoutUrl = CHECKOUT_50_OFF_BASE + '?utm_source=zapspy&utm_medium=backredirect&utm_campaign=50off';
+            
+            // Add user data from localStorage to pre-fill Monetizze checkout
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            const userWhatsApp = localStorage.getItem('userWhatsApp');
+            
+            if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
+            if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
+            if (userWhatsApp) checkoutUrl += '&telefone=' + encodeURIComponent(userWhatsApp);
+            
+            window.location.href = checkoutUrl;
         }
         
         // Exit Intent Popup

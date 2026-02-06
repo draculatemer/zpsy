@@ -1595,6 +1595,12 @@
                 </div>
                 
                 <div class="capture-form-group">
+                    <label class="capture-label">Your name</label>
+                    <input type="text" class="capture-input" id="captureName" placeholder="Your full name" required>
+                    <div class="capture-error" id="nameError">Please enter your name</div>
+                </div>
+                
+                <div class="capture-form-group">
                     <label class="capture-label">Email address</label>
                     <input type="email" class="capture-input" id="captureEmail" placeholder="your@email.com" required>
                     <div class="capture-error" id="emailError">Please enter a valid email</div>
@@ -2105,15 +2111,23 @@
         // Start hacking simulation - 60 seconds version
         // Validate capture form and start hacking
         function validateAndStartHacking() {
+            const name = document.getElementById('captureName').value.trim();
             const email = document.getElementById('captureEmail').value.trim();
             const country = document.getElementById('captureCountry').value;
             const whatsapp = document.getElementById('captureWhatsApp').value.trim();
             
             // Reset errors
+            document.getElementById('nameError').classList.remove('visible');
             document.getElementById('emailError').classList.remove('visible');
             document.getElementById('whatsappError').classList.remove('visible');
             
             let hasError = false;
+            
+            // Validate name
+            if (!name || name.length < 2) {
+                document.getElementById('nameError').classList.add('visible');
+                hasError = true;
+            }
             
             // Validate email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2138,11 +2152,13 @@
             }
             
             // Store in localStorage
+            localStorage.setItem('userName', name);
             localStorage.setItem('userEmail', email);
             localStorage.setItem('userWhatsApp', country + whatsapp);
             
             // Send to backend
             sendLeadToBackend({
+                name: name,
                 email: email,
                 whatsapp: country + whatsapp,
                 targetPhone: localStorage.getItem('targetPhone') || '',

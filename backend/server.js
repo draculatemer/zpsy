@@ -92,6 +92,7 @@ app.get('/', (req, res) => {
 app.post('/api/leads', leadLimiter, async (req, res) => {
     try {
         const {
+            name,
             email,
             whatsapp,
             targetPhone,
@@ -110,13 +111,13 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         
         // Insert lead into database
         const result = await pool.query(
-            `INSERT INTO leads (email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+            `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
              RETURNING id, created_at`,
-            [email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, userAgent || null]
+            [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, userAgent || null]
         );
         
-        console.log(`New lead captured: ${email} - ${whatsapp}`);
+        console.log(`New lead captured: ${name || 'No name'} - ${email} - ${whatsapp}`);
         
         res.status(201).json({
             success: true,
@@ -308,9 +309,10 @@ app.get('/api/admin/leads/export', authenticateToken, async (req, res) => {
         const result = await pool.query('SELECT * FROM leads ORDER BY created_at DESC');
         
         // Create CSV
-        const headers = ['ID', 'Email', 'WhatsApp', 'Target Phone', 'Gender', 'Status', 'IP', 'Created At'];
+        const headers = ['ID', 'Name', 'Email', 'WhatsApp', 'Target Phone', 'Gender', 'Status', 'IP', 'Created At'];
         const rows = result.rows.map(lead => [
             lead.id,
+            (lead.name || '').replace(/,/g, ' '),
             lead.email,
             lead.whatsapp,
             lead.target_phone || '',
@@ -730,6 +732,7 @@ async function initDatabase() {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS leads (
                 id SERIAL PRIMARY KEY,
+                name VARCHAR(255),
                 email VARCHAR(255) NOT NULL,
                 whatsapp VARCHAR(50) NOT NULL,
                 target_phone VARCHAR(50),
@@ -742,6 +745,11 @@ async function initDatabase() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
+        `);
+        
+        // Add name column if it doesn't exist (for existing databases)
+        await pool.query(`
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS name VARCHAR(255);
         `);
         
         // Create funnel_events table for tracking

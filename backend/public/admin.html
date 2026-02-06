@@ -670,10 +670,10 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th>Nome</th>
                                     <th>Email</th>
                                     <th>WhatsApp</th>
                                     <th>Alvo</th>
-                                    <th>Gênero</th>
                                     <th>Tags</th>
                                     <th>Status</th>
                                     <th>Data</th>
@@ -1327,10 +1327,10 @@ Estou aqui para esclarecer tudo! 😊`
                 const tags = lead.notes?.match(/\[TAG:(\w+)\]/g)?.map(t => t.replace('[TAG:', '').replace(']', '')) || [];
                 
                 html += `<tr>
+                    <td><strong>${lead.name || '-'}</strong></td>
                     <td class="text-primary">${lead.email}</td>
                     <td class="mono">${lead.whatsapp}</td>
                     <td class="mono">${lead.target_phone || '-'}</td>
-                    <td>${lead.target_gender === 'male' ? '👨' : lead.target_gender === 'female' ? '👩' : '-'}</td>
                     <td>${tags.map(t => `<span class="tag ${t}">${t}</span>`).join('') || '-'}</td>
                     <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusText}</span></td>
                     <td>${formatDate(lead.created_at)}</td>
