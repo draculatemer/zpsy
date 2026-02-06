@@ -3215,8 +3215,9 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await getExportData(type);
                 
                 // Check if jsPDF is loaded
-                if (!window.jspdf || !window.jspdf.jsPDF) {
-                    throw new Error('Biblioteca PDF não carregada. Tente recarregar a página.');
+                if (typeof window.jspdf === 'undefined') {
+                    showToast('Erro', 'Biblioteca PDF não carregada. Recarregue a página.', 'error');
+                    return;
                 }
                 
                 const { jsPDF } = window.jspdf;
@@ -3224,6 +3225,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const today = new Date().toLocaleDateString('pt-BR');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 let currentPage = 1;
+                let hasContent = false;
                 
                 // Header function
                 const addHeader = (title) => {
@@ -3235,129 +3237,132 @@ Estou aqui para esclarecer tudo! 😊`
                     doc.text('ZapSpy.ai - ' + title, 14, 16);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(`Gerado em: ${today}`, pageWidth - 50, 16);
+                    doc.text('Gerado em: ' + today, pageWidth - 50, 16);
                     doc.setTextColor(0, 0, 0);
                 };
                 
-                // Footer function
-                const addFooter = () => {
-                    doc.setFontSize(8);
-                    doc.setTextColor(128, 128, 128);
-                    doc.text(`Página ${currentPage}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+                // Simple table function (no plugin needed)
+                const drawTable = (headers, rows, startY) => {
+                    const colWidth = (pageWidth - 28) / headers.length;
+                    let y = startY;
+                    
+                    // Header row
+                    doc.setFillColor(5, 150, 105);
+                    doc.rect(14, y, pageWidth - 28, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    headers.forEach((h, i) => {
+                        doc.text(String(h).substring(0, 20), 16 + (i * colWidth), y + 7);
+                    });
+                    y += 12;
+                    
+                    // Data rows
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    
+                    rows.forEach((row, rowIndex) => {
+                        if (y > 180) {
+                            doc.addPage();
+                            currentPage++;
+                            y = 20;
+                        }
+                        
+                        // Alternate row background
+                        if (rowIndex % 2 === 0) {
+                            doc.setFillColor(245, 245, 245);
+                            doc.rect(14, y - 4, pageWidth - 28, 8, 'F');
+                        }
+                        
+                        row.forEach((cell, i) => {
+                            const text = String(cell || '-').substring(0, 25);
+                            doc.text(text, 16 + (i * colWidth), y);
+                        });
+                        y += 8;
+                    });
+                    
+                    return y;
                 };
                 
-                if (data.leads) {
+                // Leads
+                if (data.leads && Array.isArray(data.leads) && data.leads.length > 0) {
                     addHeader('Relatório de Leads');
                     const leadsTable = data.leads.map(l => [
                         l.name || '-',
-                        l.email,
+                        l.email || '-',
                         l.whatsapp || '-',
                         l.target_phone || '-',
-                        l.status,
-                        new Date(l.created_at).toLocaleDateString('pt-BR')
+                        l.status || '-',
+                        l.created_at ? new Date(l.created_at).toLocaleDateString('pt-BR') : '-'
                     ]);
-                    doc.autoTable({
-                        head: [['Nome', 'Email', 'WhatsApp', 'Alvo', 'Status', 'Data']],
-                        body: leadsTable,
-                        startY: 35,
-                        theme: 'striped',
-                        headStyles: { fillColor: [5, 150, 105], fontSize: 10 },
-                        bodyStyles: { fontSize: 9 },
-                        alternateRowStyles: { fillColor: [245, 245, 245] },
-                        margin: { left: 14, right: 14 }
-                    });
-                    addFooter();
-                    if (type === 'all' && (data.sales || data.refunds || data.funnel)) {
-                        doc.addPage();
-                        currentPage++;
-                    }
+                    drawTable(['Nome', 'Email', 'WhatsApp', 'Alvo', 'Status', 'Data'], leadsTable, 35);
+                    hasContent = true;
+                    if (type === 'all') { doc.addPage(); currentPage++; }
                 }
                 
-                if (data.sales) {
+                // Sales
+                if (data.sales && Array.isArray(data.sales) && data.sales.length > 0) {
                     addHeader('Relatório de Vendas');
                     const salesTable = data.sales.map(s => [
                         s.transaction_id || '-',
                         s.product_name || '-',
-                        `R$ ${parseFloat(s.amount || 0).toFixed(2)}`,
-                        s.status,
+                        'R$ ' + parseFloat(s.amount || 0).toFixed(2),
+                        s.status || '-',
                         s.customer_name || '-',
-                        new Date(s.created_at).toLocaleDateString('pt-BR')
+                        s.created_at ? new Date(s.created_at).toLocaleDateString('pt-BR') : '-'
                     ]);
-                    doc.autoTable({
-                        head: [['Código', 'Produto', 'Valor', 'Status', 'Cliente', 'Data']],
-                        body: salesTable,
-                        startY: 35,
-                        theme: 'striped',
-                        headStyles: { fillColor: [5, 150, 105], fontSize: 10 },
-                        bodyStyles: { fontSize: 9 },
-                        alternateRowStyles: { fillColor: [245, 245, 245] },
-                        margin: { left: 14, right: 14 }
-                    });
-                    addFooter();
-                    if (type === 'all' && (data.refunds || data.funnel)) {
-                        doc.addPage();
-                        currentPage++;
-                    }
+                    drawTable(['Código', 'Produto', 'Valor', 'Status', 'Cliente', 'Data'], salesTable, 35);
+                    hasContent = true;
+                    if (type === 'all') { doc.addPage(); currentPage++; }
                 }
                 
-                if (data.refunds) {
+                // Refunds
+                if (data.refunds && Array.isArray(data.refunds) && data.refunds.length > 0) {
                     addHeader('Relatório de Reembolsos');
                     const refundsTable = data.refunds.map(r => [
-                        r.protocol,
-                        r.full_name,
-                        r.email,
-                        r.reason,
-                        r.status,
-                        new Date(r.created_at).toLocaleDateString('pt-BR')
+                        r.protocol || '-',
+                        r.full_name || '-',
+                        r.email || '-',
+                        r.reason || '-',
+                        r.status || '-',
+                        r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : '-'
                     ]);
-                    doc.autoTable({
-                        head: [['Protocolo', 'Nome', 'Email', 'Motivo', 'Status', 'Data']],
-                        body: refundsTable,
-                        startY: 35,
-                        theme: 'striped',
-                        headStyles: { fillColor: [5, 150, 105], fontSize: 10 },
-                        bodyStyles: { fontSize: 9 },
-                        alternateRowStyles: { fillColor: [245, 245, 245] },
-                        margin: { left: 14, right: 14 }
-                    });
-                    addFooter();
-                    if (type === 'all' && data.funnel) {
-                        doc.addPage();
-                        currentPage++;
-                    }
+                    drawTable(['Protocolo', 'Nome', 'Email', 'Motivo', 'Status', 'Data'], refundsTable, 35);
+                    hasContent = true;
+                    if (type === 'all' && data.funnel) { doc.addPage(); currentPage++; }
                 }
                 
+                // Funnel metrics
                 if (data.funnel) {
                     addHeader('Métricas do Funil');
                     const stats = data.funnel;
                     const metricsTable = [
                         ['Total de Leads', String(stats.totalLeads || 0)],
                         ['Leads Hoje', String(stats.todayLeads || 0)],
-                        ['Taxa de Conversão', `${stats.conversionRate || 0}%`],
+                        ['Taxa de Conversão', (stats.conversionRate || 0) + '%'],
                         ['Total de Vendas', String(stats.totalSales || 0)],
-                        ['Receita Total', `R$ ${parseFloat(stats.totalRevenue || 0).toFixed(2)}`],
-                        ['Ticket Médio', `R$ ${parseFloat(stats.avgTicket || 0).toFixed(2)}`]
+                        ['Receita Total', 'R$ ' + parseFloat(stats.totalRevenue || 0).toFixed(2)],
+                        ['Ticket Médio', 'R$ ' + parseFloat(stats.avgTicket || 0).toFixed(2)]
                     ];
-                    doc.autoTable({
-                        head: [['Métrica', 'Valor']],
-                        body: metricsTable,
-                        startY: 35,
-                        theme: 'striped',
-                        headStyles: { fillColor: [5, 150, 105], fontSize: 12 },
-                        bodyStyles: { fontSize: 11 },
-                        alternateRowStyles: { fillColor: [245, 245, 245] },
-                        margin: { left: 14, right: 14 },
-                        columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 60 } }
-                    });
-                    addFooter();
+                    drawTable(['Métrica', 'Valor'], metricsTable, 35);
+                    hasContent = true;
                 }
                 
-                const fileName = type === 'all' ? `relatorio-completo-${new Date().toISOString().split('T')[0]}.pdf` : `${type}-${new Date().toISOString().split('T')[0]}.pdf`;
+                // Check if we have any content
+                if (!hasContent) {
+                    addHeader('Relatório');
+                    doc.setFontSize(14);
+                    doc.setTextColor(128, 128, 128);
+                    doc.text('Nenhum dado encontrado para exportar.', pageWidth / 2, 80, { align: 'center' });
+                }
+                
+                const fileName = type === 'all' ? 'relatorio-completo-' + new Date().toISOString().split('T')[0] + '.pdf' : type + '-' + new Date().toISOString().split('T')[0] + '.pdf';
                 doc.save(fileName);
                 showToast('Sucesso!', 'Arquivo PDF baixado', 'success');
             } catch (error) {
                 console.error('PDF export error:', error);
-                showToast('Erro', 'Falha ao exportar PDF', 'error');
+                showToast('Erro', error.message || 'Falha ao exportar PDF', 'error');
             }
         }
         
