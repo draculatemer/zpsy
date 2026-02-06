@@ -507,7 +507,7 @@ STATUS: Pending Review
 This is an automated receipt. Please keep this for your records.
 Your refund will be processed within 7 business days.
 
-X AI Monitor Support Team
+ZapDetect Support Team
     `.trim();
 
     // Create blob and download

@@ -53,15 +53,14 @@ body {
 }
 
 .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 20px;
+    font-size: 24px;
 }
 
 .logo-text {
