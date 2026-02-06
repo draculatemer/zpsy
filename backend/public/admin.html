@@ -242,6 +242,7 @@
         .stat-value.green { color: var(--accent-light); text-shadow: 0 0 30px rgba(0, 212, 170, 0.3); }
         .stat-value.blue { color: var(--info); text-shadow: 0 0 30px rgba(68, 138, 255, 0.3); }
         .stat-value.yellow { color: var(--warning); text-shadow: 0 0 30px rgba(255, 171, 0, 0.3); }
+        .stat-value.purple { color: var(--purple); text-shadow: 0 0 30px rgba(179, 136, 255, 0.3); }
         .stat-value.red { color: var(--danger); text-shadow: 0 0 30px rgba(255, 82, 82, 0.3); }
         
         .stat-change { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-top: 12px; padding: 6px 12px; border-radius: 20px; }
@@ -480,6 +481,58 @@
         .card-body { padding: 24px 28px; }
         .table-container { overflow-x: auto; }
         .text-muted { color: var(--text-muted); font-size: 13px; }
+        
+        /* Refund Status Badges */
+        .refund-status { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .status-pending { background: rgba(255, 171, 0, 0.15); color: #ffb740; border: 1px solid rgba(255, 171, 0, 0.3); }
+        .status-handling { background: rgba(138, 43, 226, 0.15); color: #b388ff; border: 1px solid rgba(138, 43, 226, 0.3); }
+        .status-processing { background: rgba(68, 138, 255, 0.15); color: #82b1ff; border: 1px solid rgba(68, 138, 255, 0.3); }
+        .status-approved { background: rgba(0, 230, 118, 0.15); color: #69f0ae; border: 1px solid rgba(0, 230, 118, 0.3); }
+        .status-rejected { background: rgba(255, 82, 82, 0.15); color: #ff8a80; border: 1px solid rgba(255, 82, 82, 0.3); }
+        
+        /* Refund Table Cells */
+        .protocol-code { background: rgba(0, 0, 0, 0.4); padding: 6px 10px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: var(--accent-light); border: 1px solid var(--border); }
+        .cell-name { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+        .cell-email { color: var(--text-secondary); font-size: 13px; }
+        .cell-phone { color: var(--text-secondary); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+        .cell-reason { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; }
+        .cell-date { color: var(--text-muted); font-size: 13px; }
+        
+        /* Action Buttons */
+        .action-buttons { display: flex; gap: 8px; }
+        .action-btn-view, .action-btn-approve, .action-btn-reject { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .action-btn-view { background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); }
+        .action-btn-view:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); }
+        .action-btn-approve { background: rgba(0, 230, 118, 0.2); color: #69f0ae; }
+        .action-btn-approve:hover { background: rgba(0, 230, 118, 0.35); transform: scale(1.05); }
+        .action-btn-reject { background: rgba(255, 82, 82, 0.2); color: #ff8a80; }
+        .action-btn-reject:hover { background: rgba(255, 82, 82, 0.35); transform: scale(1.05); }
+        
+        /* Refund Modal Content */
+        .refund-modal-content { display: grid; gap: 20px; }
+        .refund-modal-header-info { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .refund-section { margin-bottom: 4px; }
+        .refund-section-title { color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .refund-info-box { background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 18px; display: grid; gap: 12px; border: 1px solid var(--border); }
+        .refund-info-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .refund-label { color: var(--text-muted); font-weight: 500; }
+        .refund-value { color: var(--text-primary); font-weight: 600; }
+        .refund-reason { color: var(--warning); }
+        .refund-description-box { background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 18px; white-space: pre-wrap; line-height: 1.7; font-size: 14px; color: var(--text-secondary); border: 1px solid var(--border); }
+        .refund-timestamp { font-size: 12px; color: var(--text-muted); text-align: right; padding-top: 8px; }
+        
+        /* Refund Modal Action Buttons */
+        .refund-modal-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+        .modal-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .modal-btn span { font-size: 14px; }
+        .modal-btn-handling { background: rgba(138, 43, 226, 0.2); color: #b388ff; border: 1px solid rgba(138, 43, 226, 0.3); }
+        .modal-btn-handling:hover { background: rgba(138, 43, 226, 0.35); }
+        .modal-btn-processing { background: rgba(68, 138, 255, 0.2); color: #82b1ff; border: 1px solid rgba(68, 138, 255, 0.3); }
+        .modal-btn-processing:hover { background: rgba(68, 138, 255, 0.35); }
+        .modal-btn-reject { background: rgba(255, 82, 82, 0.2); color: #ff8a80; border: 1px solid rgba(255, 82, 82, 0.3); }
+        .modal-btn-reject:hover { background: rgba(255, 82, 82, 0.35); }
+        .modal-btn-approve { background: rgba(0, 230, 118, 0.25); color: #69f0ae; border: 1px solid rgba(0, 230, 118, 0.4); }
+        .modal-btn-approve:hover { background: rgba(0, 230, 118, 0.4); box-shadow: 0 4px 20px rgba(0, 230, 118, 0.25); }
         
         /* Quick Actions */
         .quick-actions { display: flex; gap: 16px; margin-bottom: 28px; }
@@ -1107,13 +1160,20 @@
                 <!-- Tab: Refunds -->
                 <div class="tab-content" id="tab-refunds">
                     <!-- Stats Cards -->
-                    <div class="stats-grid">
+                    <div class="stats-grid cols-5">
                         <div class="stat-card">
                             <div class="stat-header">
                                 <span class="stat-label">Pendentes</span>
                                 <div class="stat-icon yellow">⏳</div>
                             </div>
                             <div class="stat-value yellow" id="refundsPending">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Tratando</span>
+                                <div class="stat-icon purple">🎯</div>
+                            </div>
+                            <div class="stat-value purple" id="refundsHandling">0</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-header">
@@ -1146,9 +1206,10 @@
                         <div class="card-body" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
                             <div class="form-group" style="margin: 0; flex: 1; min-width: 150px;">
                                 <label class="form-label">Status</label>
-                                <select class="form-input" id="refundFilterStatus" onchange="loadRefunds()">
+                                <select class="form-input" id="refundFilterStatus" onchange="filterRefunds()">
                                     <option value="">Todos</option>
                                     <option value="pending">Pendentes</option>
+                                    <option value="handling">Tratando</option>
                                     <option value="processing">Processando</option>
                                     <option value="approved">Aprovados</option>
                                     <option value="rejected">Rejeitados</option>
@@ -2176,16 +2237,18 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 // Update stats
                 const pending = allRefunds.filter(r => r.status === 'pending').length;
+                const handling = allRefunds.filter(r => r.status === 'handling').length;
                 const processing = allRefunds.filter(r => r.status === 'processing').length;
                 const approved = allRefunds.filter(r => r.status === 'approved').length;
                 const rejected = allRefunds.filter(r => r.status === 'rejected').length;
                 
                 document.getElementById('refundsPending').textContent = pending;
+                document.getElementById('refundsHandling').textContent = handling;
                 document.getElementById('refundsProcessing').textContent = processing;
                 document.getElementById('refundsApproved').textContent = approved;
                 document.getElementById('refundsRejected').textContent = rejected;
                 document.getElementById('refundsTotalCount').textContent = `${allRefunds.length} solicitações`;
-                document.getElementById('navRefundCount').textContent = pending + processing;
+                document.getElementById('navRefundCount').textContent = pending + handling;
                 
                 renderRefunds(allRefunds);
                 
@@ -2225,10 +2288,11 @@ Estou aqui para esclarecer tudo! 😊`
             }
             
             const statusLabels = {
-                'pending': { text: 'Pendente', class: 'badge-pending' },
-                'processing': { text: 'Processando', class: 'badge-pending' },
-                'approved': { text: 'Aprovado', class: 'badge-approved' },
-                'rejected': { text: 'Rejeitado', class: 'badge-cancelled' }
+                'pending': { text: 'Pendente', class: 'status-pending' },
+                'handling': { text: 'Tratando', class: 'status-handling' },
+                'processing': { text: 'Processando', class: 'status-processing' },
+                'approved': { text: 'Aprovado', class: 'status-approved' },
+                'rejected': { text: 'Rejeitado', class: 'status-rejected' }
             };
             
             const reasonLabels = {
@@ -2243,24 +2307,24 @@ Estou aqui para esclarecer tudo! 😊`
             
             let html = '';
             refunds.forEach(r => {
-                const status = statusLabels[r.status] || { text: r.status, class: 'badge-pending' };
+                const status = statusLabels[r.status] || { text: r.status, class: 'status-pending' };
                 const reason = reasonLabels[r.reason] || r.reason || '-';
                 const date = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : '-';
                 
                 html += `<tr>
-                    <td><code style="background: var(--bg-tertiary); padding: 4px 8px; border-radius: 4px; font-size: 12px;">${r.protocol || '-'}</code></td>
-                    <td><strong>${r.full_name || '-'}</strong></td>
-                    <td>${r.email || '-'}</td>
-                    <td>${r.phone || '-'}</td>
-                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${reason}">${reason}</td>
-                    <td><span class="lead-status ${status.class}">${status.text}</span></td>
-                    <td>${date}</td>
+                    <td><code class="protocol-code">${r.protocol || '-'}</code></td>
+                    <td class="cell-name">${r.full_name || '-'}</td>
+                    <td class="cell-email">${r.email || '-'}</td>
+                    <td class="cell-phone">${r.phone || '-'}</td>
+                    <td class="cell-reason" title="${reason}">${reason}</td>
+                    <td><span class="refund-status ${status.class}">${status.text}</span></td>
+                    <td class="cell-date">${date}</td>
                     <td>
-                        <div style="display: flex; gap: 6px;">
-                            <button class="btn-action" onclick="openRefundModal(${r.id})" title="Ver detalhes">👁️</button>
-                            ${r.status === 'pending' || r.status === 'processing' ? `
-                                <button class="btn-action" style="background: var(--success);" onclick="updateRefundStatus(${r.id}, 'approved')" title="Aprovar">✅</button>
-                                <button class="btn-action" style="background: var(--danger);" onclick="updateRefundStatus(${r.id}, 'rejected')" title="Rejeitar">❌</button>
+                        <div class="action-buttons">
+                            <button class="action-btn-view" onclick="openRefundModal(${r.id})" title="Ver detalhes">👁️</button>
+                            ${r.status === 'pending' || r.status === 'handling' || r.status === 'processing' ? `
+                                <button class="action-btn-approve" onclick="updateRefundStatus(${r.id}, 'approved')" title="Aprovar">✓</button>
+                                <button class="action-btn-reject" onclick="updateRefundStatus(${r.id}, 'rejected')" title="Rejeitar">✕</button>
                             ` : ''}
                         </div>
                     </td>
@@ -2275,10 +2339,11 @@ Estou aqui para esclarecer tudo! 😊`
             if (!refund) return;
             
             const statusLabels = {
-                'pending': 'Pendente',
-                'processing': 'Processando',
-                'approved': 'Aprovado',
-                'rejected': 'Rejeitado'
+                'pending': { text: 'Pendente', class: 'status-pending' },
+                'handling': { text: 'Tratando', class: 'status-handling' },
+                'processing': { text: 'Processando', class: 'status-processing' },
+                'approved': { text: 'Aprovado', class: 'status-approved' },
+                'rejected': { text: 'Rejeitado', class: 'status-rejected' }
             };
             
             const reasonLabels = {
@@ -2293,62 +2358,74 @@ Estou aqui para esclarecer tudo! 😊`
             
             const date = refund.created_at ? new Date(refund.created_at).toLocaleString('pt-BR') : '-';
             const purchaseDate = refund.purchase_date ? new Date(refund.purchase_date).toLocaleDateString('pt-BR') : '-';
+            const statusInfo = statusLabels[refund.status] || { text: refund.status, class: 'status-pending' };
             
             document.getElementById('refundModalBody').innerHTML = `
-                <div style="display: grid; gap: 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
-                        <div>
-                            <code style="background: var(--bg-tertiary); padding: 6px 12px; border-radius: 6px; font-size: 14px;">${refund.protocol || '-'}</code>
-                        </div>
-                        <span class="lead-status ${refund.status === 'approved' ? 'badge-approved' : refund.status === 'rejected' ? 'badge-cancelled' : 'badge-pending'}">${statusLabels[refund.status] || refund.status}</span>
+                <div class="refund-modal-content">
+                    <div class="refund-modal-header-info">
+                        <code class="protocol-code">${refund.protocol || '-'}</code>
+                        <span class="refund-status ${statusInfo.class}">${statusInfo.text}</span>
                     </div>
                     
-                    <div>
-                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">👤 INFORMAÇÕES DO CLIENTE</h4>
-                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; display: grid; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Nome:</span> <strong>${refund.full_name || '-'}</strong></div>
-                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Email:</span> <span>${refund.email || '-'}</span></div>
-                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Telefone:</span> <span>${refund.phone || '-'}</span></div>
+                    <div class="refund-section">
+                        <h4 class="refund-section-title">👤 INFORMAÇÕES DO CLIENTE</h4>
+                        <div class="refund-info-box">
+                            <div class="refund-info-row"><span class="refund-label">Nome:</span> <span class="refund-value">${refund.full_name || '-'}</span></div>
+                            <div class="refund-info-row"><span class="refund-label">Email:</span> <span class="refund-value">${refund.email || '-'}</span></div>
+                            <div class="refund-info-row"><span class="refund-label">Telefone:</span> <span class="refund-value">${refund.phone || '-'}</span></div>
                         </div>
                     </div>
                     
-                    <div>
-                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">📦 DETALHES DA COMPRA</h4>
-                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; display: grid; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Data da Compra:</span> <span>${purchaseDate}</span></div>
-                            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Motivo:</span> <strong style="color: var(--warning);">${reasonLabels[refund.reason] || refund.reason || '-'}</strong></div>
+                    <div class="refund-section">
+                        <h4 class="refund-section-title">📦 DETALHES DA COMPRA</h4>
+                        <div class="refund-info-box">
+                            <div class="refund-info-row"><span class="refund-label">Data da Compra:</span> <span class="refund-value">${purchaseDate}</span></div>
+                            <div class="refund-info-row"><span class="refund-label">Motivo:</span> <span class="refund-value refund-reason">${reasonLabels[refund.reason] || refund.reason || '-'}</span></div>
                         </div>
                     </div>
                     
-                    <div>
-                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">💬 DESCRIÇÃO</h4>
-                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; white-space: pre-wrap; line-height: 1.6;">
+                    <div class="refund-section">
+                        <h4 class="refund-section-title">💬 DESCRIÇÃO</h4>
+                        <div class="refund-description-box">
                             ${refund.details || 'Nenhuma descrição fornecida.'}
                         </div>
                     </div>
                     
                     ${refund.admin_notes ? `
-                    <div>
-                        <h4 style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">📝 NOTAS DO ADMIN</h4>
-                        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; white-space: pre-wrap; line-height: 1.6;">
+                    <div class="refund-section">
+                        <h4 class="refund-section-title">📝 NOTAS DO ADMIN</h4>
+                        <div class="refund-description-box">
                             ${refund.admin_notes}
                         </div>
                     </div>
                     ` : ''}
                     
-                    <div style="font-size: 12px; color: var(--text-muted); text-align: right;">
+                    <div class="refund-timestamp">
                         Solicitado em: ${date}
                     </div>
                 </div>
             `;
             
-            // Actions footer
-            if (refund.status === 'pending' || refund.status === 'processing') {
+            // Actions footer - show buttons for pending, handling, or processing
+            if (refund.status === 'pending' || refund.status === 'handling' || refund.status === 'processing') {
                 document.getElementById('refundModalFooter').innerHTML = `
-                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                        <button class="btn-secondary" onclick="updateRefundStatus(${refund.id}, 'processing'); closeRefundModal();">🔄 Marcar como Processando</button>
-                        <button class="btn-secondary" style="background: var(--danger);" onclick="updateRefundStatus(${refund.id}, 'rejected'); closeRefundModal();">❌ Rejeitar</button>
-                        <button class="btn-primary" onclick="updateRefundStatus(${refund.id}, 'approved'); closeRefundModal();">✅ Aprovar Reembolso</button>
+                    <div class="refund-modal-actions">
+                        ${refund.status === 'pending' ? `
+                            <button class="modal-btn modal-btn-handling" onclick="updateRefundStatus(${refund.id}, 'handling'); closeRefundModal();">
+                                <span>🎯</span> Iniciar Tratativa
+                            </button>
+                        ` : ''}
+                        ${refund.status === 'handling' ? `
+                            <button class="modal-btn modal-btn-processing" onclick="updateRefundStatus(${refund.id}, 'processing'); closeRefundModal();">
+                                <span>🔄</span> Marcar Processando
+                            </button>
+                        ` : ''}
+                        <button class="modal-btn modal-btn-reject" onclick="updateRefundStatus(${refund.id}, 'rejected'); closeRefundModal();">
+                            <span>✕</span> Rejeitar
+                        </button>
+                        <button class="modal-btn modal-btn-approve" onclick="updateRefundStatus(${refund.id}, 'approved'); closeRefundModal();">
+                            <span>✓</span> Aprovar Reembolso
+                        </button>
                     </div>
                 `;
             } else {
