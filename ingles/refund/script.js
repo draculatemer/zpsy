@@ -187,21 +187,9 @@ function initCountrySelector() {
     renderCountries();
 }
 
-// Initialize character counter for details
+// Initialize character counter for details (removed - no longer needed)
 function initCharCounter() {
-    const details = document.getElementById('details');
-    const charCount = document.getElementById('charCount');
-
-    details.addEventListener('input', function() {
-        const length = this.value.length;
-        charCount.textContent = `${length}/20 characters`;
-        
-        if (length >= 20) {
-            charCount.style.color = 'var(--success-color)';
-        } else {
-            charCount.style.color = 'var(--text-muted)';
-        }
-    });
+    // Functionality removed
 }
 
 // Initialize form validation
@@ -307,15 +295,6 @@ function validateStep(step) {
             clearError('purchaseDate');
         }
 
-        // Validate product
-        const product = document.getElementById('product');
-        if (!product.value) {
-            showError('product', 'Please select the product');
-            isValid = false;
-        } else {
-            clearError('product');
-        }
-
         // Validate reason
         const reason = document.getElementById('reason');
         if (!reason.value) {
@@ -327,8 +306,8 @@ function validateStep(step) {
 
         // Validate details
         const details = document.getElementById('details');
-        if (!details.value.trim() || details.value.length < 20) {
-            showError('details', 'Please provide at least 20 characters of detail');
+        if (!details.value.trim()) {
+            showError('details', 'Please provide details about your request');
             isValid = false;
         } else {
             clearError('details');
@@ -377,7 +356,6 @@ async function submitForm() {
         phone: selectedCountry.dial + ' ' + document.getElementById('phone').value.trim(),
         countryCode: selectedCountry.code,
         purchaseDate: document.getElementById('purchaseDate').value,
-        product: document.getElementById('product').value,
         reason: document.getElementById('reason').value,
         details: document.getElementById('details').value.trim(),
         submittedAt: new Date().toISOString()
@@ -395,7 +373,6 @@ async function submitForm() {
         document.getElementById('summaryName').textContent = formData.fullName;
         document.getElementById('summaryEmail').textContent = formData.email;
         document.getElementById('summaryPhone').textContent = formData.phone;
-        document.getElementById('summaryProduct').textContent = formData.product;
 
         // Mark step 2 as completed
         document.querySelector('.progress-step[data-step="2"]').classList.add('completed');
@@ -493,7 +470,6 @@ Phone: ${data.phone}
 
 PURCHASE DETAILS
 ----------------
-Product: ${data.product}
 Purchase Date: ${data.purchaseDate}
 Reason: ${data.reason}
 

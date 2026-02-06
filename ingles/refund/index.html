@@ -108,19 +108,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="product">Product Purchased <span class="required">*</span></label>
-                        <select id="product" name="product" required>
-                            <option value="">Select the product</option>
-                            <option value="ZapDetect">ZapDetect (Front)</option>
-                            <option value="ZapDetect - Message Vault">ZapDetect - Message Vault (Upsell 1)</option>
-                            <option value="ZapDetect - 360 Tracker">ZapDetect - 360° Tracker (Upsell 2)</option>
-                            <option value="ZapDetect - Instant Access">ZapDetect - Instant Access (Upsell 3)</option>
-                            <option value="Multiple Products">Multiple Products</option>
-                        </select>
-                        <span class="error-message" id="productError"></span>
-                    </div>
-
-                    <div class="form-group">
                         <label for="reason">Refund Reason <span class="required">*</span></label>
                         <select id="reason" name="reason" required>
                             <option value="">Select the main reason</option>
@@ -138,9 +125,8 @@
 
                     <div class="form-group">
                         <label for="details">Describe the Details <span class="required">*</span></label>
-                        <textarea id="details" name="details" placeholder="Please describe your issue in detail..." rows="4" minlength="20" required></textarea>
-                        <span class="helper-text">Minimum 20 characters. The more details, the faster we process.</span>
-                        <span class="char-count" id="charCount">0/20 characters</span>
+                        <textarea id="details" name="details" placeholder="Please describe your issue in detail..." rows="4" required></textarea>
+                        <span class="helper-text">The more details, the faster we process.</span>
                         <span class="error-message" id="detailsError"></span>
                     </div>
 
@@ -192,10 +178,6 @@
                             <div class="summary-item">
                                 <span class="summary-label">Phone:</span>
                                 <span class="summary-value" id="summaryPhone">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="summary-label">Product:</span>
-                                <span class="summary-value" id="summaryProduct">-</span>
                             </div>
                         </div>
 
