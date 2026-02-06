@@ -660,36 +660,36 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         `);
         
         // Calculate upsell take rates
-        // Front: X Ai - Instant Access (349243)
+        // Front: X AI Monitor (341972)
         const frontSales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
             WHERE status = 'approved' 
-            AND (product ILIKE '%Instant Access%' OR product ILIKE '%349243%')
+            AND (product ILIKE '%Monitor%' OR product ILIKE '%341972%')
         `);
         
-        // Upsell 1: X Ai - 360° Tracker (349242)
+        // Upsell 1: X Ai - Message Vault (349241)
         const upsell1Sales = await pool.query(`
-            SELECT COUNT(DISTINCT email) as count 
-            FROM transactions 
-            WHERE status = 'approved' 
-            AND (product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%')
-        `);
-        
-        // Upsell 2: X Ai - Message Vault (349241)
-        const upsell2Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
             WHERE status = 'approved' 
             AND (product ILIKE '%Message Vault%' OR product ILIKE '%349241%')
         `);
         
-        // Upsell 3: X AI Monitor (341972)
+        // Upsell 2: X Ai - 360° Tracker (349242)
+        const upsell2Sales = await pool.query(`
+            SELECT COUNT(DISTINCT email) as count 
+            FROM transactions 
+            WHERE status = 'approved' 
+            AND (product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%')
+        `);
+        
+        // Upsell 3: X Ai - Instant Access (349243)
         const upsell3Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
             WHERE status = 'approved' 
-            AND (product ILIKE '%Monitor%' OR product ILIKE '%341972%')
+            AND (product ILIKE '%Instant Access%' OR product ILIKE '%349243%')
         `);
         
         const frontCount = parseInt(frontSales.rows[0].count) || 0;
