@@ -1927,6 +1927,12 @@
                             <p style="color: var(--text-muted); margin: 8px 0 0 56px; font-size: 14px;">Performance de leads e vendas por país</p>
                         </div>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn-secondary" onclick="testGeolocationAPI()" style="display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 8px 12px;" title="Testar se a API de geolocalização está funcionando">
+                                <span>🧪</span> Testar API
+                            </button>
+                            <button class="btn-secondary" onclick="debugGeoData()" style="display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 8px 12px;" title="Ver status dos IPs dos leads">
+                                <span>🔍</span> Debug
+                            </button>
                             <button class="btn-secondary" onclick="enrichGeolocation()" id="enrichGeoBtn" style="display: flex; align-items: center; gap: 8px;" title="Busca dados de país para leads sem localização">
                                 <span>📍</span> Enriquecer Geo
                             </button>
@@ -4121,6 +4127,65 @@ Estou aqui para esclarecer tudo! 😊`
             container.innerHTML = html;
         }
         
+        // Test geolocation API
+        async function testGeolocationAPI() {
+            try {
+                showToast('Testando...', 'Verificando API de geolocalização', 'success');
+                
+                const response = await fetch(`${API_URL}/api/admin/test-geolocation?ip=8.8.8.8`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await response.json();
+                console.log('Geolocation API Test:', data);
+                
+                if (data.success && data.result.country) {
+                    showToast('API OK ✅', `Teste: ${data.result.country} (${data.result.country_code})`, 'success');
+                } else {
+                    showToast('API com problema', `Resultado: ${JSON.stringify(data.result)}`, 'warning');
+                }
+                
+                // Show in alert for easier reading
+                alert(`Teste da API de Geolocalização:\n\nIP testado: ${data.test_ip}\nPaís: ${data.result.country || 'NÃO ENCONTRADO'}\nCódigo: ${data.result.country_code || 'N/A'}\nCidade: ${data.result.city || 'N/A'}\n\nAPI Key: ${data.api_key_preview}`);
+                
+            } catch (error) {
+                console.error('Test geolocation error:', error);
+                showToast('Erro', 'Falha ao testar API', 'error');
+            }
+        }
+        
+        // Debug geo data for leads
+        async function debugGeoData() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/leads/geo-debug`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await response.json();
+                console.log('Geo Debug:', data);
+                
+                const summary = data.summary;
+                let msg = `📊 Status dos Leads:\n\n`;
+                msg += `Total de leads: ${summary.total}\n`;
+                msg += `Com IP salvo: ${summary.with_ip}\n`;
+                msg += `Com país: ${summary.with_country}\n`;
+                msg += `Com código válido: ${summary.with_valid_country_code}\n\n`;
+                msg += `📋 Amostra (últimos 5):\n`;
+                
+                data.sample_leads.slice(0, 5).forEach((lead, i) => {
+                    msg += `${i+1}. IP: ${lead.ip || 'VAZIO'} → ${lead.country || 'Sem país'} (${lead.country_code || 'XX'})\n`;
+                });
+                
+                alert(msg);
+                
+                showToast('Debug', `${summary.with_ip}/${summary.total} leads têm IP salvo`, summary.with_ip > 0 ? 'success' : 'warning');
+                
+            } catch (error) {
+                console.error('Debug geo error:', error);
+                showToast('Erro', 'Falha ao buscar dados de debug', 'error');
+            }
+        }
+        
         // Enrich geolocation for leads without country data
         async function enrichGeolocation() {
             const btn = document.getElementById('enrichGeoBtn');
@@ -4135,6 +4200,7 @@ Estou aqui para esclarecer tudo! 😊`
                 });
                 
                 const data = await response.json();
+                console.log('Enrich result:', data);
                 
                 if (data.success) {
                     showToast('Geolocalização', `${data.enriched} leads atualizados. ${data.remaining} restantes.`, 'success');

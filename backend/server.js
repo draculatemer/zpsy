@@ -834,6 +834,63 @@ app.post('/api/admin/enrich-geolocation', authenticateToken, async (req, res) =>
     }
 });
 
+// Test geolocation API with a known IP
+app.get('/api/admin/test-geolocation', authenticateToken, async (req, res) => {
+    try {
+        const testIP = req.query.ip || '8.8.8.8'; // Google DNS as test
+        console.log('Testing geolocation with IP:', testIP);
+        
+        const geoData = await getCountryFromIP(testIP);
+        
+        res.json({
+            success: true,
+            test_ip: testIP,
+            result: geoData,
+            api_key_set: !!process.env.RAPIDAPI_KEY,
+            api_key_preview: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.substring(0, 10) + '...' : 'using hardcoded'
+        });
+    } catch (error) {
+        console.error('Test geolocation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Debug endpoint to check leads geo status
+app.get('/api/admin/leads/geo-debug', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT id, email, ip_address, country, country_code, city 
+            FROM leads 
+            ORDER BY created_at DESC 
+            LIMIT 20
+        `);
+        
+        const summary = await pool.query(`
+            SELECT 
+                COUNT(*) as total,
+                COUNT(CASE WHEN ip_address IS NOT NULL AND ip_address != '' THEN 1 END) as with_ip,
+                COUNT(CASE WHEN country IS NOT NULL AND country != '' THEN 1 END) as with_country,
+                COUNT(CASE WHEN country_code IS NOT NULL AND country_code != '' AND country_code != 'XX' THEN 1 END) as with_valid_country_code
+            FROM leads
+        `);
+        
+        res.json({
+            summary: summary.rows[0],
+            sample_leads: result.rows.map(l => ({
+                id: l.id,
+                email: l.email ? l.email.substring(0, 10) + '...' : null,
+                ip: l.ip_address,
+                country: l.country,
+                country_code: l.country_code,
+                city: l.city
+            }))
+        });
+    } catch (error) {
+        console.error('Geo debug error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Export leads as CSV (protected)
 app.get('/api/admin/leads/export', authenticateToken, async (req, res) => {
     try {
