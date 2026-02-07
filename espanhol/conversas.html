@@ -1625,7 +1625,16 @@
     </div>
 
     <script>
-        const conversations = [
+        // Obtener el género que se está espiando desde la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetGender = urlParams.get('gender') || 'female'; // default: espiando a mujer
+        
+        // Determinar qué género debe aparecer como contactos sospechosos
+        // Si espía a MUJER (novia) -> contactos sospechosos deben ser HOMBRES
+        // Si espía a HOMBRE (novio) -> contactos sospechosos deben ser MUJERES
+        const suspiciousGender = targetGender === 'female' ? 'male' : 'female';
+        
+        const allConversations = [
             // ==================== CONTACTOS REALISTAS - SIN EMOJIS OBVIOS ====================
             // Contactos fijados normales
             { name: 'Mar**', avatar: 'imagens/mulher4.jpg', message: '✓✓ Tú: ¡Te qui**o!', time: '09:19', pinned: true, blur: 'semi', tags: [] },
@@ -1764,6 +1773,36 @@
             { name: 'Agencia Viajes', avatar: 'imagens/default-avatar.png', message: 'Itinerario de viaje adjun**', time: 'Hace 1 mes', blur: 'semi', tags: [] },
             { name: 'Inmobiliaria', avatar: 'imagens/default-avatar.png', message: '¡Nuevos listados disponib***!', time: 'Hace 1 mes', blur: 'semi', muted: true, tags: [] }
         ];
+
+        // Filtrar y modificar conversaciones según el género objetivo
+        function getFilteredConversations() {
+            // Clonar conversaciones y cambiar avatares para contactos sospechosos según el género
+            return allConversations.map(conv => {
+                const newConv = {...conv};
+                
+                // Detectar género desde la ruta del avatar
+                const avatarPath = conv.avatar || '';
+                const isFemaleAvatar = avatarPath.includes('mulher');
+                const isMaleAvatar = avatarPath.includes('homem');
+                
+                // Para conversaciones sospechosas/eliminadas, cambiar avatar si es necesario
+                if (conv.deleted || conv.tags?.includes('suspicious') || conv.tags?.includes('evidence')) {
+                    // Si espía a mujer (novia), sospechosos deben ser hombres
+                    // Si espía a hombre (novio), sospechosos deben ser mujeres
+                    if (suspiciousGender === 'male' && isFemaleAvatar) {
+                        // Cambiar avatar femenino a masculino
+                        newConv.avatar = avatarPath.replace('mulher', 'homem');
+                    } else if (suspiciousGender === 'female' && isMaleAvatar) {
+                        // Cambiar avatar masculino a femenino
+                        newConv.avatar = avatarPath.replace('homem', 'mulher');
+                    }
+                }
+                
+                return newConv;
+            });
+        }
+        
+        const conversations = getFilteredConversations();
 
         function renderConversations() {
             const container = document.getElementById('conversationsList');
@@ -2086,14 +2125,36 @@
             }
         }
 
-        // Initialize
+        // Actualizar stories según el género objetivo
+        function updateStoriesForGender() {
+            const storyImages = document.querySelectorAll('.stories-section .story-ring img');
+            storyImages.forEach(img => {
+                const src = img.src;
+                // Verificar si este story tiene indicador sospechoso (🔴 badge o no leído)
+                const parent = img.closest('.story-item');
+                const badge = parent?.querySelector('.story-badge');
+                const isSuspicious = badge && (badge.textContent.includes('🔴') || badge.textContent.includes('NEW') || badge.textContent.includes('NUEVO'));
+                
+                if (isSuspicious) {
+                    // Cambiar avatar según el género objetivo
+                    if (suspiciousGender === 'male' && src.includes('mulher')) {
+                        img.src = src.replace('mulher', 'homem');
+                    } else if (suspiciousGender === 'female' && src.includes('homem')) {
+                        img.src = src.replace('homem', 'mulher');
+                    }
+                }
+            });
+        }
+
+        // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
             renderConversations();
+            updateStoriesForGender();
             updateTimer();
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
-            // Animate suspicion bar
+            // Animar barra de sospecha
             animateSuspicionBar();
             
             // Rotate deleted messages every 30 seconds

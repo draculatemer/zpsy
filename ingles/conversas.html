@@ -1625,24 +1625,34 @@
     </div>
 
     <script>
-        const conversations = [
+        // Get the gender being spied on from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetGender = urlParams.get('gender') || 'female'; // default: spying on woman
+        
+        // Determine which gender should appear as suspicious contacts
+        // If spying on FEMALE (girlfriend) -> suspicious contacts should be MALE
+        // If spying on MALE (boyfriend) -> suspicious contacts should be FEMALE
+        const suspiciousGender = targetGender === 'female' ? 'male' : 'female';
+        
+        // All conversations with gender info for suspicious ones
+        // suspectGender: 'male' = male photo, 'female' = female photo, 'neutral' = unknown number
+        const allConversations = [
             // ==================== REALISTIC CONTACTS - NO OBVIOUS EMOJIS ====================
-            // Pinned normal contacts
-            { name: 'Sar**', avatar: 'imagens/mulher4.jpg', message: '✓✓ You: Love you t**!', time: '09:19', pinned: true, blur: 'semi', tags: [] },
-            { name: 'Mom', avatar: 'imagens/mulher1.jpg', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'semi', tags: [] },
+            // Pinned normal contacts (always shown)
+            { name: 'Sar**', avatar: 'imagens/mulher4.jpg', message: '✓✓ You: Love you t**!', time: '09:19', pinned: true, blur: 'semi', tags: [], suspectGender: 'female' },
+            { name: 'Mom', avatar: 'imagens/mulher1.jpg', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'semi', tags: [], suspectGender: 'female' },
             
-            // ===== SUSPICIOUS - Using realistic contact names =====
-            // Unknown/unsaved numbers (most suspicious)
-            { name: '+1 (555) ***-**47', avatar: 'imagens/default-avatar.png', message: 'Delete this after rea***...', time: '01:22', unread: 12, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '+1 (555) ***-**83', avatar: 'imagens/default-avatar.png', message: "I'm wait*** for you...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: '+1 (555) ***-**19', avatar: 'imagens/default-avatar.png', message: "Don't tell any*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            // ===== SUSPICIOUS - Unknown numbers (neutral - always shown) =====
+            { name: '+1 (555) ***-**47', avatar: 'imagens/default-avatar.png', message: 'Delete this after rea***...', time: '01:22', unread: 12, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
+            { name: '+1 (555) ***-**83', avatar: 'imagens/default-avatar.png', message: "I'm wait*** for you...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+            { name: '+1 (555) ***-**19', avatar: 'imagens/default-avatar.png', message: "Don't tell any*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
             
             // Normal contact
-            { name: 'Jam**', avatar: 'imagens/homem1.jpg', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'semi', tags: [] },
+            { name: 'Jam**', avatar: 'imagens/homem1.jpg', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'semi', tags: [], suspectGender: 'male' },
             
             // Suspicious - coworker names (common affair scenario)
-            { name: 'Kev** (Work)', avatar: 'imagens/homem3.jpg', message: '📷 Photo', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ash***', avatar: 'imagens/mulher6.jpg', message: 'When are you com*** ton***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Kev** (Work)', avatar: 'imagens/homem3.jpg', message: '📷 Photo', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
+            { name: 'Ash***', avatar: 'imagens/mulher6.jpg', message: 'When are you com*** ton***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
             
             // Normal
             { name: 'Emi**', avatar: 'imagens/mulher2.jpg', message: '✓✓ You: See you lat**!', time: '10:15', blur: 'semi', tags: [] },
@@ -1765,6 +1775,36 @@
             { name: 'Real Estate', avatar: 'imagens/default-avatar.png', message: 'New listings avail***!', time: '1 month ago', blur: 'semi', muted: true, tags: [] }
         ];
 
+        // Filter and modify conversations based on target gender
+        function getFilteredConversations() {
+            // Clone conversations and swap avatars for suspicious contacts based on target gender
+            return allConversations.map(conv => {
+                const newConv = {...conv};
+                
+                // Detect gender from avatar path
+                const avatarPath = conv.avatar || '';
+                const isFemaleAvatar = avatarPath.includes('mulher');
+                const isMaleAvatar = avatarPath.includes('homem');
+                
+                // For suspicious/deleted conversations, swap avatar if needed
+                if (conv.deleted || conv.tags?.includes('suspicious') || conv.tags?.includes('evidence')) {
+                    // If spying on female (girlfriend), suspicious should be male
+                    // If spying on male (boyfriend), suspicious should be female
+                    if (suspiciousGender === 'male' && isFemaleAvatar) {
+                        // Swap female avatar to male
+                        newConv.avatar = avatarPath.replace('mulher', 'homem');
+                    } else if (suspiciousGender === 'female' && isMaleAvatar) {
+                        // Swap male avatar to female
+                        newConv.avatar = avatarPath.replace('homem', 'mulher');
+                    }
+                }
+                
+                return newConv;
+            });
+        }
+        
+        const conversations = getFilteredConversations();
+        
         function renderConversations() {
             const container = document.getElementById('conversationsList');
             container.innerHTML = '';
@@ -2086,9 +2126,31 @@
             }
         }
 
+        // Update stories based on target gender
+        function updateStoriesForGender() {
+            const storyImages = document.querySelectorAll('.stories-section .story-ring img');
+            storyImages.forEach(img => {
+                const src = img.src;
+                // Check if this story has a suspicious indicator (🔴 badge or unread)
+                const parent = img.closest('.story-item');
+                const badge = parent?.querySelector('.story-badge');
+                const isSuspicious = badge && (badge.textContent.includes('🔴') || badge.textContent.includes('NEW'));
+                
+                if (isSuspicious) {
+                    // Swap avatar based on target gender
+                    if (suspiciousGender === 'male' && src.includes('mulher')) {
+                        img.src = src.replace('mulher', 'homem');
+                    } else if (suspiciousGender === 'female' && src.includes('homem')) {
+                        img.src = src.replace('homem', 'mulher');
+                    }
+                }
+            });
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             renderConversations();
+            updateStoriesForGender();
             updateTimer();
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
