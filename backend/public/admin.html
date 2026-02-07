@@ -2565,62 +2565,115 @@
                 
                 <!-- Tab: Users (Admin Only) -->
                 <div class="tab-content" id="tab-users">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <!-- Header with Stats -->
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; margin-bottom: 32px;">
                         <div>
-                            <h2 style="color: var(--text-primary); margin: 0;">👥 Gerenciar Usuários</h2>
-                            <p style="color: var(--text-muted); margin-top: 4px;">Adicione e gerencie usuários do painel</p>
+                            <h2 style="color: var(--text-primary); margin: 0; font-size: 28px; font-weight: 700;">👥 Equipe</h2>
+                            <p style="color: var(--text-muted); margin-top: 8px; font-size: 15px;">Gerencie os membros da sua equipe e suas permissões</p>
                         </div>
-                        <button class="btn-primary" onclick="openAddUserModal()">
-                            <span>➕</span> Novo Usuário
+                        <button class="btn-primary" onclick="openAddUserModal()" style="height: fit-content; padding: 12px 24px; font-size: 15px; font-weight: 600;">
+                            <span style="font-size: 18px;">➕</span> Adicionar Membro
                         </button>
                     </div>
                     
-                    <!-- Roles Description -->
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
-                        <div class="stat-card" style="border-left: 4px solid var(--danger);">
-                            <div class="stat-header">
-                                <span class="stat-label">🔐 Admin</span>
+                    <!-- Quick Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border: 1px solid rgba(239, 68, 68, 0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px;">ADMINS</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--danger);" id="statsAdmins">0</div>
+                                </div>
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px;">🔐</div>
                             </div>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
-                                Acesso total ao sistema. Pode gerenciar usuários, configurações e dados.
-                            </p>
                         </div>
-                        <div class="stat-card" style="border-left: 4px solid var(--primary);">
-                            <div class="stat-header">
-                                <span class="stat-label">💬 Suporte</span>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px;">SUPORTE</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--primary);" id="statsSupport">0</div>
+                                </div>
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px;">💬</div>
                             </div>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
-                                Pode ver leads, reembolsos, fazer recuperação. Não pode limpar dados ou gerenciar usuários.
-                            </p>
                         </div>
-                        <div class="stat-card" style="border-left: 4px solid var(--success);">
-                            <div class="stat-header">
-                                <span class="stat-label">👁️ Visualizador</span>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05)); border: 1px solid rgba(34, 197, 94, 0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px;">ATIVOS</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--success);" id="statsActive">0</div>
+                                </div>
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px;">✅</div>
                             </div>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
-                                Apenas visualização. Pode ver dados mas não pode editar nada.
-                            </p>
+                        </div>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(245, 158, 11, 0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px;">TOTAL</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--warning);" id="statsTotal">0</div>
+                                </div>
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px;">👥</div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Users Table -->
-                    <div class="table-container">
-                        <table class="data-table" id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Usuário</th>
-                                    <th>Email</th>
-                                    <th>Nível</th>
-                                    <th>Status</th>
-                                    <th>Último Acesso</th>
-                                    <th>Criado em</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody">
-                                <!-- Will be populated dynamically -->
-                            </tbody>
-                        </table>
+                    <!-- Info Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;">
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -10px; right: -10px; font-size: 80px; opacity: 0.05;">🔐</div>
+                            <div style="position: relative; z-index: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626); display: flex; align-items: center; justify-content: center; font-size: 18px;">🔐</div>
+                                    <h4 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Admin</h4>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                                    Acesso completo ao sistema. Pode gerenciar usuários, configurações e todos os dados.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -10px; right: -10px; font-size: 80px; opacity: 0.05;">💬</div>
+                            <div style="position: relative; z-index: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; font-size: 18px;">💬</div>
+                                    <h4 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Suporte</h4>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                                    Pode visualizar leads, gerenciar reembolsos e fazer recuperação de vendas. Sem acesso a configurações críticas.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -10px; right: -10px; font-size: 80px; opacity: 0.05;">👁️</div>
+                            <div style="position: relative; z-index: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; font-size: 18px;">👁️</div>
+                                    <h4 style="margin: 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">Visualizador</h4>
+                                </div>
+                                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                                    Apenas visualização de dados. Não pode editar, criar ou deletar nenhuma informação.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Users Grid -->
+                    <div id="usersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="usersEmptyState" style="display: none; text-align: center; padding: 80px 20px;">
+                        <div style="font-size: 80px; margin-bottom: 16px; opacity: 0.3;">👥</div>
+                        <h3 style="color: var(--text-primary); margin: 0 0 8px 0;">Nenhum usuário cadastrado</h3>
+                        <p style="color: var(--text-muted); margin: 0 0 24px 0;">Adicione membros da equipe para começar</p>
+                        <button class="btn-primary" onclick="openAddUserModal()">
+                            ➕ Adicionar Primeiro Membro
+                        </button>
                     </div>
                 </div>
             </div>
@@ -3173,65 +3226,118 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderUsers(users) {
-            const tbody = document.getElementById('usersTableBody');
-            if (!tbody) return;
+            const grid = document.getElementById('usersGrid');
+            const emptyState = document.getElementById('usersEmptyState');
+            
+            if (!grid) return;
+            
+            // Update stats
+            const stats = {
+                admins: users.filter(u => u.role === 'admin').length,
+                support: users.filter(u => u.role === 'support').length,
+                active: users.filter(u => u.is_active).length,
+                total: users.length
+            };
+            
+            document.getElementById('statsAdmins').textContent = stats.admins;
+            document.getElementById('statsSupport').textContent = stats.support;
+            document.getElementById('statsActive').textContent = stats.active;
+            document.getElementById('statsTotal').textContent = stats.total;
             
             if (users.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhum usuário cadastrado</td></tr>`;
+                grid.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
                 return;
             }
             
+            grid.style.display = 'grid';
+            if (emptyState) emptyState.style.display = 'none';
+            
             const roleLabels = {
-                'admin': { icon: '🔐', label: 'Admin', color: 'var(--danger)' },
-                'support': { icon: '💬', label: 'Suporte', color: 'var(--primary)' },
-                'viewer': { icon: '👁️', label: 'Visualizador', color: 'var(--success)' }
+                'admin': { icon: '🔐', label: 'Admin', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #dc2626)' },
+                'support': { icon: '💬', label: 'Suporte', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+                'viewer': { icon: '👁️', label: 'Visualizador', color: '#22c55e', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)' }
             };
             
-            tbody.innerHTML = users.map(user => {
+            grid.innerHTML = users.map(user => {
                 const role = roleLabels[user.role] || roleLabels.viewer;
                 const isCurrentUser = currentUser && (currentUser.id === user.id || currentUser.email === user.email);
                 const isMainAdmin = user.id === 1;
+                const lastLogin = user.last_login ? new Date(user.last_login) : null;
+                const createdAt = new Date(user.created_at);
                 
                 return `
-                    <tr${isCurrentUser ? ' style="background: rgba(16, 185, 129, 0.05);"' : ''}>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, ${role.color}, ${role.color}66); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white;">
-                                    ${(user.name || user.username || 'U').charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <div style="font-weight: 500; color: var(--text-primary);">
-                                        ${user.name || user.username}
-                                        ${isCurrentUser ? '<span style="font-size: 10px; background: var(--success); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">VOCÊ</span>' : ''}
-                                    </div>
-                                    <div style="font-size: 12px; color: var(--text-muted);">@${user.username}</div>
+                    <div class="stat-card" style="position: relative; overflow: hidden; border: 1px solid ${user.is_active ? 'var(--border)' : 'rgba(239, 68, 68, 0.3)'}; ${isCurrentUser ? 'box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);' : ''}">
+                        ${isCurrentUser ? `<div style="position: absolute; top: 12px; right: 12px; background: var(--success); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; z-index: 2;">VOCÊ</div>` : ''}
+                        
+                        <!-- Avatar & Name -->
+                        <div style="display: flex; align-items: start; gap: 16px; margin-bottom: 20px;">
+                            <div style="width: 64px; height: 64px; border-radius: 16px; background: ${role.gradient}; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: white; flex-shrink: 0; box-shadow: 0 4px 12px ${role.color}40;">
+                                ${(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <h3 style="margin: 0 0 4px 0; color: var(--text-primary); font-size: 18px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    ${user.name || user.username}
+                                </h3>
+                                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">@${user.username}</div>
+                                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; background: ${role.color}15; border: 1px solid ${role.color}30;">
+                                    <span style="font-size: 14px;">${role.icon}</span>
+                                    <span style="font-size: 12px; font-weight: 600; color: ${role.color};">${role.label}</span>
                                 </div>
                             </div>
-                        </td>
-                        <td style="color: var(--text-secondary);">${user.email}</td>
-                        <td>
-                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; background: ${role.color}22; color: ${role.color}; font-size: 12px; font-weight: 500;">
-                                ${role.icon} ${role.label}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="status-badge ${user.is_active ? 'converted' : 'lost'}">
-                                ${user.is_active ? '✅ Ativo' : '🚫 Inativo'}
-                            </span>
-                        </td>
-                        <td style="color: var(--text-muted); font-size: 13px;">
-                            ${user.last_login ? new Date(user.last_login).toLocaleString('pt-BR') : 'Nunca'}
-                        </td>
-                        <td style="color: var(--text-muted); font-size: 13px;">
-                            ${new Date(user.created_at).toLocaleDateString('pt-BR')}
-                        </td>
-                        <td>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="action-btn" onclick="openEditUserModal(${user.id}, '${user.name || ''}', '${user.role}', ${user.is_active})" title="Editar"${isMainAdmin && !isCurrentUser ? ' disabled style="opacity: 0.5;"' : ''}>✏️</button>
-                                <button class="action-btn" onclick="deleteUser(${user.id}, '${user.name || user.username}')" title="Excluir"${isMainAdmin || isCurrentUser ? ' disabled style="opacity: 0.5;"' : ''}>🗑️</button>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 12px;">
+                            <span style="font-size: 14px;">📧</span>
+                            <span style="font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user.email}</span>
+                        </div>
+                        
+                        <!-- Status & Info -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                            <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 6px;">
+                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">STATUS</div>
+                                <div style="font-size: 13px; font-weight: 600; color: ${user.is_active ? 'var(--success)' : 'var(--danger)'};">
+                                    ${user.is_active ? '✅ Ativo' : '🚫 Inativo'}
+                                </div>
                             </div>
-                        </td>
-                    </tr>
+                            <div style="padding: 8px; background: var(--bg-tertiary); border-radius: 6px;">
+                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">MEMBRO DESDE</div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">
+                                    ${createdAt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Last Login -->
+                        <div style="padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 16px;">
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">ÚLTIMO ACESSO</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                ${lastLogin ? `${lastLogin.toLocaleDateString('pt-BR')} às ${lastLogin.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Nunca acessou'}
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div style="display: flex; gap: 8px;">
+                            <button 
+                                class="btn-secondary" 
+                                onclick="openEditUserModal(${user.id}, '${(user.name || '').replace(/'/g, "\\'")}', '${user.role}', ${user.is_active})" 
+                                style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;"
+                                ${isMainAdmin && !isCurrentUser ? 'disabled' : ''}
+                            >
+                                ✏️ Editar
+                            </button>
+                            <button 
+                                class="btn-secondary" 
+                                onclick="deleteUser(${user.id}, '${(user.name || user.username).replace(/'/g, "\\'")}')  " 
+                                style="padding: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger);"
+                                ${isMainAdmin || isCurrentUser ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                                title="${isCurrentUser ? 'Você não pode excluir sua própria conta' : isMainAdmin ? 'Admin principal não pode ser excluído' : 'Excluir usuário'}"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
