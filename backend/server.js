@@ -1296,6 +1296,17 @@ app.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req, re
 // Middleware to parse URL-encoded postback data
 app.use(express.urlencoded({ extended: true }));
 
+// Store last 20 postbacks for debugging
+const recentPostbacks = [];
+
+// Debug endpoint to see recent postbacks
+app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
+    res.json({
+        count: recentPostbacks.length,
+        postbacks: recentPostbacks
+    });
+});
+
 // Monetizze postback endpoint (public - no auth, uses token validation)
 // Also accepts GET for testing
 app.all('/api/postback/monetizze', async (req, res) => {
@@ -1308,6 +1319,20 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 timestamp: new Date().toISOString()
             });
         }
+        
+        // Store postback for debugging
+        const postbackEntry = {
+            timestamp: new Date().toISOString(),
+            method: req.method,
+            headers: {
+                'content-type': req.headers['content-type'],
+                'user-agent': req.headers['user-agent']
+            },
+            body: req.body,
+            bodyKeys: Object.keys(req.body || {})
+        };
+        recentPostbacks.unshift(postbackEntry);
+        if (recentPostbacks.length > 20) recentPostbacks.pop();
         
         console.log('📥 Monetizze Postback received:', JSON.stringify(req.body, null, 2));
         console.log('📥 Postback keys:', Object.keys(req.body));
