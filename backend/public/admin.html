@@ -3336,35 +3336,46 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('funnelSingleView').style.display = 'none';
             
             try {
-                // Load both funnels in parallel
-                const [enResponse, esResponse] = await Promise.all([
-                    fetch(`${API_URL}/api/admin/funnel?language=en`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/funnel?language=es`, { headers: { 'Authorization': `Bearer ${authToken}` } })
-                ]);
+                // Load all funnel data first (without language filter)
+                const allResponse = await fetch(`${API_URL}/api/admin/funnel`, { 
+                    headers: { 'Authorization': `Bearer ${authToken}` } 
+                });
                 
-                if (enResponse.status === 401 || esResponse.status === 401) { logout(); return; }
+                if (allResponse.status === 401) { logout(); return; }
                 
-                const [enData, esData] = await Promise.all([enResponse.json(), esResponse.json()]);
+                const allData = await allResponse.json();
                 
-                // Render English funnel
-                renderFunnelStepsForLanguage(enData.funnelStats, 'funnelStepsEN', '#3b82f6');
-                const enStats = calculateFunnelMetrics(enData.funnelStats);
-                document.getElementById('funnelVisitorsEN').textContent = enStats.visitors.toLocaleString('pt-BR');
-                document.getElementById('funnelConvEN').textContent = enStats.conversionRate + '%';
+                // For now, show all data in EN column (since most legacy data is English)
+                // and show a message for ES that it needs new data
+                renderFunnelStepsForLanguage(allData.funnelStats, 'funnelStepsEN', '#3b82f6');
+                const allStats = calculateFunnelMetrics(allData.funnelStats);
+                document.getElementById('funnelVisitorsEN').textContent = allStats.visitors.toLocaleString('pt-BR');
+                document.getElementById('funnelConvEN').textContent = allStats.conversionRate + '%';
                 
-                // Render Spanish funnel
-                renderFunnelStepsForLanguage(esData.funnelStats, 'funnelStepsES', '#f59e0b');
-                const esStats = calculateFunnelMetrics(esData.funnelStats);
-                document.getElementById('funnelVisitorsES').textContent = esStats.visitors.toLocaleString('pt-BR');
-                document.getElementById('funnelConvES').textContent = esStats.conversionRate + '%';
+                // Try to load ES separately
+                try {
+                    const esResponse = await fetch(`${API_URL}/api/admin/funnel?language=es`, { 
+                        headers: { 'Authorization': `Bearer ${authToken}` } 
+                    });
+                    const esData = await esResponse.json();
+                    
+                    if (esData.funnelStats && esData.funnelStats.length > 0) {
+                        renderFunnelStepsForLanguage(esData.funnelStats, 'funnelStepsES', '#f59e0b');
+                        const esStats = calculateFunnelMetrics(esData.funnelStats);
+                        document.getElementById('funnelVisitorsES').textContent = esStats.visitors.toLocaleString('pt-BR');
+                        document.getElementById('funnelConvES').textContent = esStats.conversionRate + '%';
+                    } else {
+                        document.getElementById('funnelStepsES').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);"><p>📊 Sem dados do funil espanhol ainda.</p><p style="font-size: 12px;">Os dados aparecerão após novos visitantes acessarem o funil em espanhol.</p></div>';
+                        document.getElementById('funnelVisitorsES').textContent = '0';
+                        document.getElementById('funnelConvES').textContent = '0.0%';
+                    }
+                } catch (esError) {
+                    console.log('ES funnel data not available:', esError);
+                    document.getElementById('funnelStepsES').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Sem dados ES</div>';
+                }
                 
-                // Combine journeys from both funnels
-                const allJourneys = [
-                    ...(enData.journeys || []).map(j => ({ ...j, language: 'en' })),
-                    ...(esData.journeys || []).map(j => ({ ...j, language: 'es' }))
-                ].sort((a, b) => new Date(b.last_seen) - new Date(a.last_seen)).slice(0, 50);
-                
-                renderJourneys(allJourneys, true);
+                // Show all journeys
+                renderJourneys(allData.journeys || [], true);
                 
             } catch (error) {
                 console.error('Error loading funnel comparison:', error);

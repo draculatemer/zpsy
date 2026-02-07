@@ -1145,14 +1145,22 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
         
         // Build language filter condition
         // The metadata column stores JSON with funnelLanguage field
-        // For 'en': include events where funnelLanguage='en' OR funnelLanguage is NULL/missing (legacy data)
+        // For 'en': include events where funnelLanguage='en' OR funnelLanguage is NULL/missing (legacy data, assumed English)
         // For 'es': include only events where funnelLanguage='es'
+        // For 'all' or undefined: no filter, return all events
         let langCondition = '';
         if (language === 'en') {
-            langCondition = `AND (metadata->>'funnelLanguage' = 'en' OR metadata->>'funnelLanguage' IS NULL OR metadata IS NULL OR metadata::text = '{}' OR metadata::text = 'null')`;
+            // English includes legacy data (where funnelLanguage is not set)
+            langCondition = `AND (
+                metadata->>'funnelLanguage' = 'en' 
+                OR metadata->>'funnelLanguage' IS NULL 
+                OR metadata IS NULL 
+                OR NOT (metadata ? 'funnelLanguage')
+            )`;
         } else if (language === 'es') {
             langCondition = `AND metadata->>'funnelLanguage' = 'es'`;
         }
+        // else: no filter = all languages
         
         // Get funnel stats by step
         const funnelStats = await pool.query(`
