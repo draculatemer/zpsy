@@ -213,7 +213,7 @@ app.use(express.static('public'));
 const path = require('path');
 
 // ==================== GEOLOCATION HELPER ====================
-const https = require('https');
+const http = require('http');
 
 async function getCountryFromIP(ip) {
     return new Promise((resolve) => {
@@ -232,55 +232,41 @@ async function getCountryFromIP(ip) {
             
             console.log('Geolocation: Looking up IP:', cleanIP);
             
-            const options = {
-                method: 'GET',
-                hostname: 'ip-geo-location.p.rapidapi.com',
-                port: null,
-                path: `/ip/${cleanIP}?format=json&language=en`,
-                headers: {
-                    'x-rapidapi-key': 'd03f07c7d0msh0e23fb53734dctqp1c2c1fjsnc7937b7aa011',
-                    'x-rapidapi-host': 'ip-geo-location.p.rapidapi.com'
-                }
-            };
+            // Using ip-api.com (free, no key required, 45 requests/minute)
+            const url = `http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,city`;
             
-            const req = https.request(options, function (res) {
-                const chunks = [];
+            http.get(url, (res) => {
+                let data = '';
                 
-                res.on('data', function (chunk) {
-                    chunks.push(chunk);
+                res.on('data', (chunk) => {
+                    data += chunk;
                 });
                 
-                res.on('end', function () {
+                res.on('end', () => {
                     try {
-                        const body = Buffer.concat(chunks);
-                        const data = JSON.parse(body.toString());
+                        const json = JSON.parse(data);
                         
-                        console.log('Geolocation: Found -', data.country?.name, data.country?.code, data.city?.name);
-                        resolve({
-                            country: data.country?.name || null,
-                            country_code: data.country?.code || null,
-                            city: data.city?.name || null
-                        });
+                        if (json.status === 'success') {
+                            console.log('Geolocation: Found -', json.country, json.countryCode, json.city);
+                            resolve({
+                                country: json.country || null,
+                                country_code: json.countryCode || null,
+                                city: json.city || null
+                            });
+                        } else {
+                            console.log('Geolocation: API returned fail status');
+                            resolve({ country: null, country_code: null, city: null });
+                        }
                     } catch (parseError) {
                         console.log('Geolocation parse error:', parseError.message);
                         resolve({ country: null, country_code: null, city: null });
                     }
                 });
-            });
-            
-            req.on('error', function (error) {
+            }).on('error', (error) => {
                 console.log('Geolocation request error:', error.message);
                 resolve({ country: null, country_code: null, city: null });
             });
             
-            // Timeout after 5 seconds
-            req.setTimeout(5000, function() {
-                console.log('Geolocation: Request timeout');
-                req.destroy();
-                resolve({ country: null, country_code: null, city: null });
-            });
-            
-            req.end();
         } catch (error) {
             console.log('Geolocation error:', error.message);
             resolve({ country: null, country_code: null, city: null });
@@ -846,8 +832,7 @@ app.get('/api/admin/test-geolocation', authenticateToken, async (req, res) => {
             success: true,
             test_ip: testIP,
             result: geoData,
-            api_key_set: !!process.env.RAPIDAPI_KEY,
-            api_key_preview: process.env.RAPIDAPI_KEY ? process.env.RAPIDAPI_KEY.substring(0, 10) + '...' : 'using hardcoded'
+            api_provider: 'ip-api.com (free, no key required)'
         });
     } catch (error) {
         console.error('Test geolocation error:', error);
