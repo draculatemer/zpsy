@@ -3009,13 +3009,40 @@ Posso ajudar com alguma dúvida sobre o produto?
 Estou aqui para esclarecer tudo! 😊`
         };
         
-        // Check if logged in
+        // Check if logged in - validate token first
         if (authToken) {
-            // If we have a token but no user info, fetch it
-            const storedUser = localStorage.getItem('adminUser');
-            if (!storedUser) {
-                fetchUserProfile().then(() => showDashboard());
-            } else {
+            validateAndShowDashboard();
+        }
+        
+        // Validate token before showing dashboard
+        async function validateAndShowDashboard() {
+            try {
+                // Quick check if token is still valid
+                const response = await fetch(`${API_URL}/api/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    // Token expired or invalid - force re-login
+                    console.log('Token expired, forcing re-login');
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    authToken = null;
+                    token = null;
+                    location.reload();
+                    return;
+                }
+                
+                // Token is valid - fetch profile if needed
+                const storedUser = localStorage.getItem('adminUser');
+                if (!storedUser) {
+                    await fetchUserProfile();
+                }
+                
+                showDashboard();
+            } catch (error) {
+                console.error('Error validating token:', error);
+                // On network error, still try to show dashboard
                 showDashboard();
             }
         }
@@ -3032,7 +3059,7 @@ Estou aqui para esclarecer tudo! 😊`
                     if (data.user) {
                         localStorage.setItem('adminUser', JSON.stringify(data.user));
                     }
-                } else if (response.status === 401) {
+                } else if (response.status === 401 || response.status === 403) {
                     logout();
                 }
             } catch (error) {
@@ -3115,7 +3142,7 @@ Estou aqui para esclarecer tudo! 😊`
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
                 
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 
                 const data = await response.json();
                 const todayStart = new Date();
@@ -3614,7 +3641,7 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadStats() {
             try {
                 const response = await fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } });
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 document.getElementById('statTotal').textContent = data.total.toLocaleString('pt-BR');
@@ -3646,7 +3673,7 @@ Estou aqui para esclarecer tudo! 😊`
                 if (language) url += `&language=${language}`;
                 
                 const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 renderLeads(data.leads);
@@ -3871,7 +3898,7 @@ Estou aqui para esclarecer tudo! 😊`
                 updateRecoveryHeader(globalFilter);
                 
                 const response = await fetch(`${API_URL}/api/admin/leads?status=new&limit=50${langParam}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 const leads = data.leads || [];
@@ -3993,7 +4020,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const response = await fetch(`${API_URL}/api/admin/funnel?language=${language}`, { 
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 renderFunnelStats(data.funnelStats);
@@ -4256,7 +4283,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const response = await fetch(`${API_URL}/api/admin/funnel/visitor/${visitorId}`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 // Render Lead Info
@@ -4593,7 +4620,7 @@ Estou aqui para esclarecer tudo! 😊`
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 
                 if (response.ok) {
                     showToast('Deletado!', 'Transação removida com sucesso', 'success');
@@ -4617,7 +4644,7 @@ Estou aqui para esclarecer tudo! 😊`
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 
                 const data = await response.json();
                 allRefunds = data.refunds || [];
@@ -5013,7 +5040,7 @@ Estou aqui para esclarecer tudo! 😊`
                     body: JSON.stringify({ status, notes })
                 });
                 
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 
                 if (response.ok) {
                     const statusText = status === 'approved' ? 'aprovado' : status === 'rejected' ? 'rejeitado' : 'atualizado';
@@ -5390,7 +5417,7 @@ Estou aqui para esclarecer tudo! 😊`
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
                 
-                if (response.status === 401) { logout(); return; }
+                if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
                 const refunds = data.refunds || [];
