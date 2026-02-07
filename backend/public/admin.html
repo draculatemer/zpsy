@@ -2542,6 +2542,37 @@
                     </div>
                     
                     <div class="config-box">
+                        <h3>🔄 Sincronizar Vendas da Monetizze</h3>
+                        <p>Importe vendas diretamente da API da Monetizze para o painel. Útil para recuperar vendas que não foram capturadas automaticamente.</p>
+                        <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div class="form-group">
+                                <label class="form-label">Data Início</label>
+                                <input type="date" class="form-input" id="syncStartDate" value="">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data Fim</label>
+                                <input type="date" class="form-input" id="syncEndDate" value="">
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn-primary" onclick="syncMonetizze()">🔄 Sincronizar Vendas</button>
+                            <button class="btn-secondary" onclick="syncMonetizzeToday()">📅 Sincronizar Hoje</button>
+                            <button class="btn-secondary" onclick="syncMonetizzeLast7Days()">📆 Últimos 7 Dias</button>
+                        </div>
+                        <div id="syncMonetizzeResult" style="margin-top: 16px; display: none;">
+                            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 20px; border: 1px solid var(--border);">
+                                <pre id="syncMonetizzeContent" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                            <strong style="color: var(--success);">💡 Dica:</strong>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                                Use esta função para importar vendas antigas ou recuperar vendas que não foram capturadas automaticamente pelo postback.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="config-box">
                         <h3>🔍 Debug de Postbacks</h3>
                         <p>Veja os últimos postbacks recebidos da Monetizze e os valores de cada campo.</p>
                         <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -3231,7 +3262,13 @@ Estou aqui para esclarecer tudo! 😊`
             else if (tabName === 'refunds') loadRefunds();
             else if (tabName === 'countries') loadCountriesData();
             else if (tabName === 'reports') loadReportsStats();
-            else if (tabName === 'settings') document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
+            else if (tabName === 'settings') {
+                document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
+                // Initialize sync dates with today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('syncStartDate').value = today;
+                document.getElementById('syncEndDate').value = today;
+            }
             else if (tabName === 'users') loadUsers();
         }
         
@@ -6570,6 +6607,85 @@ Posso ajudar em algo mais? 😊`
             } catch (error) {
                 showToast('❌ Erro', 'Endpoint não está respondendo', 'error');
             }
+        }
+        
+        // Sync Monetizze sales
+        async function syncMonetizze() {
+            const startDate = document.getElementById('syncStartDate').value;
+            const endDate = document.getElementById('syncEndDate').value;
+            
+            if (!startDate || !endDate) {
+                showToast('⚠️ Atenção', 'Selecione as datas de início e fim', 'warning');
+                return;
+            }
+            
+            try {
+                showToast('🔄 Sincronizando...', 'Buscando vendas da Monetizze', 'success');
+                
+                const response = await fetch(`${API_URL}/api/admin/sync-monetizze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ startDate, endDate })
+                });
+                
+                if (response.status === 401 || response.status === 403) { logout(); return; }
+                
+                const data = await response.json();
+                
+                const resultDiv = document.getElementById('syncMonetizzeResult');
+                const contentPre = document.getElementById('syncMonetizzeContent');
+                
+                if (data.success) {
+                    let output = `✅ Sincronização concluída!\n\n`;
+                    output += `📊 Total de vendas: ${data.total}\n`;
+                    output += `✅ Sincronizadas: ${data.synced}\n`;
+                    output += `⏭️ Ignoradas: ${data.skipped}\n`;
+                    
+                    if (data.errors && data.errors.length > 0) {
+                        output += `\n⚠️ Erros (${data.errors.length}):\n`;
+                        data.errors.forEach(err => {
+                            output += `  - Venda ${err.sale}: ${err.error}\n`;
+                        });
+                    }
+                    
+                    contentPre.textContent = output;
+                    resultDiv.style.display = 'block';
+                    
+                    showToast('✅ Sucesso!', `${data.synced} vendas sincronizadas`, 'success');
+                    
+                    // Reload data
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 2000);
+                } else {
+                    contentPre.textContent = `❌ Erro: ${data.error}\n\n${data.message || ''}`;
+                    resultDiv.style.display = 'block';
+                    showToast('❌ Erro', data.error || 'Falha na sincronização', 'error');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showToast('❌ Erro', 'Falha ao sincronizar: ' + error.message, 'error');
+            }
+        }
+        
+        function syncMonetizzeToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('syncStartDate').value = today;
+            document.getElementById('syncEndDate').value = today;
+            syncMonetizze();
+        }
+        
+        function syncMonetizzeLast7Days() {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            
+            document.getElementById('syncStartDate').value = sevenDaysAgo.toISOString().split('T')[0];
+            document.getElementById('syncEndDate').value = today.toISOString().split('T')[0];
+            syncMonetizze();
         }
         
         function saveWebhook() {

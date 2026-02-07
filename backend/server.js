@@ -1824,6 +1824,169 @@ app.post('/api/postback/test', (req, res) => {
     });
 });
 
+// Sync sales from Monetizze API (protected - admin only)
+app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { startDate, endDate, productCodes } = req.body;
+        
+        // Monetizze API credentials from env
+        const consumerKey = process.env.MONETIZZE_CONSUMER_KEY;
+        const consumerSecret = process.env.MONETIZZE_CONSUMER_SECRET;
+        
+        if (!consumerKey || !consumerSecret) {
+            return res.status(500).json({ 
+                error: 'Monetizze API credentials not configured',
+                message: 'Configure MONETIZZE_CONSUMER_KEY and MONETIZZE_CONSUMER_SECRET in environment variables'
+            });
+        }
+        
+        console.log('🔄 Starting Monetizze sync...');
+        console.log('📅 Date range:', startDate || 'today', 'to', endDate || 'today');
+        
+        // Monetizze API endpoint for sales
+        // https://api.monetizze.com.br/2.0/sales
+        const baseUrl = 'https://api.monetizze.com.br/2.0/sales';
+        const params = new URLSearchParams({
+            consumer_key: consumerKey,
+            consumer_secret: consumerSecret
+        });
+        
+        if (startDate) params.append('data_inicio', startDate); // Format: YYYY-MM-DD
+        if (endDate) params.append('data_fim', endDate);
+        if (productCodes && productCodes.length > 0) {
+            productCodes.forEach(code => params.append('produto_codigo[]', code));
+        }
+        
+        const url = `${baseUrl}?${params.toString()}`;
+        console.log('🌐 Fetching from Monetizze API...');
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Monetizze API error:', response.status, errorText);
+            return res.status(response.status).json({ 
+                error: 'Monetizze API request failed',
+                status: response.status,
+                details: errorText
+            });
+        }
+        
+        const data = await response.json();
+        console.log('📦 Received data from Monetizze:', data?.vendas?.length || 0, 'sales');
+        
+        if (!data.vendas || data.vendas.length === 0) {
+            return res.json({
+                success: true,
+                message: 'No sales found for the specified period',
+                synced: 0,
+                skipped: 0
+            });
+        }
+        
+        let synced = 0;
+        let skipped = 0;
+        let errors = [];
+        
+        // Process each sale
+        for (const venda of data.vendas) {
+            try {
+                // Extract data from Monetizze API format
+                const transactionId = venda.codigo || venda.transacao;
+                const email = venda.comprador?.email || venda.email;
+                const phone = venda.comprador?.telefone || venda.telefone;
+                const name = venda.comprador?.nome || venda.nome;
+                const productName = venda.produto?.nome || venda.produto_nome;
+                const productCode = venda.produto?.codigo || venda.produto_codigo;
+                const value = venda.comissao || venda.valor_liquido || venda.valor;
+                const status = venda.status || venda.situacao;
+                const statusCode = venda.status_codigo || '2';
+                
+                // Detect funnel language
+                const spanishProductCodes = ['349260', '349261', '349266', '349267'];
+                const funnelLanguage = spanishProductCodes.includes(String(productCode)) ? 'es' : 'en';
+                
+                // Map status
+                const statusMap = {
+                    '1': 'pending_payment',
+                    '2': 'approved',
+                    '3': 'cancelled',
+                    '4': 'refunded',
+                    '5': 'blocked',
+                    '6': 'approved',
+                    '7': 'abandoned_checkout',
+                    '8': 'chargeback',
+                    '9': 'chargeback'
+                };
+                const mappedStatus = statusMap[String(statusCode)] || 'approved';
+                
+                if (!email || !transactionId) {
+                    console.log(`⚠️ Skipping sale without email or ID:`, transactionId);
+                    skipped++;
+                    continue;
+                }
+                
+                // Insert or update transaction
+                await pool.query(`
+                    INSERT INTO transactions (
+                        transaction_id, email, phone, name, product, value, 
+                        monetizze_status, status, raw_data, funnel_language, created_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+                    ON CONFLICT (transaction_id) 
+                    DO UPDATE SET 
+                        monetizze_status = $7,
+                        status = $8,
+                        raw_data = $9,
+                        funnel_language = $10,
+                        updated_at = NOW()
+                `, [
+                    transactionId,
+                    email,
+                    phone,
+                    name,
+                    productName,
+                    value,
+                    String(statusCode),
+                    mappedStatus,
+                    JSON.stringify(venda),
+                    funnelLanguage
+                ]);
+                
+                console.log(`✅ Synced: ${transactionId} - ${email} - ${productName}`);
+                synced++;
+                
+            } catch (saleError) {
+                console.error(`❌ Error processing sale:`, saleError.message);
+                errors.push({ sale: venda.codigo, error: saleError.message });
+                skipped++;
+            }
+        }
+        
+        console.log(`🎉 Sync complete: ${synced} synced, ${skipped} skipped`);
+        
+        res.json({
+            success: true,
+            message: 'Monetizze sync completed',
+            synced,
+            skipped,
+            total: data.vendas.length,
+            errors: errors.length > 0 ? errors : undefined
+        });
+        
+    } catch (error) {
+        console.error('❌ Monetizze sync error:', error);
+        res.status(500).json({ 
+            error: 'Sync failed',
+            message: error.message
+        });
+    }
+});
+
 // Monetizze postback endpoint (public - no auth, uses token validation)
 // Also accepts GET for testing
 app.all('/api/postback/monetizze', async (req, res) => {
