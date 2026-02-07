@@ -1750,7 +1750,7 @@ app.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req, re
 // Store last 20 postbacks for debugging
 const recentPostbacks = [];
 
-// Debug endpoint to see recent postbacks
+// Debug endpoint to see recent postbacks (memory + DB)
 app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
     // Extract value fields from each postback for easy viewing
     const postbacksWithValueInfo = recentPostbacks.map(p => {
@@ -1760,7 +1760,6 @@ app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
             chave_unica: p.body?.chave_unica || venda.codigo,
             status: p.body?.tipoEvento?.codigo,
             produto: p.body?.produto?.nome,
-            // All value fields for debugging
             valores: {
                 'body.comissao': p.body?.comissao || 'N/A',
                 'venda.comissao': venda.comissao || 'N/A',
@@ -1769,14 +1768,48 @@ app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
                 'venda.valor': venda.valor || 'N/A',
                 'body.valor': p.body?.valor || 'N/A'
             },
-            comprador: p.body?.comprador?.email
+            comprador: p.body?.comprador?.email,
+            hasDotKeys: p.hasDotKeys
         };
     });
     
+    // Also get DB logs
+    let dbLogs = [];
+    try {
+        const dbResult = await pool.query(`
+            SELECT id, content_type, body, created_at 
+            FROM postback_logs 
+            ORDER BY created_at DESC 
+            LIMIT 30
+        `);
+        dbLogs = dbResult.rows;
+    } catch (err) {
+        dbLogs = [{ error: err.message }];
+    }
+    
+    // Also check recent transactions
+    let recentTx = [];
+    try {
+        const txResult = await pool.query(`
+            SELECT transaction_id, email, product, value, status, monetizze_status, created_at 
+            FROM transactions 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        `);
+        recentTx = txResult.rows;
+    } catch (err) {
+        recentTx = [{ error: err.message }];
+    }
+    
     res.json({
-        count: recentPostbacks.length,
-        info: 'Mostrando campos de valor para debug. O campo usado será: comissao > valorLiquido > valorRecebido > valor',
+        memoryCount: recentPostbacks.length,
+        dbLogCount: dbLogs.length,
+        info: 'Memory postbacks are lost on server restart. DB logs persist. Check if Monetizze is sending postbacks to the correct URL.',
+        expectedUrl: 'https://zapspy-funnel-production.up.railway.app/api/postback/monetizze',
+        alternateUrl: 'https://painel.xaimonitor.com/api/postback/monetizze',
         postbacks: postbacksWithValueInfo,
+        dbLogs,
+        recentTransactions: recentTx,
         fullPostbacks: recentPostbacks
     });
 });
@@ -1804,29 +1837,82 @@ app.all('/api/postback/monetizze', async (req, res) => {
     }
     
     try {
-        const body = req.body || {};
+        const rawBody = req.body || {};
         
         console.log('📥 Monetizze Postback received');
-        console.log('📥 Body keys:', Object.keys(body));
-        console.log('📥 Raw body:', JSON.stringify(body).substring(0, 500));
+        console.log('📥 Content-Type:', req.headers['content-type']);
+        console.log('📥 Body keys:', Object.keys(rawBody));
+        console.log('📥 Raw body:', JSON.stringify(rawBody).substring(0, 1000));
         
-        // Store postback for debugging
+        // ==================== HANDLE FLAT DOT-NOTATION KEYS ====================
+        // Monetizze may send data as flat keys with dot notation:
+        //   "produto.nome" = "X AI Monitor"
+        //   "comprador.email" = "test@email.com"
+        // We need to convert these to nested objects
+        function unflattenObject(obj) {
+            const result = {};
+            for (const key of Object.keys(obj)) {
+                if (key.includes('.')) {
+                    const parts = key.split('.');
+                    let current = result;
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        if (!current[parts[i]] || typeof current[parts[i]] !== 'object') {
+                            current[parts[i]] = {};
+                        }
+                        current = current[parts[i]];
+                    }
+                    current[parts[parts.length - 1]] = obj[key];
+                } else {
+                    // Don't overwrite nested objects already built
+                    if (result[key] === undefined) {
+                        result[key] = obj[key];
+                    }
+                }
+            }
+            // Merge non-dot keys that weren't set
+            for (const key of Object.keys(obj)) {
+                if (!key.includes('.') && result[key] === undefined) {
+                    result[key] = obj[key];
+                }
+            }
+            return result;
+        }
+        
+        // Check if body has dot-notation keys (flat format from Monetizze)
+        const hasDotKeys = Object.keys(rawBody).some(k => k.includes('.'));
+        const body = hasDotKeys ? { ...unflattenObject(rawBody), ...rawBody } : rawBody;
+        
+        if (hasDotKeys) {
+            console.log('📥 Detected flat dot-notation format, converted to nested:', JSON.stringify(body).substring(0, 500));
+        }
+        
+        // Store postback for debugging (also persist to DB)
         try {
             const postbackEntry = {
                 timestamp: new Date().toISOString(),
                 method: req.method,
                 contentType: req.headers['content-type'],
                 body: body,
-                bodyKeys: Object.keys(body)
+                rawBody: rawBody,
+                bodyKeys: Object.keys(rawBody),
+                hasDotKeys
             };
             recentPostbacks.unshift(postbackEntry);
-            if (recentPostbacks.length > 20) recentPostbacks.pop();
+            if (recentPostbacks.length > 50) recentPostbacks.pop();
+            
+            // Persist to database for debugging (non-blocking)
+            pool.query(`
+                INSERT INTO postback_logs (content_type, body, created_at) 
+                VALUES ($1, $2, NOW())
+            `, [req.headers['content-type'], JSON.stringify(rawBody)]).catch(err => {
+                console.log('Postback log DB error (non-blocking):', err.message);
+            });
         } catch (debugErr) {
             console.log('Debug storage error:', debugErr.message);
         }
         
         // Monetizze sends nested objects: produto, venda, comprador, tipoEvento, tipoPostback
-        // Extract nested objects safely
+        // Extract nested objects safely - handle both nested and flat formats
         const venda = (body.venda && typeof body.venda === 'object') ? body.venda : {};
         const comprador = (body.comprador && typeof body.comprador === 'object') ? body.comprador : {};
         const produto = (body.produto && typeof body.produto === 'object') ? body.produto : {};
@@ -2734,6 +2820,16 @@ async function initDatabase() {
                 ip_address VARCHAR(45),
                 user_agent TEXT,
                 metadata JSONB DEFAULT '{}',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
+        // Create postback_logs table for debugging
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS postback_logs (
+                id SERIAL PRIMARY KEY,
+                content_type VARCHAR(255),
+                body JSONB,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
