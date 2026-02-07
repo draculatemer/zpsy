@@ -2243,6 +2243,64 @@ Posso ajudar com alguma dúvida?</textarea>
             </div>
         </div>
     </div>
+    
+    <!-- Customer Journey Modal (Complete) -->
+    <div class="modal-overlay" id="customerJourneyModal">
+        <div class="modal" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>🎯 Jornada Completa do Cliente</h3>
+                <p id="customerJourneySubtitle">Timeline completa de interações</p>
+            </div>
+            
+            <!-- Customer Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;" id="customerSummaryCards">
+                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="font-size: 20px; margin-bottom: 4px;" id="summaryVisits">0</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Visitas</div>
+                </div>
+                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="font-size: 20px; margin-bottom: 4px;" id="summaryEvents">0</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Eventos</div>
+                </div>
+                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="font-size: 20px; margin-bottom: 4px; color: var(--success);" id="summaryPurchases">0</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Compras</div>
+                </div>
+                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; text-align: center;">
+                    <div style="font-size: 20px; margin-bottom: 4px; color: var(--success);" id="summarySpent">R$ 0</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Total Gasto</div>
+                </div>
+            </div>
+            
+            <!-- Customer Info -->
+            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 14px;">👤 Informações do Cliente</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="customerInfoData">
+                    <p style="color: var(--text-muted);">Carregando...</p>
+                </div>
+            </div>
+            
+            <!-- Products Purchased -->
+            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; margin-bottom: 20px;" id="productsSection">
+                <h4 style="color: var(--success); margin-bottom: 12px; font-size: 14px;">🛒 Produtos Comprados</h4>
+                <div id="productsPurchasedList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <p style="color: var(--text-muted);">Nenhuma compra ainda</p>
+                </div>
+            </div>
+            
+            <!-- Complete Timeline -->
+            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px;">
+                <h4 style="color: var(--info); margin-bottom: 12px; font-size: 14px;">📍 Timeline Completa</h4>
+                <div id="customerTimeline" style="max-height: 400px; overflow-y: auto;">
+                    <p style="color: var(--text-muted);">Carregando...</p>
+                </div>
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn-secondary" onclick="closeCustomerJourneyModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const API_URL = window.location.origin;
@@ -2665,6 +2723,7 @@ Estou aqui para esclarecer tudo! 😊`
                     <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusText}</span></td>
                     <td>${formatDate(lead.created_at)}</td>
                     <td>
+                        <button class="action-btn" onclick="openCustomerJourney(${lead.id})" title="Ver Jornada" style="background: rgba(102,126,234,0.15);">🛤️</button>
                         <button class="action-btn whatsapp" onclick="openWhatsAppModal('${lead.whatsapp}')" title="WhatsApp">📱</button>
                         <button class="action-btn" onclick="editLead(${lead.id}, '${lead.status || 'new'}', '${(lead.notes || '').replace(/'/g, "\\'")}')" title="Editar">✏️</button>
                     </td>
@@ -3155,6 +3214,124 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function closeJourneyModal() { document.getElementById('journeyModal').classList.remove('active'); }
+        
+        // Customer Journey Modal Functions
+        async function openCustomerJourney(leadId) {
+            document.getElementById('customerJourneyModal').classList.add('active');
+            document.getElementById('customerTimeline').innerHTML = '<p style="color: var(--text-muted);">Carregando jornada...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/customer/${leadId}/journey`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load journey');
+                
+                const data = await response.json();
+                renderCustomerJourney(data);
+                
+            } catch (error) {
+                console.error('Error loading customer journey:', error);
+                document.getElementById('customerTimeline').innerHTML = '<p style="color: var(--danger);">Erro ao carregar jornada</p>';
+            }
+        }
+        
+        function renderCustomerJourney(data) {
+            const { lead, timeline, transactions, summary } = data;
+            
+            // Update subtitle
+            document.getElementById('customerJourneySubtitle').textContent = `${lead.name || lead.email} • ${lead.country || 'País desconhecido'}`;
+            
+            // Update summary cards
+            document.getElementById('summaryVisits').textContent = summary.visitCount || 1;
+            document.getElementById('summaryEvents').textContent = summary.totalEvents || 0;
+            document.getElementById('summaryPurchases').textContent = transactions.filter(t => t.status === 'approved').length;
+            document.getElementById('summarySpent').textContent = `R$ ${parseFloat(summary.totalSpent || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
+            // Update customer info
+            const countryFlag = lead.country_code ? getCountryFlag(lead.country_code) : '🌍';
+            document.getElementById('customerInfoData').innerHTML = `
+                <div><strong>Nome:</strong> ${lead.name || '-'}</div>
+                <div><strong>Email:</strong> ${lead.email}</div>
+                <div><strong>WhatsApp:</strong> ${lead.whatsapp}</div>
+                <div><strong>País:</strong> ${countryFlag} ${lead.country || '-'} ${lead.city ? `(${lead.city})` : ''}</div>
+                <div><strong>Funil:</strong> ${lead.funnel_language === 'es' ? '🇪🇸 Espanhol' : '🇺🇸 Inglês'}</div>
+                <div><strong>Status:</strong> <span class="badge badge-${lead.status || 'new'}">${statusLabels[lead.status] || 'Novo'}</span></div>
+                <div><strong>Primeira visita:</strong> ${formatDate(summary.firstSeen)}</div>
+                <div><strong>Última atividade:</strong> ${formatDate(summary.lastActivity)}</div>
+            `;
+            
+            // Update products purchased
+            const productsSection = document.getElementById('productsSection');
+            const productsList = document.getElementById('productsPurchasedList');
+            
+            if (summary.productsPurchased && summary.productsPurchased.length > 0) {
+                productsSection.style.display = 'block';
+                productsList.innerHTML = summary.productsPurchased.map(p => {
+                    const [type, name] = p.split(':');
+                    const typeLabels = { 'front': '🎯 Front', 'upsell1': '⬆️ Upsell 1', 'upsell2': '⬆️ Upsell 2', 'upsell3': '⬆️ Upsell 3' };
+                    return `<span class="badge" style="background: rgba(0,230,118,0.15); color: #00e676; padding: 6px 12px;">${typeLabels[type] || type}: ${name || 'Produto'}</span>`;
+                }).join('');
+            } else {
+                productsSection.style.display = transactions.length === 0 ? 'none' : 'block';
+                productsList.innerHTML = '<span style="color: var(--text-muted);">Nenhuma compra aprovada</span>';
+            }
+            
+            // Render timeline
+            if (timeline.length === 0) {
+                document.getElementById('customerTimeline').innerHTML = '<p style="color: var(--text-muted);">Nenhum evento registrado</p>';
+                return;
+            }
+            
+            let html = '<div style="position: relative; padding-left: 24px;">';
+            html += '<div style="position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border);"></div>';
+            
+            timeline.forEach((item, index) => {
+                const isLast = index === timeline.length - 1;
+                const date = new Date(item.timestamp);
+                const timeStr = date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                
+                let bgColor = 'var(--info)';
+                let icon = '📍';
+                
+                if (item.type === 'lead_captured') {
+                    bgColor = 'var(--accent)';
+                    icon = '🎉';
+                } else if (item.type === 'transaction') {
+                    if (item.event === 'approved') {
+                        bgColor = 'var(--success)';
+                        icon = '✅';
+                    } else if (item.event === 'refunded' || item.event === 'chargeback') {
+                        bgColor = 'var(--danger)';
+                        icon = '💸';
+                    } else {
+                        bgColor = 'var(--warning)';
+                        icon = '⏳';
+                    }
+                }
+                
+                html += `
+                    <div style="position: relative; padding-bottom: 16px; ${isLast ? '' : 'border-left: none;'}">
+                        <div style="position: absolute; left: -20px; top: 0; width: 16px; height: 16px; background: ${bgColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px;">${icon}</div>
+                        <div style="background: var(--bg-secondary); border-radius: 8px; padding: 10px 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <strong style="font-size: 13px;">${item.label}</strong>
+                                <span style="font-size: 11px; color: var(--text-muted);">${timeStr}</span>
+                            </div>
+                            ${item.details ? `<div style="font-size: 12px; color: var(--text-muted);">
+                                ${item.type === 'transaction' ? `${item.details.productType} - R$ ${parseFloat(item.details.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
+                                ${item.page ? `Página: ${item.page}` : ''}
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('customerTimeline').innerHTML = html;
+        }
+        
+        function closeCustomerJourneyModal() { document.getElementById('customerJourneyModal').classList.remove('active'); }
         
         // Sales
         async function loadSalesData() {

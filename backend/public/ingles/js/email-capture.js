@@ -363,7 +363,9 @@ const EmailCapture = {
                 targetGender: localStorage.getItem('targetGender') || '',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                referrer: document.referrer
+                referrer: document.referrer,
+                visitorId: localStorage.getItem('funnelVisitorId') || '',
+                funnelLanguage: 'en'
             });
             
             // Track event

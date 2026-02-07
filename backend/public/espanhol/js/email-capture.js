@@ -270,6 +270,7 @@ const EmailCapture = {
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
+                visitorId: localStorage.getItem('funnelVisitorId') || '',
                 fbc: localStorage.getItem('_fbc') || '',
                 fbp: localStorage.getItem('_fbp') || ''
             });

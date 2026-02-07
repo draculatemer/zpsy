@@ -310,7 +310,8 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             userAgent,
             fbc,  // Facebook click ID (from URL param or cookie)
             fbp,  // Facebook browser ID (from cookie)
-            funnelLanguage  // 'en' or 'es' - funnel language for pixel selection
+            funnelLanguage,  // 'en' or 'es' - funnel language for pixel selection
+            visitorId  // Funnel visitor ID for journey tracking
         } = req.body;
         
         // Validation
@@ -352,20 +353,21 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                     country = COALESCE($8, country),
                     country_code = COALESCE($9, country_code),
                     city = COALESCE($10, city),
+                    visitor_id = COALESCE($11, visitor_id),
                     last_visit_at = NOW(),
                     updated_at = NOW()
-                WHERE id = $11
+                WHERE id = $12
                 RETURNING id, created_at`,
-                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, existingLead.rows[0].id]
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, existingLead.rows[0].id]
             );
             console.log(`Returning lead [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
             result = await pool.query(
-                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, visit_count, country, country_code, city, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10, $11, $12, NOW())
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, visit_count, country, country_code, city, visitor_id, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10, $11, $12, $13, NOW())
                  RETURNING id, created_at`,
-                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, geoData.country, geoData.country_code, geoData.city]
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, geoData.country, geoData.country_code, geoData.city, visitorId || null]
             );
             isNewLead = true;
             console.log(`New lead captured [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}`);
@@ -892,6 +894,150 @@ app.get('/api/admin/funnel/visitor/:visitorId', authenticateToken, async (req, r
     }
 });
 
+// Get complete customer journey by lead ID (protected)
+app.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req, res) => {
+    try {
+        const { leadId } = req.params;
+        
+        // Get lead details
+        const leadResult = await pool.query(`
+            SELECT * FROM leads WHERE id = $1
+        `, [leadId]);
+        
+        if (leadResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Lead not found' });
+        }
+        
+        const lead = leadResult.rows[0];
+        
+        // Get funnel events by visitor_id if available
+        let funnelEvents = [];
+        if (lead.visitor_id) {
+            const eventsResult = await pool.query(`
+                SELECT event, page, target_phone, target_gender, created_at, metadata
+                FROM funnel_events
+                WHERE visitor_id = $1
+                ORDER BY created_at ASC
+            `, [lead.visitor_id]);
+            funnelEvents = eventsResult.rows;
+        }
+        
+        // Get all transactions for this email
+        const transactionsResult = await pool.query(`
+            SELECT id, product, value, status, monetizze_status, funnel_language, created_at
+            FROM transactions
+            WHERE LOWER(email) = LOWER($1)
+            ORDER BY created_at ASC
+        `, [lead.email]);
+        
+        // Build timeline
+        const timeline = [];
+        
+        // Add funnel events to timeline
+        funnelEvents.forEach(event => {
+            const eventLabels = {
+                'page_view_landing': '👀 Visitou página inicial',
+                'page_view_phone': '📱 Página do telefone',
+                'gender_selected': '👤 Selecionou gênero',
+                'phone_submitted': '✅ Submeteu telefone alvo',
+                'page_view_conversas': '💬 Visualizou conversas',
+                'page_view_chat': '💬 Visualizou chat',
+                'page_view_cta': '🎯 Página de oferta',
+                'email_captured': '📧 Email capturado',
+                'checkout_clicked': '🛒 Clicou no checkout',
+                'scroll_50_percent': '📜 Scroll 50%',
+                'scroll_100_percent': '📜 Scroll 100%',
+                'time_on_page_30s': '⏱️ 30s na página',
+                'time_on_page_60s': '⏱️ 60s na página',
+                'exit_intent_shown': '🚪 Exit intent'
+            };
+            
+            timeline.push({
+                type: 'funnel_event',
+                event: event.event,
+                label: eventLabels[event.event] || event.event,
+                page: event.page,
+                timestamp: event.created_at,
+                details: event.metadata
+            });
+        });
+        
+        // Add lead creation
+        timeline.push({
+            type: 'lead_captured',
+            event: 'lead_captured',
+            label: '🎉 Lead capturado',
+            timestamp: lead.created_at,
+            details: {
+                email: lead.email,
+                whatsapp: lead.whatsapp,
+                country: lead.country
+            }
+        });
+        
+        // Add transactions to timeline
+        transactionsResult.rows.forEach(tx => {
+            const statusLabels = {
+                'approved': '✅ Compra aprovada',
+                'pending': '⏳ Pagamento pendente',
+                'refunded': '💸 Reembolsado',
+                'chargeback': '⚠️ Chargeback',
+                'cancelled': '❌ Cancelado'
+            };
+            
+            // Identify product type
+            const productLower = (tx.product || '').toLowerCase();
+            let productType = 'Front';
+            if (productLower.includes('recovery') || productLower.includes('recuperação') || productLower.includes('recuperación')) {
+                productType = 'Upsell 1';
+            } else if (productLower.includes('vision') || productLower.includes('visão') || productLower.includes('visión')) {
+                productType = 'Upsell 2';
+            } else if (productLower.includes('vip') || productLower.includes('priority') || productLower.includes('prioridade') || productLower.includes('esperas')) {
+                productType = 'Upsell 3';
+            }
+            
+            timeline.push({
+                type: 'transaction',
+                event: tx.status,
+                label: statusLabels[tx.status] || tx.status,
+                timestamp: tx.created_at,
+                details: {
+                    product: tx.product,
+                    productType: productType,
+                    value: tx.value,
+                    status: tx.status
+                }
+            });
+        });
+        
+        // Sort timeline by timestamp
+        timeline.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // Calculate summary
+        const summary = {
+            totalEvents: funnelEvents.length,
+            totalTransactions: transactionsResult.rows.length,
+            totalSpent: lead.total_spent || 0,
+            productsPurchased: lead.products_purchased || [],
+            firstSeen: funnelEvents.length > 0 ? funnelEvents[0].created_at : lead.created_at,
+            lastActivity: timeline.length > 0 ? timeline[timeline.length - 1].timestamp : lead.created_at,
+            status: lead.status,
+            visitCount: lead.visit_count || 1
+        };
+        
+        res.json({
+            lead: lead,
+            timeline: timeline,
+            transactions: transactionsResult.rows,
+            summary: summary
+        });
+        
+    } catch (error) {
+        console.error('Error fetching customer journey:', error);
+        res.status(500).json({ error: 'Failed to fetch customer journey' });
+    }
+});
+
 // ==================== MONETIZZE POSTBACK API ====================
 
 // Middleware to parse URL-encoded postback data
@@ -990,7 +1136,28 @@ app.post('/api/postback/monetizze', async (req, res) => {
             funnelLanguage = 'es';
         }
         
-        console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode})`);
+        // Identify product type (front/upsell1/upsell2/upsell3)
+        let productType = 'front';
+        const productNameLower = (productName || '').toLowerCase();
+        
+        // English products
+        if (productNameLower.includes('full recovery') || productNameLower.includes('recovery') || productNameLower.includes('recuperação')) {
+            productType = 'upsell1';
+        } else if (productNameLower.includes('full vision') || productNameLower.includes('vision') || productNameLower.includes('visão')) {
+            productType = 'upsell2';
+        } else if (productNameLower.includes('vip') || productNameLower.includes('priority') || productNameLower.includes('prioridade')) {
+            productType = 'upsell3';
+        }
+        // Spanish products  
+        else if (productNameLower.includes('recuperación total')) {
+            productType = 'upsell1';
+        } else if (productNameLower.includes('visión total')) {
+            productType = 'upsell2';
+        } else if (productNameLower.includes('sin esperas')) {
+            productType = 'upsell3';
+        }
+        
+        console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode}, type: ${productType})`);
         
         // Store transaction in database with funnel_language
         await pool.query(`
@@ -1018,8 +1185,13 @@ app.post('/api/postback/monetizze', async (req, res) => {
             funnelLanguage
         ]);
         
-        // Try to match with existing lead and update status
+        // Try to match with existing lead and update status + products
         if (buyerEmail) {
+            const purchaseValue = parseFloat(transactionValue) || 0;
+            
+            // Build product identifier (type + truncated name)
+            const productIdentifier = `${productType}:${(productName || '').substring(0, 50)}`;
+            
             const leadUpdate = await pool.query(`
                 UPDATE leads 
                 SET status = CASE 
@@ -1029,13 +1201,36 @@ app.post('/api/postback/monetizze', async (req, res) => {
                     ELSE status
                 END,
                 notes = COALESCE(notes, '') || E'\n[Monetizze] ' || $2 || ' - ' || NOW()::text,
+                products_purchased = CASE 
+                    WHEN $1 = 'approved' THEN 
+                        CASE 
+                            WHEN products_purchased IS NULL THEN ARRAY[$4]::TEXT[]
+                            WHEN NOT ($4 = ANY(products_purchased)) THEN array_append(products_purchased, $4)
+                            ELSE products_purchased
+                        END
+                    ELSE products_purchased
+                END,
+                total_spent = CASE 
+                    WHEN $1 = 'approved' THEN COALESCE(total_spent, 0) + $5
+                    WHEN $1 IN ('refunded', 'chargeback') THEN GREATEST(COALESCE(total_spent, 0) - $5, 0)
+                    ELSE total_spent
+                END,
+                first_purchase_at = CASE 
+                    WHEN $1 = 'approved' AND first_purchase_at IS NULL THEN NOW()
+                    ELSE first_purchase_at
+                END,
+                last_purchase_at = CASE 
+                    WHEN $1 = 'approved' THEN NOW()
+                    ELSE last_purchase_at
+                END,
                 updated_at = NOW()
                 WHERE LOWER(email) = LOWER($3)
-                RETURNING id, email, status
-            `, [mappedStatus, mappedStatus, buyerEmail]);
+                RETURNING id, email, status, products_purchased, total_spent
+            `, [mappedStatus, mappedStatus, buyerEmail, productIdentifier, purchaseValue]);
             
             if (leadUpdate.rows.length > 0) {
-                console.log(`✅ Lead updated: ${buyerEmail} -> ${mappedStatus}`);
+                const lead = leadUpdate.rows[0];
+                console.log(`✅ Lead updated: ${buyerEmail} -> ${mappedStatus} | Products: ${lead.products_purchased?.join(', ') || 'none'} | Total: R$${lead.total_spent}`);
             } else {
                 console.log(`⚠️ No matching lead found for: ${buyerEmail}`);
             }
@@ -1432,6 +1627,13 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country VARCHAR(100);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country_code VARCHAR(10);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS city VARCHAR(100);`);
+        
+        // Add customer journey tracking columns
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(100);`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS products_purchased TEXT[];`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS total_spent DECIMAL(10,2) DEFAULT 0;`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS first_purchase_at TIMESTAMP WITH TIME ZONE;`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_purchase_at TIMESTAMP WITH TIME ZONE;`);
         
         // Create funnel_events table for tracking
         await pool.query(`
