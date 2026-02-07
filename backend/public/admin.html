@@ -4253,8 +4253,8 @@ Estou aqui para esclarecer tudo! 😊`
                 { key: 'page_view_phone', label: 'PHONE' },
                 { key: 'phone_submitted', label: 'TEL ENVIADO' },
                 { key: 'email_captured', label: 'EMAIL' },
-                { key: 'page_view_cta', label: 'CTA' },
                 { key: 'page_view_conversas', label: 'CONVERSAS' },
+                { key: 'page_view_cta', label: 'CTA' },
                 { key: 'checkout_clicked', label: 'CHECKOUT' }
             ];
             
@@ -4306,14 +4306,14 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderFunnelStats(stats) {
-            // Main funnel steps (ordem corrigida: EMAIL capturado mais cedo, depois CTA e CONVERSAS)
+            // Main funnel steps (ordem corrigida: EMAIL capturado mais cedo, depois CONVERSAS e CTA)
             const mainFunnelOrder = [
                 { key: 'page_view_landing', label: 'LANDING', section: 'main' },
                 { key: 'page_view_phone', label: 'PHONE', section: 'main' },
                 { key: 'phone_submitted', label: 'TEL ENVIADO', section: 'main' },
                 { key: 'email_captured', label: 'EMAIL', section: 'main' },
-                { key: 'page_view_cta', label: 'CTA', section: 'main' },
                 { key: 'page_view_conversas', label: 'CONVERSAS', section: 'main' },
+                { key: 'page_view_cta', label: 'CTA', section: 'main' },
                 { key: 'checkout_clicked', label: 'CHECKOUT', section: 'main' }
             ];
             
