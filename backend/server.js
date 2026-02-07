@@ -1151,12 +1151,8 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
         let langCondition = '';
         if (language === 'en') {
             // English includes legacy data (where funnelLanguage is not set)
-            langCondition = `AND (
-                metadata->>'funnelLanguage' = 'en' 
-                OR metadata->>'funnelLanguage' IS NULL 
-                OR metadata IS NULL 
-                OR NOT (metadata ? 'funnelLanguage')
-            )`;
+            // Use COALESCE to handle NULL metadata and missing keys
+            langCondition = `AND COALESCE(metadata->>'funnelLanguage', 'en') = 'en'`;
         } else if (language === 'es') {
             langCondition = `AND metadata->>'funnelLanguage' = 'es'`;
         }
