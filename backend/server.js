@@ -1626,10 +1626,12 @@ app.all('/api/postback/monetizze', async (req, res) => {
             '1': 'pending_payment',
             '2': 'approved',        // Finalizada / Aprovada
             '3': 'cancelled',
-            '4': 'refunded',
+            '4': 'refunded',        // Reembolso solicitado pelo cliente
             '5': 'blocked',
             '6': 'approved',        // Completa (also counts as approved)
             '7': 'abandoned_checkout',
+            '8': 'chargeback',      // Chargeback (disputa de cartão)
+            '9': 'chargeback',      // Chargeback alternativo
             '70': 'tickets',
             '101': 'subscription_active',
             '102': 'subscription_overdue',
@@ -1640,7 +1642,16 @@ app.all('/api/postback/monetizze', async (req, res) => {
             '120': 'shipping_update'
         };
         
-        const mappedStatus = statusMap[String(statusCode)] || 'unknown';
+        // Check for chargeback in description or other fields
+        const eventoDescricao = (tipoEvento.descricao || '').toLowerCase();
+        let finalStatus = statusMap[String(statusCode)] || 'unknown';
+        
+        // Detect chargeback from description if not caught by code
+        if (eventoDescricao.includes('chargeback') || eventoDescricao.includes('disputa') || eventoDescricao.includes('contestação')) {
+            finalStatus = 'chargeback';
+        }
+        
+        const mappedStatus = finalStatus; // Use finalStatus which includes chargeback detection
         const buyerEmail = email;
         const buyerPhone = telefone;
         const buyerName = nome;
@@ -1820,13 +1831,53 @@ app.all('/api/postback/monetizze', async (req, res) => {
             }
             
             // Status 4 = Refund -> Refund event (custom)
-            if (statusStr === '4') {
+            if (statusStr === '4' || mappedStatus === 'refunded') {
                 console.log('📤 Sending Refund to Facebook CAPI...');
                 await sendToFacebookCAPI('Refund', fbUserData, fbCustomData);
             }
             
         } catch (capiError) {
             console.error('CAPI error (non-blocking):', capiError.message);
+        }
+        
+        // Register refund/chargeback in refund_requests table for consolidated tracking
+        if (mappedStatus === 'refunded' || mappedStatus === 'chargeback') {
+            try {
+                const refundProtocol = `MON-${chave_unica.substring(0, 12).toUpperCase()}`;
+                const refundType = mappedStatus === 'chargeback' ? 'chargeback' : 'refund';
+                
+                // Check if already exists
+                const existing = await pool.query(
+                    'SELECT id FROM refund_requests WHERE transaction_id = $1',
+                    [chave_unica]
+                );
+                
+                if (existing.rows.length === 0) {
+                    await pool.query(`
+                        INSERT INTO refund_requests (
+                            protocol, full_name, email, phone, product, reason, 
+                            status, source, refund_type, transaction_id, value, funnel_language, created_at
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+                    `, [
+                        refundProtocol,
+                        buyerName || 'N/A',
+                        buyerEmail,
+                        buyerPhone || null,
+                        productName,
+                        refundType === 'chargeback' ? 'Chargeback - Disputa de cartão' : 'Reembolso via Monetizze',
+                        'approved', // Monetizze already processed it
+                        'monetizze',
+                        refundType,
+                        chave_unica,
+                        parseFloat(transactionValue) || 0,
+                        funnelLanguage
+                    ]);
+                    
+                    console.log(`📥 ${refundType.toUpperCase()} registered: ${refundProtocol} - ${buyerEmail} - ${productName}`);
+                }
+            } catch (refundError) {
+                console.error('Error registering refund:', refundError.message);
+            }
         }
         
         // Return success (Monetizze expects 200 OK)
@@ -1899,24 +1950,72 @@ app.post('/api/refund', async (req, res) => {
     }
 });
 
-// Get all refund requests (protected)
+// Get all refund requests (protected) - now includes consolidated view
 app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
     try {
-        const { status } = req.query;
+        const { status, source, type } = req.query;
         
-        let query = `SELECT * FROM refund_requests`;
+        // Build dynamic query
+        let conditions = [];
         let params = [];
+        let paramIndex = 1;
         
         if (status) {
-            query += ` WHERE status = $1`;
-            params = [status];
+            conditions.push(`status = $${paramIndex++}`);
+            params.push(status);
+        }
+        if (source) {
+            conditions.push(`source = $${paramIndex++}`);
+            params.push(source);
+        }
+        if (type) {
+            conditions.push(`refund_type = $${paramIndex++}`);
+            params.push(type);
         }
         
-        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
         
-        const result = await pool.query(query, params);
+        const result = await pool.query(`
+            SELECT * FROM refund_requests 
+            ${whereClause}
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `, params);
+        
+        // Get stats by source
+        const statsResult = await pool.query(`
+            SELECT 
+                COALESCE(source, 'form') as source,
+                COALESCE(refund_type, 'refund') as refund_type,
+                COUNT(*) as count,
+                status
+            FROM refund_requests
+            GROUP BY source, refund_type, status
+        `);
+        
+        // Calculate totals
+        const stats = {
+            form: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 },
+            monetizze_refund: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 },
+            monetizze_chargeback: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 }
+        };
+        
+        statsResult.rows.forEach(row => {
+            const key = row.source === 'monetizze' 
+                ? `monetizze_${row.refund_type || 'refund'}`
+                : 'form';
+            
+            if (stats[key]) {
+                stats[key][row.status] = (stats[key][row.status] || 0) + parseInt(row.count);
+                stats[key].total += parseInt(row.count);
+            }
+        });
 
-        res.json({ refunds: result.rows, total: result.rows.length });
+        res.json({ 
+            refunds: result.rows, 
+            total: result.rows.length,
+            stats
+        });
 
     } catch (error) {
         console.error('Error fetching refunds:', error);
@@ -2265,6 +2364,13 @@ async function initDatabase() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_email ON refund_requests(email);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_status ON refund_requests(status);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_protocol ON refund_requests(protocol);`);
+        
+        // Add source column to refund_requests if not exists
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'form';`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS refund_type VARCHAR(50) DEFAULT 'refund';`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS value DECIMAL(10,2);`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10);`);
         
         console.log('✅ Database ready');
     } catch (error) {
