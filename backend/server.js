@@ -1349,34 +1349,45 @@ app.all('/api/postback/monetizze', async (req, res) => {
             console.log('Debug storage error:', debugErr.message);
         }
         
-        // Monetizze sends data in various formats - handle all cases
+        // Monetizze sends nested objects: produto, venda, comprador, tipoEvento, tipoPostback
         // Extract nested objects safely
-        let venda = {};
-        let comprador = {};
-        let produto = {};
+        const venda = (body.venda && typeof body.venda === 'object') ? body.venda : {};
+        const comprador = (body.comprador && typeof body.comprador === 'object') ? body.comprador : {};
+        const produto = (body.produto && typeof body.produto === 'object') ? body.produto : {};
+        const tipoEvento = (body.tipoEvento && typeof body.tipoEvento === 'object') ? body.tipoEvento : {};
         
-        if (body.venda && typeof body.venda === 'object') venda = body.venda;
-        else if (body.sale && typeof body.sale === 'object') venda = body.sale;
+        // Transaction ID from chave_unica or venda.codigo
+        const chave_unica = body.chave_unica || venda.codigo || ('auto_' + Date.now());
         
-        if (body.comprador && typeof body.comprador === 'object') comprador = body.comprador;
-        else if (body.buyer && typeof body.buyer === 'object') comprador = body.buyer;
+        // Status code from tipoEvento.codigo (numeric) - this is the actual status
+        // tipoEvento.codigo: 1=Aguardando, 2=Aprovada, 3=Cancelada, 4=Reembolso, etc.
+        const statusCode = tipoEvento.codigo || body.status || '2';
         
-        if (body.produto && typeof body.produto === 'object') produto = body.produto;
-        else if (body.product && typeof body.product === 'object') produto = body.product;
+        // Value from venda.valor or venda.valorRecebido
+        const valor = venda.valorRecebido || venda.valor || body.valor || '0';
         
-        // Extract flat values (Monetizze sometimes sends as flat structure)
-        const chave_unica = body.chave_unica || body['venda.codigo'] || venda.codigo || body.transacao || body.transaction_id || ('auto_' + Date.now());
-        const status = body.status || body['venda.status'] || venda.status || '2';
-        const valor = body.valor || body['venda.valor'] || venda.valor || body.value || '0';
-        const email = body.email || body['comprador.email'] || comprador.email || null;
-        const telefone = body.telefone || body['comprador.telefone'] || comprador.telefone || null;
-        const nome = body.nome || body['comprador.nome'] || comprador.nome || null;
+        // Buyer info from comprador object
+        const email = comprador.email || body.email || null;
+        const telefone = comprador.telefone || body.telefone || null;
+        const nome = comprador.nome || body.nome || null;
         
-        // Product name extraction
-        let productNameRaw = body['produto.nome'] || body.produto || produto.nome || produto.name || 'Unknown Product';
-        if (typeof productNameRaw === 'object') productNameRaw = productNameRaw.nome || productNameRaw.name || 'Unknown Product';
+        // Product name from produto.nome
+        const productNameRaw = produto.nome || body['produto.nome'] || 'Unknown Product';
+        const productCode = produto.codigo || body['produto.codigo'] || null;
         
-        console.log('📥 Extracted:', { chave_unica, status, valor, email, nome: nome ? 'yes' : 'no', productNameRaw });
+        // Funnel language from venda.idioma
+        const idioma = venda.idioma || 'en';
+        
+        console.log('📥 Extracted:', { 
+            chave_unica, 
+            statusCode, 
+            valor, 
+            email: email || 'none', 
+            nome: nome || 'none',
+            productNameRaw,
+            productCode,
+            idioma
+        });
         
         // Validate postback (optional: check chave_unica against your secret)
         const postbackToken = process.env.MONETIZZE_POSTBACK_TOKEN;
@@ -1385,66 +1396,64 @@ app.all('/api/postback/monetizze', async (req, res) => {
             console.log('⚠️ Postback token check skipped (chave_unica is transaction ID)');
         }
         
-        // Map Monetizze status codes to our status
-        // Monetizze status codes:
+        // Map Monetizze tipoEvento.codigo to our status
+        // Based on official docs: https://apidoc.monetizze.com.br/postback/index.html
+        // tipoEvento.codigo:
         // 1 = Aguardando pagamento
-        // 2 = Finalizada / Aprovada
+        // 2 = Finalizada / Aprovada ✅
         // 3 = Cancelada
         // 4 = Devolvida (Reembolso)
-        // 5 = Abandono de Checkout
-        // 6 = Bloqueada
-        // 7 = Completa (subscription)
-        // 8 = Chargeback
-        // 9 = Ingressos
-        // 10 = Assinatura - Ativa
-        // 11 = Assinatura - Inadimplente
-        // 12 = Assinatura - Cancelada
-        // 13 = Assinatura - Aguardando pagamento
-        // 14 = Status do pedido - Reenvio
-        // 15 = Recuperação Parcelada - Ativa
-        // 16 = Recuperação Parcelada - Cancelada
+        // 5 = Bloqueada
+        // 6 = Completa ✅
+        // 7 = Abandono de Checkout
+        // 101 = Assinatura - Ativa
+        // 102 = Assinatura - Inadimplente
+        // 103 = Assinatura - Cancelada
+        // 104 = Assinatura - Aguardando pagamento
+        // 105 = Recuperação Parcelada - Ativa
+        // 106 = Recuperação Parcelada - Cancelada
         
         const statusMap = {
             '1': 'pending_payment',
-            '2': 'approved',
+            '2': 'approved',        // Finalizada / Aprovada
             '3': 'cancelled',
             '4': 'refunded',
-            '5': 'abandoned_checkout',
-            '6': 'blocked',
+            '5': 'blocked',
+            '6': 'approved',        // Completa (also counts as approved)
             '7': 'complete',
-            '8': 'chargeback',
-            '9': 'tickets',
-            '10': 'subscription_active',
-            '11': 'subscription_overdue',
-            '12': 'subscription_cancelled',
-            '13': 'subscription_pending',
-            '14': 'resend',
-            '15': 'recovery_active',
-            '16': 'recovery_cancelled'
+            '7': 'abandoned_checkout',
+            '70': 'tickets',
+            '101': 'subscription_active',
+            '102': 'subscription_overdue',
+            '103': 'subscription_cancelled',
+            '104': 'subscription_pending',
+            '105': 'recovery_active',
+            '106': 'recovery_cancelled',
+            '120': 'shipping_update'
         };
         
-        const mappedStatus = statusMap[String(status)] || 'unknown';
+        const mappedStatus = statusMap[String(statusCode)] || 'unknown';
         const buyerEmail = email;
         const buyerPhone = telefone;
         const buyerName = nome;
         const productName = productNameRaw;
-        const productCode = body['produto.codigo'] || body['produto.code'] || produto.codigo || produto.code || produto.id || null;
         const transactionValue = valor;
         
         console.log('📥 Final values:', { mappedStatus, buyerEmail: buyerEmail || 'none', productName, productCode: productCode || 'none', transactionValue });
         
-        // Determine funnel language based on product code
-        // Spanish product codes (Monetizze IDs):
-        // - 349260: X Ai - Detector de Infidelidad (Front)
-        // - 349261: X Ai - Recuperación Total (UP1)
-        // - 349266: X Ai - Visión Total (UP2)
-        // - 349267: X Ai - VIP Sin Esperas (UP3)
-        // Spanish product names contain: "Infidelidad", "Recuperación", "Visión", "VIP Sin Esperas"
+        // Determine funnel language
+        // Monetizze sends venda.idioma ('es', 'pt', 'en' etc)
+        // Also check product codes and names as fallback
         const spanishProductCodes = ['349260', '349261', '349266', '349267'];
         const spanishProductKeywords = ['Infidelidad', 'Recuperación', 'Visión Total', 'VIP Sin Esperas'];
+        const englishProductCodes = ['341972', '349241', '349242', '349243'];
         
         let funnelLanguage = 'en'; // default to English
-        if (productCode && spanishProductCodes.some(code => String(productCode).includes(code))) {
+        
+        // First check idioma field from Monetizze
+        if (idioma === 'es') {
+            funnelLanguage = 'es';
+        } else if (productCode && spanishProductCodes.includes(String(productCode))) {
             funnelLanguage = 'es';
         } else if (productName && spanishProductKeywords.some(kw => productName.includes(kw))) {
             funnelLanguage = 'es';
@@ -1506,7 +1515,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
             buyerName,
             productName,
             transactionValue,
-            String(status),
+            String(statusCode),
             mappedStatus,
             JSON.stringify(req.body),
             funnelLanguage
@@ -1582,26 +1591,28 @@ app.all('/api/postback/monetizze', async (req, res) => {
         };
         
         try {
-            // Status 5 = Abandono de Checkout -> InitiateCheckout event
-            if (status === '5') {
+            const statusStr = String(statusCode);
+            
+            // Status 7 = Abandono de Checkout -> InitiateCheckout event
+            if (statusStr === '7') {
                 console.log('📤 Sending InitiateCheckout to Facebook CAPI...');
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
             }
             
             // Status 1 = Aguardando pagamento -> Also InitiateCheckout (they started checkout)
-            if (status === '1') {
+            if (statusStr === '1') {
                 console.log('📤 Sending InitiateCheckout (pending) to Facebook CAPI...');
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
             }
             
-            // Status 2 = Aprovada -> Purchase event
-            if (status === '2') {
+            // Status 2 or 6 = Aprovada/Completa -> Purchase event
+            if (statusStr === '2' || statusStr === '6') {
                 console.log('📤 Sending Purchase to Facebook CAPI...');
                 await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData);
             }
             
             // Status 4 = Refund -> Refund event (custom)
-            if (status === '4') {
+            if (statusStr === '4') {
                 console.log('📤 Sending Refund to Facebook CAPI...');
                 await sendToFacebookCAPI('Refund', fbUserData, fbCustomData);
             }
