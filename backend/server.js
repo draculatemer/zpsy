@@ -322,6 +322,33 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Database diagnostic endpoint (public for debugging)
+app.get('/api/health/db', async (req, res) => {
+    try {
+        const leadsCount = await pool.query('SELECT COUNT(*) FROM leads');
+        const transactionsCount = await pool.query('SELECT COUNT(*) FROM transactions');
+        const eventsCount = await pool.query('SELECT COUNT(*) FROM funnel_events');
+        
+        res.json({
+            status: 'ok',
+            database: 'connected',
+            counts: {
+                leads: parseInt(leadsCount.rows[0].count),
+                transactions: parseInt(transactionsCount.rows[0].count),
+                funnel_events: parseInt(eventsCount.rows[0].count)
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            database: 'disconnected',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Root route
 app.get('/', (req, res) => {
     res.json({ 
