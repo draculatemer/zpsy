@@ -820,6 +820,54 @@ app.post('/api/admin/enrich-geolocation', authenticateToken, async (req, res) =>
     }
 });
 
+// Manually add a transaction (for when postback didn't arrive)
+app.post('/api/admin/transactions/manual', authenticateToken, async (req, res) => {
+    try {
+        const { transaction_id, email, phone, name, product, value, status, funnel_language } = req.body;
+        
+        if (!transaction_id || !email || !product || !value) {
+            return res.status(400).json({ error: 'transaction_id, email, product, and value are required' });
+        }
+        
+        // Insert transaction
+        await pool.query(`
+            INSERT INTO transactions (
+                transaction_id, email, phone, name, product, value, 
+                monetizze_status, status, funnel_language, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, '2', $7, $8, NOW())
+            ON CONFLICT (transaction_id) 
+            DO UPDATE SET 
+                status = $7,
+                funnel_language = $8,
+                updated_at = NOW()
+        `, [
+            transaction_id,
+            email,
+            phone || null,
+            name || null,
+            product,
+            value,
+            status || 'approved',
+            funnel_language || 'en'
+        ]);
+        
+        // Try to update lead status
+        if (email) {
+            await pool.query(`
+                UPDATE leads SET status = 'converted', updated_at = NOW()
+                WHERE LOWER(email) = LOWER($1)
+            `, [email]);
+        }
+        
+        console.log(`✅ Manual transaction added: ${transaction_id} - ${product} - ${value}`);
+        
+        res.json({ success: true, message: 'Transaction added successfully' });
+    } catch (error) {
+        console.error('Error adding manual transaction:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Test geolocation API with a known IP
 app.get('/api/admin/test-geolocation', authenticateToken, async (req, res) => {
     try {
