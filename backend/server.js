@@ -1918,12 +1918,12 @@ app.all('/api/postback/monetizze', async (req, res) => {
         const produto = (body.produto && typeof body.produto === 'object') ? body.produto : {};
         const tipoEvento = (body.tipoEvento && typeof body.tipoEvento === 'object') ? body.tipoEvento : {};
         
-        // Transaction ID from chave_unica or venda.codigo
-        const chave_unica = body.chave_unica || venda.codigo || ('auto_' + Date.now());
+        // Transaction ID from chave_unica or venda.codigo - with dot-notation fallbacks
+        const chave_unica = body.chave_unica || venda.codigo || body['venda.codigo'] || body['venda[codigo]'] || ('auto_' + Date.now());
         
         // Status code from tipoEvento.codigo (numeric) - this is the actual status
         // tipoEvento.codigo: 1=Aguardando, 2=Aprovada, 3=Cancelada, 4=Reembolso, etc.
-        const statusCode = tipoEvento.codigo || body.status || '2';
+        const statusCode = tipoEvento.codigo || body['tipoEvento.codigo'] || body['tipoEvento[codigo]'] || body.status || '2';
         
         // Value - prioritize commission value (valor líquido/comissão) over gross value
         // Monetizze fields: 
@@ -1931,10 +1931,10 @@ app.all('/api/postback/monetizze', async (req, res) => {
         //   venda.valorLiquido - valor líquido após taxas
         //   venda.valorRecebido - valor que será recebido
         //   venda.valor - valor bruto da venda
-        const comissao = body.comissao || venda.comissao || null;
-        const valorLiquido = venda.valorLiquido || null;
-        const valorRecebido = venda.valorRecebido || null;
-        const valorBruto = venda.valor || body.valor || '0';
+        const comissao = body.comissao || venda.comissao || body['venda.comissao'] || body['venda[comissao]'] || null;
+        const valorLiquido = venda.valorLiquido || body['venda.valorLiquido'] || body['venda[valorLiquido]'] || null;
+        const valorRecebido = venda.valorRecebido || body['venda.valorRecebido'] || body['venda[valorRecebido]'] || null;
+        const valorBruto = venda.valor || body.valor || body['venda.valor'] || body['venda[valor]'] || '0';
         
         // Use commission value if available, otherwise fall back to other values
         const valor = comissao || valorLiquido || valorRecebido || valorBruto;
@@ -1947,17 +1947,17 @@ app.all('/api/postback/monetizze', async (req, res) => {
             finalValue: valor 
         });
         
-        // Buyer info from comprador object
-        const email = comprador.email || body.email || null;
-        const telefone = comprador.telefone || body.telefone || null;
-        const nome = comprador.nome || body.nome || null;
+        // Buyer info from comprador object - with multiple fallbacks for different formats
+        const email = comprador.email || body.email || body['comprador.email'] || body['comprador[email]'] || null;
+        const telefone = comprador.telefone || body.telefone || body['comprador.telefone'] || body['comprador[telefone]'] || null;
+        const nome = comprador.nome || body.nome || body['comprador.nome'] || body['comprador[nome]'] || null;
         
-        // Product name from produto.nome
-        const productNameRaw = produto.nome || body['produto.nome'] || 'Unknown Product';
-        const productCode = produto.codigo || body['produto.codigo'] || null;
+        // Product name from produto.nome - with fallbacks
+        const productNameRaw = produto.nome || body['produto.nome'] || body['produto[nome]'] || body.produto_nome || 'Unknown Product';
+        const productCode = produto.codigo || body['produto.codigo'] || body['produto[codigo]'] || body.produto_codigo || null;
         
         // Funnel language from venda.idioma
-        const idioma = venda.idioma || 'en';
+        const idioma = venda.idioma || body['venda.idioma'] || body['venda[idioma]'] || 'en';
         
         console.log('📥 Extracted:', { 
             chave_unica, 
@@ -2079,41 +2079,82 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // Generate a transaction ID if none provided
         const transactionId = chave_unica || `monetizze_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
-        if (!buyerEmail) {
-            console.log('⚠️ No buyer email found in postback, skipping...');
-            return res.json({ status: 'ok', message: 'No email found, skipped' });
+        // If no email found via standard extraction, try deep scan
+        let finalEmail = buyerEmail;
+        if (!finalEmail) {
+            console.log('⚠️ No buyer email found via standard extraction');
+            console.log('⚠️ Available body keys:', Object.keys(rawBody));
+            console.log('⚠️ comprador object:', JSON.stringify(comprador));
+            console.log('⚠️ Flat email keys:', Object.keys(rawBody).filter(k => k.toLowerCase().includes('email')));
+            
+            // Deep scan: search all values recursively for an email
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+            function findEmailInObj(obj) {
+                for (const [key, val] of Object.entries(obj)) {
+                    if (typeof val === 'string' && emailRegex.test(val)) {
+                        return val.match(emailRegex)[0];
+                    }
+                    if (typeof val === 'object' && val !== null) {
+                        const found = findEmailInObj(val);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            }
+            
+            finalEmail = findEmailInObj(rawBody);
+            if (finalEmail) {
+                console.log(`🔍 Found email via deep scan: ${finalEmail}`);
+            } else {
+                console.log('❌ No email found anywhere in postback data');
+                // Log to DB for debugging
+                pool.query(`INSERT INTO postback_logs (content_type, body, created_at) VALUES ('ERROR_NO_EMAIL', $1, NOW())`, 
+                    [JSON.stringify({ rawKeys: Object.keys(rawBody), rawBody: rawBody })]).catch(() => {});
+                return res.status(200).json({ status: 'ok', message: 'No email found, skipped' });
+            }
         }
         
-        console.log(`💾 Saving transaction: ${transactionId} for ${buyerEmail}`);
+        console.log(`💾 Saving transaction: ${transactionId} for ${finalEmail || buyerEmail}`);
         
         // Store transaction in database with funnel_language
-        await pool.query(`
-            INSERT INTO transactions (
-                transaction_id, email, phone, name, product, value, 
-                monetizze_status, status, raw_data, funnel_language, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-            ON CONFLICT (transaction_id) 
-            DO UPDATE SET 
-                monetizze_status = $7,
-                status = $8,
-                raw_data = $9,
-                funnel_language = $10,
-                updated_at = NOW()
-        `, [
-            transactionId,
-            buyerEmail,
-            buyerPhone,
-            buyerName,
-            productName,
-            transactionValue,
-            String(statusCode),
-            mappedStatus,
-            JSON.stringify(req.body),
-            funnelLanguage
-        ]);
+        try {
+            await pool.query(`
+                INSERT INTO transactions (
+                    transaction_id, email, phone, name, product, value, 
+                    monetizze_status, status, raw_data, funnel_language, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+                ON CONFLICT (transaction_id) 
+                DO UPDATE SET 
+                    monetizze_status = $7,
+                    status = $8,
+                    raw_data = $9,
+                    funnel_language = $10,
+                    updated_at = NOW()
+            `, [
+                transactionId,
+                finalEmail || buyerEmail,
+                buyerPhone,
+                buyerName,
+                productName,
+                transactionValue,
+                String(statusCode),
+                mappedStatus,
+                JSON.stringify(req.body),
+                funnelLanguage
+            ]);
+            console.log(`✅ Transaction saved: ${transactionId}`);
+        } catch (dbError) {
+            console.error(`❌ DB ERROR saving transaction: ${dbError.message}`);
+            console.error(`❌ DB ERROR details:`, { transactionId, email: finalEmail || buyerEmail, product: productName, value: transactionValue });
+            // Log error to postback_logs
+            pool.query(`INSERT INTO postback_logs (content_type, body, created_at) VALUES ('DB_ERROR', $1, NOW())`, 
+                [JSON.stringify({ error: dbError.message, transactionId, email: finalEmail || buyerEmail, rawBody })]).catch(() => {});
+            throw dbError; // Re-throw to be caught by outer catch
+        }
         
         // Try to match with existing lead and update status + products
-        if (buyerEmail) {
+        const emailForLead = finalEmail || buyerEmail;
+        if (emailForLead) {
             const purchaseValue = parseFloat(transactionValue) || 0;
             
             // Build product identifier (type + truncated name)
@@ -2153,13 +2194,13 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 updated_at = NOW()
                 WHERE LOWER(email) = LOWER($3)
                 RETURNING id, email, status, products_purchased, total_spent
-            `, [mappedStatus, mappedStatus, buyerEmail, productIdentifier, purchaseValue]);
+            `, [mappedStatus, mappedStatus, emailForLead, productIdentifier, purchaseValue]);
             
             if (leadUpdate.rows.length > 0) {
                 const lead = leadUpdate.rows[0];
-                console.log(`✅ Lead updated: ${buyerEmail} -> ${mappedStatus} | Products: ${lead.products_purchased?.join(', ') || 'none'} | Total: R$${lead.total_spent}`);
+                console.log(`✅ Lead updated: ${emailForLead} -> ${mappedStatus} | Products: ${lead.products_purchased?.join(', ') || 'none'} | Total: R$${lead.total_spent}`);
             } else {
-                console.log(`⚠️ No matching lead found for: ${buyerEmail}`);
+                console.log(`⚠️ No matching lead found for: ${emailForLead}`);
             }
         }
         
@@ -2167,7 +2208,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
         
         // User data for Facebook CAPI
         const fbUserData = {
-            email: buyerEmail,
+            email: finalEmail || buyerEmail,
             phone: buyerPhone,
             firstName: buyerName
         };
@@ -2233,7 +2274,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                     `, [
                         refundProtocol,
                         buyerName || 'N/A',
-                        buyerEmail,
+                        finalEmail,
                         buyerPhone || null,
                         productName,
                         refundType === 'chargeback' ? 'Chargeback - Disputa de cartão' : 'Reembolso via Monetizze',
@@ -2245,7 +2286,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                         funnelLanguage
                     ]);
                     
-                    console.log(`📥 ${refundType.toUpperCase()} registered: ${refundProtocol} - ${buyerEmail} - ${productName}`);
+                    console.log(`📥 ${refundType.toUpperCase()} registered: ${refundProtocol} - ${finalEmail} - ${productName}`);
                 }
             } catch (refundError) {
                 console.error('Error registering refund:', refundError.message);
@@ -2256,7 +2297,24 @@ app.all('/api/postback/monetizze', async (req, res) => {
         res.status(200).send('OK');
         
     } catch (error) {
-        console.error('❌ Postback error:', error);
+        console.error('❌ Postback CRITICAL error:', error.message);
+        console.error('❌ Stack:', error.stack);
+        console.error('❌ Raw body was:', JSON.stringify(rawBody || req.body || {}).substring(0, 500));
+        
+        // Log error to DB for persistent debugging
+        try {
+            await pool.query(`INSERT INTO postback_logs (content_type, body, created_at) VALUES ('CRITICAL_ERROR', $1, NOW())`, 
+                [JSON.stringify({ 
+                    error: error.message, 
+                    stack: error.stack?.substring(0, 500),
+                    bodyKeys: Object.keys(rawBody || req.body || {}),
+                    rawBody: rawBody || req.body || {},
+                    contentType: req.headers['content-type']
+                })]);
+        } catch (logErr) {
+            console.error('Failed to log error to DB:', logErr.message);
+        }
+        
         // Still return 200 to prevent Monetizze from retrying
         res.status(200).send('OK');
     }
