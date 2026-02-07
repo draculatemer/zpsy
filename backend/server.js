@@ -307,6 +307,25 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// Helper function to build date filter SQL
+function buildDateFilter(startDate, endDate, columnName = 'created_at') {
+    if (!startDate || !endDate) return { sql: '', params: [] };
+    
+    return {
+        sql: ` AND ${columnName} >= $PARAM_START AND ${columnName} <= $PARAM_END`,
+        params: [startDate, endDate]
+    };
+}
+
+// Helper function to build date filter SQL
+function buildDateFilter(startDate, endDate, columnName = 'created_at') {
+    if (!startDate || !endDate) return { sql: '', params: [] };
+    return {
+        sql: ` AND ${columnName} >= $__START__ AND ${columnName} <= $__END__`,
+        params: [startDate, endDate]
+    };
+}
+
 // ==================== PUBLIC API ROUTES ====================
 
 // Health check
@@ -883,6 +902,7 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
         const search = req.query.search || '';
         const status = req.query.status || '';
         const language = req.query.language || '';  // Filter by funnel language (en/es)
+        const { startDate, endDate } = req.query;
         
         let query = `SELECT * FROM leads`;
         let countQuery = `SELECT COUNT(*) FROM leads`;
@@ -907,6 +927,11 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
                 conditions.push(`funnel_language = $${params.length + 1}`);
             }
             params.push(language);
+        }
+        
+        if (startDate && endDate) {
+            conditions.push(`created_at >= $${params.length + 1} AND created_at <= $${params.length + 2}`);
+            params.push(startDate, endDate);
         }
         
         if (conditions.length > 0) {
@@ -941,26 +966,36 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
 // Get lead statistics (protected)
 app.get('/api/admin/stats', authenticateToken, async (req, res) => {
     try {
+        const { startDate, endDate } = req.query;
+        
+        // Build date filter
+        let dateFilter = '';
+        const params = [];
+        if (startDate && endDate) {
+            dateFilter = ` AND created_at >= $1 AND created_at <= $2`;
+            params.push(startDate, endDate);
+        }
+        
         const [totalResult, todayResult, weekResult, statusResult] = await Promise.all([
-            pool.query('SELECT COUNT(*) FROM leads'),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE`),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'`),
-            pool.query(`SELECT status, COUNT(*) FROM leads GROUP BY status`)
+            pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1${dateFilter}`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE${dateFilter}`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'${dateFilter}`, params),
+            pool.query(`SELECT status, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY status`, params)
         ]);
         
         // Get leads by day for the last 7 days
         const dailyResult = await pool.query(`
             SELECT DATE(created_at) as date, COUNT(*) as count
             FROM leads
-            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'${dateFilter}
             GROUP BY DATE(created_at)
             ORDER BY date DESC
-        `);
+        `, params);
         
         // Get leads by gender
         const genderResult = await pool.query(`
-            SELECT target_gender, COUNT(*) FROM leads GROUP BY target_gender
-        `);
+            SELECT target_gender, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY target_gender
+        `, params);
         
         res.json({
             total: parseInt(totalResult.rows[0].count),
@@ -2644,7 +2679,7 @@ app.post('/api/refund', async (req, res) => {
 // Get all refund requests (protected) - now includes consolidated view
 app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
     try {
-        const { status, source, type } = req.query;
+        const { status, source, type, language, startDate, endDate } = req.query;
         
         // Build dynamic query
         let conditions = [];
@@ -2663,6 +2698,14 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             conditions.push(`refund_type = $${paramIndex++}`);
             params.push(type);
         }
+        if (language) {
+            conditions.push(`funnel_language = $${paramIndex++}`);
+            params.push(language);
+        }
+        if (startDate && endDate) {
+            conditions.push(`created_at >= $${paramIndex++} AND created_at <= $${paramIndex++}`);
+            params.push(startDate, endDate);
+        }
         
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
         
@@ -2673,22 +2716,35 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             LIMIT 100
         `, params);
         
-        // Get stats by source
+        // Get stats by source (with date filter if provided)
+        let statsConditions = [];
+        let statsParams = [];
+        let statsParamIndex = 1;
+        
+        if (startDate && endDate) {
+            statsConditions.push(`created_at >= $${statsParamIndex++} AND created_at <= $${statsParamIndex++}`);
+            statsParams.push(startDate, endDate);
+        }
+        
+        const statsWhereClause = statsConditions.length > 0 ? `WHERE ${statsConditions.join(' AND ')}` : '';
+        
         const statsResult = await pool.query(`
             SELECT 
                 COALESCE(source, 'form') as source,
                 COALESCE(refund_type, 'refund') as refund_type,
+                COALESCE(funnel_language, 'unknown') as funnel_language,
                 COUNT(*) as count,
                 status
             FROM refund_requests
-            GROUP BY source, refund_type, status
-        `);
+            ${statsWhereClause}
+            GROUP BY source, refund_type, funnel_language, status
+        `, statsParams);
         
-        // Calculate totals
+        // Calculate totals with language breakdown
         const stats = {
-            form: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 },
-            monetizze_refund: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 },
-            monetizze_chargeback: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0 }
+            form: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
+            monetizze_refund: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
+            monetizze_chargeback: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 }
         };
         
         statsResult.rows.forEach(row => {
@@ -2699,6 +2755,11 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             if (stats[key]) {
                 stats[key][row.status] = (stats[key][row.status] || 0) + parseInt(row.count);
                 stats[key].total += parseInt(row.count);
+                
+                // Count by language
+                if (row.funnel_language === 'en' || row.funnel_language === 'es') {
+                    stats[key][row.funnel_language] = (stats[key][row.funnel_language] || 0) + parseInt(row.count);
+                }
             }
         });
 
@@ -2822,7 +2883,7 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
 // Get transactions (protected)
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const { language } = req.query;
+        const { language, startDate, endDate } = req.query;
         
         let query = `SELECT * FROM transactions WHERE 1=1`;
         let params = [];
@@ -2834,8 +2895,14 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
         
         if (language === 'en' || language === 'es') {
             query += ` AND (funnel_language = $${paramIndex} OR (funnel_language IS NULL AND $${paramIndex} = 'en'))`;
-            params = [language];
+            params.push(language);
             paramIndex++;
+        }
+        
+        if (startDate && endDate) {
+            query += ` AND created_at >= $${paramIndex} AND created_at <= $${paramIndex + 1}`;
+            params.push(startDate, endDate);
+            paramIndex += 2;
         }
         
         query += ` ORDER BY created_at DESC LIMIT 100`;
@@ -2876,7 +2943,7 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
-        const { language } = req.query;
+        const { language, startDate, endDate } = req.query;
         
         // Build language filter
         let langCondition = '';
@@ -2886,17 +2953,26 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             langParams = [language];
         }
         
+        // Build date filter
+        let dateCondition = '';
+        if (startDate && endDate) {
+            const startIdx = langParams.length + 1;
+            const endIdx = langParams.length + 2;
+            dateCondition = ` AND created_at >= $${startIdx} AND created_at <= $${endIdx}`;
+            langParams.push(startDate, endDate);
+        }
+        
         const [totalResult, approvedResult, refundedResult, revenueResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE 1=1 ${langCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}`, langParams),
-            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}`, langParams)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE 1=1 ${langCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition}`, langParams)
         ]);
         
         // Get today and this week
         const [todayResult, weekResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE ${langCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}`, langParams)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE ${langCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}${dateCondition}`, langParams)
         ]);
         
         // Calculate conversion rate (leads -> sales) - also filtered by language
@@ -2914,7 +2990,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
                 COALESCE(SUM(CAST(value AS DECIMAL)) FILTER (WHERE status = 'approved'), 0) as revenue,
                 COUNT(*) as total
             FROM transactions
-            WHERE product IS NOT NULL ${langCondition}
+            WHERE product IS NOT NULL ${langCondition}${dateCondition}
             GROUP BY product
             ORDER BY approved DESC
         `, langParams);
