@@ -3009,7 +3009,35 @@ Estou aqui para esclarecer tudo! 😊`
         };
         
         // Check if logged in
-        if (authToken) showDashboard();
+        if (authToken) {
+            // If we have a token but no user info, fetch it
+            const storedUser = localStorage.getItem('adminUser');
+            if (!storedUser) {
+                fetchUserProfile().then(() => showDashboard());
+            } else {
+                showDashboard();
+            }
+        }
+        
+        // Fetch user profile
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/profile`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user) {
+                        localStorage.setItem('adminUser', JSON.stringify(data.user));
+                    }
+                } else if (response.status === 401) {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+            }
+        }
         
         // Login form
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -5425,10 +5453,10 @@ Estou aqui para esclarecer tudo! 😊`
                     <td>
                         <div style="display: flex; gap: 4px; flex-wrap: wrap;">
                             <button class="action-btn" onclick="viewRefundDetails(${refund.id})" title="Ver detalhes completos">👁️</button>
-                            ${refund.source === 'form' && refund.email ? `
+                            ${refund.email ? `
                                 <button class="action-btn" onclick='sendEmailTo(${JSON.stringify(refundData)}, "followUp")' title="Enviar Email" style="color: #3b82f6;">📧</button>
                             ` : ''}
-                            ${refund.source === 'form' && (refund.phone || refund.whatsapp) ? `
+                            ${(refund.phone || refund.whatsapp) ? `
                                 <button class="action-btn" onclick='sendWhatsAppTo(${JSON.stringify(refundData)}, "followUp")' title="Enviar WhatsApp" style="color: #25d366;">💬</button>
                             ` : ''}
                             ${refund.status === 'pending' && refund.source === 'form' ? `
@@ -5717,28 +5745,30 @@ Posso ajudar em algo mais? 😊`
                         </div>
                         
                         <!-- Quick Actions -->
-                        ${refund.source === 'form' ? `
+                        ${refund.email || refund.phone || refund.whatsapp ? `
                             <div style="padding: 20px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                                <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 15px; font-weight: 600;">⚡ Ações Rápidas</h4>
+                                <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 15px; font-weight: 600;">⚡ Ações Rápidas de Comunicação</h4>
                                 
                                 <!-- Email Actions -->
-                                <div style="margin-bottom: 16px;">
-                                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">📧 ENVIAR EMAIL</div>
-                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                        <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "requestInfo")' style="font-size: 13px; padding: 10px;">
-                                            📝 Solicitar Info
-                                        </button>
-                                        <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "followUp")' style="font-size: 13px; padding: 10px;">
-                                            👋 Acompanhamento
-                                        </button>
-                                        <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "approved")' style="font-size: 13px; padding: 10px; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: var(--success);">
-                                            ✅ Aprovado
-                                        </button>
-                                        <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "rejected")' style="font-size: 13px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger);">
-                                            ❌ Rejeitado
-                                        </button>
+                                ${refund.email ? `
+                                    <div style="margin-bottom: 16px;">
+                                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">📧 ENVIAR EMAIL</div>
+                                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                                            <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "requestInfo")' style="font-size: 13px; padding: 10px;">
+                                                📝 Solicitar Info
+                                            </button>
+                                            <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "followUp")' style="font-size: 13px; padding: 10px;">
+                                                👋 Acompanhamento
+                                            </button>
+                                            <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "approved")' style="font-size: 13px; padding: 10px; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: var(--success);">
+                                                ✅ Aprovado
+                                            </button>
+                                            <button class="btn-secondary" onclick='sendEmailTo(${JSON.stringify(refundData)}, "rejected")' style="font-size: 13px; padding: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger);">
+                                                ❌ Rejeitado
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                ` : ''}
                                 
                                 <!-- WhatsApp Actions -->
                                 ${refund.phone || refund.whatsapp ? `
