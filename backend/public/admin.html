@@ -2951,6 +2951,7 @@ Posso ajudar com alguma dúvida?</textarea>
     <script>
         const API_URL = window.location.origin;
         let authToken = localStorage.getItem('adminToken');
+        let token = authToken; // Sync token with authToken for backward compatibility
         let currentPage = 1;
         let searchTimeout;
         let leadsChart, statusChart;
@@ -3055,6 +3056,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 if (response.ok && data.token) {
                     authToken = data.token;
+                    token = data.token; // Update both variables
                     localStorage.setItem('adminToken', authToken);
                     // Store user info for role-based access
                     if (data.user) {
