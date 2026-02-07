@@ -1310,48 +1310,65 @@ app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
 // Monetizze postback endpoint (public - no auth, uses token validation)
 // Also accepts GET for testing
 app.all('/api/postback/monetizze', async (req, res) => {
+    // Handle GET request for testing
+    if (req.method === 'GET') {
+        return res.json({ 
+            status: 'ok', 
+            message: 'Postback endpoint is working! Use POST to send transaction data.',
+            timestamp: new Date().toISOString()
+        });
+    }
+    
     try {
-        // Handle GET request for testing
-        if (req.method === 'GET') {
-            return res.json({ 
-                status: 'ok', 
-                message: 'Postback endpoint is working! Use POST to send transaction data.',
-                timestamp: new Date().toISOString()
-            });
-        }
+        const body = req.body || {};
+        
+        console.log('📥 Monetizze Postback received');
+        console.log('📥 Body keys:', Object.keys(body));
+        console.log('📥 Raw body:', JSON.stringify(body).substring(0, 500));
         
         // Store postback for debugging
-        const postbackEntry = {
-            timestamp: new Date().toISOString(),
-            method: req.method,
-            headers: {
-                'content-type': req.headers['content-type'],
-                'user-agent': req.headers['user-agent']
-            },
-            body: req.body,
-            bodyKeys: Object.keys(req.body || {})
-        };
-        recentPostbacks.unshift(postbackEntry);
-        if (recentPostbacks.length > 20) recentPostbacks.pop();
-        
-        console.log('📥 Monetizze Postback received:', JSON.stringify(req.body, null, 2));
-        console.log('📥 Postback keys:', Object.keys(req.body));
+        try {
+            const postbackEntry = {
+                timestamp: new Date().toISOString(),
+                method: req.method,
+                contentType: req.headers['content-type'],
+                body: body,
+                bodyKeys: Object.keys(body)
+            };
+            recentPostbacks.unshift(postbackEntry);
+            if (recentPostbacks.length > 20) recentPostbacks.pop();
+        } catch (debugErr) {
+            console.log('Debug storage error:', debugErr.message);
+        }
         
         // Monetizze sends data in various formats - handle all cases
-        const body = req.body;
+        // Extract nested objects safely
+        let venda = {};
+        let comprador = {};
+        let produto = {};
         
-        // Extract data - Monetizze can send nested or flat structure
-        const chave_unica = body.chave_unica || body.venda?.codigo || body.transacao || body.transaction_id;
-        const produto = body.produto || body.product;
-        const venda = body.venda || body.sale;
-        const comprador = body.comprador || body.buyer;
-        const status = body.status || body['venda.status'] || (venda && venda.status);
-        const valor = body.valor || body['venda.valor'] || (venda && venda.valor) || body.value;
-        const email = body.email || body['comprador.email'] || (comprador && comprador.email);
-        const telefone = body.telefone || body['comprador.telefone'] || (comprador && comprador.telefone);
-        const nome = body.nome || body['comprador.nome'] || (comprador && comprador.nome);
+        if (body.venda && typeof body.venda === 'object') venda = body.venda;
+        else if (body.sale && typeof body.sale === 'object') venda = body.sale;
         
-        console.log('📥 Extracted data:', { chave_unica, status, valor, email, nome, produto: typeof produto });
+        if (body.comprador && typeof body.comprador === 'object') comprador = body.comprador;
+        else if (body.buyer && typeof body.buyer === 'object') comprador = body.buyer;
+        
+        if (body.produto && typeof body.produto === 'object') produto = body.produto;
+        else if (body.product && typeof body.product === 'object') produto = body.product;
+        
+        // Extract flat values (Monetizze sometimes sends as flat structure)
+        const chave_unica = body.chave_unica || body['venda.codigo'] || venda.codigo || body.transacao || body.transaction_id || ('auto_' + Date.now());
+        const status = body.status || body['venda.status'] || venda.status || '2';
+        const valor = body.valor || body['venda.valor'] || venda.valor || body.value || '0';
+        const email = body.email || body['comprador.email'] || comprador.email || null;
+        const telefone = body.telefone || body['comprador.telefone'] || comprador.telefone || null;
+        const nome = body.nome || body['comprador.nome'] || comprador.nome || null;
+        
+        // Product name extraction
+        let productNameRaw = body['produto.nome'] || body.produto || produto.nome || produto.name || 'Unknown Product';
+        if (typeof productNameRaw === 'object') productNameRaw = productNameRaw.nome || productNameRaw.name || 'Unknown Product';
+        
+        console.log('📥 Extracted:', { chave_unica, status, valor, email, nome: nome ? 'yes' : 'no', productNameRaw });
         
         // Validate postback (optional: check chave_unica against your secret)
         const postbackToken = process.env.MONETIZZE_POSTBACK_TOKEN;
@@ -1399,14 +1416,14 @@ app.all('/api/postback/monetizze', async (req, res) => {
         };
         
         const mappedStatus = statusMap[String(status)] || 'unknown';
-        const buyerEmail = email || (comprador && comprador.email) || body['comprador.email'];
-        const buyerPhone = telefone || (comprador && comprador.telefone) || body['comprador.telefone'];
-        const buyerName = nome || (comprador && comprador.nome) || body['comprador.nome'];
-        const productName = typeof produto === 'object' ? (produto.nome || produto.name) : (produto || body['produto.nome']);
-        const productCode = typeof produto === 'object' ? (produto.codigo || produto.code || produto.id) : (body['produto.codigo'] || body['produto.code']);
-        const transactionValue = valor || (venda && venda.valor) || body['venda.valor'];
+        const buyerEmail = email;
+        const buyerPhone = telefone;
+        const buyerName = nome;
+        const productName = productNameRaw;
+        const productCode = body['produto.codigo'] || body['produto.code'] || produto.codigo || produto.code || produto.id || null;
+        const transactionValue = valor;
         
-        console.log('📥 Mapped values:', { mappedStatus, buyerEmail, buyerName, productName, productCode, transactionValue });
+        console.log('📥 Final values:', { mappedStatus, buyerEmail: buyerEmail || 'none', productName, productCode: productCode || 'none', transactionValue });
         
         // Determine funnel language based on product code
         // Spanish product codes (Monetizze IDs):
