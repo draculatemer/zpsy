@@ -1350,13 +1350,12 @@ app.all('/api/postback/monetizze', async (req, res) => {
         
         // Determine funnel language based on product code
         // Spanish product codes (Monetizze IDs):
-        // - KCH455963: X Ai - Detector de Infidelidad (Front)
-        // - KMS455971: X Ai - Detector de Infidelidad 50% OFF
-        // - 455966 / up1: X Ai - Recuperación Total
-        // - 455968 / up2: X Ai - Visión Total
-        // - 455970 / up3: X Ai - VIP Sin Esperas
+        // - 349260: X Ai - Detector de Infidelidad (Front)
+        // - 349261: X Ai - Recuperación Total (UP1)
+        // - 349266: X Ai - Visión Total (UP2)
+        // - 349267: X Ai - VIP Sin Esperas (UP3)
         // Spanish product names contain: "Infidelidad", "Recuperación", "Visión", "VIP Sin Esperas"
-        const spanishProductCodes = ['455963', '455971', '455966', '455968', '455970', 'KCH455963', 'KMS455971'];
+        const spanishProductCodes = ['349260', '349261', '349266', '349267'];
         const spanishProductKeywords = ['Infidelidad', 'Recuperación', 'Visión Total', 'VIP Sin Esperas'];
         
         let funnelLanguage = 'en'; // default to English
@@ -1734,11 +1733,11 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         const enUp2Keywords = "product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%'";
         const enUp3Keywords = "product ILIKE '%Instant Access%' OR product ILIKE '%349243%'";
         
-        // Spanish products
-        const esFrontKeywords = "product ILIKE '%Infidelidad%' OR product ILIKE '%455963%' OR product ILIKE '%455971%'";
-        const esUp1Keywords = "product ILIKE '%Recuperación%' OR product ILIKE '%455966%'";
-        const esUp2Keywords = "product ILIKE '%Visión Total%' OR product ILIKE '%455968%'";
-        const esUp3Keywords = "product ILIKE '%VIP Sin Esperas%' OR product ILIKE '%455970%'";
+        // Spanish products (Monetizze IDs: 349260, 349261, 349266, 349267)
+        const esFrontKeywords = "product ILIKE '%Infidelidad%' OR product ILIKE '%349260%'";
+        const esUp1Keywords = "product ILIKE '%Recuperación%' OR product ILIKE '%349261%'";
+        const esUp2Keywords = "product ILIKE '%Visión Total%' OR product ILIKE '%349266%'";
+        const esUp3Keywords = "product ILIKE '%VIP Sin Esperas%' OR product ILIKE '%349267%'";
         
         // Select keywords based on language filter
         let frontKeywords, up1Keywords, up2Keywords, up3Keywords;
