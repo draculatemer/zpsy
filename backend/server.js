@@ -1260,6 +1260,34 @@ app.post('/api/admin/transactions/manual', authenticateToken, async (req, res) =
     }
 });
 
+// Clean test transactions (protected - admin only)
+app.delete('/api/admin/transactions/test', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            DELETE FROM transactions 
+            WHERE transaction_id LIKE 'TEST%' 
+               OR transaction_id LIKE '%TEST%'
+               OR email LIKE '%test%@%' 
+               OR email LIKE '%@test.%'
+               OR product LIKE '%TEST%'
+               OR product = 'DELETE'
+            RETURNING transaction_id, email, product
+        `);
+        
+        console.log(`🗑️ Deleted ${result.rowCount} test transactions`);
+        
+        res.json({
+            success: true,
+            deleted: result.rowCount,
+            transactions: result.rows
+        });
+        
+    } catch (error) {
+        console.error('Error deleting test transactions:', error);
+        res.status(500).json({ error: 'Failed to delete test transactions' });
+    }
+});
+
 // Recalculate lead totals from transactions
 app.post('/api/admin/leads/recalculate', authenticateToken, async (req, res) => {
     try {
@@ -2796,12 +2824,18 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
         const { language } = req.query;
         
-        let query = `SELECT * FROM transactions`;
+        let query = `SELECT * FROM transactions WHERE 1=1`;
         let params = [];
+        let paramIndex = 1;
+        
+        // Exclude test transactions
+        query += ` AND transaction_id NOT LIKE 'TEST%' AND transaction_id NOT LIKE '%TEST%'`;
+        query += ` AND email NOT LIKE '%test%@%' AND email NOT LIKE '%@test.%'`;
         
         if (language === 'en' || language === 'es') {
-            query += ` WHERE (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))`;
+            query += ` AND (funnel_language = $${paramIndex} OR (funnel_language IS NULL AND $${paramIndex} = 'en'))`;
             params = [language];
+            paramIndex++;
         }
         
         query += ` ORDER BY created_at DESC LIMIT 100`;
