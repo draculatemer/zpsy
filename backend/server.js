@@ -852,19 +852,91 @@ app.post('/api/admin/transactions/manual', authenticateToken, async (req, res) =
             funnel_language || 'en'
         ]);
         
-        // Try to update lead status
+        // Try to update lead with full purchase info
         if (email) {
+            const purchaseValue = parseFloat(value) || 0;
+            const productIdentifier = product.substring(0, 50);
+            
             await pool.query(`
-                UPDATE leads SET status = 'converted', updated_at = NOW()
+                UPDATE leads SET 
+                    status = 'converted',
+                    products_purchased = CASE 
+                        WHEN products_purchased IS NULL THEN ARRAY[$2]::TEXT[]
+                        WHEN NOT ($2 = ANY(products_purchased)) THEN array_append(products_purchased, $2)
+                        ELSE products_purchased
+                    END,
+                    total_spent = COALESCE(total_spent, 0) + $3,
+                    first_purchase_at = CASE 
+                        WHEN first_purchase_at IS NULL THEN NOW()
+                        ELSE first_purchase_at
+                    END,
+                    last_purchase_at = NOW(),
+                    updated_at = NOW()
                 WHERE LOWER(email) = LOWER($1)
-            `, [email]);
+            `, [email, productIdentifier, purchaseValue]);
         }
         
-        console.log(`✅ Manual transaction added: ${transaction_id} - ${product} - ${value}`);
+        console.log(`✅ Manual transaction added: ${transaction_id} - ${product} - R$${value}`);
         
         res.json({ success: true, message: 'Transaction added successfully' });
     } catch (error) {
         console.error('Error adding manual transaction:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Recalculate lead totals from transactions
+app.post('/api/admin/leads/recalculate', authenticateToken, async (req, res) => {
+    try {
+        // Get all approved transactions grouped by email
+        const transactionsResult = await pool.query(`
+            SELECT 
+                LOWER(email) as email,
+                array_agg(DISTINCT product) as products,
+                SUM(CAST(value AS DECIMAL)) as total_spent,
+                MIN(created_at) as first_purchase,
+                MAX(created_at) as last_purchase,
+                COUNT(*) as purchase_count
+            FROM transactions 
+            WHERE status = 'approved' AND email IS NOT NULL
+            GROUP BY LOWER(email)
+        `);
+        
+        let updatedCount = 0;
+        
+        for (const trans of transactionsResult.rows) {
+            const result = await pool.query(`
+                UPDATE leads SET 
+                    status = 'converted',
+                    products_purchased = $2,
+                    total_spent = $3,
+                    first_purchase_at = $4,
+                    last_purchase_at = $5,
+                    updated_at = NOW()
+                WHERE LOWER(email) = $1
+                RETURNING id
+            `, [
+                trans.email,
+                trans.products,
+                trans.total_spent || 0,
+                trans.first_purchase,
+                trans.last_purchase
+            ]);
+            
+            if (result.rows.length > 0) {
+                updatedCount++;
+            }
+        }
+        
+        res.json({ 
+            success: true, 
+            message: `Recalculated ${updatedCount} leads from ${transactionsResult.rows.length} buyer emails`,
+            updated: updatedCount,
+            totalBuyers: transactionsResult.rows.length
+        });
+        
+    } catch (error) {
+        console.error('Error recalculating leads:', error);
         res.status(500).json({ error: error.message });
     }
 });
