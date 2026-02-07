@@ -238,7 +238,7 @@ async function getCountryFromIP(ip) {
                 port: null,
                 path: `/ip/${cleanIP}?format=json&language=en`,
                 headers: {
-                    'x-rapidapi-key': process.env.RAPIDAPI_KEY || 'd03f07c7d0msh0e23fb53734dctqp1c2c1fjsnc7937b7aa011',
+                    'x-rapidapi-key': 'd03f07c7d0msh0e23fb53734dctqp1c2c1fjsnc7937b7aa011',
                     'x-rapidapi-host': 'ip-geo-location.p.rapidapi.com'
                 }
             };
