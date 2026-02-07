@@ -1837,7 +1837,8 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         
         // Calculate upsell take rates based on language
         // English products
-        const enFrontKeywords = "product ILIKE '%Monitor%' OR product ILIKE '%341972%'";
+        // English products - include ZappDetect as front synonym
+        const enFrontKeywords = "product ILIKE '%Monitor%' OR product ILIKE '%ZappDetect%' OR product ILIKE '%341972%'";
         const enUp1Keywords = "product ILIKE '%Message Vault%' OR product ILIKE '%349241%'";
         const enUp2Keywords = "product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%'";
         const enUp3Keywords = "product ILIKE '%Instant Access%' OR product ILIKE '%349243%'";
