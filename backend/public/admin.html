@@ -4904,8 +4904,10 @@ Estou aqui para esclarecer tudo! 😊`
                     <td><span class="refund-status ${status.class}">${status.text}</span></td>
                     <td class="cell-date">${date}</td>
                     <td>
-                        <div class="action-buttons">
+                        <div class="action-buttons" style="display: flex; gap: 4px; flex-wrap: wrap;">
                             <button class="action-btn-view" onclick="openRefundModal(${r.id})" title="Ver detalhes">👁️</button>
+                            ${r.email ? `<button class="action-btn" onclick="quickEmail(${r.id})" title="Enviar Email" style="color: #3b82f6; cursor: pointer; background: none; border: none; font-size: 16px;">📧</button>` : ''}
+                            ${(r.phone || r.whatsapp) ? `<button class="action-btn" onclick="quickWhatsApp(${r.id})" title="Enviar WhatsApp" style="color: #25d366; cursor: pointer; background: none; border: none; font-size: 16px;">💬</button>` : ''}
                             ${(r.status === 'pending' || r.status === 'handling' || r.status === 'processing') && r.source !== 'monetizze' ? `
                                 <button class="action-btn-approve" onclick="updateRefundStatus(${r.id}, 'approved')" title="Aprovar">✓</button>
                                 <button class="action-btn-reject" onclick="updateRefundStatus(${r.id}, 'rejected')" title="Rejeitar">✕</button>
@@ -4916,6 +4918,35 @@ Estou aqui para esclarecer tudo! 😊`
             });
             
             table.innerHTML = html;
+        }
+        
+        // Quick communication from refund table
+        function quickEmail(id) {
+            const refund = allRefunds.find(r => r.id === id);
+            if (!refund) return;
+            const data = {
+                name: refund.full_name || refund.name || 'Cliente',
+                protocol: refund.protocol || 'N/A',
+                email: refund.email,
+                phone: refund.phone || refund.whatsapp,
+                product: refund.product || 'Produto',
+                reason: refund.reason || 'Não especificado'
+            };
+            sendEmailTo(data, 'followUp');
+        }
+        
+        function quickWhatsApp(id) {
+            const refund = allRefunds.find(r => r.id === id);
+            if (!refund) return;
+            const data = {
+                name: refund.full_name || refund.name || 'Cliente',
+                protocol: refund.protocol || 'N/A',
+                email: refund.email,
+                phone: refund.phone || refund.whatsapp,
+                product: refund.product || 'Produto',
+                reason: refund.reason || 'Não especificado'
+            };
+            sendWhatsAppTo(data, 'followUp');
         }
         
         function openRefundModal(id) {
@@ -4987,6 +5018,37 @@ Estou aqui para esclarecer tudo! 😊`
                     <div class="refund-timestamp">
                         Solicitado em: ${date}
                     </div>
+                    
+                    <!-- Quick Communication -->
+                    ${refund.email || refund.phone || refund.whatsapp ? `
+                    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 211, 102, 0.08)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">⚡ Comunicação Rápida</h4>
+                        
+                        ${refund.email ? `
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">📧 EMAIL</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                                <button onclick="quickEmail(${refund.id})" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); color: #3b82f6; cursor: pointer; font-size: 13px; font-weight: 500;">📝 Solicitar Info</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'approved')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #22c55e; cursor: pointer; font-size: 13px; font-weight: 500;">✅ Aprovação</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'rejected')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: #ef4444; cursor: pointer; font-size: 13px; font-weight: 500;">❌ Rejeição</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'followUp')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); color: #3b82f6; cursor: pointer; font-size: 13px; font-weight: 500;">👋 Acompanhamento</button>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${refund.phone || refund.whatsapp ? `
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">💬 WHATSAPP</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                                <button onclick="quickWhatsApp(${refund.id})" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">📝 Solicitar Info</button>
+                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'approved')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">✅ Aprovação</button>
+                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'rejected')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">❌ Rejeição</button>
+                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'followUp')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">👋 Acompanhamento</button>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
                 </div>
             `;
             
