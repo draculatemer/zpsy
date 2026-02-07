@@ -293,15 +293,45 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         // Determine language (default to 'en' for backward compatibility)
         const language = funnelLanguage || 'en';
         
-        // Insert lead into database (with language)
-        const result = await pool.query(
-            `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-             RETURNING id, created_at`,
-            [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language]
+        // Check if lead already exists (by email or whatsapp)
+        const existingLead = await pool.query(
+            `SELECT id, email, whatsapp, visit_count FROM leads WHERE LOWER(email) = LOWER($1) OR whatsapp = $2 LIMIT 1`,
+            [email, whatsapp]
         );
         
-        console.log(`New lead captured [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${whatsapp}`);
+        let result;
+        let isNewLead = false;
+        
+        if (existingLead.rows.length > 0) {
+            // Update existing lead with new visit info
+            const currentVisitCount = existingLead.rows[0].visit_count || 1;
+            result = await pool.query(
+                `UPDATE leads SET 
+                    name = COALESCE($1, name),
+                    target_phone = COALESCE($2, target_phone),
+                    target_gender = COALESCE($3, target_gender),
+                    ip_address = $4,
+                    referrer = $5,
+                    user_agent = $6,
+                    visit_count = $7,
+                    last_visit_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = $8
+                RETURNING id, created_at`,
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, existingLead.rows[0].id]
+            );
+            console.log(`Returning lead [${language.toUpperCase()}]: ${name || 'No name'} - ${email} (visit #${currentVisitCount + 1})`);
+        } else {
+            // Insert new lead
+            result = await pool.query(
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, visit_count, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, NOW())
+                 RETURNING id, created_at`,
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language]
+            );
+            isNewLead = true;
+            console.log(`New lead captured [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${whatsapp}`);
+        }
         
         // Send Lead event to Facebook Conversions API (using correct pixels for language)
         try {
@@ -1350,6 +1380,14 @@ async function initDatabase() {
         // Add name column if it doesn't exist (for existing databases)
         await pool.query(`
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+        `);
+        
+        // Add visit tracking columns
+        await pool.query(`
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS visit_count INTEGER DEFAULT 1;
+        `);
+        await pool.query(`
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_visit_at TIMESTAMP WITH TIME ZONE;
         `);
         
         // Create funnel_events table for tracking
