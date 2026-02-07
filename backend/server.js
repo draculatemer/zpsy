@@ -17,6 +17,9 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy for Railway/Heroku (needed for rate limiting and IP detection)
+app.set('trust proxy', 1);
+
 // ==================== FACEBOOK CONVERSIONS API ====================
 
 // Pixel configurations by funnel language
@@ -1650,6 +1653,11 @@ async function initDatabase() {
         // Add name column if it doesn't exist (for existing databases)
         await pool.query(`
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+        `);
+        
+        // Add funnel_language column
+        await pool.query(`
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10) DEFAULT 'en';
         `);
         
         // Add visit tracking columns
