@@ -1368,23 +1368,26 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // Identify product type (front/upsell1/upsell2/upsell3)
         let productType = 'front';
         const productNameLower = (productName || '').toLowerCase();
+        const productCodeStr = String(productCode || '');
         
-        // English products
-        if (productNameLower.includes('full recovery') || productNameLower.includes('recovery') || productNameLower.includes('recuperação')) {
+        // English products (IDs: 341972=Front, 349241=UP1, 349242=UP2, 349243=UP3)
+        if (productNameLower.includes('message vault') || productCodeStr === '349241') {
             productType = 'upsell1';
-        } else if (productNameLower.includes('full vision') || productNameLower.includes('vision') || productNameLower.includes('visão')) {
+        } else if (productNameLower.includes('360') || productNameLower.includes('tracker') || productCodeStr === '349242') {
             productType = 'upsell2';
-        } else if (productNameLower.includes('vip') || productNameLower.includes('priority') || productNameLower.includes('prioridade')) {
+        } else if (productNameLower.includes('instant access') || productCodeStr === '349243') {
             productType = 'upsell3';
         }
-        // Spanish products  
-        else if (productNameLower.includes('recuperación total')) {
+        // Spanish products (IDs: 349260=Front, 349261=UP1, 349266=UP2, 349267=UP3)
+        else if (productNameLower.includes('recuperación total') || productCodeStr === '349261') {
             productType = 'upsell1';
-        } else if (productNameLower.includes('visión total')) {
+        } else if (productNameLower.includes('visión total') || productCodeStr === '349266') {
             productType = 'upsell2';
-        } else if (productNameLower.includes('sin esperas')) {
+        } else if (productNameLower.includes('sin esperas') || productCodeStr === '349267') {
             productType = 'upsell3';
         }
+        // Front products (if none of the upsells matched)
+        // English: X AI Monitor (341972), Spanish: Detector de Infidelidad (349260)
         
         console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode}, type: ${productType})`);
         
