@@ -208,6 +208,30 @@ app.use(express.static('public'));
 // Serve funnel static files
 // These are placed in public/ingles and public/espanhol after build
 const path = require('path');
+
+// ==================== GEOLOCATION HELPER ====================
+async function getCountryFromIP(ip) {
+    try {
+        // Skip for localhost/private IPs
+        if (!ip || ip === '::1' || ip.startsWith('127.') || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+            return { country: null, country_code: null, city: null };
+        }
+        
+        const response = await fetch(`https://ipapi.co/${ip}/json/`);
+        if (!response.ok) return { country: null, country_code: null, city: null };
+        
+        const data = await response.json();
+        return {
+            country: data.country_name || null,
+            country_code: data.country_code || null,
+            city: data.city || null
+        };
+    } catch (error) {
+        console.log('Geolocation error:', error.message);
+        return { country: null, country_code: null, city: null };
+    }
+}
+
 app.use('/ingles', express.static(path.join(__dirname, 'public', 'ingles')));
 app.use('/espanhol', express.static(path.join(__dirname, 'public', 'espanhol')));
 app.use('/en', express.static(path.join(__dirname, 'public', 'ingles')));
@@ -293,6 +317,9 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         // Determine language (default to 'en' for backward compatibility)
         const language = funnelLanguage || 'en';
         
+        // Get country from IP (non-blocking)
+        const geoData = await getCountryFromIP(ipAddress);
+        
         // Check if lead already exists (by email or whatsapp)
         const existingLead = await pool.query(
             `SELECT id, email, whatsapp, visit_count FROM leads WHERE LOWER(email) = LOWER($1) OR whatsapp = $2 LIMIT 1`,
@@ -314,23 +341,26 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                     referrer = $5,
                     user_agent = $6,
                     visit_count = $7,
+                    country = COALESCE($8, country),
+                    country_code = COALESCE($9, country_code),
+                    city = COALESCE($10, city),
                     last_visit_at = NOW(),
                     updated_at = NOW()
-                WHERE id = $8
+                WHERE id = $11
                 RETURNING id, created_at`,
-                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, existingLead.rows[0].id]
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, existingLead.rows[0].id]
             );
-            console.log(`Returning lead [${language.toUpperCase()}]: ${name || 'No name'} - ${email} (visit #${currentVisitCount + 1})`);
+            console.log(`Returning lead [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
             result = await pool.query(
-                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, visit_count, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, NOW())
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, visit_count, country, country_code, city, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10, $11, $12, NOW())
                  RETURNING id, created_at`,
-                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language]
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, geoData.country, geoData.country_code, geoData.city]
             );
             isNewLead = true;
-            console.log(`New lead captured [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${whatsapp}`);
+            console.log(`New lead captured [${language.toUpperCase()}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}`);
         }
         
         // Send Lead event to Facebook Conversions API (using correct pixels for language)
@@ -1389,6 +1419,11 @@ async function initDatabase() {
         await pool.query(`
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_visit_at TIMESTAMP WITH TIME ZONE;
         `);
+        
+        // Add geolocation columns
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country VARCHAR(100);`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country_code VARCHAR(10);`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS city VARCHAR(100);`);
         
         // Create funnel_events table for tracking
         await pool.query(`
