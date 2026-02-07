@@ -1465,6 +1465,7 @@
                                     <th>Email</th>
                                     <th>WhatsApp</th>
                                     <th>Funil</th>
+                                    <th>País</th>
                                     <th>Alvo</th>
                                     <th>Tags</th>
                                     <th>Status</th>
@@ -1473,7 +1474,7 @@
                                 </tr>
                             </thead>
                             <tbody id="leadsTableBody">
-                                <tr><td colspan="8"><div class="loading"><div class="spinner"></div>Carregando leads...</div></td></tr>
+                                <tr><td colspan="10"><div class="loading"><div class="spinner"></div>Carregando leads...</div></td></tr>
                             </tbody>
                         </table>
                         
@@ -2180,6 +2181,18 @@ Posso ajudar com alguma dúvida?</textarea>
         let selectedTags = [];
         
         const statusLabels = { 'new': 'Novo', 'contacted': 'Contatado', 'converted': 'Convertido', 'lost': 'Perdido' };
+        
+        // Convert country code to flag emoji
+        function getCountryFlag(countryCode) {
+            if (!countryCode) return '🌍';
+            const code = countryCode.toUpperCase();
+            // Convert country code to regional indicator symbols
+            const flag = code.split('').map(char => 
+                String.fromCodePoint(0x1F1E6 + char.charCodeAt(0) - 65)
+            ).join('');
+            return flag;
+        }
+        
         const pageTitles = {
             'overview': { title: 'Visão Geral', subtitle: 'Acompanhe suas métricas em tempo real' },
             'leads': { title: 'Leads', subtitle: 'Gerencie todos os seus leads' },
@@ -2546,7 +2559,7 @@ Estou aqui para esclarecer tudo! 😊`
         
         function renderLeads(leads) {
             if (!leads || leads.length === 0) {
-                document.getElementById('leadsTableBody').innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">👥</div><h3>Nenhum lead encontrado</h3></div></td></tr>`;
+                document.getElementById('leadsTableBody').innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">👥</div><h3>Nenhum lead encontrado</h3></div></td></tr>`;
                 return;
             }
             
@@ -2562,11 +2575,17 @@ Estou aqui para esclarecer tudo! 😊`
                     ? '<span class="badge" style="background: rgba(255,193,7,0.15); color: #ffc107; font-size: 11px;">🇪🇸 ES</span>'
                     : '<span class="badge" style="background: rgba(0,123,255,0.15); color: #448aff; font-size: 11px;">🇺🇸 EN</span>';
                 
+                // Country with flag
+                const countryDisplay = lead.country_code 
+                    ? `<span title="${lead.country || ''} - ${lead.city || ''}">${getCountryFlag(lead.country_code)} ${lead.country_code}</span>`
+                    : '<span style="color: var(--text-muted);">-</span>';
+                
                 html += `<tr>
                     <td><strong>${lead.name || '-'}</strong></td>
                     <td class="text-primary">${lead.email}</td>
                     <td class="mono">${lead.whatsapp}</td>
                     <td>${langBadge}</td>
+                    <td>${countryDisplay}</td>
                     <td class="mono">${lead.target_phone || '-'}</td>
                     <td>${tags.map(t => `<span class="tag ${t}">${t}</span>`).join('') || '-'}</td>
                     <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusText}</span></td>
