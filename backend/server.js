@@ -4071,10 +4071,11 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         // (não geraram nenhuma transação - nem aprovada, nem recusada, nem pendente)
         const checkoutAbandoned = Math.max(0, checkoutClicked - allTransactionEmails);
         
-        // Calculate conversion rate (leads -> sales) - filtered by language AND source
+        // Calculate conversion rate (leads -> sales) - filtered by language, source AND date
         // Build leads filter conditions
         let leadsLangCondition = '';
         let leadsSourceCondition = '';
+        let leadsDateCondition = '';
         let leadsParams = [];
         
         if (language) {
@@ -4085,8 +4086,14 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             leadsSourceCondition = ` AND (funnel_source = $${leadsParams.length + 1} OR (funnel_source IS NULL AND $${leadsParams.length + 1} = 'main'))`;
             leadsParams.push(source);
         }
+        if (startDate && endDate) {
+            const startIdx = leadsParams.length + 1;
+            const endIdx = leadsParams.length + 2;
+            leadsDateCondition = ` AND created_at >= $${startIdx}::date AND created_at < ($${endIdx}::date + INTERVAL '1 day')`;
+            leadsParams.push(startDate, endDate);
+        }
         
-        const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${leadsLangCondition}${leadsSourceCondition}`, leadsParams);
+        const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${leadsLangCondition}${leadsSourceCondition}${leadsDateCondition}`, leadsParams);
         const conversionRate = parseInt(leadsCount.rows[0].count) > 0 
             ? ((parseInt(approvedResult.rows[0].count) / parseInt(leadsCount.rows[0].count)) * 100).toFixed(2)
             : 0;
@@ -4258,6 +4265,68 @@ app.post('/api/admin/migrate-funnel-source', authenticateToken, async (req, res)
     } catch (error) {
         console.error('Error migrating funnel_source:', error);
         res.status(500).json({ error: 'Migration failed', details: error.message });
+    }
+});
+
+// Migrate existing leads to set funnel_source based on related transactions
+app.post('/api/admin/migrate-leads-funnel-source', authenticateToken, async (req, res) => {
+    try {
+        // Strategy: If a lead has a transaction from affiliate products, mark the lead as affiliate
+        // This correlates leads with transactions by email
+        
+        // Affiliate product codes
+        const affiliateCodes = ['330254', '341443', '341444', '341448', '338375', '341452', '341453', '341454'];
+        
+        let updated = 0;
+        
+        // Update leads that have transactions with affiliate product codes
+        for (const code of affiliateCodes) {
+            const result = await pool.query(`
+                UPDATE leads 
+                SET funnel_source = 'affiliate' 
+                WHERE (funnel_source IS NULL OR funnel_source = 'main')
+                AND LOWER(email) IN (
+                    SELECT DISTINCT LOWER(email) FROM transactions 
+                    WHERE product ILIKE $1
+                )
+            `, [`%${code}%`]);
+            updated += result.rowCount;
+        }
+        
+        // Also update leads that have transactions with funnel_source = 'affiliate'
+        const fromTransactions = await pool.query(`
+            UPDATE leads 
+            SET funnel_source = 'affiliate' 
+            WHERE (funnel_source IS NULL OR funnel_source = 'main')
+            AND LOWER(email) IN (
+                SELECT DISTINCT LOWER(email) FROM transactions 
+                WHERE funnel_source = 'affiliate'
+            )
+        `);
+        updated += fromTransactions.rowCount;
+        
+        // Set remaining null funnel_source to 'main' (these are leads that don't have affiliate transactions)
+        const fixNull = await pool.query(`
+            UPDATE leads SET funnel_source = 'main' WHERE funnel_source IS NULL
+        `);
+        
+        // Count stats for response
+        const stats = await pool.query(`
+            SELECT funnel_source, COUNT(*) as count 
+            FROM leads 
+            GROUP BY funnel_source
+        `);
+        
+        res.json({ 
+            success: true, 
+            message: `Leads migration complete`, 
+            affiliateUpdated: updated,
+            nullFixed: fixNull.rowCount,
+            stats: stats.rows
+        });
+    } catch (error) {
+        console.error('Error migrating leads funnel_source:', error);
+        res.status(500).json({ error: 'Leads migration failed', details: error.message });
     }
 });
 

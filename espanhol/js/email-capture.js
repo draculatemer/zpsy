@@ -275,6 +275,7 @@ const EmailCapture = {
                 targetPhone: localStorage.getItem('targetPhone') || '',
                 targetGender: localStorage.getItem('targetGender') || '',
                 funnelLanguage: 'es',
+                funnelSource: 'main',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,

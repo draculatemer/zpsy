@@ -373,7 +373,8 @@ const EmailCapture = {
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
                 visitorId: visitorId,
-                funnelLanguage: 'en'
+                funnelLanguage: 'en',
+                funnelSource: 'main'
             });
             
             // Track event
