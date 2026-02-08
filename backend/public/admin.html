@@ -1366,127 +1366,75 @@
                 <!-- Tab: Overview -->
                 <div class="tab-content active" id="tab-overview">
 
-                    <!-- FUNNEL COMPARISON - EN vs ES with Main/Affiliate breakdown -->
-                    <div class="funnel-comparison" id="funnelComparison">
-                        <div class="funnel-compare-card en">
-                            <div class="funnel-compare-header">
-                                <span class="funnel-compare-flag">🇺🇸</span>
-                                <div>
-                                    <div class="funnel-compare-title">Funil Inglês</div>
-                                    <div class="funnel-compare-subtitle">English Funnel</div>
-                                </div>
+                    <!-- Main KPI Cards -->
+                    <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 28px;">
+                        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+                            <div class="stat-header">
+                                <span class="stat-label">Leads</span>
+                                <div class="stat-icon blue">👥</div>
                             </div>
-                            <div class="funnel-compare-stats" style="grid-template-columns: repeat(4, 1fr);">
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value blue" id="enLeadsTotal">0</div>
-                                    <div class="funnel-compare-stat-label">Total Leads</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="enLeadsToday">0</div>
-                                    <div class="funnel-compare-stat-label">Leads Hoje</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value blue" id="enConvRate">0%</div>
-                                    <div class="funnel-compare-stat-label">Conversão</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="enRevenue">R$ 0</div>
-                                    <div class="funnel-compare-stat-label">Faturamento</div>
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
-                                <div style="text-align: center; padding: 8px; background: rgba(59,130,246,0.08); border-radius: 8px;">
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🏠 Principal</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #3b82f6;" id="enSalesMain">0 vendas</div>
-                                </div>
-                                <div style="text-align: center; padding: 8px; background: rgba(168,85,247,0.08); border-radius: 8px;">
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🤝 Afiliados</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #a855f7;" id="enSalesAff">0 vendas</div>
-                                </div>
-                            </div>
+                            <div class="stat-value blue" id="overviewLeads">0</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewLeadsChange">--</div>
                         </div>
-                        <div class="funnel-compare-card es">
-                            <div class="funnel-compare-header">
-                                <span class="funnel-compare-flag">🇪🇸</span>
-                                <div>
-                                    <div class="funnel-compare-title">Funil Espanhol</div>
-                                    <div class="funnel-compare-subtitle">Spanish Funnel</div>
-                                </div>
+                        <div class="stat-card" style="border-left: 4px solid #10b981;">
+                            <div class="stat-header">
+                                <span class="stat-label">Vendas</span>
+                                <div class="stat-icon green">💳</div>
                             </div>
-                            <div class="funnel-compare-stats" style="grid-template-columns: repeat(4, 1fr);">
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value yellow" id="esLeadsTotal">0</div>
-                                    <div class="funnel-compare-stat-label">Total Leads</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="esLeadsToday">0</div>
-                                    <div class="funnel-compare-stat-label">Leads Hoje</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value yellow" id="esConvRate">0%</div>
-                                    <div class="funnel-compare-stat-label">Conversão</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="esRevenue">R$ 0</div>
-                                    <div class="funnel-compare-stat-label">Faturamento</div>
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
-                                <div style="text-align: center; padding: 8px; background: rgba(245,158,11,0.08); border-radius: 8px;">
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🏠 Principal</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #f59e0b;" id="esSalesMain">0 vendas</div>
-                                </div>
-                                <div style="text-align: center; padding: 8px; background: rgba(168,85,247,0.08); border-radius: 8px;">
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🤝 Afiliados</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #a855f7;" id="esSalesAff">0 vendas</div>
-                                </div>
-                            </div>
+                            <div class="stat-value green" id="overviewSales">0</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewSalesChange">--</div>
                         </div>
-                    </div>
-                    
-                    <!-- Period Comparison -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
-                            <span>📊</span> Comparativo Semanal
-                        </h3>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                            <div id="leadsComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">leads</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                        <div class="stat-card" style="border-left: 4px solid #10b981;">
+                            <div class="stat-header">
+                                <span class="stat-label">Faturamento</span>
+                                <div class="stat-icon green">💰</div>
                             </div>
-                            <div id="salesComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">vendas</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                            <div class="stat-value" style="color: #10b981;" id="overviewRevenue">R$ 0</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewRevenueChange">--</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
+                            <div class="stat-header">
+                                <span class="stat-label">Taxa Conversão</span>
+                                <div class="stat-icon purple">📊</div>
                             </div>
-                            <div id="revenueComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">faturamento</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                            <div class="stat-value purple" id="overviewConvRate">0%</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewConvRateInfo">0 convertidos</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                            <div class="stat-header">
+                                <span class="stat-label">Ticket Médio</span>
+                                <div class="stat-icon orange">🎫</div>
                             </div>
+                            <div class="stat-value" style="color: #f59e0b;" id="overviewTicket">R$ 0</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewTicketInfo">por venda</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #ef4444;">
+                            <div class="stat-header">
+                                <span class="stat-label">Abandonos</span>
+                                <div class="stat-icon red">🚫</div>
+                            </div>
+                            <div class="stat-value" style="color: #ef4444;" id="overviewAbandoned">0</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewAbandonedRate">0% do total</div>
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="quick-actions" style="margin-bottom: 28px;">
-                        <div class="quick-action" onclick="switchTab('recovery')" data-tooltip="Leads que abandonaram o checkout">
-                            <div class="quick-action-icon">🔥</div>
-                            <div class="quick-action-text">
-                                <h4>Recuperar Abandonos</h4>
-                                <p id="quickRecoveryText">0 leads aguardando</p>
-                            </div>
+                    <!-- Sales Breakdown -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;">
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🏠 Vendas Principal</div>
+                            <div style="font-size: 28px; font-weight: 800; color: #3b82f6;" id="overviewSalesMain">0</div>
                         </div>
-                        <div class="quick-action" onclick="switchTab('leads')" data-tooltip="Novos leads capturados hoje">
-                            <div class="quick-action-icon">👥</div>
-                            <div class="quick-action-text">
-                                <h4>Novos Leads Hoje</h4>
-                                <p id="quickLeadsText">0 novos leads</p>
-                            </div>
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🤝 Vendas Afiliados</div>
+                            <div style="font-size: 28px; font-weight: 800; color: #a855f7;" id="overviewSalesAff">0</div>
                         </div>
-                        <div class="quick-action" onclick="switchTab('sales')" data-tooltip="Faturamento do dia atual">
-                            <div class="quick-action-icon">💰</div>
-                            <div class="quick-action-text">
-                                <h4>Vendas do Dia</h4>
-                                <p id="quickSalesText">R$ 0,00</p>
-                            </div>
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">⬆️ Upsells</div>
+                            <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewUpsells">0</div>
+                        </div>
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🔄 Reembolsos</div>
+                            <div style="font-size: 28px; font-weight: 800; color: #ef4444;" id="overviewRefunds">0</div>
                         </div>
                     </div>
                     
@@ -3354,83 +3302,112 @@ Estou aqui para esclarecer tudo! 😊`
             return document.getElementById('globalSourceFilter')?.value || '';
         }
         
-        // Load funnel comparison data for Overview (EN vs ES stats in header)
+        // Load overview stats for main KPI cards
         async function loadOverviewFunnelComparison() {
             try {
                 const dateRange = getGlobalDateRange();
-                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
+                const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                const sourceFilter = document.getElementById('globalSourceFilter')?.value || '';
+                
                 let dateParams = '';
                 if (dateRange) {
-                    leadsUrl += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
-                    dateParams = `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
                 
-                // Fetch leads + sales for EN and ES + breakdown by source (with date filter)
-                const [leadsRes, enSalesRes, esSalesRes, enMainSalesRes, enAffSalesRes, esMainSalesRes, esAffSalesRes] = await Promise.all([
+                // Build URL with all filters
+                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
+                let salesUrl = `${API_URL}/api/admin/sales?`;
+                let refundsUrl = `${API_URL}/api/admin/refunds?`;
+                
+                if (dateRange) {
+                    leadsUrl += `&${dateParams}`;
+                    salesUrl += `${dateParams}&`;
+                    refundsUrl += `${dateParams}&`;
+                }
+                if (langFilter) {
+                    leadsUrl += `&language=${langFilter}`;
+                    salesUrl += `language=${langFilter}&`;
+                }
+                if (sourceFilter) {
+                    salesUrl += `source=${sourceFilter}&`;
+                }
+                
+                // Fetch all data in parallel
+                const [leadsRes, salesRes, mainSalesRes, affSalesRes, refundsRes] = await Promise.all([
                     fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales?language=en${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(salesUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?source=main&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?source=affiliate&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(refundsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
                 
-                const data = await leadsRes.json();
-                const enSales = enSalesRes?.ok ? await enSalesRes.json() : { approved: 0, revenue: 0 };
-                const esSales = esSalesRes?.ok ? await esSalesRes.json() : { approved: 0, revenue: 0 };
-                const enMainSales = enMainSalesRes?.ok ? await enMainSalesRes.json() : { approved: 0 };
-                const enAffSales = enAffSalesRes?.ok ? await enAffSalesRes.json() : { approved: 0 };
-                const esMainSales = esMainSalesRes?.ok ? await esMainSalesRes.json() : { approved: 0 };
-                const esAffSales = esAffSalesRes?.ok ? await esAffSalesRes.json() : { approved: 0 };
+                const leadsData = await leadsRes.json();
+                const salesData = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0, upsellStats: {} };
+                const mainSalesData = mainSalesRes?.ok ? await mainSalesRes.json() : { approved: 0 };
+                const affSalesData = affSalesRes?.ok ? await affSalesRes.json() : { approved: 0 };
+                const refundsData = refundsRes?.ok ? await refundsRes.json() : { refunds: [] };
                 
-                const todayStart = new Date();
-                todayStart.setHours(0, 0, 0, 0);
+                // Calculate metrics
+                const leads = leadsData.leads || [];
+                const totalLeads = leads.length;
+                const convertedLeads = leads.filter(l => l.status === 'converted').length;
+                const contactedLeads = leads.filter(l => l.status === 'contacted').length;
+                const abandonedLeads = Math.max(0, totalLeads - convertedLeads - contactedLeads);
                 
-                let enToday = 0, esToday = 0;
-                let enConverted = 0, esConverted = 0;
-                let enTotal = 0, esTotal = 0;
+                const totalSales = salesData.approved || 0;
+                const totalRevenue = salesData.revenue || 0;
+                const avgTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
+                const convRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100) : 0;
+                const abandonRate = totalLeads > 0 ? ((abandonedLeads / totalLeads) * 100) : 0;
                 
-                (data.leads || []).forEach(lead => {
-                    const leadDate = new Date(lead.created_at);
-                    const lang = lead.funnel_language || 'en';
-                    
-                    if (lang === 'en') {
-                        enTotal++;
-                        if (leadDate >= todayStart) enToday++;
-                        if (lead.status === 'converted') enConverted++;
-                    } else if (lang === 'es') {
-                        esTotal++;
-                        if (leadDate >= todayStart) esToday++;
-                        if (lead.status === 'converted') esConverted++;
-                    }
-                });
+                // Upsells (upsell1 + upsell2 + upsell3)
+                const upsellStats = salesData.upsellStats || {};
+                const totalUpsells = (upsellStats.upsell1 || 0) + (upsellStats.upsell2 || 0) + (upsellStats.upsell3 || 0);
                 
-                // Update EN stats
+                // Refunds count
+                const pendingRefunds = (refundsData.refunds || []).filter(r => r.status === 'pending').length;
+                
+                // Helper function
                 const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-                setEl('enLeadsTotal', enTotal.toLocaleString('pt-BR'));
-                setEl('enLeadsToday', enToday.toLocaleString('pt-BR'));
-                const enRate = enTotal > 0 ? ((enConverted / enTotal) * 100).toFixed(1) : 0;
-                setEl('enConvRate', enRate + '%');
-                setEl('enRevenue', 'R$ ' + (enSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
-                // Update ES stats
-                setEl('esLeadsTotal', esTotal.toLocaleString('pt-BR'));
-                setEl('esLeadsToday', esToday.toLocaleString('pt-BR'));
-                const esRate = esTotal > 0 ? ((esConverted / esTotal) * 100).toFixed(1) : 0;
-                setEl('esConvRate', esRate + '%');
-                setEl('esRevenue', 'R$ ' + (esSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
+                // Update main KPI cards
+                setEl('overviewLeads', totalLeads.toLocaleString('pt-BR'));
+                setEl('overviewLeadsChange', langFilter ? `Funil: ${langFilter.toUpperCase()}` : 'Todos os funis');
                 
-                // Update source breakdown
-                setEl('enSalesMain', (enMainSales.approved || 0) + ' vendas');
-                setEl('enSalesAff', (enAffSales.approved || 0) + ' vendas');
-                setEl('esSalesMain', (esMainSales.approved || 0) + ' vendas');
-                setEl('esSalesAff', (esAffSales.approved || 0) + ' vendas');
+                setEl('overviewSales', totalSales.toLocaleString('pt-BR'));
+                setEl('overviewSalesChange', sourceFilter ? `Origem: ${sourceFilter === 'main' ? 'Principal' : 'Afiliados'}` : 'Todas as origens');
+                
+                setEl('overviewRevenue', 'R$ ' + totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                setEl('overviewRevenueChange', `${totalSales} vendas aprovadas`);
+                
+                setEl('overviewConvRate', convRate.toFixed(1) + '%');
+                setEl('overviewConvRateInfo', `${convertedLeads} convertidos`);
+                
+                setEl('overviewTicket', 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                setEl('overviewTicketInfo', 'por venda');
+                
+                setEl('overviewAbandoned', abandonedLeads.toLocaleString('pt-BR'));
+                setEl('overviewAbandonedRate', abandonRate.toFixed(1) + '% do total');
+                
+                // Update sales breakdown
+                setEl('overviewSalesMain', (mainSalesData.approved || 0).toLocaleString('pt-BR'));
+                setEl('overviewSalesAff', (affSalesData.approved || 0).toLocaleString('pt-BR'));
+                setEl('overviewUpsells', totalUpsells.toLocaleString('pt-BR'));
+                setEl('overviewRefunds', pendingRefunds.toLocaleString('pt-BR'));
+                
+                // Update quick actions
+                setEl('quickRecoveryText', `${abandonedLeads} leads aguardando`);
+                setEl('quickLeadsText', `${totalLeads} leads no período`);
+                setEl('quickSalesText', 'R$ ' + totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                
+                // Update nav badge
+                const navRecoveryEl = document.getElementById('navRecoveryCount');
+                if (navRecoveryEl) navRecoveryEl.textContent = abandonedLeads;
                 
             } catch (error) {
-                console.error('Error loading overview funnel comparison:', error);
+                console.error('Error loading overview stats:', error);
             }
         }
         
