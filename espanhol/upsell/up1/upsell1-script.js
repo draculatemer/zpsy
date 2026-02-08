@@ -432,21 +432,16 @@
     });
 
     // ============================================
-    // LOADING OVERLAY ON CTA CLICK
+    // LOADING OVERLAY ON CTA CLICK - DISABLED
     // ============================================
-    const ctaButtons = document.querySelectorAll('.btn-primary[data-upsell]');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+    // Loading overlay removed to avoid interfering with Monetizze 1-click processing
+    
+    var ctaButtons = document.querySelectorAll('.btn-primary[data-upsell]');
     
     ctaButtons.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
-            // Show loading overlay
-            if (loadingOverlay) {
-                isProcessingPayment = true;
-                loadingOverlay.classList.add('active');
-                
-                // Disable scrolling
-                document.body.style.overflow = 'hidden';
-            }
+            // Just mark as processing for beforeunload warning
+            isProcessingPayment = true;
         });
     });
 
