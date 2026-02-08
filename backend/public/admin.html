@@ -2648,6 +2648,10 @@
                                 <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Remove transações com "TEST" no ID, email ou produto.</p>
                             </div>
                             <div>
+                                <button class="btn-secondary" style="background: #f59e0b; color: white; border-color: #f59e0b;" onclick="resetAndResyncTransactions()">🔄 Resetar e Re-sincronizar Transações</button>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Deleta todas as transações e sincroniza novamente da Monetizze com datas corretas.</p>
+                            </div>
+                            <div>
                                 <button class="btn-secondary" style="background: var(--danger); color: white; border-color: var(--danger);" onclick="clearAllData()">🗑️ Limpar Todos os Dados</button>
                                 <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Remove todos os leads, eventos do funil, transações e pedidos de reembolso.</p>
                             </div>
@@ -6959,6 +6963,68 @@ Posso ajudar em algo mais? 😊`
             } catch (error) {
                 console.error('Clean test error:', error);
                 showToast('❌ Erro', 'Falha ao limpar transações de teste', 'error');
+            }
+        }
+        
+        async function resetAndResyncTransactions() {
+            if (!confirm('🔄 Resetar e Re-sincronizar Transações?\n\nIsso vai:\n1. DELETAR todas as transações existentes\n2. Sincronizar novamente da Monetizze (últimos 30 dias)\n3. As datas serão corrigidas\n\nDeseja continuar?')) {
+                return;
+            }
+            
+            try {
+                showToast('🗑️ Deletando...', 'Removendo transações antigas', 'warning');
+                
+                // Step 1: Delete all transactions
+                const deleteResponse = await fetch(`${API_URL}/api/admin/transactions/all`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (deleteResponse.status === 401 || deleteResponse.status === 403) { logout(); return; }
+                
+                const deleteData = await deleteResponse.json();
+                
+                if (!deleteData.success) {
+                    showToast('❌ Erro', deleteData.error || 'Falha ao deletar', 'error');
+                    return;
+                }
+                
+                showToast('✅ Deletado!', `${deleteData.deleted} transações removidas`, 'success');
+                
+                // Step 2: Sync from Monetizze (last 30 days)
+                showToast('🔄 Sincronizando...', 'Buscando vendas da Monetizze (últimos 30 dias)', 'success');
+                
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+                const endDate = today.toISOString().split('T')[0];
+                
+                const syncResponse = await fetch(`${API_URL}/api/admin/sync-monetizze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ startDate, endDate })
+                });
+                
+                const syncData = await syncResponse.json();
+                
+                if (syncData.success) {
+                    showToast('✅ Concluído!', `${syncData.synced} vendas sincronizadas com datas corretas!`, 'success');
+                    // Reload data
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 2000);
+                } else {
+                    showToast('⚠️ Aviso', syncData.error || 'Sincronização pode ter falhado', 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Reset and resync error:', error);
+                showToast('❌ Erro', 'Falha no processo: ' + error.message, 'error');
             }
         }
         

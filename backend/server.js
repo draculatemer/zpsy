@@ -1323,6 +1323,30 @@ app.delete('/api/admin/transactions/test', authenticateToken, requireAdmin, asyn
     }
 });
 
+// Delete ALL transactions (for reset and resync)
+app.delete('/api/admin/transactions/all', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        // Count before delete
+        const countResult = await pool.query('SELECT COUNT(*) FROM transactions');
+        const count = parseInt(countResult.rows[0].count);
+        
+        // Delete all
+        await pool.query('DELETE FROM transactions');
+        
+        console.log(`🗑️ Deleted ALL ${count} transactions for resync`);
+        
+        res.json({
+            success: true,
+            deleted: count,
+            message: 'All transactions deleted. Ready for resync.'
+        });
+        
+    } catch (error) {
+        console.error('Error deleting all transactions:', error);
+        res.status(500).json({ error: 'Failed to delete all transactions' });
+    }
+});
+
 // Recalculate lead totals from transactions
 app.post('/api/admin/leads/recalculate', authenticateToken, async (req, res) => {
     try {
