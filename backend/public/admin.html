@@ -4327,13 +4327,19 @@ Estou aqui para esclarecer tudo! 😊`
                         document.getElementById('funnelVisitorsES').textContent = '0';
                         document.getElementById('funnelConvES').textContent = '0.0%';
                     }
+                    // Combine journeys from both funnels
+                    const allJourneys = [
+                        ...(enData.journeys || []).map(j => ({ ...j, language: 'en' })),
+                        ...(esData.journeys || []).map(j => ({ ...j, language: 'es' }))
+                    ].sort((a, b) => new Date(b.last_seen) - new Date(a.last_seen)).slice(0, 50);
+                    
+                    renderJourneys(allJourneys, true);
                 } catch (esError) {
                     console.log('ES funnel data not available:', esError);
                     document.getElementById('funnelStepsES').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Sem dados ES</div>';
+                    // Show only EN journeys
+                    renderJourneys((enData.journeys || []).map(j => ({ ...j, language: 'en' })), true);
                 }
-                
-                // Show all journeys
-                renderJourneys(allData.journeys || [], true);
                 
             } catch (error) {
                 console.error('Error loading funnel comparison:', error);
