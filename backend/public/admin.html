@@ -4286,25 +4286,33 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('funnelSingleView').style.display = 'none';
             
             try {
-                // Load all funnel data first (without language filter)
-                const allResponse = await fetch(`${API_URL}/api/admin/funnel`, { 
+                // Get global date filter
+                const dateRange = getGlobalDateRange();
+                let dateParams = '';
+                if (dateRange) {
+                    dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                }
+                
+                // Load EN funnel data with date filter
+                const enUrl = `${API_URL}/api/admin/funnel?language=en${dateParams ? '&' + dateParams : ''}`;
+                const enResponse = await fetch(enUrl, { 
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
                 
-                if (allResponse.status === 401) { logout(); return; }
+                if (enResponse.status === 401) { logout(); return; }
                 
-                const allData = await allResponse.json();
+                const enData = await enResponse.json();
                 
-                // For now, show all data in EN column (since most legacy data is English)
-                // and show a message for ES that it needs new data
-                renderFunnelStepsForLanguage(allData.funnelStats, 'funnelStepsEN', '#3b82f6');
-                const allStats = calculateFunnelMetrics(allData.funnelStats);
-                document.getElementById('funnelVisitorsEN').textContent = allStats.visitors.toLocaleString('pt-BR');
-                document.getElementById('funnelConvEN').textContent = allStats.conversionRate + '%';
+                // Render EN funnel
+                renderFunnelStepsForLanguage(enData.funnelStats, 'funnelStepsEN', '#3b82f6');
+                const enStats = calculateFunnelMetrics(enData.funnelStats);
+                document.getElementById('funnelVisitorsEN').textContent = enStats.visitors.toLocaleString('pt-BR');
+                document.getElementById('funnelConvEN').textContent = enStats.conversionRate + '%';
                 
-                // Try to load ES separately
+                // Load ES funnel data with date filter
                 try {
-                    const esResponse = await fetch(`${API_URL}/api/admin/funnel?language=es`, { 
+                    const esUrl = `${API_URL}/api/admin/funnel?language=es${dateParams ? '&' + dateParams : ''}`;
+                    const esResponse = await fetch(esUrl, { 
                         headers: { 'Authorization': `Bearer ${authToken}` } 
                     });
                     const esData = await esResponse.json();
@@ -4338,7 +4346,15 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('funnelSingleView').style.display = 'block';
             
             try {
-                const response = await fetch(`${API_URL}/api/admin/funnel?language=${language}`, { 
+                // Get global date filter
+                const dateRange = getGlobalDateRange();
+                let params = [`language=${language}`];
+                if (dateRange) {
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
+                }
+                
+                const response = await fetch(`${API_URL}/api/admin/funnel?${params.join('&')}`, { 
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
                 if (response.status === 401 || response.status === 403) { logout(); return; }

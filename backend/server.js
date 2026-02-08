@@ -1642,7 +1642,7 @@ app.post('/api/track', async (req, res) => {
 // Get funnel analytics (protected)
 app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
     try {
-        const { language } = req.query;
+        const { language, startDate, endDate } = req.query;
         
         // Build language filter condition
         // The metadata column stores JSON with funnelLanguage field
@@ -1659,6 +1659,18 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
         }
         // else: no filter = all languages
         
+        // Build date filter condition
+        let dateCondition = '';
+        if (startDate && endDate) {
+            // Use provided date range
+            dateCondition = `AND created_at >= '${startDate}'::date AND created_at < ('${endDate}'::date + INTERVAL '1 day')`;
+        } else if (startDate) {
+            dateCondition = `AND created_at >= '${startDate}'::date`;
+        } else {
+            // Default: last 30 days
+            dateCondition = `AND created_at >= CURRENT_DATE - INTERVAL '30 days'`;
+        }
+        
         // Get funnel stats by step
         const funnelStats = await pool.query(`
             SELECT 
@@ -1666,7 +1678,8 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 COUNT(DISTINCT visitor_id) as unique_visitors,
                 COUNT(*) as total_events
             FROM funnel_events
-            WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+            WHERE 1=1
+            ${dateCondition}
             ${langCondition}
             GROUP BY event
             ORDER BY 
@@ -1692,20 +1705,28 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 END
         `);
         
-        // Get daily funnel data
+        // Get daily funnel data (use same date range, but limit to 7 days for daily view)
+        let dailyDateCondition = '';
+        if (startDate && endDate) {
+            dailyDateCondition = `AND created_at >= '${startDate}'::date AND created_at < ('${endDate}'::date + INTERVAL '1 day')`;
+        } else {
+            dailyDateCondition = `AND created_at >= CURRENT_DATE - INTERVAL '7 days'`;
+        }
+        
         const dailyStats = await pool.query(`
             SELECT 
                 DATE(created_at) as date,
                 event,
                 COUNT(DISTINCT visitor_id) as unique_visitors
             FROM funnel_events
-            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            WHERE 1=1
+            ${dailyDateCondition}
             ${langCondition}
             GROUP BY DATE(created_at), event
             ORDER BY date DESC, event
         `);
         
-        // Get visitor journeys (last 50)
+        // Get visitor journeys (filtered by date range)
         const journeys = await pool.query(`
             SELECT 
                 visitor_id,
@@ -1716,7 +1737,7 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 MAX(created_at) as last_seen,
                 COUNT(*) as total_events
             FROM funnel_events
-            WHERE 1=1 ${langCondition}
+            WHERE 1=1 ${dateCondition} ${langCondition}
             GROUP BY visitor_id, target_phone, target_gender
             ORDER BY MAX(created_at) DESC
             LIMIT 50
@@ -1726,7 +1747,8 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
             funnelStats: funnelStats.rows,
             dailyStats: dailyStats.rows,
             journeys: journeys.rows,
-            language: language || 'all'
+            language: language || 'all',
+            dateRange: { startDate, endDate }
         });
         
     } catch (error) {
