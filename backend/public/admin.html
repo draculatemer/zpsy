@@ -1759,6 +1759,13 @@
                                 <tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
                             </tbody>
                         </table>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination" id="recoveryPagination" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; padding: 16px;">
+                            <button class="btn-secondary" id="recoveryPrevBtn" onclick="changeRecoveryPage(-1)" disabled>← Anterior</button>
+                            <span id="recoveryPageInfo" style="color: var(--text-secondary); font-size: 14px;">Página 1 de 1</span>
+                            <button class="btn-secondary" id="recoveryNextBtn" onclick="changeRecoveryPage(1)" disabled>Próxima →</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -4195,14 +4202,20 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('whatsappMessage').value = templates[id];
         }
         
-        // Recovery
-        async function loadRecoveryData() {
+        // Recovery with pagination
+        let recoveryCurrentPage = 1;
+        const recoveryPerPage = 25;
+        let recoveryTotalPages = 1;
+        let recoveryTotalCount = 0;
+        
+        async function loadRecoveryData(page = 1) {
             try {
+                recoveryCurrentPage = page;
                 const globalFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const dateRange = getGlobalDateRange();
                 
-                // Build query params
-                let params = ['status=new', 'limit=500'];
+                // Build query params with pagination
+                let params = ['status=new', `limit=${recoveryPerPage}`, `page=${page}`];
                 if (globalFilter) params.push(`language=${globalFilter}`);
                 if (dateRange) {
                     params.push(`startDate=${dateRange.startDate}`);
@@ -4218,20 +4231,28 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 
                 const leads = data.leads || [];
-                const totalCount = data.total || leads.length; // Use total from API if available
-                document.getElementById('recoveryAbandonedCount').textContent = totalCount;
-                document.getElementById('recoveryPendingCount').textContent = leads.filter(l => !l.notes?.includes('[CONTACTED]')).length;
-                document.getElementById('recoveryRecoveredCount').textContent = leads.filter(l => l.status === 'converted').length;
-                document.getElementById('recoveryLeadCount').textContent = `${totalCount} leads`;
+                recoveryTotalCount = data.total || leads.length;
+                recoveryTotalPages = Math.ceil(recoveryTotalCount / recoveryPerPage) || 1;
+                
+                document.getElementById('recoveryAbandonedCount').textContent = recoveryTotalCount;
+                document.getElementById('recoveryPendingCount').textContent = recoveryTotalCount; // Simplify - all are pending
+                document.getElementById('recoveryRecoveredCount').textContent = '0';
+                document.getElementById('recoveryLeadCount').textContent = `${recoveryTotalCount} leads`;
                 
                 // Update nav badge to match
                 const navRecoveryEl = document.getElementById('navRecoveryCount');
-                if (navRecoveryEl) navRecoveryEl.textContent = totalCount;
+                if (navRecoveryEl) navRecoveryEl.textContent = recoveryTotalCount;
+                
+                // Update pagination controls
+                updateRecoveryPagination();
                 
                 if (leads.length === 0) {
                     document.getElementById('recoveryTableBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🎉</div><h3>Nenhum abandono!</h3><p>Todos os leads foram acompanhados.</p></div></td></tr>`;
+                    document.getElementById('recoveryPagination').style.display = 'none';
                     return;
                 }
+                
+                document.getElementById('recoveryPagination').style.display = 'flex';
                 
                 let html = '';
                 leads.forEach(lead => {
@@ -4251,6 +4272,19 @@ Estou aqui para esclarecer tudo! 😊`
                 
             } catch (error) {
                 console.error('Error loading recovery:', error);
+            }
+        }
+        
+        function updateRecoveryPagination() {
+            document.getElementById('recoveryPageInfo').textContent = `Página ${recoveryCurrentPage} de ${recoveryTotalPages}`;
+            document.getElementById('recoveryPrevBtn').disabled = recoveryCurrentPage <= 1;
+            document.getElementById('recoveryNextBtn').disabled = recoveryCurrentPage >= recoveryTotalPages;
+        }
+        
+        function changeRecoveryPage(delta) {
+            const newPage = recoveryCurrentPage + delta;
+            if (newPage >= 1 && newPage <= recoveryTotalPages) {
+                loadRecoveryData(newPage);
             }
         }
         
