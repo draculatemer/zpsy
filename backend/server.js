@@ -303,20 +303,11 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Helper function to build date filter SQL
-function buildDateFilter(startDate, endDate, columnName = 'created_at') {
-    if (!startDate || !endDate) return { sql: '', params: [] };
-    
-    return {
-        sql: ` AND ${columnName} >= $PARAM_START AND ${columnName} <= $PARAM_END`,
-        params: [startDate, endDate]
-    };
-}
-
-// Helper function to build date filter SQL
+// Uses ::date cast to compare dates correctly (includes full day)
 function buildDateFilter(startDate, endDate, columnName = 'created_at') {
     if (!startDate || !endDate) return { sql: '', params: [] };
     return {
-        sql: ` AND ${columnName} >= $__START__ AND ${columnName} <= $__END__`,
+        sql: ` AND ${columnName}::date >= $PARAM_START::date AND ${columnName}::date <= $PARAM_END::date`,
         params: [startDate, endDate]
     };
 }
@@ -973,7 +964,7 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
         }
         
         if (startDate && endDate) {
-            conditions.push(`created_at >= $${params.length + 1} AND created_at <= $${params.length + 2}`);
+            conditions.push(`created_at::date >= $${params.length + 1}::date AND created_at::date <= $${params.length + 2}::date`);
             params.push(startDate, endDate);
         }
         
@@ -1015,7 +1006,7 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
         let dateFilter = '';
         const params = [];
         if (startDate && endDate) {
-            dateFilter = ` AND created_at >= $1 AND created_at <= $2`;
+            dateFilter = ` AND created_at::date >= $1::date AND created_at::date <= $2::date`;
             params.push(startDate, endDate);
         }
         
@@ -3103,7 +3094,7 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             params.push(language);
         }
         if (startDate && endDate) {
-            conditions.push(`created_at >= $${paramIndex++} AND created_at <= $${paramIndex++}`);
+            conditions.push(`created_at::date >= $${paramIndex++}::date AND created_at::date <= $${paramIndex++}::date`);
             params.push(startDate, endDate);
         }
         
@@ -3122,7 +3113,7 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
         let statsParamIndex = 1;
         
         if (startDate && endDate) {
-            statsConditions.push(`created_at >= $${statsParamIndex++} AND created_at <= $${statsParamIndex++}`);
+            statsConditions.push(`created_at::date >= $${statsParamIndex++}::date AND created_at::date <= $${statsParamIndex++}::date`);
             statsParams.push(startDate, endDate);
         }
         
@@ -3307,7 +3298,7 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
         }
         
         if (startDate && endDate) {
-            query += ` AND created_at >= $${paramIndex} AND created_at <= $${paramIndex + 1}`;
+            query += ` AND created_at::date >= $${paramIndex}::date AND created_at::date <= $${paramIndex + 1}::date`;
             params.push(startDate, endDate);
             paramIndex += 2;
         }
@@ -3373,7 +3364,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         if (startDate && endDate) {
             const startIdx = langParams.length + 1;
             const endIdx = langParams.length + 2;
-            dateCondition = ` AND created_at >= $${startIdx} AND created_at <= $${endIdx}`;
+            dateCondition = ` AND created_at::date >= $${startIdx}::date AND created_at::date <= $${endIdx}::date`;
             langParams.push(startDate, endDate);
         }
         
