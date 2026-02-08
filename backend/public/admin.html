@@ -4202,7 +4202,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const dateRange = getGlobalDateRange();
                 
                 // Build query params
-                let params = ['status=new', 'limit=50'];
+                let params = ['status=new', 'limit=500'];
                 if (globalFilter) params.push(`language=${globalFilter}`);
                 if (dateRange) {
                     params.push(`startDate=${dateRange.startDate}`);
@@ -4218,10 +4218,15 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 
                 const leads = data.leads || [];
-                document.getElementById('recoveryAbandonedCount').textContent = leads.length;
+                const totalCount = data.total || leads.length; // Use total from API if available
+                document.getElementById('recoveryAbandonedCount').textContent = totalCount;
                 document.getElementById('recoveryPendingCount').textContent = leads.filter(l => !l.notes?.includes('[CONTACTED]')).length;
                 document.getElementById('recoveryRecoveredCount').textContent = leads.filter(l => l.status === 'converted').length;
-                document.getElementById('recoveryLeadCount').textContent = `${leads.length} leads`;
+                document.getElementById('recoveryLeadCount').textContent = `${totalCount} leads`;
+                
+                // Update nav badge to match
+                const navRecoveryEl = document.getElementById('navRecoveryCount');
+                if (navRecoveryEl) navRecoveryEl.textContent = totalCount;
                 
                 if (leads.length === 0) {
                     document.getElementById('recoveryTableBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🎉</div><h3>Nenhum abandono!</h3><p>Todos os leads foram acompanhados.</p></div></td></tr>`;
