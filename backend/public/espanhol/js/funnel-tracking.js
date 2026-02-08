@@ -31,6 +31,7 @@ const FunnelTracker = {
             targetPhone,
             targetGender,
             funnelLanguage: 'es',
+            funnelSource: 'main',
             metadata: {
                 ...metadata,
                 url: window.location.href,
