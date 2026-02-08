@@ -1362,8 +1362,180 @@
             <div class="page-content">
                 <!-- Tab: Overview -->
                 <div class="tab-content active" id="tab-overview">
+                    <!-- TODAY'S HIGHLIGHTS - Main KPIs -->
+                    <div style="margin-bottom: 28px;">
+                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></span> Resumo de Hoje
+                        </h3>
+                        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                            <div class="stat-card" style="border-top: 3px solid #3b82f6;" data-tooltip="Novos leads capturados hoje">
+                                <div class="stat-header">
+                                    <span class="stat-label">Leads Hoje</span>
+                                    <div class="stat-icon blue">👥</div>
+                                </div>
+                                <div class="stat-value blue" id="overviewToday">0</div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                                    <div class="stat-change up" id="overviewTotalChange">↑ 0% vs ontem</div>
+                                    <div id="sparklineLeads"></div>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="border-top: 3px solid #10b981;" data-tooltip="Vendas aprovadas hoje">
+                                <div class="stat-header">
+                                    <span class="stat-label">Vendas Hoje</span>
+                                    <div class="stat-icon green">💳</div>
+                                </div>
+                                <div class="stat-value green" id="overviewSalesToday">0</div>
+                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewTodayTime">Atualizado agora</div>
+                            </div>
+                            <div class="stat-card" style="border-top: 3px solid #f59e0b;" data-tooltip="Receita aprovada hoje">
+                                <div class="stat-header">
+                                    <span class="stat-label">Faturamento Hoje</span>
+                                    <div class="stat-icon orange">💰</div>
+                                </div>
+                                <div class="stat-value" style="color: #10b981;" id="overviewRevenueToday">R$ 0</div>
+                                <div style="margin-top: 12px;" id="sparklineRevenue"></div>
+                            </div>
+                            <div class="stat-card" style="border-top: 3px solid #a855f7;" data-tooltip="Valor médio por venda aprovada">
+                                <div class="stat-header">
+                                    <span class="stat-label">Ticket Médio</span>
+                                    <div class="stat-icon purple">📊</div>
+                                </div>
+                                <div class="stat-value purple" id="overviewAvgTicket">R$ 0</div>
+                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewSalesPerCustomer">0 vendas/cliente</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCUMULATED TOTALS -->
+                    <div style="margin-bottom: 28px;">
+                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px;">Acumulado Geral</h3>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Leads</div>
+                                <div style="font-size: 28px; font-weight: 800; color: #fff;" id="overviewTotal">0</div>
+                            </div>
+                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Vendas</div>
+                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewTotalSales">0</div>
+                            </div>
+                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Faturamento Total</div>
+                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewRevenue">R$ 0</div>
+                            </div>
+                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Taxa Conversão</div>
+                                <div style="font-size: 28px; font-weight: 800;" id="overviewConverted">0%</div>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="overviewConvRate"></div>
+                            </div>
+                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Abandonos</div>
+                                <div style="font-size: 28px; font-weight: 800; color: #ef4444;" id="overviewAbandoned">0</div>
+                                <div style="font-size: 11px; color: var(--danger); margin-top: 4px;" id="overviewAbandonRate">0% do total</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FUNNEL COMPARISON - EN vs ES with Main/Affiliate breakdown -->
+                    <div class="funnel-comparison" id="funnelComparison">
+                        <div class="funnel-compare-card en">
+                            <div class="funnel-compare-header">
+                                <span class="funnel-compare-flag">🇺🇸</span>
+                                <div>
+                                    <div class="funnel-compare-title">Funil Inglês</div>
+                                    <div class="funnel-compare-subtitle">English Funnel</div>
+                                </div>
+                            </div>
+                            <div class="funnel-compare-stats" style="grid-template-columns: repeat(4, 1fr);">
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value blue" id="enLeadsTotal">0</div>
+                                    <div class="funnel-compare-stat-label">Total Leads</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value green" id="enLeadsToday">0</div>
+                                    <div class="funnel-compare-stat-label">Leads Hoje</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value blue" id="enConvRate">0%</div>
+                                    <div class="funnel-compare-stat-label">Conversão</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value green" id="enRevenue">R$ 0</div>
+                                    <div class="funnel-compare-stat-label">Faturamento</div>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+                                <div style="text-align: center; padding: 8px; background: rgba(59,130,246,0.08); border-radius: 8px;">
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🏠 Principal</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: #3b82f6;" id="enSalesMain">0 vendas</div>
+                                </div>
+                                <div style="text-align: center; padding: 8px; background: rgba(168,85,247,0.08); border-radius: 8px;">
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🤝 Afiliados</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: #a855f7;" id="enSalesAff">0 vendas</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="funnel-compare-card es">
+                            <div class="funnel-compare-header">
+                                <span class="funnel-compare-flag">🇪🇸</span>
+                                <div>
+                                    <div class="funnel-compare-title">Funil Espanhol</div>
+                                    <div class="funnel-compare-subtitle">Spanish Funnel</div>
+                                </div>
+                            </div>
+                            <div class="funnel-compare-stats" style="grid-template-columns: repeat(4, 1fr);">
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value yellow" id="esLeadsTotal">0</div>
+                                    <div class="funnel-compare-stat-label">Total Leads</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value green" id="esLeadsToday">0</div>
+                                    <div class="funnel-compare-stat-label">Leads Hoje</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value yellow" id="esConvRate">0%</div>
+                                    <div class="funnel-compare-stat-label">Conversão</div>
+                                </div>
+                                <div class="funnel-compare-stat">
+                                    <div class="funnel-compare-stat-value green" id="esRevenue">R$ 0</div>
+                                    <div class="funnel-compare-stat-label">Faturamento</div>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+                                <div style="text-align: center; padding: 8px; background: rgba(245,158,11,0.08); border-radius: 8px;">
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🏠 Principal</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: #f59e0b;" id="esSalesMain">0 vendas</div>
+                                </div>
+                                <div style="text-align: center; padding: 8px; background: rgba(168,85,247,0.08); border-radius: 8px;">
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">🤝 Afiliados</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: #a855f7;" id="esSalesAff">0 vendas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Period Comparison -->
+                    <div style="margin-bottom: 28px;">
+                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+                            <span>📊</span> Comparativo Semanal
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                            <div id="leadsComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">leads</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                            </div>
+                            <div id="salesComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">vendas</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                            </div>
+                            <div id="revenueComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">faturamento</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Quick Actions -->
-                    <div class="quick-actions">
+                    <div class="quick-actions" style="margin-bottom: 28px;">
                         <div class="quick-action" onclick="switchTab('recovery')" data-tooltip="Leads que abandonaram o checkout">
                             <div class="quick-action-icon">🔥</div>
                             <div class="quick-action-text">
@@ -1383,127 +1555,6 @@
                             <div class="quick-action-text">
                                 <h4>Vendas do Dia</h4>
                                 <p id="quickSalesText">R$ 0,00</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Funnel Comparison Cards -->
-                    <div class="funnel-comparison" id="funnelComparison">
-                        <div class="funnel-compare-card en">
-                            <div class="funnel-compare-header">
-                                <span class="funnel-compare-flag">🇺🇸</span>
-                                <div>
-                                    <div class="funnel-compare-title">Funil Inglês</div>
-                                    <div class="funnel-compare-subtitle">English Funnel</div>
-                                </div>
-                            </div>
-                            <div class="funnel-compare-stats">
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value blue" id="enLeadsTotal">0</div>
-                                    <div class="funnel-compare-stat-label">Total Leads</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="enLeadsToday">0</div>
-                                    <div class="funnel-compare-stat-label">Hoje</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value blue" id="enConvRate">0%</div>
-                                    <div class="funnel-compare-stat-label">Conversão</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="funnel-compare-card es">
-                            <div class="funnel-compare-header">
-                                <span class="funnel-compare-flag">🇪🇸</span>
-                                <div>
-                                    <div class="funnel-compare-title">Funil Espanhol</div>
-                                    <div class="funnel-compare-subtitle">Spanish Funnel</div>
-                                </div>
-                            </div>
-                            <div class="funnel-compare-stats">
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value yellow" id="esLeadsTotal">0</div>
-                                    <div class="funnel-compare-stat-label">Total Leads</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value green" id="esLeadsToday">0</div>
-                                    <div class="funnel-compare-stat-label">Hoje</div>
-                                </div>
-                                <div class="funnel-compare-stat">
-                                    <div class="funnel-compare-stat-value yellow" id="esConvRate">0%</div>
-                                    <div class="funnel-compare-stat-label">Conversão</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Stats -->
-                    <div class="stats-grid cols-5">
-                        <div class="stat-card" data-tooltip="Total de leads capturados em todos os funis">
-                            <div class="stat-header">
-                                <span class="stat-label">Total Leads</span>
-                                <div class="stat-icon blue">👥</div>
-                            </div>
-                            <div class="stat-value" id="overviewTotal">0</div>
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-                                <div class="stat-change up" id="overviewTotalChange">↑ 0% vs ontem</div>
-                                <div id="sparklineLeads"></div>
-                            </div>
-                        </div>
-                        <div class="stat-card" data-tooltip="Leads capturados nas últimas 24 horas">
-                            <div class="stat-header">
-                                <span class="stat-label">Hoje</span>
-                                <div class="stat-icon green">📈</div>
-                            </div>
-                            <div class="stat-value green" id="overviewToday">0</div>
-                            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewTodayTime">Última atualização: agora</div>
-                        </div>
-                        <div class="stat-card" data-tooltip="Leads que se tornaram clientes">
-                            <div class="stat-header">
-                                <span class="stat-label">Conversões</span>
-                                <div class="stat-icon purple">🎯</div>
-                            </div>
-                            <div class="stat-value" id="overviewConverted">0</div>
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-                                <div class="stat-change" id="overviewConvRate">0% taxa</div>
-                                <div id="sparklineConversions"></div>
-                            </div>
-                        </div>
-                        <div class="stat-card" data-tooltip="Receita total aprovada">
-                            <div class="stat-header">
-                                <span class="stat-label">Faturamento</span>
-                                <div class="stat-icon orange">💰</div>
-                            </div>
-                            <div class="stat-value green" id="overviewRevenue">R$ 0</div>
-                            <div style="margin-top: 12px;" id="sparklineRevenue"></div>
-                        </div>
-                        <div class="stat-card" data-tooltip="Leads que não completaram a compra">
-                            <div class="stat-header">
-                                <span class="stat-label">Abandonos</span>
-                                <div class="stat-icon red">🚪</div>
-                            </div>
-                            <div class="stat-value red" id="overviewAbandoned">0</div>
-                            <div style="margin-top: 12px; font-size: 12px; color: var(--danger);" id="overviewAbandonRate">0% do total</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Period Comparison -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                            <span>📊</span> Comparativo Semanal
-                        </h3>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                            <div id="leadsComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">leads</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
-                            </div>
-                            <div id="salesComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">vendas</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
-                            </div>
-                            <div id="revenueComparison" style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                                <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">faturamento</div>
-                                <div style="font-size: 24px; font-weight: 700; color: #fff;">-</div>
                             </div>
                         </div>
                     </div>
@@ -3339,30 +3390,41 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadOverviewFunnelComparison() {
             try {
                 const dateRange = getGlobalDateRange();
-                let url = `${API_URL}/api/admin/leads?limit=1000`;
-                
+                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
                 if (dateRange) {
-                    url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    leadsUrl += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
                 
-                // Get all leads to properly count by language (including NULL as 'en')
-                const response = await fetch(url, { 
-                    headers: { 'Authorization': `Bearer ${authToken}` } 
-                });
+                // Fetch leads + sales for EN and ES + breakdown by source
+                const [leadsRes, enSalesRes, esSalesRes, enMainSalesRes, enAffSalesRes, esMainSalesRes, esAffSalesRes] = await Promise.all([
+                    fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/api/admin/sales?language=en`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                ]);
                 
-                if (response.status === 401 || response.status === 403) { logout(); return; }
+                if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
                 
-                const data = await response.json();
+                const data = await leadsRes.json();
+                const enSales = enSalesRes?.ok ? await enSalesRes.json() : { approved: 0, revenue: 0 };
+                const esSales = esSalesRes?.ok ? await esSalesRes.json() : { approved: 0, revenue: 0 };
+                const enMainSales = enMainSalesRes?.ok ? await enMainSalesRes.json() : { approved: 0 };
+                const enAffSales = enAffSalesRes?.ok ? await enAffSalesRes.json() : { approved: 0 };
+                const esMainSales = esMainSalesRes?.ok ? await esMainSalesRes.json() : { approved: 0 };
+                const esAffSales = esAffSalesRes?.ok ? await esAffSalesRes.json() : { approved: 0 };
+                
                 const todayStart = new Date();
                 todayStart.setHours(0, 0, 0, 0);
                 
-                let enToday = 0, esForoy = 0;
+                let enToday = 0, esToday = 0;
                 let enConverted = 0, esConverted = 0;
                 let enTotal = 0, esTotal = 0;
                 
                 (data.leads || []).forEach(lead => {
                     const leadDate = new Date(lead.created_at);
-                    // Treat NULL or undefined as 'en' (English is default)
                     const lang = lead.funnel_language || 'en';
                     
                     if (lang === 'en') {
@@ -3371,28 +3433,31 @@ Estou aqui para esclarecer tudo! 😊`
                         if (lead.status === 'converted') enConverted++;
                     } else if (lang === 'es') {
                         esTotal++;
-                        if (leadDate >= todayStart) esForoy++;
+                        if (leadDate >= todayStart) esToday++;
                         if (lead.status === 'converted') esConverted++;
                     }
                 });
                 
                 // Update EN stats
-                const enTotalEl = document.getElementById('enLeadsTotal');
-                const enTodayEl = document.getElementById('enLeadsToday');
-                const enRateEl = document.getElementById('enConvRate');
-                if (enTotalEl) enTotalEl.textContent = enTotal.toLocaleString('pt-BR');
-                if (enTodayEl) enTodayEl.textContent = enToday.toLocaleString('pt-BR');
+                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                setEl('enLeadsTotal', enTotal.toLocaleString('pt-BR'));
+                setEl('enLeadsToday', enToday.toLocaleString('pt-BR'));
                 const enRate = enTotal > 0 ? ((enConverted / enTotal) * 100).toFixed(1) : 0;
-                if (enRateEl) enRateEl.textContent = enRate + '%';
+                setEl('enConvRate', enRate + '%');
+                setEl('enRevenue', 'R$ ' + (enSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
                 // Update ES stats
-                const esTotalEl = document.getElementById('esLeadsTotal');
-                const esTodayEl = document.getElementById('esLeadsToday');
-                const esRateEl = document.getElementById('esConvRate');
-                if (esTotalEl) esTotalEl.textContent = esTotal.toLocaleString('pt-BR');
-                if (esTodayEl) esTodayEl.textContent = esForoy.toLocaleString('pt-BR');
+                setEl('esLeadsTotal', esTotal.toLocaleString('pt-BR'));
+                setEl('esLeadsToday', esToday.toLocaleString('pt-BR'));
                 const esRate = esTotal > 0 ? ((esConverted / esTotal) * 100).toFixed(1) : 0;
-                if (esRateEl) esRateEl.textContent = esRate + '%';
+                setEl('esConvRate', esRate + '%');
+                setEl('esRevenue', 'R$ ' + (esSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
+                
+                // Update source breakdown
+                setEl('enSalesMain', (enMainSales.approved || 0) + ' vendas');
+                setEl('enSalesAff', (enAffSales.approved || 0) + ' vendas');
+                setEl('esSalesMain', (esMainSales.approved || 0) + ' vendas');
+                setEl('esSalesAff', (esAffSales.approved || 0) + ' vendas');
                 
             } catch (error) {
                 console.error('Error loading overview funnel comparison:', error);
@@ -3792,41 +3857,69 @@ Estou aqui para esclarecer tudo! 😊`
                 if (statsRes.status === 401) { logout(); return; }
                 
                 const stats = await statsRes.json();
-                const sales = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0 };
+                const sales = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0, today: 0 };
                 
-                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
+                // === TODAY'S HIGHLIGHTS ===
                 document.getElementById('overviewToday').textContent = stats.today.toLocaleString('pt-BR');
                 document.getElementById('quickLeadsText').textContent = `${stats.today} novos leads`;
+                
+                // Sales today
+                const salesToday = sales.today || 0;
+                document.getElementById('overviewSalesToday').textContent = salesToday.toLocaleString('pt-BR');
+                
+                // Revenue today (estimate from today's approved sales)
+                const revenueTotal = sales.revenue || 0;
+                const approvedTotal = sales.approved || 0;
+                const avgTicketCalc = approvedTotal > 0 ? revenueTotal / approvedTotal : 0;
+                const revenueTodayEstimate = salesToday * avgTicketCalc;
+                document.getElementById('overviewRevenueToday').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                // Ticket Médio
+                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                // Sales per customer (from sales endpoint)
+                const salesPerCustomerEl = document.getElementById('overviewSalesPerCustomer');
+                if (salesPerCustomerEl) {
+                    // Estimate unique customers from upsell stats
+                    const frontCount = sales.upsellStats?.front || 0;
+                    const spc = frontCount > 0 ? (approvedTotal / frontCount).toFixed(1) : '0';
+                    salesPerCustomerEl.textContent = `${spc} vendas/cliente`;
+                }
                 
                 // Update last update time
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 const todayTimeEl = document.getElementById('overviewTodayTime');
-                if (todayTimeEl) todayTimeEl.textContent = `Última atualização: ${timeStr}`;
+                if (todayTimeEl) todayTimeEl.textContent = `Atualizado ${timeStr}`;
                 
+                // === ACCUMULATED TOTALS ===
+                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
+                document.getElementById('overviewTotalSales').textContent = approvedTotal.toLocaleString('pt-BR');
+                document.getElementById('overviewRevenue').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                // Conversion rate
                 const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
-                document.getElementById('overviewConverted').textContent = converted;
                 const rate = stats.total > 0 ? ((converted / stats.total) * 100).toFixed(1) : 0;
-                document.getElementById('overviewConvRate').textContent = `${rate}% taxa`;
-                document.getElementById('overviewConvRate').className = `stat-change ${rate > 5 ? 'up' : ''}`;
+                const convEl = document.getElementById('overviewConverted');
+                convEl.textContent = `${rate}%`;
+                convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
+                const convRateEl = document.getElementById('overviewConvRate');
+                if (convRateEl) convRateEl.textContent = `${converted} clientes convertidos`;
                 
-                document.getElementById('overviewRevenue').textContent = 'R$ ' + (sales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                document.getElementById('quickSalesText').textContent = 'R$ ' + (sales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                
-                // Abandoned (estimate: leads that reached CTA but didn't convert)
+                // Abandoned
                 const abandoned = Math.max(0, stats.total - converted - (stats.byStatus?.find(s => s.status === 'contacted')?.count || 0));
-                document.getElementById('overviewAbandoned').textContent = abandoned;
+                document.getElementById('overviewAbandoned').textContent = abandoned.toLocaleString('pt-BR');
                 document.getElementById('quickRecoveryText').textContent = `${abandoned} leads aguardando`;
                 document.getElementById('navRecoveryCount').textContent = abandoned;
                 
-                // Abandon rate
                 const abandonRateEl = document.getElementById('overviewAbandonRate');
                 if (abandonRateEl && stats.total > 0) {
                     const abandonRate = ((abandoned / stats.total) * 100).toFixed(1);
                     abandonRateEl.textContent = `${abandonRate}% do total`;
                 }
                 
-                // Update charts
+                // === CHARTS ===
                 if (stats.byDay && leadsChart) {
                     const labels = stats.byDay.map(d => new Date(d.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).reverse();
                     const data = stats.byDay.map(d => parseInt(d.count)).reverse();
@@ -3834,7 +3927,6 @@ Estou aqui para esclarecer tudo! 😊`
                     leadsChart.data.datasets[0].data = data;
                     leadsChart.update();
                     
-                    // Create sparklines from daily data
                     createSparkline(data.slice(-7), 'sparklineLeads');
                 }
                 
