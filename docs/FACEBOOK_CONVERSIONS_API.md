@@ -13,7 +13,7 @@ The Facebook Conversions API (CAPI) allows you to send web events directly from 
 To implement the Conversions API, you need:
 
 1. **Facebook Business Manager account**
-2. **Facebook Pixel ID**: `955477126807496`
+2. **Facebook Pixel ID**: `726299943423075` (English) or `534495082571779` (Spanish)
 3. **Access Token**: Generate from Events Manager > Settings > Conversions API
 4. **Server-side infrastructure** (Node.js, PHP, Python, or any server language)
 
@@ -29,7 +29,7 @@ Create a server endpoint that receives events from your frontend and forwards th
 const axios = require('axios');
 const crypto = require('crypto');
 
-const PIXEL_ID = '955477126807496';
+const PIXEL_ID = '726299943423075'; // English pixel
 const ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN_HERE';
 const API_VERSION = 'v18.0';
 

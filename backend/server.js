@@ -24,24 +24,19 @@ app.set('trust proxy', 1);
 
 // Pixel configurations by funnel language
 const FB_PIXELS_BY_LANGUAGE = {
-    // English funnel pixels
+    // English funnel pixels - ONLY 726299943423075
     en: [
         {
-            id: '955477126807496',
-            token: process.env.FB_PIXEL_TOKEN_1 || 'EAALZCphpZCmcIBQlQHRs2JIRPdsRXG8RYa25OuW5yct9zASVIZAXUyhNPPc0yNdPl7bKNGZBldKM9HXSPuGaj1sggT3Ogco9PfSTDVf6wUNWguVEWLYdtvwpm98Qy0sd5gwvotspZBDyjxserjHVAMGFZAMeYC7aaanSIamK9OUQtRLWwjEpP28Cq5CydGZCoqPDwZDZD',
-            name: 'SPY INGLES 2026 - PABLO'
-        },
-        {
             id: '726299943423075',
-            token: process.env.FB_PIXEL_TOKEN_2 || 'EAALZCphpZCmcIBQodgl2fJ81kKfOWRmhYmJPBVQSfOuBBbxfjOxg3HH6y03bqp8fAbZCoghz8d9HglfpbBeZBl7wTaBGvIWRqtNgoJCFz5lts434LKD5EhF26KZCFjICN9jwsEdDu4afDUYH8Ld5ZC9D8gRFq3Y884qotjlqIszrQAzZAju7qkt9OgMhX7X093PNQZDZD',
+            token: process.env.FB_PIXEL_TOKEN_EN || 'EAALZCphpZCmcIBQodgl2fJ81kKfOWRmhYmJPBVQSfOuBBbxfjOxg3HH6y03bqp8fAbZCoghz8d9HglfpbBeZBl7wTaBGvIWRqtNgoJCFz5lts434LKD5EhF26KZCFjICN9jwsEdDu4afDUYH8Ld5ZC9D8gRFq3Y884qotjlqIszrQAzZAju7qkt9OgMhX7X093PNQZDZD',
             name: '[PABLO NOVO] - [SPY INGLES] - [2025]'
         }
     ],
-    // Spanish funnel pixels
+    // Spanish funnel pixels - ONLY 534495082571779
     es: [
         {
             id: '534495082571779',
-            token: process.env.FB_PIXEL_TOKEN_ES_1 || 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
+            token: process.env.FB_PIXEL_TOKEN_ES || 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
             name: 'PIXEL SPY ESPANHOL'
         }
     ]

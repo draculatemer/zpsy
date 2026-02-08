@@ -2,16 +2,15 @@
  * Facebook Conversions API Client v2.0 - Spanish Version
  * Full integration with Browser Pixel + Server CAPI for 10/10 event quality
  * 
- * Pixels para funil espanhol:
- * - Pixel 1: 534495082571779 (PIXEL SPY ESPANHOL)
- * - Pixel 2: 1271198251735428 (SPY ESPANHOL 2026 PABLO)
+ * Pixel para funil espanhol:
+ * - Pixel: 534495082571779 (PIXEL SPY ESPANHOL)
  */
 
 const FacebookCAPI = {
     API_URL: 'https://zapspy-funnel-production.up.railway.app',
     
-    // Spanish funnel pixel IDs
-    PIXEL_IDS: ['534495082571779', '1271198251735428'],
+    // Spanish funnel pixel ID
+    PIXEL_IDS: ['534495082571779'],
     
     // Access token for CAPI (shared between both pixels)
     ACCESS_TOKEN: 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
