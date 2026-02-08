@@ -3338,6 +3338,43 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
     }
 });
 
+// TEMPORARY DEBUG: Check transaction dates in DB
+app.get('/api/admin/debug-dates', authenticateToken, async (req, res) => {
+    try {
+        const results = await pool.query(`
+            SELECT 
+                MIN(created_at) as oldest_date,
+                MAX(created_at) as newest_date,
+                COUNT(*) as total_transactions,
+                COUNT(*) FILTER (WHERE status = 'approved') as approved_count,
+                COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as last_30_days,
+                COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' AND status = 'approved') as approved_last_30,
+                COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as today_count,
+                COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE AND status = 'approved') as approved_today,
+                NOW() as server_now,
+                CURRENT_DATE as server_date
+            FROM transactions
+        `);
+        
+        const sampleDates = await pool.query(`
+            SELECT transaction_id, status, created_at, product, 
+                   created_at::date as date_only,
+                   created_at AT TIME ZONE 'UTC' as utc_time
+            FROM transactions 
+            WHERE status = 'approved' 
+            ORDER BY created_at DESC 
+            LIMIT 15
+        `);
+        
+        res.json({
+            summary: results.rows[0],
+            sample_approved_transactions: sampleDates.rows
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
