@@ -3706,6 +3706,37 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}${sourceCondition}${dateCondition}`, langParams)
         ]);
         
+        // Calculate checkout abandonment (clicked checkout but no approved transaction)
+        // Build language condition for funnel_events
+        let funnelLangCondition = '';
+        if (language === 'en' || language === 'es') {
+            funnelLangCondition = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
+        }
+        
+        // Build date condition for funnel_events
+        let funnelDateCondition = '';
+        if (startDate && endDate) {
+            funnelDateCondition = ` AND created_at >= '${startDate}'::date AND created_at < ('${endDate}'::date + INTERVAL '1 day')`;
+        }
+        
+        // Count unique visitors who clicked checkout
+        const checkoutClickedResult = await pool.query(`
+            SELECT COUNT(DISTINCT visitor_id) as count 
+            FROM funnel_events 
+            WHERE event = 'checkout_clicked'${funnelLangCondition}${funnelDateCondition}
+        `);
+        
+        // Count unique emails with approved transactions
+        const approvedEmailsResult = await pool.query(`
+            SELECT COUNT(DISTINCT LOWER(email)) as count 
+            FROM transactions 
+            WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}
+        `, langParams);
+        
+        const checkoutClicked = parseInt(checkoutClickedResult.rows[0].count) || 0;
+        const approvedEmails = parseInt(approvedEmailsResult.rows[0].count) || 0;
+        const checkoutAbandoned = Math.max(0, checkoutClicked - approvedEmails);
+        
         // Calculate conversion rate (leads -> sales) - also filtered by language
         const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${language ? `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))` : ''}`, language ? [language] : []);
         const conversionRate = parseInt(leadsCount.rows[0].count) > 0 
@@ -3801,6 +3832,8 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             revenue: parseFloat(revenueResult.rows[0].total) || 0,
             upsellRevenue: upsellRevenue,
             avgUpsellTicket: avgUpsellTicket,
+            checkoutAbandoned: checkoutAbandoned,
+            checkoutClicked: checkoutClicked,
             today: parseInt(todayResult.rows[0].count),
             thisWeek: parseInt(weekResult.rows[0].count),
             conversionRate: parseFloat(conversionRate),

@@ -1410,11 +1410,11 @@
                         </div>
                         <div class="stat-card" style="border-left: 4px solid #ef4444;">
                             <div class="stat-header">
-                                <span class="stat-label">Abandonos</span>
-                                <div class="stat-icon red">🚫</div>
+                                <span class="stat-label">Checkout Abandonado</span>
+                                <div class="stat-icon red">🛒</div>
                             </div>
                             <div class="stat-value" style="color: #ef4444;" id="overviewAbandoned">0</div>
-                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewAbandonedRate">0% do total</div>
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="overviewAbandonedRate">0% de 0 checkouts</div>
                         </div>
                     </div>
 
@@ -3378,13 +3378,15 @@ Estou aqui para esclarecer tudo! 😊`
                 const totalLeads = leads.length;
                 const convertedLeads = leads.filter(l => l.status === 'converted').length;
                 const contactedLeads = leads.filter(l => l.status === 'contacted').length;
-                const abandonedLeads = Math.max(0, totalLeads - convertedLeads - contactedLeads);
+                // Checkout abandonment (from sales data, not leads)
+                const checkoutAbandoned = salesData.checkoutAbandoned || 0;
+                const checkoutClicked = salesData.checkoutClicked || 0;
                 
                 const totalSales = salesData.approved || 0;
                 const totalRevenue = salesData.revenue || 0;
                 const avgTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
                 const convRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100) : 0;
-                const abandonRate = totalLeads > 0 ? ((abandonedLeads / totalLeads) * 100) : 0;
+                const abandonRate = checkoutClicked > 0 ? ((checkoutAbandoned / checkoutClicked) * 100) : 0;
                 
                 // Upsells (upsell1 + upsell2 + upsell3)
                 const upsellStats = salesData.upsellStats || {};
@@ -3412,8 +3414,8 @@ Estou aqui para esclarecer tudo! 😊`
                 setEl('overviewTicket', 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 setEl('overviewTicketInfo', 'por venda');
                 
-                setEl('overviewAbandoned', abandonedLeads.toLocaleString('pt-BR'));
-                setEl('overviewAbandonedRate', abandonRate.toFixed(1) + '% do total');
+                setEl('overviewAbandoned', checkoutAbandoned.toLocaleString('pt-BR'));
+                setEl('overviewAbandonedRate', `${abandonRate.toFixed(1)}% de ${checkoutClicked} checkouts`);
                 
                 // Calculate secondary KPIs
                 
@@ -3446,13 +3448,13 @@ Estou aqui para esclarecer tudo! 😊`
                 setEl('overviewLostRevenueInfo', 'potencial não convertido');
                 
                 // Update quick actions
-                setEl('quickRecoveryText', `${abandonedLeads} leads aguardando`);
+                setEl('quickRecoveryText', `${checkoutAbandoned} abandonos de checkout`);
                 setEl('quickLeadsText', `${totalLeads} leads no período`);
                 setEl('quickSalesText', 'R$ ' + totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                 
                 // Update nav badge
                 const navRecoveryEl = document.getElementById('navRecoveryCount');
-                if (navRecoveryEl) navRecoveryEl.textContent = abandonedLeads;
+                if (navRecoveryEl) navRecoveryEl.textContent = checkoutAbandoned;
                 
             } catch (error) {
                 console.error('Error loading overview stats:', error);
