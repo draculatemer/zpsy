@@ -1624,6 +1624,7 @@ app.post('/api/track', async (req, res) => {
             targetPhone,
             targetGender,
             funnelLanguage,  // 'en' or 'es'
+            funnelSource,    // 'main' or 'affiliate'
             metadata
         } = req.body;
         
@@ -1634,11 +1635,13 @@ app.post('/api/track', async (req, res) => {
         const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
         const userAgent = req.headers['user-agent'] || null;
         const language = funnelLanguage || 'en';
+        const source = funnelSource || 'main';
         
-        // Add language to metadata
+        // Add language and source to metadata
         const enrichedMetadata = {
             ...(metadata || {}),
-            funnelLanguage: language
+            funnelLanguage: language,
+            funnelSource: source
         };
         
         await pool.query(
@@ -4026,6 +4029,12 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             funnelLangCondition = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
         }
         
+        // Build source condition for funnel_events
+        let funnelSourceCondition = '';
+        if (source === 'main' || source === 'affiliate') {
+            funnelSourceCondition = ` AND (metadata->>'funnelSource' = '${source}' OR (metadata->>'funnelSource' IS NULL AND '${source}' = 'main'))`;
+        }
+        
         // Build date condition for funnel_events
         let funnelDateCondition = '';
         if (startDate && endDate) {
@@ -4036,7 +4045,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         const checkoutClickedResult = await pool.query(`
             SELECT COUNT(DISTINCT visitor_id) as count 
             FROM funnel_events 
-            WHERE event = 'checkout_clicked'${funnelLangCondition}${funnelDateCondition}
+            WHERE event = 'checkout_clicked'${funnelLangCondition}${funnelSourceCondition}${funnelDateCondition}
         `);
         
         // Count unique emails with ANY transaction (approved, cancelled, pending, etc)

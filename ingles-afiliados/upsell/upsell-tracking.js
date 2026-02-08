@@ -36,6 +36,8 @@ const UpsellTracker = {
             page,
             targetPhone,
             targetGender,
+            funnelLanguage: 'en',
+            funnelSource: 'affiliate',
             metadata: {
                 ...metadata,
                 url: window.location.href,
