@@ -760,7 +760,7 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 
                 // Ticket Médio
-                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
                 // Sales per customer (from sales endpoint)
                 const salesPerCustomerEl = document.getElementById('overviewSalesPerCustomer');
@@ -1784,7 +1784,7 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 // Ticket Médio (revenue / approved transactions)
                 const avgTicket = approved > 0 ? (revenue / approved) : 0;
-                document.getElementById('salesAvgTicket').textContent = 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('salesAvgTicket').textContent = 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
                 // Vendas por Cliente (approved transactions / unique customers)
                 const salesPerCustomer = uniqueCustomers > 0 ? (approved / uniqueCustomers).toFixed(1) : '0';
@@ -4397,7 +4397,7 @@ Posso ajudar em algo mais? 😊`
             document.getElementById('roiCPL').textContent = 'R$ ' + cpl.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('roiCPA').textContent = 'R$ ' + cpa.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('roiConvRate').textContent = convRate.toFixed(1) + '%';
-            document.getElementById('roiAvgTicket').textContent = 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('roiAvgTicket').textContent = 'R$ ' + avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('roiROAS').textContent = roas.toFixed(2) + 'x';
             document.getElementById('roiROAS').style.color = roas >= 1 ? '#10b981' : '#ef4444';
         }
