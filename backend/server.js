@@ -1767,7 +1767,8 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                     status,
                     COUNT(*) as count
                 FROM transactions
-                WHERE product_type = 'front'
+                WHERE (product_type = 'front' OR product_type IS NULL)
+                AND (product NOT ILIKE '%upsell%' AND product NOT ILIKE '%order bump%')
                 ${txDateCondition}
                 ${txLangCondition}
                 GROUP BY status
