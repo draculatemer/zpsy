@@ -816,6 +816,54 @@ app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, 
     }
 });
 
+// Verify password for security-sensitive actions
+app.post('/api/admin/verify-password', authenticateToken, async (req, res) => {
+    try {
+        const { password } = req.body;
+        
+        if (!password) {
+            return res.json({ valid: false, message: 'Password required' });
+        }
+        
+        // Check if master admin (from env vars)
+        if (req.user.userId === 0 || req.user.email === process.env.ADMIN_EMAIL) {
+            // Verify against env password
+            const envPassword = process.env.ADMIN_PASSWORD;
+            if (password === envPassword) {
+                console.log(`🔐 Password verified for master admin: ${req.user.email}`);
+                return res.json({ valid: true });
+            } else {
+                console.log(`❌ Invalid password attempt for master admin: ${req.user.email}`);
+                return res.json({ valid: false });
+            }
+        }
+        
+        // Check database user
+        const result = await pool.query(
+            'SELECT password_hash FROM admin_users WHERE id = $1',
+            [req.user.userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.json({ valid: false, message: 'User not found' });
+        }
+        
+        const passwordMatch = await bcrypt.compare(password, result.rows[0].password_hash);
+        
+        if (passwordMatch) {
+            console.log(`🔐 Password verified for user ID: ${req.user.userId}`);
+            return res.json({ valid: true });
+        } else {
+            console.log(`❌ Invalid password attempt for user ID: ${req.user.userId}`);
+            return res.json({ valid: false });
+        }
+        
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        res.status(500).json({ valid: false, error: 'Verification failed' });
+    }
+});
+
 // Get current user profile
 app.get('/api/admin/profile', authenticateToken, async (req, res) => {
     try {

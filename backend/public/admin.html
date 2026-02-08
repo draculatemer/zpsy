@@ -6936,10 +6936,49 @@ Posso ajudar em algo mais? 😊`
             showToast('Salvo!', 'Webhook configurado', 'success');
         }
         
+        // Security verification for dangerous actions
+        async function verifySecurityPassword(actionName) {
+            const password = prompt(`🔐 VERIFICAÇÃO DE SEGURANÇA\n\nAção: ${actionName}\n\nDigite sua senha de admin para confirmar:`);
+            
+            if (!password) {
+                showToast('❌ Cancelado', 'Ação cancelada pelo usuário', 'warning');
+                return false;
+            }
+            
+            try {
+                // Verify password with server
+                const response = await fetch(`${API_URL}/api/admin/verify-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.valid) {
+                    return true;
+                } else {
+                    showToast('❌ Senha Incorreta', 'A senha digitada está incorreta', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Password verification error:', error);
+                showToast('❌ Erro', 'Falha ao verificar senha', 'error');
+                return false;
+            }
+        }
+        
         async function cleanTestTransactions() {
             if (!confirm('🧹 Limpar Transações de Teste?\n\nIsso vai remover todas as transações que contêm:\n- "TEST" no ID\n- "test" no email\n- "TEST" no produto\n\nDeseja continuar?')) {
                 return;
             }
+            
+            // Require password verification
+            const verified = await verifySecurityPassword('Limpar Transações de Teste');
+            if (!verified) return;
             
             try {
                 const response = await fetch(`${API_URL}/api/admin/transactions/test`, {
@@ -6970,6 +7009,10 @@ Posso ajudar em algo mais? 😊`
             if (!confirm('🔄 Resetar e Re-sincronizar Transações?\n\nIsso vai:\n1. DELETAR todas as transações existentes\n2. Sincronizar novamente da Monetizze (últimos 30 dias)\n3. As datas serão corrigidas\n\nDeseja continuar?')) {
                 return;
             }
+            
+            // Require password verification
+            const verified = await verifySecurityPassword('Resetar e Re-sincronizar Transações');
+            if (!verified) return;
             
             try {
                 showToast('🗑️ Deletando...', 'Removendo transações antigas', 'warning');
@@ -7033,9 +7076,9 @@ Posso ajudar em algo mais? 😊`
                 return;
             }
             
-            if (!confirm('🚨 ÚLTIMA CONFIRMAÇÃO!\n\nEsta ação é IRREVERSÍVEL.\nDigite OK para confirmar.')) {
-                return;
-            }
+            // Require password verification
+            const verified = await verifySecurityPassword('LIMPAR TODOS OS DADOS');
+            if (!verified) return;
             
             try {
                 const response = await fetch(`${API_URL}/api/admin/clear-all-data?confirm=yes-delete-everything`, {
