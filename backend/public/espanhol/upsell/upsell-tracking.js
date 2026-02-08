@@ -315,3 +315,66 @@ const UpsellTracker = {
 
 // Auto-initialize
 UpsellTracker.init();
+
+// ============================================
+// MONETIZZE 1-CLICK DEBUG
+// ============================================
+// This helps diagnose issues with the 1-click upsell process
+(function() {
+    console.log('🔍 Monetizze 1-Click Debug Starting...');
+    
+    // Check if Monetizze script loaded
+    window.addEventListener('load', function() {
+        const hasMonetizzeScript = document.querySelector('script[src*="1buyclick.php"]');
+        console.log('📦 Monetizze 1buyclick.php script present:', !!hasMonetizzeScript);
+        
+        // Check for Monetizze global variables/functions
+        const monetizzeGlobals = [];
+        for (let key in window) {
+            if (key.toLowerCase().includes('monetizze') || key.toLowerCase().includes('mtz')) {
+                monetizzeGlobals.push(key);
+            }
+        }
+        if (monetizzeGlobals.length > 0) {
+            console.log('📊 Monetizze globals found:', monetizzeGlobals);
+        }
+        
+        // Check cookies related to Monetizze
+        const cookies = document.cookie.split(';');
+        const monetizzeCookies = cookies.filter(c => 
+            c.toLowerCase().includes('monetizze') || 
+            c.toLowerCase().includes('mtz') ||
+            c.toLowerCase().includes('session')
+        );
+        console.log('🍪 Session-related cookies:', monetizzeCookies.length > 0 ? monetizzeCookies : 'None found');
+        
+        // Monitor CTA button clicks
+        document.querySelectorAll('a[data-upsell], a[href="#monetizzeCompra"]').forEach(function(btn, i) {
+            console.log('🔘 Found upsell button #' + (i+1) + ':', {
+                href: btn.getAttribute('href'),
+                dataUpsell: btn.getAttribute('data-upsell'),
+                text: btn.textContent.substring(0, 50)
+            });
+            
+            btn.addEventListener('click', function(e) {
+                console.log('🖱️ Upsell button clicked!', {
+                    timestamp: new Date().toISOString(),
+                    button: e.target.textContent.substring(0, 30),
+                    href: e.target.getAttribute('href'),
+                    defaultPrevented: e.defaultPrevented
+                });
+                
+                // Track if click was processed
+                setTimeout(function() {
+                    console.log('⏱️ 1 second after click - page should be redirecting or showing Monetizze popup');
+                }, 1000);
+                
+                setTimeout(function() {
+                    console.log('⏱️ 3 seconds after click - if you see this, redirect may have failed');
+                }, 3000);
+            }, true); // Use capture phase to log before other handlers
+        });
+        
+        console.log('✅ Monetizze debug listeners attached');
+    });
+})();
