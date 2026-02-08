@@ -1889,8 +1889,51 @@
                     </div>
                     
                     <div class="data-panel">
-                        <div class="panel-header">
-                            <div class="panel-title"><h2>🚶 Jornadas dos Visitantes</h2></div>
+                        <div class="panel-header" style="flex-direction: column; align-items: stretch; gap: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="panel-title"><h2>🚶 Jornadas dos Visitantes</h2></div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span id="journeysCount" style="color: var(--text-muted); font-size: 12px;"></span>
+                                    <button onclick="clearJourneyFilters()" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">Limpar Filtros</button>
+                                </div>
+                            </div>
+                            <!-- Filtros de Jornadas -->
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <input type="text" id="journeySearchEmail" placeholder="🔍 Buscar por email, telefone ou ID..." 
+                                           style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px;"
+                                           onkeyup="debounceJourneySearch()">
+                                </div>
+                                <select id="journeyFilterFunnel" onchange="filterJourneys()" 
+                                        style="padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; min-width: 120px;">
+                                    <option value="">Todos Funis</option>
+                                    <option value="en">🇺🇸 Inglês</option>
+                                    <option value="es">🇪🇸 Espanhol</option>
+                                </select>
+                                <select id="journeyFilterGender" onchange="filterJourneys()" 
+                                        style="padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; min-width: 120px;">
+                                    <option value="">Todos Gêneros</option>
+                                    <option value="male">👨 Masculino</option>
+                                    <option value="female">👩 Feminino</option>
+                                </select>
+                                <select id="journeyFilterStage" onchange="filterJourneys()" 
+                                        style="padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; min-width: 150px;">
+                                    <option value="">Todas Etapas</option>
+                                    <option value="checkout_clicked">✅ Chegou no Checkout</option>
+                                    <option value="email_captured">📧 Capturou Email</option>
+                                    <option value="upsell_1_view">🎁 Viu Upsell 1</option>
+                                    <option value="upsell_1_accepted">💰 Comprou Upsell 1</option>
+                                    <option value="upsell_2_view">🎁 Viu Upsell 2</option>
+                                    <option value="upsell_2_accepted">💰 Comprou Upsell 2</option>
+                                    <option value="thankyou_view">🎉 Chegou no Obrigado</option>
+                                </select>
+                                <select id="journeyFilterHasEmail" onchange="filterJourneys()" 
+                                        style="padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px; min-width: 130px;">
+                                    <option value="">Email: Todos</option>
+                                    <option value="yes">📧 Com Email</option>
+                                    <option value="no">❌ Sem Email</option>
+                                </select>
+                            </div>
                         </div>
                         <table class="data-table">
                             <thead>
@@ -3047,6 +3090,10 @@ Posso ajudar com alguma dúvida?</textarea>
         let searchTimeout;
         let leadsChart, statusChart;
         let selectedTags = [];
+        
+        // Journey filters
+        let allJourneysData = []; // Store all journeys for filtering
+        let journeySearchTimeout;
         
         const statusLabels = { 'new': 'Novo', 'contacted': 'Contatado', 'converted': 'Convertido', 'lost': 'Perdido' };
         
@@ -4726,12 +4773,25 @@ Estou aqui para esclarecer tudo! 😊`
             'thankyou_view': 'Página Obrigado'
         };
         
-        function renderJourneys(journeys, showLanguage = false) {
+        function renderJourneys(journeys, showLanguage = false, isFiltered = false) {
+            // Store original data for filtering (only if not already filtered)
+            if (!isFiltered) {
+                allJourneysData = journeys || [];
+            }
+            
             const colspan = showLanguage ? 8 : 7;
+            const countEl = document.getElementById('journeysCount');
+            
             if (!journeys?.length) { 
-                document.getElementById('journeysTable').innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><h3>Nenhuma jornada</h3></div></td></tr>`; 
+                document.getElementById('journeysTable').innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><h3>Nenhuma jornada encontrada</h3><p style="color: var(--text-muted);">Tente ajustar os filtros</p></div></td></tr>`; 
+                if (countEl) countEl.textContent = isFiltered ? `0 de ${allJourneysData.length} jornadas` : '';
                 return; 
             }
+            
+            if (countEl) {
+                countEl.textContent = isFiltered ? `${journeys.length} de ${allJourneysData.length} jornadas` : `${journeys.length} jornadas`;
+            }
+            
             const shortLabels = { 
                 'page_view_landing': 'Landing', 'gender_selected': 'Gênero', 'page_view_phone': 'Phone', 
                 'phone_submitted': 'Tel.', 'page_view_conversas': 'Conversas', 'page_view_cta': 'CTA', 
@@ -4750,8 +4810,11 @@ Estou aqui para esclarecer tudo! 😊`
                     ? '<span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">🇪🇸 ES</span>'
                     : '<span style="background: rgba(107, 114, 128, 0.15); color: #6b7280; padding: 2px 8px; border-radius: 12px; font-size: 11px;">-</span>';
                 
+                // Show email badge if captured
+                const emailBadge = j.email ? `<span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 6px; border-radius: 6px; font-size: 10px; margin-left: 4px;" title="${j.email}">📧</span>` : '';
+                
                 html += `<tr>
-                    <td class="mono">${j.visitor_id.substring(0, 12)}...</td>
+                    <td class="mono" style="display: flex; align-items: center; gap: 4px;">${j.visitor_id.substring(0, 12)}...${emailBadge}</td>
                     ${showLanguage ? `<td>${langBadge}</td>` : ''}
                     <td class="mono">${j.target_phone || '-'}</td>
                     <td>${j.target_gender === 'male' ? '👨' : j.target_gender === 'female' ? '👩' : '-'}</td>
@@ -4762,6 +4825,67 @@ Estou aqui para esclarecer tudo! 😊`
                 </tr>`;
             });
             document.getElementById('journeysTable').innerHTML = html;
+        }
+        
+        // Debounce journey search
+        function debounceJourneySearch() {
+            clearTimeout(journeySearchTimeout);
+            journeySearchTimeout = setTimeout(filterJourneys, 300);
+        }
+        
+        // Filter journeys based on all criteria
+        function filterJourneys() {
+            const searchTerm = (document.getElementById('journeySearchEmail')?.value || '').toLowerCase().trim();
+            const funnelFilter = document.getElementById('journeyFilterFunnel')?.value || '';
+            const genderFilter = document.getElementById('journeyFilterGender')?.value || '';
+            const stageFilter = document.getElementById('journeyFilterStage')?.value || '';
+            const hasEmailFilter = document.getElementById('journeyFilterHasEmail')?.value || '';
+            
+            let filtered = allJourneysData;
+            
+            // Search filter (email, phone, visitor_id)
+            if (searchTerm) {
+                filtered = filtered.filter(j => {
+                    const email = (j.email || '').toLowerCase();
+                    const phone = (j.target_phone || '').toLowerCase();
+                    const visitorId = (j.visitor_id || '').toLowerCase();
+                    return email.includes(searchTerm) || phone.includes(searchTerm) || visitorId.includes(searchTerm);
+                });
+            }
+            
+            // Funnel filter
+            if (funnelFilter) {
+                filtered = filtered.filter(j => j.language === funnelFilter);
+            }
+            
+            // Gender filter
+            if (genderFilter) {
+                filtered = filtered.filter(j => j.target_gender === genderFilter);
+            }
+            
+            // Stage filter (check if event exists in journey)
+            if (stageFilter) {
+                filtered = filtered.filter(j => (j.events || []).includes(stageFilter));
+            }
+            
+            // Has email filter
+            if (hasEmailFilter === 'yes') {
+                filtered = filtered.filter(j => j.email);
+            } else if (hasEmailFilter === 'no') {
+                filtered = filtered.filter(j => !j.email);
+            }
+            
+            renderJourneys(filtered, true, true);
+        }
+        
+        // Clear all journey filters
+        function clearJourneyFilters() {
+            document.getElementById('journeySearchEmail').value = '';
+            document.getElementById('journeyFilterFunnel').value = '';
+            document.getElementById('journeyFilterGender').value = '';
+            document.getElementById('journeyFilterStage').value = '';
+            document.getElementById('journeyFilterHasEmail').value = '';
+            renderJourneys(allJourneysData, true, false);
         }
         
         async function openJourneyModal(visitorId) {

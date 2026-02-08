@@ -1726,21 +1726,24 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
             ORDER BY date DESC, event
         `);
         
-        // Get visitor journeys (filtered by date range)
+        // Get visitor journeys (filtered by date range) with email from leads
         const journeys = await pool.query(`
             SELECT 
-                visitor_id,
-                target_phone,
-                target_gender,
-                array_agg(event ORDER BY created_at) as events,
-                MIN(created_at) as first_seen,
-                MAX(created_at) as last_seen,
-                COUNT(*) as total_events
-            FROM funnel_events
-            WHERE 1=1 ${dateCondition} ${langCondition}
-            GROUP BY visitor_id, target_phone, target_gender
-            ORDER BY MAX(created_at) DESC
-            LIMIT 50
+                fe.visitor_id,
+                fe.target_phone,
+                fe.target_gender,
+                array_agg(fe.event ORDER BY fe.created_at) as events,
+                MIN(fe.created_at) as first_seen,
+                MAX(fe.created_at) as last_seen,
+                COUNT(*) as total_events,
+                l.email,
+                l.name
+            FROM funnel_events fe
+            LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
+            WHERE 1=1 ${dateCondition.replace(/created_at/g, 'fe.created_at')} ${langCondition.replace(/funnel_language/g, 'fe.funnel_language')}
+            GROUP BY fe.visitor_id, fe.target_phone, fe.target_gender, l.email, l.name
+            ORDER BY MAX(fe.created_at) DESC
+            LIMIT 100
         `);
         
         // Get transaction stats (approved/rejected) for the funnel visualization
