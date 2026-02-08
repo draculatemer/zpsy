@@ -307,7 +307,7 @@ const authenticateToken = (req, res, next) => {
 function buildDateFilter(startDate, endDate, columnName = 'created_at') {
     if (!startDate || !endDate) return { sql: '', params: [] };
     return {
-        sql: ` AND ${columnName} >= $PARAM_START AND ${columnName} < ($PARAM_END::date + INTERVAL '1 day')`,
+        sql: ` AND ${columnName} >= $PARAM_START::date AND ${columnName} < ($PARAM_END::date + INTERVAL '1 day')`,
         params: [startDate, endDate]
     };
 }
@@ -964,7 +964,7 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
         }
         
         if (startDate && endDate) {
-            conditions.push(`created_at >= $${params.length + 1} AND created_at < ($${params.length + 2}::date + INTERVAL '1 day')`);
+            conditions.push(`created_at >= $${params.length + 1}::date AND created_at < ($${params.length + 2}::date + INTERVAL '1 day')`);
             params.push(startDate, endDate);
         }
         
@@ -1006,7 +1006,7 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
         let dateFilter = '';
         const params = [];
         if (startDate && endDate) {
-            dateFilter = ` AND created_at >= $1 AND created_at < ($2::date + INTERVAL '1 day')`;
+            dateFilter = ` AND created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')`;
             params.push(startDate, endDate);
         }
         
@@ -3094,7 +3094,7 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             params.push(language);
         }
         if (startDate && endDate) {
-            conditions.push(`created_at >= $${paramIndex++} AND created_at < ($${paramIndex++}::date + INTERVAL '1 day')`);
+            conditions.push(`created_at >= $${paramIndex++}::date AND created_at < ($${paramIndex++}::date + INTERVAL '1 day')`);
             params.push(startDate, endDate);
         }
         
@@ -3113,7 +3113,7 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
         let statsParamIndex = 1;
         
         if (startDate && endDate) {
-            statsConditions.push(`created_at >= $${statsParamIndex++} AND created_at < ($${statsParamIndex++}::date + INTERVAL '1 day')`);
+            statsConditions.push(`created_at >= $${statsParamIndex++}::date AND created_at < ($${statsParamIndex++}::date + INTERVAL '1 day')`);
             statsParams.push(startDate, endDate);
         }
         
@@ -3298,7 +3298,7 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
         }
         
         if (startDate && endDate) {
-            query += ` AND created_at >= $${paramIndex} AND created_at < ($${paramIndex + 1}::date + INTERVAL '1 day')`;
+            query += ` AND created_at >= $${paramIndex}::date AND created_at < ($${paramIndex + 1}::date + INTERVAL '1 day')`;
             params.push(startDate, endDate);
             paramIndex += 2;
         }
@@ -3369,7 +3369,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         if (startDate && endDate) {
             const startIdx = langParams.length + 1;
             const endIdx = langParams.length + 2;
-            dateCondition = ` AND created_at >= $${startIdx} AND created_at < ($${endIdx}::date + INTERVAL '1 day')`;
+            dateCondition = ` AND created_at >= $${startIdx}::date AND created_at < ($${endIdx}::date + INTERVAL '1 day')`;
             langParams.push(startDate, endDate);
         }
         
