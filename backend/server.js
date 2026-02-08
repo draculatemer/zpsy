@@ -1977,21 +1977,20 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
         console.log('🔄 Starting Monetizze sync...');
         console.log('📅 Date range:', startDate || 'today', 'to', endDate || 'today');
         
-        // Monetizze API 2.1 endpoint for sales
-        // https://api.monetizze.com.br/2.1/sales
-        const baseUrl = 'https://api.monetizze.com.br/2.1/sales';
-        const params = new URLSearchParams();
+        // Try API 2.1 first, then fallback to 2.0
+        let response = null;
+        let apiVersion = '2.1';
         
-        if (startDate) params.append('data_inicio', startDate); // Format: YYYY-MM-DD
-        if (endDate) params.append('data_fim', endDate);
-        if (productCodes && productCodes.length > 0) {
-            productCodes.forEach(code => params.append('produto_codigo[]', code));
-        }
+        // API 2.1 uses X-Consumer-Key header
+        const baseUrl21 = 'https://api.monetizze.com.br/2.1/vendas';
+        const params21 = new URLSearchParams();
+        if (startDate) params21.append('data_inicio', startDate);
+        if (endDate) params21.append('data_fim', endDate);
         
-        const url = `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`;
-        console.log('🌐 Fetching from Monetizze API 2.1...');
+        const url21 = `${baseUrl21}${params21.toString() ? '?' + params21.toString() : ''}`;
+        console.log('🌐 Trying Monetizze API 2.1:', url21);
         
-        const response = await fetch(url, {
+        response = await fetch(url21, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -1999,13 +1998,51 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
             }
         });
         
+        // If 2.1 fails, try 2.0 with query param
+        if (!response.ok) {
+            console.log('⚠️ API 2.1 failed, trying API 2.0...');
+            apiVersion = '2.0';
+            
+            const baseUrl20 = 'https://api.monetizze.com.br/2.0/vendas';
+            const params20 = new URLSearchParams();
+            params20.append('token', consumerKey);
+            if (startDate) params20.append('data_inicio', startDate);
+            if (endDate) params20.append('data_fim', endDate);
+            
+            const url20 = `${baseUrl20}?${params20.toString()}`;
+            console.log('🌐 Trying Monetizze API 2.0:', url20);
+            
+            response = await fetch(url20, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+        }
+        
+        const url = apiVersion === '2.1' ? url21 : `API ${apiVersion}`;
+        console.log(`📡 Using API version ${apiVersion}`);
+        
         if (!response.ok) {
             const errorText = await response.text();
             console.error('❌ Monetizze API error:', response.status, errorText);
-            return res.status(response.status).json({ 
+            console.error('❌ Request URL:', url);
+            console.error('❌ Consumer Key (first 10 chars):', consumerKey.substring(0, 10) + '...');
+            
+            // Try to parse error as JSON
+            let errorDetails = errorText;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorDetails = errorJson.message || errorJson.error || errorText;
+            } catch (e) {}
+            
+            return res.status(200).json({ 
+                success: false,
                 error: 'Monetizze API request failed',
                 status: response.status,
-                details: errorText
+                details: errorDetails,
+                hint: response.status === 401 ? 'Chave de API inválida. Verifique MONETIZZE_CONSUMER_KEY no Railway.' :
+                      response.status === 403 ? 'Acesso negado. A chave pode não ter permissão para acessar vendas.' :
+                      response.status === 404 ? 'Endpoint não encontrado. A API pode ter mudado.' :
+                      'Erro desconhecido na API da Monetizze.'
             });
         }
         
