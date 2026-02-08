@@ -4381,13 +4381,23 @@ Estou aqui para esclarecer tudo! 😊`
             const statsMap = {};
             (stats || []).forEach(s => statsMap[s.event] = parseInt(s.unique_visitors));
             
-            const maxVisitors = Math.max(...Object.values(statsMap), 1);
+            // Enforce monotonic decrease: each step can't exceed the previous one
+            let cappedValues = [];
+            let prevCapped = Infinity;
+            mainFunnelOrder.forEach(step => {
+                const rawValue = statsMap[step.key] || 0;
+                const capped = Math.min(rawValue, prevCapped);
+                cappedValues.push({ ...step, value: capped, raw: rawValue });
+                prevCapped = capped;
+            });
+            
+            const maxVisitors = cappedValues.length > 0 ? Math.max(cappedValues[0].value, 1) : 1;
             
             let html = '';
             let prevValue = null;
             
-            mainFunnelOrder.forEach(step => {
-                const value = statsMap[step.key] || 0;
+            cappedValues.forEach(step => {
+                const value = step.value;
                 const width = maxVisitors > 0 ? Math.max((value / maxVisitors) * 100, 15) : 15;
                 const drop = prevValue !== null && prevValue > 0 ? (((prevValue - value) / prevValue) * 100).toFixed(0) : null;
                 
@@ -4468,12 +4478,24 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('funnelRate2').textContent = phoneVisitors > 0 ? ((ctaVisitors / phoneVisitors) * 100).toFixed(1) + '%' : '-';
             document.getElementById('funnelRate3').textContent = ctaVisitors > 0 ? ((checkoutVisitors / ctaVisitors) * 100).toFixed(1) + '%' : '-';
             
+            // Enforce monotonic decrease for main funnel
+            let cappedMain = [];
+            let prevCap = Infinity;
+            mainFunnelOrder.forEach(step => {
+                const rawValue = statsMap[step.key] || 0;
+                const capped = Math.min(rawValue, prevCap);
+                cappedMain.push({ ...step, value: capped });
+                prevCap = capped;
+            });
+            
+            const cappedMax = cappedMain.length > 0 ? Math.max(cappedMain[0].value, 1) : 1;
+            
             // Render main funnel
             let html = '<h4 style="color: var(--text-secondary); margin-bottom: 12px; font-size: 13px;">📊 FUNIL PRINCIPAL</h4>';
             let prevValue = null;
-            mainFunnelOrder.forEach(step => {
-                const value = statsMap[step.key] || 0;
-                const width = maxVisitors > 0 ? Math.max((value / maxVisitors) * 100, 15) : 15;
+            cappedMain.forEach(step => {
+                const value = step.value;
+                const width = cappedMax > 0 ? Math.max((value / cappedMax) * 100, 15) : 15;
                 const drop = prevValue !== null && prevValue > 0 ? (((prevValue - value) / prevValue) * 100).toFixed(0) : null;
                 html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${width}%; position: relative;"><span class="funnel-step-name">${step.label}</span><span class="funnel-step-value">${value}</span>${drop > 0 ? `<span class="funnel-drop" style="position: absolute; right: -45px; top: 50%; transform: translateY(-50%); color: #ef4444; font-size: 12px; font-weight: 600;">-${drop}%</span>` : ''}</div></div>`;
                 prevValue = value;
