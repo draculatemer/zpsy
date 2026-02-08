@@ -4484,40 +4484,49 @@ Estou aqui para esclarecer tudo! 😊`
                 // Abandoned = people who clicked checkout but never generated a transaction
                 const abandoned = Math.max(0, checkoutValue - rejected - approved);
                 
-                // Calculate widths relative to max visitors
-                const abandonedWidth = maxVisitors > 0 ? Math.max((abandoned / maxVisitors) * 100, 10) : 10;
-                const rejectedWidth = maxVisitors > 0 ? Math.max((rejected / maxVisitors) * 100, 10) : 10;
-                const approvedWidth = maxVisitors > 0 ? Math.max((approved / maxVisitors) * 100, 10) : 10;
-                
-                // Abandoned bar (orange/yellow)
-                html += `
-                    <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
-                        <div class="funnel-bar" style="width: ${abandonedWidth}%; background: linear-gradient(90deg, #f59e0b, #d97706); position: relative;">
-                            <span class="funnel-step-name">ABANDONADO</span>
-                            <span class="funnel-step-value">${abandoned}</span>
-                        </div>
-                    </div>
-                `;
-                
-                // Rejected bar (red)
-                html += `
-                    <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
-                        <div class="funnel-bar" style="width: ${rejectedWidth}%; background: linear-gradient(90deg, #ef4444, #dc2626); position: relative;">
-                            <span class="funnel-step-name">RECUSADAS</span>
-                            <span class="funnel-step-value">${rejected}</span>
-                        </div>
-                    </div>
-                `;
-                
-                // Approved bar (green)
-                html += `
-                    <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
-                        <div class="funnel-bar" style="width: ${approvedWidth}%; background: linear-gradient(90deg, #10b981, #059669); position: relative;">
-                            <span class="funnel-step-name">APROVADAS</span>
-                            <span class="funnel-step-value">${approved}</span>
-                        </div>
-                    </div>
-                `;
+                // Only show bars if there's data
+                if (abandoned > 0 || rejected > 0 || approved > 0) {
+                    // Calculate widths relative to max visitors (minimum 15% to fit text)
+                    const abandonedWidth = abandoned > 0 ? Math.max((abandoned / maxVisitors) * 100, 15) : 0;
+                    const rejectedWidth = rejected > 0 ? Math.max((rejected / maxVisitors) * 100, 15) : 0;
+                    const approvedWidth = approved > 0 ? Math.max((approved / maxVisitors) * 100, 15) : 0;
+                    
+                    // Abandoned bar (orange/yellow) - only show if > 0
+                    if (abandoned > 0) {
+                        html += `
+                            <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
+                                <div class="funnel-bar" style="width: ${abandonedWidth}%; min-width: 120px; background: linear-gradient(90deg, #f59e0b, #d97706); position: relative;">
+                                    <span class="funnel-step-name">ABANDONADO</span>
+                                    <span class="funnel-step-value">${abandoned}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Rejected bar (red) - only show if > 0
+                    if (rejected > 0) {
+                        html += `
+                            <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
+                                <div class="funnel-bar" style="width: ${rejectedWidth}%; min-width: 120px; background: linear-gradient(90deg, #ef4444, #dc2626); position: relative;">
+                                    <span class="funnel-step-name">RECUSADAS</span>
+                                    <span class="funnel-step-value">${rejected}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Approved bar (green) - only show if > 0
+                    if (approved > 0) {
+                        html += `
+                            <div class="funnel-step" style="margin-bottom: 6px; position: relative;">
+                                <div class="funnel-bar" style="width: ${approvedWidth}%; min-width: 120px; background: linear-gradient(90deg, #10b981, #059669); position: relative;">
+                                    <span class="funnel-step-name">APROVADAS</span>
+                                    <span class="funnel-step-value">${approved}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
             }
             
             const container = document.getElementById(containerId);
@@ -4614,18 +4623,27 @@ Estou aqui para esclarecer tudo! 😊`
                 // Abandoned = people who clicked checkout but never generated a transaction
                 const abandoned = Math.max(0, checkoutVisitors - rejected - approved);
                 
-                const abandonedWidth = maxVisitors > 0 ? Math.max((abandoned / maxVisitors) * 100, 10) : 10;
-                const rejectedWidth = maxVisitors > 0 ? Math.max((rejected / maxVisitors) * 100, 10) : 10;
-                const approvedWidth = maxVisitors > 0 ? Math.max((approved / maxVisitors) * 100, 10) : 10;
-                
-                // Abandoned bar (orange)
-                html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${abandonedWidth}%; background: linear-gradient(90deg, #f59e0b, #d97706); position: relative;"><span class="funnel-step-name">ABANDONADO</span><span class="funnel-step-value">${abandoned}</span></div></div>`;
-                
-                // Rejected bar (red)
-                html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${rejectedWidth}%; background: linear-gradient(90deg, #ef4444, #dc2626); position: relative;"><span class="funnel-step-name">RECUSADAS</span><span class="funnel-step-value">${rejected}</span></div></div>`;
-                
-                // Approved bar (green)
-                html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${approvedWidth}%; background: linear-gradient(90deg, #10b981, #059669); position: relative;"><span class="funnel-step-name">APROVADAS</span><span class="funnel-step-value">${approved}</span></div></div>`;
+                // Only show bars if there's data
+                if (abandoned > 0 || rejected > 0 || approved > 0) {
+                    const abandonedWidth = abandoned > 0 ? Math.max((abandoned / maxVisitors) * 100, 15) : 0;
+                    const rejectedWidth = rejected > 0 ? Math.max((rejected / maxVisitors) * 100, 15) : 0;
+                    const approvedWidth = approved > 0 ? Math.max((approved / maxVisitors) * 100, 15) : 0;
+                    
+                    // Abandoned bar (orange) - only show if > 0
+                    if (abandoned > 0) {
+                        html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${abandonedWidth}%; min-width: 120px; background: linear-gradient(90deg, #f59e0b, #d97706); position: relative;"><span class="funnel-step-name">ABANDONADO</span><span class="funnel-step-value">${abandoned}</span></div></div>`;
+                    }
+                    
+                    // Rejected bar (red) - only show if > 0
+                    if (rejected > 0) {
+                        html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${rejectedWidth}%; min-width: 120px; background: linear-gradient(90deg, #ef4444, #dc2626); position: relative;"><span class="funnel-step-name">RECUSADAS</span><span class="funnel-step-value">${rejected}</span></div></div>`;
+                    }
+                    
+                    // Approved bar (green) - only show if > 0
+                    if (approved > 0) {
+                        html += `<div class="funnel-step" style="position: relative; margin-bottom: 6px;"><div class="funnel-bar" style="width: ${approvedWidth}%; min-width: 120px; background: linear-gradient(90deg, #10b981, #059669); position: relative;"><span class="funnel-step-name">APROVADAS</span><span class="funnel-step-value">${approved}</span></div></div>`;
+                    }
+                }
             }
             
             // Render upsell funnel if there's data
