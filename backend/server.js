@@ -3128,9 +3128,15 @@ app.all('/api/postback/monetizze', async (req, res) => {
             }
             
             // Status 2 or 6 = Aprovada/Completa -> Purchase event
-            if (statusStr === '2' || statusStr === '6') {
-                console.log('📤 Sending Purchase to Facebook CAPI...');
+            // BUT ONLY if dataFinalizada exists (payment confirmed)
+            if ((statusStr === '2' || statusStr === '6') && dataVenda) {
+                console.log('📤 Sending Purchase to Facebook CAPI (payment confirmed)...');
                 await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData);
+            } else if (statusStr === '2' && !dataVenda) {
+                // Status 2 but no dataFinalizada = still pending payment
+                console.log('⏸️ Skipping Purchase event - payment not yet confirmed (no dataFinalizada)');
+                console.log('📤 Sending InitiateCheckout instead...');
+                await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
             }
             
             // Status 4 = Refund -> Refund event (custom)
