@@ -1843,7 +1843,7 @@ app.get('/api/debug/funnel/search', async (req, res) => {
                 events,
                 summary: {
                     total_events: events.length,
-                    event_types: [...new Set(events.map(e => e.event_type))]
+                    event_types: [...new Set(events.map(e => e.event))]
                 }
             });
             return;
