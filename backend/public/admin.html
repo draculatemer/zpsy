@@ -10,7 +10,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
+    <link rel="stylesheet" href="css/admin.css">
+<!-- STYLE REMOVED - now in css/admin.css -->
+<!-- PLACEHOLDER_STYLE_START
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
@@ -1192,7 +1194,7 @@
             .quick-actions { flex-direction: column; }
             .modal-content { margin: 16px; max-width: calc(100% - 32px); }
         }
-    </style>
+PLACEHOLDER_STYLE_END -->
 </head>
 <body>
     <!-- Toast Container -->
@@ -1362,76 +1364,50 @@
             <div class="page-content">
                 <!-- Tab: Overview -->
                 <div class="tab-content active" id="tab-overview">
-                    <!-- TODAY'S HIGHLIGHTS - Main KPIs -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></span> Resumo de Hoje
-                        </h3>
-                        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
-                            <div class="stat-card" style="border-top: 3px solid #3b82f6;" data-tooltip="Novos leads capturados hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Leads Hoje</span>
-                                    <div class="stat-icon blue">👥</div>
-                                </div>
-                                <div class="stat-value blue" id="overviewToday">0</div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-                                    <div class="stat-change up" id="overviewTotalChange">↑ 0% vs ontem</div>
-                                    <div id="sparklineLeads"></div>
-                                </div>
+                    <!-- MAIN KPIs - filtrados pelos filtros globais -->
+                    <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 28px;">
+                        <div class="stat-card" style="border-top: 3px solid #3b82f6;">
+                            <div class="stat-header">
+                                <span class="stat-label">Leads</span>
+                                <div class="stat-icon blue">👥</div>
                             </div>
-                            <div class="stat-card" style="border-top: 3px solid #10b981;" data-tooltip="Vendas aprovadas hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Vendas Hoje</span>
-                                    <div class="stat-icon green">💳</div>
-                                </div>
-                                <div class="stat-value green" id="overviewSalesToday">0</div>
-                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewTodayTime">Atualizado agora</div>
-                            </div>
-                            <div class="stat-card" style="border-top: 3px solid #f59e0b;" data-tooltip="Receita aprovada hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Faturamento Hoje</span>
-                                    <div class="stat-icon orange">💰</div>
-                                </div>
-                                <div class="stat-value" style="color: #10b981;" id="overviewRevenueToday">R$ 0</div>
-                                <div style="margin-top: 12px;" id="sparklineRevenue"></div>
-                            </div>
-                            <div class="stat-card" style="border-top: 3px solid #a855f7;" data-tooltip="Valor médio por venda aprovada">
-                                <div class="stat-header">
-                                    <span class="stat-label">Ticket Médio</span>
-                                    <div class="stat-icon purple">📊</div>
-                                </div>
-                                <div class="stat-value purple" id="overviewAvgTicket">R$ 0</div>
-                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewSalesPerCustomer">0 vendas/cliente</div>
+                            <div class="stat-value blue" id="overviewTotal">0</div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                                <div class="stat-change up" id="overviewTotalChange">↑ 0% vs ontem</div>
+                                <div id="sparklineLeads"></div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- ACCUMULATED TOTALS -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px;">Acumulado Geral</h3>
-                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Leads</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #fff;" id="overviewTotal">0</div>
+                        <div class="stat-card" style="border-top: 3px solid #10b981;">
+                            <div class="stat-header">
+                                <span class="stat-label">Vendas</span>
+                                <div class="stat-icon green">💳</div>
                             </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Vendas</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewTotalSales">0</div>
+                            <div class="stat-value green" id="overviewTotalSales">0</div>
+                            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewTodayTime">Atualizado agora</div>
+                        </div>
+                        <div class="stat-card" style="border-top: 3px solid #f59e0b;">
+                            <div class="stat-header">
+                                <span class="stat-label">Faturamento</span>
+                                <div class="stat-icon orange">💰</div>
                             </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Faturamento Total</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewRevenue">R$ 0</div>
+                            <div class="stat-value" style="color: #10b981;" id="overviewRevenue">R$ 0</div>
+                            <div style="margin-top: 12px;" id="sparklineRevenue"></div>
+                        </div>
+                        <div class="stat-card" style="border-top: 3px solid #a855f7;">
+                            <div class="stat-header">
+                                <span class="stat-label">Taxa Conversão</span>
+                                <div class="stat-icon purple">🎯</div>
                             </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Taxa Conversão</div>
-                                <div style="font-size: 28px; font-weight: 800;" id="overviewConverted">0%</div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="overviewConvRate"></div>
+                            <div class="stat-value purple" id="overviewConverted">0%</div>
+                            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewConvRate">0 clientes convertidos</div>
+                        </div>
+                        <div class="stat-card" style="border-top: 3px solid #ef4444;">
+                            <div class="stat-header">
+                                <span class="stat-label">Abandonos</span>
+                                <div class="stat-icon red">🚪</div>
                             </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Abandonos</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #ef4444;" id="overviewAbandoned">0</div>
-                                <div style="font-size: 11px; color: var(--danger); margin-top: 4px;" id="overviewAbandonRate">0% do total</div>
-                            </div>
+                            <div class="stat-value red" id="overviewAbandoned">0</div>
+                            <div style="margin-top: 12px; font-size: 12px; color: var(--danger);" id="overviewAbandonRate">0% do total</div>
                         </div>
                     </div>
 
@@ -3113,7 +3089,9 @@ Posso ajudar com alguma dúvida?</textarea>
         </div>
     </div>
 
-    <script>
+    <script src="js/admin.js"></script>
+<!-- SCRIPT REMOVED - now in js/admin.js -->
+<!-- PLACEHOLDER_SCRIPT_START
         const API_URL = window.location.origin;
         let authToken = localStorage.getItem('adminToken');
         let token = authToken; // Sync token with authToken for backward compatibility
@@ -3286,22 +3264,22 @@ Estou aqui para esclarecer tudo! 😊`
             }
             
             const filter = filterElement.value || 'all';
-            console.log('📅 Date filter value:', filter);
             
             if (filter === 'all') return null;
             
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            let startDate, endDate = new Date();
+            let startDate, endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
             
             switch(filter) {
                 case 'today':
-                    startDate = today;
+                    startDate = new Date(today);
                     break;
                 case 'yesterday':
                     startDate = new Date(today);
                     startDate.setDate(today.getDate() - 1);
-                    endDate = today;
+                    endDate = new Date(today);
+                    endDate.setSeconds(-1); // end of yesterday (23:59:59)
                     break;
                 case 'this_week':
                     startDate = new Date(today);
@@ -3312,13 +3290,14 @@ Estou aqui para esclarecer tudo! 😊`
                     startDate.setDate(today.getDate() - today.getDay() - 7);
                     endDate = new Date(today);
                     endDate.setDate(today.getDate() - today.getDay());
+                    endDate.setSeconds(-1);
                     break;
                 case 'this_month':
                     startDate = new Date(now.getFullYear(), now.getMonth(), 1);
                     break;
                 case 'last_month':
                     startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
                     break;
                 case 'last_7':
                     startDate = new Date(today);
@@ -3340,14 +3319,13 @@ Estou aqui para esclarecer tudo! 😊`
                     return null;
             }
             
+            // Use local date strings to avoid UTC timezone issues
             const result = {
-                start: startDate.toISOString(),
-                end: endDate.toISOString(),
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: endDate.toISOString().split('T')[0]
+                startDate: getLocalDateString(startDate),
+                endDate: getLocalDateString(endDate)
             };
             
-            console.log('📊 Date range:', result);
+            console.log('📅 Date filter:', filter, '→', result);
             return result;
         }
         
@@ -3390,20 +3368,26 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadOverviewFunnelComparison() {
             try {
                 const dateRange = getGlobalDateRange();
-                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
-                if (dateRange) {
-                    leadsUrl += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
-                }
+                const globalSource = getGlobalSourceFilter();
                 
-                // Fetch leads + sales for EN and ES + breakdown by source
+                // Build date params string for reuse
+                let dateParams = '';
+                if (dateRange) {
+                    dateParams = `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                }
+                let sourceParam = globalSource ? `&source=${globalSource}` : '';
+                
+                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000${dateParams}`;
+                
+                // Fetch leads + sales for EN and ES + breakdown by source - all with date filters
                 const [leadsRes, enSalesRes, esSalesRes, enMainSalesRes, enAffSalesRes, esMainSalesRes, esAffSalesRes] = await Promise.all([
                     fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales?language=en`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/sales?language=en${dateParams}${sourceParam}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es${dateParams}${sourceParam}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
@@ -3442,15 +3426,15 @@ Estou aqui para esclarecer tudo! 😊`
                 const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
                 setEl('enLeadsTotal', enTotal.toLocaleString('pt-BR'));
                 setEl('enLeadsToday', enToday.toLocaleString('pt-BR'));
-                const enRate = enTotal > 0 ? ((enConverted / enTotal) * 100).toFixed(1) : 0;
-                setEl('enConvRate', enRate + '%');
+                const enConvRate = enTotal > 0 ? (((enSales.approved || 0) / enTotal) * 100).toFixed(1) : 0;
+                setEl('enConvRate', enConvRate + '%');
                 setEl('enRevenue', 'R$ ' + (enSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
                 // Update ES stats
                 setEl('esLeadsTotal', esTotal.toLocaleString('pt-BR'));
                 setEl('esLeadsToday', esToday.toLocaleString('pt-BR'));
-                const esRate = esTotal > 0 ? ((esConverted / esTotal) * 100).toFixed(1) : 0;
-                setEl('esConvRate', esRate + '%');
+                const esConvRate = esTotal > 0 ? (((esSales.approved || 0) / esTotal) * 100).toFixed(1) : 0;
+                setEl('esConvRate', esConvRate + '%');
                 setEl('esRevenue', 'R$ ' + (esSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
                 // Update source breakdown
@@ -3849,9 +3833,34 @@ Estou aqui para esclarecer tudo! 😊`
         
         async function loadOverviewData() {
             try {
+                // Build query params from global filters
+                const dateRange = getGlobalDateRange();
+                const globalLang = document.getElementById('globalFunnelFilter')?.value || '';
+                const globalSource = getGlobalSourceFilter();
+                
+                let statsParams = new URLSearchParams();
+                let salesParams = new URLSearchParams();
+                
+                if (dateRange) {
+                    statsParams.set('startDate', dateRange.startDate);
+                    statsParams.set('endDate', dateRange.endDate);
+                    salesParams.set('startDate', dateRange.startDate);
+                    salesParams.set('endDate', dateRange.endDate);
+                }
+                if (globalLang) {
+                    statsParams.set('language', globalLang);
+                    salesParams.set('language', globalLang);
+                }
+                if (globalSource) {
+                    salesParams.set('source', globalSource);
+                }
+                
+                const statsUrl = `${API_URL}/api/admin/stats${statsParams.toString() ? '?' + statsParams.toString() : ''}`;
+                const salesUrl = `${API_URL}/api/admin/sales${salesParams.toString() ? '?' + salesParams.toString() : ''}`;
+                
                 const [statsRes, salesRes] = await Promise.all([
-                    fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(statsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(salesUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (statsRes.status === 401) { logout(); return; }
@@ -3859,32 +3868,36 @@ Estou aqui para esclarecer tudo! 😊`
                 const stats = await statsRes.json();
                 const sales = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0, today: 0 };
                 
-                // === TODAY'S HIGHLIGHTS ===
-                document.getElementById('overviewToday').textContent = stats.today.toLocaleString('pt-BR');
-                document.getElementById('quickLeadsText').textContent = `${stats.today} novos leads`;
-                
-                // Sales today
-                const salesToday = sales.today || 0;
-                document.getElementById('overviewSalesToday').textContent = salesToday.toLocaleString('pt-BR');
-                
-                // Revenue today (estimate from today's approved sales)
                 const revenueTotal = sales.revenue || 0;
                 const approvedTotal = sales.approved || 0;
-                const avgTicketCalc = approvedTotal > 0 ? revenueTotal / approvedTotal : 0;
-                const revenueTodayEstimate = salesToday * avgTicketCalc;
-                document.getElementById('overviewRevenueToday').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 
-                // Ticket Médio
-                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                // === MAIN KPIs ===
+                // Leads
+                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
                 
-                // Sales per customer (from sales endpoint)
-                const salesPerCustomerEl = document.getElementById('overviewSalesPerCustomer');
-                if (salesPerCustomerEl) {
-                    // Estimate unique customers from upsell stats
-                    const frontCount = sales.upsellStats?.front || 0;
-                    const spc = frontCount > 0 ? (approvedTotal / frontCount).toFixed(1) : '0';
-                    salesPerCustomerEl.textContent = `${spc} vendas/cliente`;
+                // Sales
+                document.getElementById('overviewTotalSales').textContent = approvedTotal.toLocaleString('pt-BR');
+                
+                // Revenue
+                document.getElementById('overviewRevenue').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                // Conversion rate
+                const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
+                const rate = stats.total > 0 ? ((approvedTotal / stats.total) * 100).toFixed(1) : 0;
+                const convEl = document.getElementById('overviewConverted');
+                convEl.textContent = `${rate}%`;
+                convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
+                const convRateEl = document.getElementById('overviewConvRate');
+                if (convRateEl) convRateEl.textContent = `${approvedTotal} vendas / ${stats.total} leads`;
+                
+                // Abandoned
+                const abandoned = Math.max(0, stats.total - converted - (stats.byStatus?.find(s => s.status === 'contacted')?.count || 0));
+                document.getElementById('overviewAbandoned').textContent = abandoned.toLocaleString('pt-BR');
+                
+                const abandonRateEl = document.getElementById('overviewAbandonRate');
+                if (abandonRateEl && stats.total > 0) {
+                    const abandonRate = ((abandoned / stats.total) * 100).toFixed(1);
+                    abandonRateEl.textContent = `${abandonRate}% do total`;
                 }
                 
                 // Update last update time
@@ -3893,41 +3906,48 @@ Estou aqui para esclarecer tudo! 😊`
                 const todayTimeEl = document.getElementById('overviewTodayTime');
                 if (todayTimeEl) todayTimeEl.textContent = `Atualizado ${timeStr}`;
                 
-                // === ACCUMULATED TOTALS ===
-                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
-                document.getElementById('overviewTotalSales').textContent = approvedTotal.toLocaleString('pt-BR');
-                document.getElementById('overviewRevenue').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                
-                // Conversion rate
-                const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
-                const rate = stats.total > 0 ? ((converted / stats.total) * 100).toFixed(1) : 0;
-                const convEl = document.getElementById('overviewConverted');
-                convEl.textContent = `${rate}%`;
-                convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
-                const convRateEl = document.getElementById('overviewConvRate');
-                if (convRateEl) convRateEl.textContent = `${converted} clientes convertidos`;
-                
-                // Abandoned
-                const abandoned = Math.max(0, stats.total - converted - (stats.byStatus?.find(s => s.status === 'contacted')?.count || 0));
-                document.getElementById('overviewAbandoned').textContent = abandoned.toLocaleString('pt-BR');
+                // Update quick action texts
+                document.getElementById('quickLeadsText').textContent = `${stats.today} novos leads`;
                 document.getElementById('quickRecoveryText').textContent = `${abandoned} leads aguardando`;
+                document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 document.getElementById('navRecoveryCount').textContent = abandoned;
                 
-                const abandonRateEl = document.getElementById('overviewAbandonRate');
-                if (abandonRateEl && stats.total > 0) {
-                    const abandonRate = ((abandoned / stats.total) * 100).toFixed(1);
-                    abandonRateEl.textContent = `${abandonRate}% do total`;
+                // Sparkline
+                if (stats.byDay) {
+                    const data = stats.byDay.map(d => parseInt(d.count)).reverse();
+                    createSparkline(data.slice(-7), 'sparklineLeads');
+                }
+                
+                // Change vs yesterday
+                if (stats.byDay && stats.byDay.length >= 2) {
+                    const todayCount = stats.today || 0;
+                    const yesterdayData = stats.byDay.find(d => {
+                        const dateStr = new Date(d.date).toLocaleDateString('pt-BR');
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        return dateStr === yesterday.toLocaleDateString('pt-BR');
+                    });
+                    const yesterdayCount = yesterdayData ? parseInt(yesterdayData.count) : 0;
+                    const changeEl = document.getElementById('overviewTotalChange');
+                    if (changeEl) {
+                        if (yesterdayCount > 0) {
+                            const pct = (((todayCount - yesterdayCount) / yesterdayCount) * 100).toFixed(0);
+                            changeEl.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct)}% vs ontem`;
+                            changeEl.className = `stat-change ${pct >= 0 ? 'up' : 'down'}`;
+                        } else {
+                            changeEl.textContent = `↑ ${todayCount} novos hoje`;
+                            changeEl.className = 'stat-change up';
+                        }
+                    }
                 }
                 
                 // === CHARTS ===
                 if (stats.byDay && leadsChart) {
                     const labels = stats.byDay.map(d => new Date(d.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).reverse();
-                    const data = stats.byDay.map(d => parseInt(d.count)).reverse();
+                    const chartData = stats.byDay.map(d => parseInt(d.count)).reverse();
                     leadsChart.data.labels = labels;
-                    leadsChart.data.datasets[0].data = data;
+                    leadsChart.data.datasets[0].data = chartData;
                     leadsChart.update();
-                    
-                    createSparkline(data.slice(-7), 'sparklineLeads');
                 }
                 
                 if (stats.byStatus && statusChart) {
@@ -3947,10 +3967,18 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadStats() {
             try {
                 const dateRange = getGlobalDateRange();
-                let url = `${API_URL}/api/admin/stats`;
+                const globalLang = document.getElementById('globalFunnelFilter')?.value || '';
+                
+                let params = new URLSearchParams();
                 if (dateRange) {
-                    url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    params.set('startDate', dateRange.startDate);
+                    params.set('endDate', dateRange.endDate);
                 }
+                if (globalLang) {
+                    params.set('language', globalLang);
+                }
+                
+                let url = `${API_URL}/api/admin/stats${params.toString() ? '?' + params.toString() : ''}`;
                 
                 const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (response.status === 401 || response.status === 403) { logout(); return; }
@@ -7805,6 +7833,6 @@ Posso ajudar em algo mais? 😊`
             html += '</div>';
             container.innerHTML = html;
         }
-    </script>
+PLACEHOLDER_SCRIPT_END -->
 </body>
 </html>

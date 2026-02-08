@@ -936,6 +936,12 @@ app.put('/api/admin/profile/password', authenticateToken, async (req, res) => {
     }
 });
 
+// Helper: ensure endDate includes full day (23:59:59) when only date is provided
+function normalizeEndDate(endDate) {
+    if (!endDate) return endDate;
+    return endDate.length === 10 ? endDate + ' 23:59:59' : endDate;
+}
+
 // Get all leads (protected)
 app.get('/api/admin/leads', authenticateToken, async (req, res) => {
     try {
@@ -945,7 +951,8 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
         const search = req.query.search || '';
         const status = req.query.status || '';
         const language = req.query.language || '';  // Filter by funnel language (en/es)
-        const { startDate, endDate } = req.query;
+        const { startDate } = req.query;
+        const endDate = normalizeEndDate(req.query.endDate);
         
         let query = `SELECT * FROM leads`;
         let countQuery = `SELECT COUNT(*) FROM leads`;
@@ -1009,35 +1016,55 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
 // Get lead statistics (protected)
 app.get('/api/admin/stats', authenticateToken, async (req, res) => {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, language, source } = req.query;
+        const endDate = normalizeEndDate(req.query.endDate);
         
-        // Build date filter
-        let dateFilter = '';
+        // Build filters dynamically
+        let conditions = ['1=1'];
         const params = [];
+        let paramIdx = 1;
+        
         if (startDate && endDate) {
-            dateFilter = ` AND created_at >= $1 AND created_at <= $2`;
+            conditions.push(`created_at >= $${paramIdx} AND created_at <= $${paramIdx + 1}`);
             params.push(startDate, endDate);
+            paramIdx += 2;
         }
         
+        if (language === 'en' || language === 'es') {
+            if (language === 'en') {
+                conditions.push(`(funnel_language = $${paramIdx} OR funnel_language IS NULL)`);
+            } else {
+                conditions.push(`funnel_language = $${paramIdx}`);
+            }
+            params.push(language);
+            paramIdx++;
+        }
+        
+        // Source filter for leads isn't directly applicable (leads don't have funnel_source)
+        // but we can use it for consistency; leads from affiliate funnels might be identifiable
+        // by their funnel_language suffix - for now, skip source filter on leads
+        
+        const whereClause = conditions.join(' AND ');
+        
         const [totalResult, todayResult, weekResult, statusResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1${dateFilter}`, params),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE${dateFilter}`, params),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'${dateFilter}`, params),
-            pool.query(`SELECT status, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY status`, params)
+            pool.query(`SELECT COUNT(*) FROM leads WHERE ${whereClause}`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE ${whereClause} AND created_at >= CURRENT_DATE`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE ${whereClause} AND created_at >= CURRENT_DATE - INTERVAL '7 days'`, params),
+            pool.query(`SELECT status, COUNT(*) FROM leads WHERE ${whereClause} GROUP BY status`, params)
         ]);
         
-        // Get leads by day for the last 7 days
+        // Get leads by day for chart
         const dailyResult = await pool.query(`
             SELECT DATE(created_at) as date, COUNT(*) as count
             FROM leads
-            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'${dateFilter}
+            WHERE ${whereClause} AND created_at >= CURRENT_DATE - INTERVAL '30 days'
             GROUP BY DATE(created_at)
             ORDER BY date DESC
         `, params);
         
         // Get leads by gender
         const genderResult = await pool.query(`
-            SELECT target_gender, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY target_gender
+            SELECT target_gender, COUNT(*) FROM leads WHERE ${whereClause} GROUP BY target_gender
         `, params);
         
         res.json({
@@ -3283,7 +3310,8 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
 // Get transactions (protected)
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate, source } = req.query;
+        const { language, startDate, source } = req.query;
+        const endDate = normalizeEndDate(req.query.endDate);
         
         let query = `SELECT * FROM transactions WHERE 1=1`;
         let params = [];
@@ -3350,7 +3378,8 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate, source } = req.query;
+        const { language, startDate, source } = req.query;
+        const endDate = normalizeEndDate(req.query.endDate);
         
         // Build language filter
         let langCondition = '';
