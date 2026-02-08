@@ -3359,19 +3359,21 @@ Estou aqui para esclarecer tudo! 😊`
             try {
                 const dateRange = getGlobalDateRange();
                 let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
+                let dateParams = '';
                 if (dateRange) {
                     leadsUrl += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    dateParams = `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
                 
-                // Fetch leads + sales for EN and ES + breakdown by source
+                // Fetch leads + sales for EN and ES + breakdown by source (with date filter)
                 const [leadsRes, enSalesRes, esSalesRes, enMainSalesRes, enAffSalesRes, esMainSalesRes, esAffSalesRes] = await Promise.all([
                     fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales?language=en`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/sales?language=en${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
@@ -3817,9 +3819,15 @@ Estou aqui para esclarecer tudo! 😊`
         
         async function loadOverviewData() {
             try {
+                const dateRange = getGlobalDateRange();
+                let dateParams = '';
+                if (dateRange) {
+                    dateParams = `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                }
+                
                 const [statsRes, salesRes] = await Promise.all([
-                    fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/stats${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/api/admin/sales${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (statsRes.status === 401) { logout(); return; }
