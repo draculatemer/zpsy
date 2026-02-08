@@ -2317,6 +2317,10 @@
             const userCountryCode = localStorage.getItem('userCountryCode');
             const userPhoneNumber = localStorage.getItem('userPhoneNumber');
             
+            // Add visitorId for cross-domain tracking (Monetizze will pass this to upsell pages)
+            const visitorId = localStorage.getItem('funnelVisitorId');
+            if (visitorId) checkoutUrl += '&vid=' + encodeURIComponent(visitorId);
+            
             if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
             // Send only the phone number without country code (Monetizze has its own country selector)
@@ -2414,6 +2418,10 @@
             const userName = localStorage.getItem('userName');
             const userEmail = localStorage.getItem('userEmail');
             const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+            
+            // Add visitorId for cross-domain tracking (Monetizze will pass this to upsell pages)
+            const visitorId = localStorage.getItem('funnelVisitorId');
+            if (visitorId) checkoutUrl += '&vid=' + encodeURIComponent(visitorId);
             
             if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);

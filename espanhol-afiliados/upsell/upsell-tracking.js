@@ -3,7 +3,9 @@
  * Tracks visitor journey through upsell pages
  * Uses the same visitorId from main funnel for complete journey tracking
  * 
- * ENHANCED v2.0 - Added detailed diagnostic events for conversion analysis
+ * ENHANCED v2.1 - Added URL parameter support for cross-domain tracking
+ * When Monetizze loads upsell pages, localStorage is not available from original domain
+ * So we pass visitorId via URL parameter to maintain tracking continuity
  */
 
 const UpsellTracker = {
@@ -11,14 +13,30 @@ const UpsellTracker = {
     pageLoadTime: Date.now(),
     scrollDepth: 0,
     
-    // Get existing visitor ID from main funnel
+    // Get visitor ID from URL parameter first, then localStorage, then create new
     getVisitorId: function() {
-        let visitorId = localStorage.getItem('funnelVisitorId');
+        // Priority 1: Check URL parameter (for cross-domain tracking via Monetizze)
+        const urlParams = new URLSearchParams(window.location.search);
+        let visitorId = urlParams.get('vid') || urlParams.get('visitorId');
+        
+        // Priority 2: Check localStorage
         if (!visitorId) {
-            // Create new one if somehow doesn't exist
-            visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('funnelVisitorId', visitorId);
+            visitorId = localStorage.getItem('funnelVisitorId');
         }
+        
+        // Priority 3: Create new one if nothing found
+        if (!visitorId) {
+            visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            console.log('⚠️ UpsellTracker: Created new visitorId (no URL param or localStorage found)');
+        }
+        
+        // Always save to localStorage for future use
+        try {
+            localStorage.setItem('funnelVisitorId', visitorId);
+        } catch (e) {
+            // localStorage might not be available in some contexts
+        }
+        
         return visitorId;
     },
     
