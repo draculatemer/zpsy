@@ -2094,10 +2094,21 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
         // 1=Aguardando, 2=Finalizada, 3=Cancelada, 4=Devolvida, 5=Bloqueada, 6=Completa
         ['1','2','3','4','5','6'].forEach(s => params.append('status[]', s));
         
-        // Only fetch our 8 specific products (4 English + 4 Spanish)
-        // English: 341972 (Front), 349241 (UP1), 349242 (UP2), 349243 (UP3)
-        // Spanish: 349260 (Front), 349261 (UP1), 349266 (UP2), 349267 (UP3)
-        const validProductCodes = ['341972', '349241', '349242', '349243', '349260', '349261', '349266', '349267'];
+        // Only fetch our 16 specific products (8 main + 8 affiliate)
+        // English Main: 341972 (Front), 349241 (UP1), 349242 (UP2), 349243 (UP3)
+        // English Affiliates: 330254 (Front), 341443 (UP1), 341444 (UP2), 341448 (UP3)
+        // Spanish Main: 349260 (Front), 349261 (UP1), 349266 (UP2), 349267 (UP3)
+        // Spanish Affiliates: 338375 (Front), 341452 (UP1), 341453 (UP2), 341454 (UP3)
+        const validProductCodes = [
+            // English Main
+            '341972', '349241', '349242', '349243',
+            // English Affiliates
+            '330254', '341443', '341444', '341448',
+            // Spanish Main
+            '349260', '349261', '349266', '349267',
+            // Spanish Affiliates
+            '338375', '341452', '341453', '341454'
+        ];
         validProductCodes.forEach(code => params.append('product[]', code));
         
         const txUrl = `https://api.monetizze.com.br/2.1/transactions?${params.toString()}`;
@@ -2230,8 +2241,17 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 
                 console.log(`📋 Processing sale: ID=${transactionId}, Product=${productName} (${productCode}), Value=${value}, Status=${status} (${statusCode})`);
                 
-                // Double-check: only sync our 8 products (filter may not work perfectly in API)
-                const validProductCodes = ['341972', '349241', '349242', '349243', '349260', '349261', '349266', '349267'];
+                // Double-check: only sync our 16 products (8 main + 8 affiliate)
+                const validProductCodes = [
+                    // English Main
+                    '341972', '349241', '349242', '349243',
+                    // English Affiliates
+                    '330254', '341443', '341444', '341448',
+                    // Spanish Main
+                    '349260', '349261', '349266', '349267',
+                    // Spanish Affiliates
+                    '338375', '341452', '341453', '341454'
+                ];
                 if (productCode && !validProductCodes.includes(String(productCode))) {
                     console.log(`⏭️ Skipping product not in our funnel: ${productCode} - ${productName}`);
                     skipped++;
@@ -2250,9 +2270,19 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                     }
                 }
                 
-                // Detect funnel language
-                const spanishProductCodes = ['349260', '349261', '349266', '349267'];
-                const funnelLanguage = spanishProductCodes.includes(String(productCode)) ? 'es' : 'en';
+                // Detect funnel language and type (main vs affiliate)
+                const spanishMainCodes = ['349260', '349261', '349266', '349267'];
+                const spanishAffCodes = ['338375', '341452', '341453', '341454'];
+                const englishAffCodes = ['330254', '341443', '341444', '341448'];
+                
+                let funnelLanguage = 'en';
+                if (spanishMainCodes.includes(String(productCode))) {
+                    funnelLanguage = 'es';
+                } else if (spanishAffCodes.includes(String(productCode))) {
+                    funnelLanguage = 'es-aff';
+                } else if (englishAffCodes.includes(String(productCode))) {
+                    funnelLanguage = 'en-aff';
+                }
                 
                 // Map status
                 const statusMap = {
@@ -2546,9 +2576,11 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // Determine funnel language
         // Monetizze sends venda.idioma ('es', 'pt', 'en' etc)
         // Also check product codes and names as fallback
-        const spanishProductCodes = ['349260', '349261', '349266', '349267'];
+        // Spanish: Main (349260-349267) + Affiliates (338375, 341452-341454)
+        const spanishProductCodes = ['349260', '349261', '349266', '349267', '338375', '341452', '341453', '341454'];
         const spanishProductKeywords = ['Infidelidad', 'Recuperación', 'Visión Total', 'VIP Sin Esperas'];
-        const englishProductCodes = ['341972', '349241', '349242', '349243'];
+        // English: Main (341972, 349241-349243) + Affiliates (330254, 341443-341448)
+        const englishProductCodes = ['341972', '349241', '349242', '349243', '330254', '341443', '341444', '341448'];
         
         let funnelLanguage = 'en'; // default to English
         
@@ -2566,24 +2598,27 @@ app.all('/api/postback/monetizze', async (req, res) => {
         const productNameLower = (productName || '').toLowerCase();
         const productCodeStr = String(productCode || '');
         
-        // English products (IDs: 341972=Front, 349241=UP1, 349242=UP2, 349243=UP3)
-        if (productNameLower.includes('message vault') || productCodeStr === '349241') {
+        // English products - Main: 341972=Front, 349241=UP1, 349242=UP2, 349243=UP3
+        //                  - Affiliates: 330254=Front, 341443=UP1, 341444=UP2, 341448=UP3
+        if (productNameLower.includes('message vault') || ['349241', '341443'].includes(productCodeStr)) {
             productType = 'upsell1';
-        } else if (productNameLower.includes('360') || productNameLower.includes('tracker') || productCodeStr === '349242') {
+        } else if (productNameLower.includes('360') || productNameLower.includes('tracker') || ['349242', '341444'].includes(productCodeStr)) {
             productType = 'upsell2';
-        } else if (productNameLower.includes('instant access') || productCodeStr === '349243') {
+        } else if (productNameLower.includes('instant access') || ['349243', '341448'].includes(productCodeStr)) {
             productType = 'upsell3';
         }
-        // Spanish products (IDs: 349260=Front, 349261=UP1, 349266=UP2, 349267=UP3)
-        else if (productNameLower.includes('recuperación total') || productCodeStr === '349261') {
+        // Spanish products - Main: 349260=Front, 349261=UP1, 349266=UP2, 349267=UP3
+        //                  - Affiliates: 338375=Front, 341452=UP1, 341453=UP2, 341454=UP3
+        else if (productNameLower.includes('recuperación total') || ['349261', '341452'].includes(productCodeStr)) {
             productType = 'upsell1';
-        } else if (productNameLower.includes('visión total') || productCodeStr === '349266') {
+        } else if (productNameLower.includes('visión total') || ['349266', '341453'].includes(productCodeStr)) {
             productType = 'upsell2';
-        } else if (productNameLower.includes('sin esperas') || productCodeStr === '349267') {
+        } else if (productNameLower.includes('sin esperas') || ['349267', '341454'].includes(productCodeStr)) {
             productType = 'upsell3';
         }
         // Front products (if none of the upsells matched)
-        // English: X AI Monitor (341972), Spanish: Detector de Infidelidad (349260)
+        // English Main: X AI Monitor (341972), Affiliates: (330254)
+        // Spanish Main: Detector de Infidelidad (349260), Affiliates: (338375)
         
         console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode}, type: ${productType})`);
         
