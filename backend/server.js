@@ -1762,21 +1762,18 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 txLangCondition = `AND funnel_language = 'es'`;
             }
             
-            // Debug: log query conditions
-            console.log('Transaction stats query - dateCondition:', txDateCondition, 'langCondition:', txLangCondition);
-            
+            // Count unique emails per status (not total transactions)
+            // This makes it consistent with funnel which counts unique visitors
             const txResult = await pool.query(`
                 SELECT 
                     status,
-                    COUNT(*) as count
+                    COUNT(DISTINCT email) as count
                 FROM transactions
                 WHERE 1=1
                 ${txDateCondition}
                 ${txLangCondition}
                 GROUP BY status
             `);
-            
-            console.log('Transaction stats result:', txResult.rows);
             
             // Parse transaction stats
             const txStats = {};
