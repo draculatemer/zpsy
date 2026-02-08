@@ -2290,6 +2290,14 @@
             localStorage.setItem('userPhoneNumber', whatsapp); // Número de teléfono sin código de país para Monetizze
             
             // Enviar al backend
+            // Ensure visitorId exists
+            let visitorId = localStorage.getItem('funnelVisitorId');
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('funnelVisitorId', visitorId);
+                console.log('📊 Created visitorId in phone.html:', visitorId);
+            }
+            
             sendLeadToBackend({
                 name: name,
                 email: email,
@@ -2299,7 +2307,8 @@
                 funnelLanguage: 'es',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                referrer: document.referrer
+                referrer: document.referrer,
+                visitorId: visitorId
             });
             
             // Rastrear evento

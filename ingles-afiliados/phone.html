@@ -2281,16 +2281,25 @@
             localStorage.setItem('userPhoneNumber', whatsapp); // Phone number without country code for Monetizze
             
             // Send to backend
+            // Ensure visitorId exists
+            let visitorId = localStorage.getItem('funnelVisitorId');
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('funnelVisitorId', visitorId);
+                console.log('📊 Created visitorId in phone.html:', visitorId);
+            }
+            
             sendLeadToBackend({
                 name: name,
                 email: email,
                 whatsapp: country + whatsapp,
                 targetPhone: localStorage.getItem('targetPhone') || '',
                 targetGender: localStorage.getItem('targetGender') || '',
-                funnelLanguage: 'en',
+                funnelLanguage: 'en-aff',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                referrer: document.referrer
+                referrer: document.referrer,
+                visitorId: visitorId
             });
             
             // Track event
