@@ -2672,6 +2672,14 @@
                                 <button class="btn-secondary" style="background: #a855f7; color: white; border-color: #a855f7;" onclick="migrateFunnelSource()">🔄 Classificar Origem das Transações</button>
                                 <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Classifica transações existentes como "Principal" ou "Afiliado" baseado no código do produto.</p>
                             </div>
+                            <div>
+                                <button class="btn-secondary" style="background: #22c55e; color: white; border-color: #22c55e;" onclick="migrateLeadsFunnelSource()">👥 Classificar Origem dos Leads</button>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Classifica leads existentes como "Principal" ou "Afiliado" baseado nas transações relacionadas por email.</p>
+                            </div>
+                            <div>
+                                <button class="btn-primary" style="background: linear-gradient(135deg, #a855f7, #22c55e); border: none;" onclick="migrateAllFunnelSources()">🚀 Migrar Tudo (Transações + Leads)</button>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Executa ambas as migrações em sequência.</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -7580,6 +7588,76 @@ Posso ajudar em algo mais? 😊`
             } catch (error) {
                 console.error('Migration error:', error);
                 showToast('Erro', 'Falha ao migrar transações', 'error');
+            }
+        }
+        
+        async function migrateLeadsFunnelSource() {
+            try {
+                showToast('🔄 Migrando...', 'Classificando leads por origem...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/admin/migrate-leads-funnel-source`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) { logout(); return; }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const statsText = data.stats ? data.stats.map(s => `${s.funnel_source}: ${s.count}`).join(', ') : '';
+                    showToast('👥 Leads Migrados!', `${data.affiliateUpdated} leads classificados como afiliado, ${data.nullFixed} definidos como principal. (${statsText})`, 'success');
+                    loadOverviewFunnelComparison();
+                } else {
+                    showToast('Erro', data.error || 'Falha na migração de leads', 'error');
+                }
+            } catch (error) {
+                console.error('Leads migration error:', error);
+                showToast('Erro', 'Falha ao migrar leads', 'error');
+            }
+        }
+        
+        async function migrateAllFunnelSources() {
+            try {
+                showToast('🚀 Migrando Tudo...', 'Classificando transações e leads por origem...', 'info');
+                
+                // First migrate transactions
+                const txResponse = await fetch(`${API_URL}/api/admin/migrate-funnel-source`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (txResponse.status === 401 || txResponse.status === 403) { logout(); return; }
+                const txData = await txResponse.json();
+                
+                // Then migrate leads
+                const leadsResponse = await fetch(`${API_URL}/api/admin/migrate-leads-funnel-source`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const leadsData = await leadsResponse.json();
+                
+                if (txData.success && leadsData.success) {
+                    const statsText = leadsData.stats ? leadsData.stats.map(s => `${s.funnel_source}: ${s.count}`).join(', ') : '';
+                    showToast('🚀 Migração Completa!', `Transações: ${txData.updated} afiliados, ${txData.nullFixed} principais. Leads: ${leadsData.affiliateUpdated} afiliados, ${leadsData.nullFixed} principais. (${statsText})`, 'success');
+                    loadOverviewFunnelComparison();
+                    loadSalesData();
+                } else {
+                    showToast('Erro', 'Falha parcial na migração', 'error');
+                }
+            } catch (error) {
+                console.error('Full migration error:', error);
+                showToast('Erro', 'Falha ao migrar dados', 'error');
             }
         }
         
