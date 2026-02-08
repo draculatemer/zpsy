@@ -4230,9 +4230,15 @@ Estou aqui para esclarecer tudo! 😊`
                 if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
+                console.log('Recovery API Response:', data);
+                console.log('Pagination:', data.pagination);
+                
                 const leads = data.leads || [];
-                recoveryTotalCount = data.total || leads.length;
-                recoveryTotalPages = Math.ceil(recoveryTotalCount / recoveryPerPage) || 1;
+                // Fix: use pagination.total from backend response
+                recoveryTotalCount = data.pagination?.total || data.total || leads.length;
+                recoveryTotalPages = data.pagination?.totalPages || Math.ceil(recoveryTotalCount / recoveryPerPage) || 1;
+                
+                console.log('Recovery Total Count:', recoveryTotalCount, 'Total Pages:', recoveryTotalPages);
                 
                 document.getElementById('recoveryAbandonedCount').textContent = recoveryTotalCount;
                 document.getElementById('recoveryPendingCount').textContent = recoveryTotalCount; // Simplify - all are pending
