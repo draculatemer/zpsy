@@ -1342,7 +1342,10 @@
                             <option value="last_15">Últimos 15 dias</option>
                             <option value="last_30">Últimos 30 dias</option>
                             <option value="last_60">Últimos 60 dias</option>
+                            <option value="custom">📆 Período personalizado</option>
                         </select>
+                        <input type="date" class="funnel-selector" id="globalDateStart" onchange="onGlobalFilterChange()" title="Data inicial" style="min-width: 150px; display: none;">
+                        <input type="date" class="funnel-selector" id="globalDateEnd" onchange="onGlobalFilterChange()" title="Data final" style="min-width: 150px; display: none;">
                     </div>
                     <!-- ROI Calculator Button -->
                     <button class="btn-secondary" onclick="openROICalculator()" title="Calculadora de ROI" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15)); border-color: rgba(139, 92, 246, 0.3);">
@@ -1362,78 +1365,6 @@
             <div class="page-content">
                 <!-- Tab: Overview -->
                 <div class="tab-content active" id="tab-overview">
-                    <!-- TODAY'S HIGHLIGHTS - Main KPIs -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
-                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></span> Resumo de Hoje
-                        </h3>
-                        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
-                            <div class="stat-card" style="border-top: 3px solid #3b82f6;" data-tooltip="Novos leads capturados hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Leads Hoje</span>
-                                    <div class="stat-icon blue">👥</div>
-                                </div>
-                                <div class="stat-value blue" id="overviewToday">0</div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-                                    <div class="stat-change up" id="overviewTotalChange">↑ 0% vs ontem</div>
-                                    <div id="sparklineLeads"></div>
-                                </div>
-                            </div>
-                            <div class="stat-card" style="border-top: 3px solid #10b981;" data-tooltip="Vendas aprovadas hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Vendas Hoje</span>
-                                    <div class="stat-icon green">💳</div>
-                                </div>
-                                <div class="stat-value green" id="overviewSalesToday">0</div>
-                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewTodayTime">Atualizado agora</div>
-                            </div>
-                            <div class="stat-card" style="border-top: 3px solid #f59e0b;" data-tooltip="Receita aprovada hoje">
-                                <div class="stat-header">
-                                    <span class="stat-label">Faturamento Hoje</span>
-                                    <div class="stat-icon orange">💰</div>
-                                </div>
-                                <div class="stat-value" style="color: #10b981;" id="overviewRevenueToday">R$ 0</div>
-                                <div style="margin-top: 12px;" id="sparklineRevenue"></div>
-                            </div>
-                            <div class="stat-card" style="border-top: 3px solid #a855f7;" data-tooltip="Valor médio por venda aprovada">
-                                <div class="stat-header">
-                                    <span class="stat-label">Ticket Médio</span>
-                                    <div class="stat-icon purple">📊</div>
-                                </div>
-                                <div class="stat-value purple" id="overviewAvgTicket">R$ 0</div>
-                                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);" id="overviewSalesPerCustomer">0 vendas/cliente</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ACCUMULATED TOTALS -->
-                    <div style="margin-bottom: 28px;">
-                        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px;">Acumulado Geral</h3>
-                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Leads</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #fff;" id="overviewTotal">0</div>
-                            </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Total Vendas</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewTotalSales">0</div>
-                            </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Faturamento Total</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #10b981;" id="overviewRevenue">R$ 0</div>
-                            </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Taxa Conversão</div>
-                                <div style="font-size: 28px; font-weight: 800;" id="overviewConverted">0%</div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="overviewConvRate"></div>
-                            </div>
-                            <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
-                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Abandonos</div>
-                                <div style="font-size: 28px; font-weight: 800; color: #ef4444;" id="overviewAbandoned">0</div>
-                                <div style="font-size: 11px; color: var(--danger); margin-top: 4px;" id="overviewAbandonRate">0% do total</div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- FUNNEL COMPARISON - EN vs ES with Main/Affiliate breakdown -->
                     <div class="funnel-comparison" id="funnelComparison">
@@ -3290,6 +3221,31 @@ Estou aqui para esclarecer tudo! 😊`
             
             if (filter === 'all') return null;
             
+            // Handle custom date range
+            if (filter === 'custom') {
+                const startDateInput = document.getElementById('globalDateStart').value;
+                const endDateInput = document.getElementById('globalDateEnd').value;
+                
+                if (!startDateInput || !endDateInput) {
+                    console.warn('⚠️ Custom dates not fully selected');
+                    return null;
+                }
+                
+                const startDate = new Date(startDateInput);
+                const endDate = new Date(endDateInput);
+                endDate.setHours(23, 59, 59, 999); // End of day
+                
+                const result = {
+                    start: startDate.toISOString(),
+                    end: endDate.toISOString(),
+                    startDate: startDateInput,
+                    endDate: endDateInput
+                };
+                
+                console.log('📊 Custom date range:', result);
+                return result;
+            }
+            
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             let startDate, endDate = new Date();
@@ -3373,12 +3329,24 @@ Estou aqui para esclarecer tudo! 😊`
             const globalSourceFilter = document.getElementById('globalSourceFilter')?.value || '';
             console.log('📊 Language:', globalLangFilter, 'Date:', globalDateFilter, 'Source:', globalSourceFilter);
             
+            // Show/hide custom date inputs
+            const showCustomDates = globalDateFilter === 'custom';
+            const dateStartInput = document.getElementById('globalDateStart');
+            const dateEndInput = document.getElementById('globalDateEnd');
+            
+            if (dateStartInput && dateEndInput) {
+                dateStartInput.style.display = showCustomDates ? 'block' : 'none';
+                dateEndInput.style.display = showCustomDates ? 'block' : 'none';
+            }
+            
             // Sync with leads page filter
             const languageFilter = document.getElementById('languageFilter');
             if (languageFilter) languageFilter.value = globalLangFilter;
             
-            // Reload all data
-            loadAllData();
+            // Only reload if not custom or if custom dates are selected
+            if (globalDateFilter !== 'custom' || (dateStartInput?.value && dateEndInput?.value)) {
+                loadAllData();
+            }
         }
         
         // Get global source filter value
@@ -3859,65 +3827,28 @@ Estou aqui para esclarecer tudo! 😊`
                 const stats = await statsRes.json();
                 const sales = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0, today: 0 };
                 
-                // === TODAY'S HIGHLIGHTS ===
-                document.getElementById('overviewToday').textContent = stats.today.toLocaleString('pt-BR');
-                document.getElementById('quickLeadsText').textContent = `${stats.today} novos leads`;
-                
-                // Sales today
+                // Calculate metrics
                 const salesToday = sales.today || 0;
-                document.getElementById('overviewSalesToday').textContent = salesToday.toLocaleString('pt-BR');
-                
-                // Revenue today (estimate from today's approved sales)
                 const revenueTotal = sales.revenue || 0;
                 const approvedTotal = sales.approved || 0;
                 const avgTicketCalc = approvedTotal > 0 ? revenueTotal / approvedTotal : 0;
                 const revenueTodayEstimate = salesToday * avgTicketCalc;
-                document.getElementById('overviewRevenueToday').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                
-                // Ticket Médio
-                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                
-                // Sales per customer (from sales endpoint)
-                const salesPerCustomerEl = document.getElementById('overviewSalesPerCustomer');
-                if (salesPerCustomerEl) {
-                    // Estimate unique customers from upsell stats
-                    const frontCount = sales.upsellStats?.front || 0;
-                    const spc = frontCount > 0 ? (approvedTotal / frontCount).toFixed(1) : '0';
-                    salesPerCustomerEl.textContent = `${spc} vendas/cliente`;
-                }
-                
-                // Update last update time
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const todayTimeEl = document.getElementById('overviewTodayTime');
-                if (todayTimeEl) todayTimeEl.textContent = `Atualizado ${timeStr}`;
-                
-                // === ACCUMULATED TOTALS ===
-                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
-                document.getElementById('overviewTotalSales').textContent = approvedTotal.toLocaleString('pt-BR');
-                document.getElementById('overviewRevenue').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                
-                // Conversion rate
                 const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
                 const rate = stats.total > 0 ? ((converted / stats.total) * 100).toFixed(1) : 0;
-                const convEl = document.getElementById('overviewConverted');
-                convEl.textContent = `${rate}%`;
-                convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
-                const convRateEl = document.getElementById('overviewConvRate');
-                if (convRateEl) convRateEl.textContent = `${converted} clientes convertidos`;
-                
-                // Abandoned
                 const abandoned = Math.max(0, stats.total - converted - (stats.byStatus?.find(s => s.status === 'contacted')?.count || 0));
-                document.getElementById('overviewAbandoned').textContent = abandoned.toLocaleString('pt-BR');
-                document.getElementById('quickRecoveryText').textContent = `${abandoned} leads aguardando`;
-                document.getElementById('navRecoveryCount').textContent = abandoned;
                 
-                const abandonRateEl = document.getElementById('overviewAbandonRate');
-                if (abandonRateEl && stats.total > 0) {
-                    const abandonRate = ((abandoned / stats.total) * 100).toFixed(1);
-                    abandonRateEl.textContent = `${abandonRate}% do total`;
-                }
+                // Update quick stats (if they exist)
+                const quickLeadsTextEl = document.getElementById('quickLeadsText');
+                if (quickLeadsTextEl) quickLeadsTextEl.textContent = `${stats.today} novos leads`;
+                
+                const quickSalesTextEl = document.getElementById('quickSalesText');
+                if (quickSalesTextEl) quickSalesTextEl.textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                const quickRecoveryTextEl = document.getElementById('quickRecoveryText');
+                if (quickRecoveryTextEl) quickRecoveryTextEl.textContent = `${abandoned} leads aguardando`;
+                
+                const navRecoveryCountEl = document.getElementById('navRecoveryCount');
+                if (navRecoveryCountEl) navRecoveryCountEl.textContent = abandoned;
                 
                 // === CHARTS ===
                 if (stats.byDay && leadsChart) {
@@ -3926,8 +3857,6 @@ Estou aqui para esclarecer tudo! 😊`
                     leadsChart.data.labels = labels;
                     leadsChart.data.datasets[0].data = data;
                     leadsChart.update();
-                    
-                    createSparkline(data.slice(-7), 'sparklineLeads');
                 }
                 
                 if (stats.byStatus && statusChart) {

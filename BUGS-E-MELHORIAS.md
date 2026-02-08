@@ -144,6 +144,30 @@ phone.html?gender=... (input telefone)
 
 ---
 
+## MELHORIAS APLICADAS (v2.2.0) - 08/02/2026
+
+### 1. Remoção da seção "Resumo de Hoje"
+- **Problema:** Seção de resumo ocupava espaço e duplicava informações já disponíveis em outros lugares
+- **Correção:** Removida toda a seção com cards de "Leads Hoje", "Vendas Hoje", "Faturamento Hoje", "Ticket Médio", "Total Leads", "Total Vendas", "Faturamento Total", "Taxa Conversão" e "Abandonos"
+- **Benefício:** Interface mais limpa e focada nos dados filtrados
+
+### 2. Correção e melhoria dos filtros globais
+- **Problema:** Filtros de data não estavam funcionando corretamente
+- **Correção:** 
+  - Adicionada opção "Período personalizado" no filtro de data global
+  - Implementados campos de data inicial e final que aparecem quando "Período personalizado" é selecionado
+  - Corrigida a função `getGlobalDateRange()` para suportar datas personalizadas
+  - Atualizada a função `onGlobalFilterChange()` para mostrar/ocultar campos de data personalizada
+  - Filtros agora aplicam corretamente em todas as seções do painel
+- **Benefício:** Usuários podem visualizar dados de qualquer período específico
+
+### 3. Limpeza de código JavaScript
+- **Problema:** Referências a elementos HTML removidos causavam erros no console
+- **Correção:** Removidas todas as referências aos elementos da seção de resumo removida
+- **Benefício:** Código mais limpo e sem erros
+
+---
+
 ## MELHORIAS FUTURAS SUGERIDAS
 
 ### 1. Unificar as 3 páginas CTA
@@ -170,11 +194,14 @@ phone.html?gender=... (input telefone)
 
 ## RESUMO DAS MUDANÇAS
 
-| Tipo | Quantidade | Status |
-|------|------------|--------|
-| Bugs corrigidos | 10 | ✅ Completo |
-| Copy traduzida | 1 arquivo | ✅ Completo |
-| Código removido | 3 itens | ✅ Completo |
-| Melhorias futuras | 5 sugestões | ⏳ Pendente |
+| Versão | Tipo | Quantidade | Status |
+|--------|------|------------|--------|
+| v2.1.0 | Bugs corrigidos | 10 | ✅ Completo |
+| v2.1.0 | Copy traduzida | 1 arquivo | ✅ Completo |
+| v2.1.0 | Código removido | 3 itens | ✅ Completo |
+| v2.2.0 | Seção removida | 1 (Resumo de Hoje) | ✅ Completo |
+| v2.2.0 | Filtros corrigidos | 1 (Data personalizada) | ✅ Completo |
+| v2.2.0 | Código limpo | JavaScript otimizado | ✅ Completo |
+| - | Melhorias futuras | 5 sugestões | ⏳ Pendente |
 
-**Versão atual: 2.1.0** (com todas as correções aplicadas)
+**Versão atual: 2.2.0** (com todas as correções aplicadas)
