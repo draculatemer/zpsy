@@ -3338,8 +3338,8 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
     }
 });
 
-// TEMPORARY DEBUG: Check transaction dates in DB
-app.get('/api/admin/debug-dates', authenticateToken, async (req, res) => {
+// TEMPORARY DEBUG: Check transaction dates in DB (no auth for easy access - REMOVE LATER)
+app.get('/api/admin/debug-dates', async (req, res) => {
     try {
         const results = await pool.query(`
             SELECT 
