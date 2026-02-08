@@ -1971,6 +1971,78 @@ app.get('/api/admin/debug/raw-data', async (req, res) => {
     }
 });
 
+// TEMPORARY: Update today's transactions based on raw_data.venda.status (no auth - REMOVE LATER)
+app.get('/api/admin/fix-today-status-v2', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Find all transactions from today
+        const transactions = await pool.query(`
+            SELECT 
+                transaction_id, 
+                email, 
+                status,
+                raw_data->'venda'->>'dataFinalizada' as data_finalizada,
+                raw_data->'venda'->>'status' as venda_status
+            FROM transactions 
+            WHERE created_at::date = $1
+        `, [today]);
+        
+        let updatedCount = 0;
+        const updates = [];
+        
+        for (const row of transactions.rows) {
+            const dataFinalizada = row.data_finalizada || '';
+            const isFinalized = dataFinalizada && 
+                               dataFinalizada !== '0000-00-00 00:00:00' && 
+                               dataFinalizada !== '0000-00-00' &&
+                               !dataFinalizada.startsWith('0000-00-00');
+            
+            const vendaStatus = (row.venda_status || '').toLowerCase();
+            let newStatus = row.status; // Keep current
+            
+            // Determine correct status based on raw_data
+            if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+                newStatus = 'cancelled';
+            } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
+                newStatus = 'pending_payment';
+            } else if (vendaStatus.includes('finalizada') || vendaStatus.includes('aprovada')) {
+                if (isFinalized) {
+                    newStatus = 'approved';
+                } else {
+                    newStatus = 'pending_payment';
+                }
+            }
+            
+            // Only update if status changed
+            if (newStatus !== row.status) {
+                await pool.query(
+                    'UPDATE transactions SET status = $1, updated_at = NOW() WHERE transaction_id = $2',
+                    [newStatus, row.transaction_id]
+                );
+                updatedCount++;
+                updates.push({
+                    transaction_id: row.transaction_id,
+                    email: row.email,
+                    old_status: row.status,
+                    new_status: newStatus,
+                    venda_status: row.venda_status,
+                    is_finalized: isFinalized
+                });
+            }
+        }
+        
+        res.json({
+            today: today,
+            total_checked: transactions.rows.length,
+            updated: updatedCount,
+            updates: updates
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // TEMPORARY: Fix today's transactions that don't have dataFinalizada (no auth - REMOVE LATER)
 app.get('/api/admin/fix-today-status', async (req, res) => {
     try {
@@ -2338,17 +2410,27 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
             const funnelSource = affiliateCodes.includes(String(productCode)) ? 'affiliate' : 'main';
             
             // Map status - IMPORTANT: check if sale is actually finalized
-            // Monetizze can send status='2' (Finalizada) but without dataFinalizada
-            // In that case, it's still pending payment
+            // Monetizze can send status='2' (Finalizada) but without valid dataFinalizada
             let mappedStatus = statusMap[String(statusCode)] || 'approved';
             
-            // Override: if no dataFinalizada, it's pending regardless of statusCode
-            if (!vendaData.dataFinalizada && !vendaData.dataFinalizada && statusCode === '2') {
+            // Check dataFinalizada - if it's "0000-00-00" or empty, it's not finalized
+            const dataFinalizada = vendaData.dataFinalizada || '';
+            const isFinalized = dataFinalizada && 
+                               dataFinalizada !== '0000-00-00 00:00:00' && 
+                               dataFinalizada !== '0000-00-00' &&
+                               !dataFinalizada.startsWith('0000-00-00');
+            
+            // Check venda.status text for the REAL status
+            const vendaStatus = (vendaData.status || '').toLowerCase();
+            
+            if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+                mappedStatus = 'cancelled';
+            } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
                 mappedStatus = 'pending_payment';
-            }
-            // Override: if status text says "Aguardando", it's pending
-            const statusText = (vendaData.status || '').toLowerCase();
-            if (statusText.includes('aguardando')) {
+            } else if (vendaStatus.includes('finalizada') || vendaStatus.includes('aprovada')) {
+                mappedStatus = 'approved';
+            } else if (!isFinalized && statusCode === '2') {
+                // Status code says approved but no valid dataFinalizada
                 mappedStatus = 'pending_payment';
             }
             
@@ -2644,8 +2726,7 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 const funnelSource = affiliateCodes.includes(String(productCode)) ? 'affiliate' : 'main';
                 
                 // Map status - IMPORTANT: check if sale is actually finalized
-                // Monetizze can send status='2' (Finalizada) but without dataFinalizada
-                // In that case, it's still pending payment
+                // Monetizze can send status='2' (Finalizada) but without valid dataFinalizada
                 const statusMap = {
                     '1': 'pending_payment',
                     '2': 'approved',
@@ -2659,13 +2740,24 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 };
                 let mappedStatus = statusMap[String(statusCode)] || 'approved';
                 
-                // Override: if no dataFinalizada, it's pending regardless of statusCode
-                if (!vendaData.dataFinalizada && statusCode === '2') {
+                // Check dataFinalizada - if it's "0000-00-00" or empty, it's not finalized
+                const dataFinalizada = vendaData.dataFinalizada || '';
+                const isFinalized = dataFinalizada && 
+                                   dataFinalizada !== '0000-00-00 00:00:00' && 
+                                   dataFinalizada !== '0000-00-00' &&
+                                   !dataFinalizada.startsWith('0000-00-00');
+                
+                // Check venda.status text for the REAL status
+                const vendaStatus = (vendaData.status || '').toLowerCase();
+                
+                if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+                    mappedStatus = 'cancelled';
+                } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
                     mappedStatus = 'pending_payment';
-                }
-                // Override: if status text says "Aguardando", it's pending
-                const statusText = (vendaData.status || '').toLowerCase();
-                if (statusText.includes('aguardando')) {
+                } else if (vendaStatus.includes('finalizada') || vendaStatus.includes('aprovada')) {
+                    mappedStatus = 'approved';
+                } else if (!isFinalized && statusCode === '2') {
+                    // Status code says approved but no valid dataFinalizada
                     mappedStatus = 'pending_payment';
                 }
                 
@@ -2937,9 +3029,26 @@ app.all('/api/postback/monetizze', async (req, res) => {
             finalStatus = 'chargeback';
         }
         
-        // IMPORTANT: Override if no dataFinalizada - means it's still pending
-        // Monetizze postback can send status='2' before payment is confirmed
-        if (!dataVenda && statusCode === '2') {
+        // IMPORTANT: Check if sale is actually finalized
+        // Monetizze can send status='2' (Finalizada) but without valid dataFinalizada
+        // Check dataFinalizada - if it's "0000-00-00" or empty, it's not finalized
+        const dataFinalizada = venda.dataFinalizada || '';
+        const isFinalized = dataFinalizada && 
+                           dataFinalizada !== '0000-00-00 00:00:00' && 
+                           dataFinalizada !== '0000-00-00' &&
+                           !dataFinalizada.startsWith('0000-00-00');
+        
+        // Check venda.status text for the REAL status
+        const vendaStatus = (venda.status || '').toLowerCase();
+        
+        if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+            finalStatus = 'cancelled';
+        } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
+            finalStatus = 'pending_payment';
+        } else if (vendaStatus.includes('finalizada') || vendaStatus.includes('aprovada')) {
+            finalStatus = 'approved';
+        } else if (!isFinalized && statusCode === '2') {
+            // Status code says approved but no valid dataFinalizada
             finalStatus = 'pending_payment';
         }
         // Also check status text
@@ -3191,19 +3300,24 @@ app.all('/api/postback/monetizze', async (req, res) => {
             }
             
             // Status 2 or 6 = Aprovada/Completa -> Purchase event
-            // BUT ONLY if dataFinalizada exists (payment confirmed)
-            if ((statusStr === '2' || statusStr === '6') && dataVenda) {
+            // BUT ONLY if dataFinalizada is valid (not "0000-00-00")
+            if ((statusStr === '2' || statusStr === '6') && isFinalized) {
                 console.log('📤 Sending Purchase to Facebook CAPI (payment confirmed)...');
                 await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData);
-            } else if (statusStr === '2' && !dataVenda) {
-                // Status 2 but no dataFinalizada = still pending payment
-                console.log('⏸️ Skipping Purchase event - payment not yet confirmed (no dataFinalizada)');
+            } else if (statusStr === '2' && !isFinalized) {
+                // Status 2 but no valid dataFinalizada = still pending payment
+                console.log('⏸️ Skipping Purchase event - payment not yet confirmed (invalid dataFinalizada)');
                 console.log('📤 Sending InitiateCheckout instead...');
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData);
             }
             
+            // Status 3 = Cancelled -> Send custom Cancel event
+            if (statusStr === '3' || finalStatus === 'cancelled') {
+                console.log('📤 Transaction cancelled - no Facebook event sent');
+            }
+            
             // Status 4 = Refund -> Refund event (custom)
-            if (statusStr === '4' || mappedStatus === 'refunded') {
+            if (statusStr === '4' || finalStatus === 'refunded') {
                 console.log('📤 Sending Refund to Facebook CAPI...');
                 await sendToFacebookCAPI('Refund', fbUserData, fbCustomData);
             }
