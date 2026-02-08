@@ -1792,6 +1792,56 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
                 rejected: (txStats['rejected'] || 0) + (txStats['cancelled'] || 0) + (txStats['pending_payment'] || 0),
                 pending: txStats['pending_payment'] || 0
             };
+            
+            // Get upsell stats for funnel visualization
+            // Define product keywords
+            const frontKeywords = language === 'es' 
+                ? `LOWER(product) LIKE '%espa%' AND LOWER(product) NOT LIKE '%upsell%' AND LOWER(product) NOT LIKE '%up %'`
+                : `(LOWER(product) LIKE '%ingl%' OR LOWER(product) LIKE '%spy%') AND LOWER(product) NOT LIKE '%upsell%' AND LOWER(product) NOT LIKE '%up %'`;
+            
+            const up1Keywords = language === 'es'
+                ? `LOWER(product) LIKE '%espa%upsell%1%' OR LOWER(product) LIKE '%espa%up 1%'`
+                : `LOWER(product) LIKE '%ingl%upsell%1%' OR LOWER(product) LIKE '%ingl%up 1%' OR LOWER(product) LIKE '%spy%upsell%1%' OR LOWER(product) LIKE '%spy%up 1%'`;
+            
+            const up2Keywords = language === 'es'
+                ? `LOWER(product) LIKE '%espa%upsell%2%' OR LOWER(product) LIKE '%espa%up 2%'`
+                : `LOWER(product) LIKE '%ingl%upsell%2%' OR LOWER(product) LIKE '%ingl%up 2%' OR LOWER(product) LIKE '%spy%upsell%2%' OR LOWER(product) LIKE '%spy%up 2%'`;
+            
+            const up3Keywords = language === 'es'
+                ? `LOWER(product) LIKE '%espa%upsell%3%' OR LOWER(product) LIKE '%espa%up 3%'`
+                : `LOWER(product) LIKE '%ingl%upsell%3%' OR LOWER(product) LIKE '%ingl%up 3%' OR LOWER(product) LIKE '%spy%upsell%3%' OR LOWER(product) LIKE '%spy%up 3%'`;
+            
+            // Count front sales
+            const frontResult = await pool.query(`
+                SELECT COUNT(DISTINCT email) as count 
+                FROM transactions 
+                WHERE status = 'approved' AND (${frontKeywords}) ${txDateCondition} ${txLangCondition}
+            `);
+            
+            // Count upsell sales
+            const up1Result = await pool.query(`
+                SELECT COUNT(DISTINCT email) as count 
+                FROM transactions 
+                WHERE status = 'approved' AND (${up1Keywords}) ${txDateCondition} ${txLangCondition}
+            `);
+            
+            const up2Result = await pool.query(`
+                SELECT COUNT(DISTINCT email) as count 
+                FROM transactions 
+                WHERE status = 'approved' AND (${up2Keywords}) ${txDateCondition} ${txLangCondition}
+            `);
+            
+            const up3Result = await pool.query(`
+                SELECT COUNT(DISTINCT email) as count 
+                FROM transactions 
+                WHERE status = 'approved' AND (${up3Keywords}) ${txDateCondition} ${txLangCondition}
+            `);
+            
+            transactionStats.front = parseInt(frontResult.rows[0].count) || 0;
+            transactionStats.upsell1 = parseInt(up1Result.rows[0].count) || 0;
+            transactionStats.upsell2 = parseInt(up2Result.rows[0].count) || 0;
+            transactionStats.upsell3 = parseInt(up3Result.rows[0].count) || 0;
+            
         } catch (txError) {
             console.error('Error fetching transaction stats for funnel:', txError);
             // Continue without transaction stats
