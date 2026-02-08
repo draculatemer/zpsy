@@ -3795,11 +3795,11 @@ app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
             GROUP BY source, refund_type, funnel_language, status
         `, statsParams);
         
-        // Calculate totals with language breakdown
+        // Calculate totals with language breakdown - includes new workflow statuses
         const stats = {
-            form: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
-            monetizze_refund: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
-            monetizze_chargeback: { pending: 0, processing: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 }
+            form: { pending: 0, handling: 0, processing: 0, convinced: 0, refunded: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
+            monetizze_refund: { pending: 0, handling: 0, processing: 0, convinced: 0, refunded: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 },
+            monetizze_chargeback: { pending: 0, handling: 0, processing: 0, convinced: 0, refunded: 0, approved: 0, rejected: 0, total: 0, en: 0, es: 0 }
         };
         
         statsResult.rows.forEach(row => {
@@ -3910,11 +3910,17 @@ app.get('/api/admin/refunds/:id/details', authenticateToken, async (req, res) =>
     }
 });
 
-// Update refund status (protected)
+// Update refund status (protected) - Enhanced with workflow status
 app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
+        
+        // Validate status - now includes 'convinced' for recovery workflow
+        const validStatuses = ['pending', 'handling', 'processing', 'convinced', 'refunded', 'approved', 'rejected'];
+        if (status && !validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
 
         const result = await pool.query(`
             UPDATE refund_requests 
@@ -3926,12 +3932,88 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Refund request not found' });
         }
+        
+        console.log(`📝 Refund ${id} status updated to: ${status}`);
 
         res.json({ success: true, refund: result.rows[0] });
 
     } catch (error) {
         console.error('Error updating refund:', error);
         res.status(500).json({ error: 'Failed to update refund request' });
+    }
+});
+
+// Add note to refund request (protected) - for recovery workflow
+app.post('/api/admin/refunds/:id/notes', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, note } = req.body;
+        
+        if (!action || !note) {
+            return res.status(400).json({ error: 'Action and note are required' });
+        }
+        
+        // Get current refund
+        const refundResult = await pool.query('SELECT * FROM refund_requests WHERE id = $1', [id]);
+        if (refundResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Refund not found' });
+        }
+        
+        const refund = refundResult.rows[0];
+        
+        // Get existing notes or initialize empty array
+        let notes = [];
+        if (refund.notes && typeof refund.notes === 'object') {
+            notes = Array.isArray(refund.notes) ? refund.notes : [];
+        }
+        
+        // Add new note
+        const newNote = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            action: action,
+            note: note,
+            user: 'Admin'
+        };
+        notes.push(newNote);
+        
+        // Update refund with new notes
+        await pool.query(`
+            UPDATE refund_requests 
+            SET notes = $1, updated_at = NOW()
+            WHERE id = $2
+        `, [JSON.stringify(notes), id]);
+        
+        console.log(`📝 Note added to refund ${id}: ${action} - ${note.substring(0, 50)}...`);
+        
+        res.json({ success: true, note: newNote, allNotes: notes });
+        
+    } catch (error) {
+        console.error('Error adding note:', error);
+        res.status(500).json({ error: 'Failed to add note' });
+    }
+});
+
+// Get notes for a refund (protected)
+app.get('/api/admin/refunds/:id/notes', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const result = await pool.query('SELECT notes FROM refund_requests WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Refund not found' });
+        }
+        
+        let notes = [];
+        if (result.rows[0].notes && typeof result.rows[0].notes === 'object') {
+            notes = Array.isArray(result.rows[0].notes) ? result.rows[0].notes : [];
+        }
+        
+        res.json({ success: true, notes });
+        
+    } catch (error) {
+        console.error('Error fetching notes:', error);
+        res.status(500).json({ error: 'Failed to fetch notes' });
     }
 });
 
@@ -4521,6 +4603,8 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);`);
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS value DECIMAL(10,2);`);
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10);`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS notes JSONB DEFAULT '[]';`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS admin_notes TEXT;`);
         
         // Create admin_users table for multi-user access
         await pool.query(`
