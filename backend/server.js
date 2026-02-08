@@ -3414,9 +3414,42 @@ app.get('/api/admin/debug-dates', async (req, res) => {
             LIMIT 5
         `);
         
+        // Also test the EXACT sales endpoint logic
+        let salesEndpointTest = {};
+        if (startDate && endDate) {
+            try {
+                let langCondition = '';
+                let langParams = [];
+                
+                let dateCondition2 = '';
+                const startIdx2 = langParams.length + 1;
+                const endIdx2 = langParams.length + 2;
+                dateCondition2 = ` AND created_at >= $${startIdx2}::date AND created_at < ($${endIdx2}::date + INTERVAL '1 day')`;
+                langParams.push(startDate, endDate);
+                
+                const fullQuery = `SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition2}`;
+                const fullQueryRevenue = `SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition2}`;
+                
+                const [countResult, revenueResult] = await Promise.all([
+                    pool.query(fullQuery, langParams),
+                    pool.query(fullQueryRevenue, langParams)
+                ]);
+                
+                salesEndpointTest = {
+                    query: fullQuery,
+                    params: langParams,
+                    approved: parseInt(countResult.rows[0].count),
+                    revenue: parseFloat(revenueResult.rows[0].total)
+                };
+            } catch (e) {
+                salesEndpointTest = { error: e.message };
+            }
+        }
+        
         res.json({
             summary: results.rows[0],
             parameterized_test: paramTest,
+            sales_endpoint_simulation: salesEndpointTest,
             sample_transactions: sampleDates.rows
         });
     } catch (error) {
