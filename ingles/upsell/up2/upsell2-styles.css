@@ -301,6 +301,29 @@ body {
     justify-content: center;
 }
 
+/* Mega button - extra large and attention-grabbing */
+.btn-mega {
+    font-size: 22px !important;
+    padding: 24px 40px !important;
+    min-height: 80px;
+    line-height: 1.3;
+    letter-spacing: 0.5px;
+    max-width: 500px !important;
+    box-shadow: 0 8px 32px rgba(34, 197, 94, 0.5), 0 0 60px rgba(34, 197, 94, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+.btn-mega:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.6), 0 0 80px rgba(34, 197, 94, 0.4);
+}
+@media (max-width: 720px) {
+    .btn-mega {
+        font-size: 18px !important;
+        padding: 20px 24px !important;
+        min-height: 70px;
+    }
+}
+
 .cta-card {
     background: var(--card);
     border: 1px solid var(--border);
