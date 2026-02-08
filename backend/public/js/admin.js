@@ -224,13 +224,14 @@ Estou aqui para esclarecer tudo! 😊`
                     return null;
             }
             
-            // Use local date strings to avoid UTC timezone issues
             const result = {
-                startDate: getLocalDateString(startDate),
-                endDate: getLocalDateString(endDate)
+                start: startDate.toISOString(),
+                end: endDate.toISOString(),
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0]
             };
             
-            console.log('📅 Date filter:', filter, '→', result);
+            console.log('📊 Date range:', result);
             return result;
         }
         
@@ -273,26 +274,20 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadOverviewFunnelComparison() {
             try {
                 const dateRange = getGlobalDateRange();
-                const globalSource = getGlobalSourceFilter();
-                
-                // Build date params string for reuse
-                let dateParams = '';
+                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
                 if (dateRange) {
-                    dateParams = `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    leadsUrl += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
-                let sourceParam = globalSource ? `&source=${globalSource}` : '';
                 
-                let leadsUrl = `${API_URL}/api/admin/leads?limit=10000${dateParams}`;
-                
-                // Fetch leads + sales for EN and ES + breakdown by source - all with date filters
+                // Fetch leads + sales for EN and ES + breakdown by source
                 const [leadsRes, enSalesRes, esSalesRes, enMainSalesRes, enAffSalesRes, esMainSalesRes, esAffSalesRes] = await Promise.all([
                     fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales?language=en${dateParams}${sourceParam}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es${dateParams}${sourceParam}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=main${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/sales?language=en`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=en&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=main`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?language=es&source=affiliate`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
@@ -331,15 +326,15 @@ Estou aqui para esclarecer tudo! 😊`
                 const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
                 setEl('enLeadsTotal', enTotal.toLocaleString('pt-BR'));
                 setEl('enLeadsToday', enToday.toLocaleString('pt-BR'));
-                const enConvRate = enTotal > 0 ? (((enSales.approved || 0) / enTotal) * 100).toFixed(1) : 0;
-                setEl('enConvRate', enConvRate + '%');
+                const enRate = enTotal > 0 ? ((enConverted / enTotal) * 100).toFixed(1) : 0;
+                setEl('enConvRate', enRate + '%');
                 setEl('enRevenue', 'R$ ' + (enSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
                 // Update ES stats
                 setEl('esLeadsTotal', esTotal.toLocaleString('pt-BR'));
                 setEl('esLeadsToday', esToday.toLocaleString('pt-BR'));
-                const esConvRate = esTotal > 0 ? (((esSales.approved || 0) / esTotal) * 100).toFixed(1) : 0;
-                setEl('esConvRate', esConvRate + '%');
+                const esRate = esTotal > 0 ? ((esConverted / esTotal) * 100).toFixed(1) : 0;
+                setEl('esConvRate', esRate + '%');
                 setEl('esRevenue', 'R$ ' + (esSales.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
                 
                 // Update source breakdown
@@ -738,70 +733,69 @@ Estou aqui para esclarecer tudo! 😊`
         
         async function loadOverviewData() {
             try {
-                // Build query params from global filters
-                const dateRange = getGlobalDateRange();
-                const globalLang = document.getElementById('globalFunnelFilter')?.value || '';
-                const globalSource = getGlobalSourceFilter();
-                
-                let statsParams = new URLSearchParams();
-                let salesParams = new URLSearchParams();
-                
-                if (dateRange) {
-                    statsParams.set('startDate', dateRange.startDate);
-                    statsParams.set('endDate', dateRange.endDate);
-                    salesParams.set('startDate', dateRange.startDate);
-                    salesParams.set('endDate', dateRange.endDate);
-                }
-                if (globalLang) {
-                    statsParams.set('language', globalLang);
-                    salesParams.set('language', globalLang);
-                }
-                if (globalSource) {
-                    salesParams.set('source', globalSource);
-                }
-                
-                const statsUrl = `${API_URL}/api/admin/stats${statsParams.toString() ? '?' + statsParams.toString() : ''}`;
-                const salesUrl = `${API_URL}/api/admin/sales${salesParams.toString() ? '?' + salesParams.toString() : ''}`;
-                
                 const [statsRes, salesRes] = await Promise.all([
-                    fetch(statsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(salesUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/api/admin/sales`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (statsRes.status === 401) { logout(); return; }
                 
                 const stats = await statsRes.json();
-                if (stats.error) { console.error('Stats API error:', stats.error); return; }
                 const sales = salesRes?.ok ? await salesRes.json() : { approved: 0, revenue: 0, today: 0 };
                 
+                // === TODAY'S HIGHLIGHTS ===
+                document.getElementById('overviewToday').textContent = stats.today.toLocaleString('pt-BR');
+                document.getElementById('quickLeadsText').textContent = `${stats.today} novos leads`;
+                
+                // Sales today
+                const salesToday = sales.today || 0;
+                document.getElementById('overviewSalesToday').textContent = salesToday.toLocaleString('pt-BR');
+                
+                // Revenue today (estimate from today's approved sales)
                 const revenueTotal = sales.revenue || 0;
                 const approvedTotal = sales.approved || 0;
+                const avgTicketCalc = approvedTotal > 0 ? revenueTotal / approvedTotal : 0;
+                const revenueTodayEstimate = salesToday * avgTicketCalc;
+                document.getElementById('overviewRevenueToday').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('quickSalesText').textContent = 'R$ ' + revenueTodayEstimate.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 
-                // === MAIN KPIs ===
-                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                // Ticket Médio
+                document.getElementById('overviewAvgTicket').textContent = 'R$ ' + avgTicketCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 
-                // Leads
-                setEl('overviewTotal', stats.total.toLocaleString('pt-BR'));
+                // Sales per customer (from sales endpoint)
+                const salesPerCustomerEl = document.getElementById('overviewSalesPerCustomer');
+                if (salesPerCustomerEl) {
+                    // Estimate unique customers from upsell stats
+                    const frontCount = sales.upsellStats?.front || 0;
+                    const spc = frontCount > 0 ? (approvedTotal / frontCount).toFixed(1) : '0';
+                    salesPerCustomerEl.textContent = `${spc} vendas/cliente`;
+                }
                 
-                // Sales
-                setEl('overviewTotalSales', approvedTotal.toLocaleString('pt-BR'));
+                // Update last update time
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const todayTimeEl = document.getElementById('overviewTodayTime');
+                if (todayTimeEl) todayTimeEl.textContent = `Atualizado ${timeStr}`;
                 
-                // Revenue
-                setEl('overviewRevenue', 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                // === ACCUMULATED TOTALS ===
+                document.getElementById('overviewTotal').textContent = stats.total.toLocaleString('pt-BR');
+                document.getElementById('overviewTotalSales').textContent = approvedTotal.toLocaleString('pt-BR');
+                document.getElementById('overviewRevenue').textContent = 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                 
                 // Conversion rate
-                const rate = stats.total > 0 ? ((approvedTotal / stats.total) * 100).toFixed(1) : 0;
+                const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
+                const rate = stats.total > 0 ? ((converted / stats.total) * 100).toFixed(1) : 0;
                 const convEl = document.getElementById('overviewConverted');
-                if (convEl) {
-                    convEl.textContent = `${rate}%`;
-                    convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
-                }
-                setEl('overviewConvRate', `${approvedTotal} vendas / ${stats.total} leads`);
+                convEl.textContent = `${rate}%`;
+                convEl.style.color = rate > 5 ? '#10b981' : rate > 2 ? '#f59e0b' : '#ef4444';
+                const convRateEl = document.getElementById('overviewConvRate');
+                if (convRateEl) convRateEl.textContent = `${converted} clientes convertidos`;
                 
                 // Abandoned
-                const converted = stats.byStatus?.find(s => s.status === 'converted')?.count || 0;
                 const abandoned = Math.max(0, stats.total - converted - (stats.byStatus?.find(s => s.status === 'contacted')?.count || 0));
-                setEl('overviewAbandoned', abandoned.toLocaleString('pt-BR'));
+                document.getElementById('overviewAbandoned').textContent = abandoned.toLocaleString('pt-BR');
+                document.getElementById('quickRecoveryText').textContent = `${abandoned} leads aguardando`;
+                document.getElementById('navRecoveryCount').textContent = abandoned;
                 
                 const abandonRateEl = document.getElementById('overviewAbandonRate');
                 if (abandonRateEl && stats.total > 0) {
@@ -809,53 +803,15 @@ Estou aqui para esclarecer tudo! 😊`
                     abandonRateEl.textContent = `${abandonRate}% do total`;
                 }
                 
-                // Update last update time
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                setEl('overviewTodayTime', `Atualizado ${timeStr}`);
-                
-                // Update quick action texts
-                setEl('quickLeadsText', `${stats.today} novos leads`);
-                setEl('quickRecoveryText', `${abandoned} leads aguardando`);
-                setEl('quickSalesText', 'R$ ' + revenueTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-                setEl('navRecoveryCount', abandoned);
-                
-                // Sparkline
-                if (stats.byDay) {
-                    const data = stats.byDay.map(d => parseInt(d.count)).reverse();
-                    createSparkline(data.slice(-7), 'sparklineLeads');
-                }
-                
-                // Change vs yesterday
-                if (stats.byDay && stats.byDay.length >= 2) {
-                    const todayCount = stats.today || 0;
-                    const yesterdayData = stats.byDay.find(d => {
-                        const dateStr = new Date(d.date).toLocaleDateString('pt-BR');
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        return dateStr === yesterday.toLocaleDateString('pt-BR');
-                    });
-                    const yesterdayCount = yesterdayData ? parseInt(yesterdayData.count) : 0;
-                    const changeEl = document.getElementById('overviewTotalChange');
-                    if (changeEl) {
-                        if (yesterdayCount > 0) {
-                            const pct = (((todayCount - yesterdayCount) / yesterdayCount) * 100).toFixed(0);
-                            changeEl.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct)}% vs ontem`;
-                            changeEl.className = `stat-change ${pct >= 0 ? 'up' : 'down'}`;
-                        } else {
-                            changeEl.textContent = `↑ ${todayCount} novos hoje`;
-                            changeEl.className = 'stat-change up';
-                        }
-                    }
-                }
-                
                 // === CHARTS ===
                 if (stats.byDay && leadsChart) {
                     const labels = stats.byDay.map(d => new Date(d.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).reverse();
-                    const chartData = stats.byDay.map(d => parseInt(d.count)).reverse();
+                    const data = stats.byDay.map(d => parseInt(d.count)).reverse();
                     leadsChart.data.labels = labels;
-                    leadsChart.data.datasets[0].data = chartData;
+                    leadsChart.data.datasets[0].data = data;
                     leadsChart.update();
+                    
+                    createSparkline(data.slice(-7), 'sparklineLeads');
                 }
                 
                 if (stats.byStatus && statusChart) {
@@ -875,32 +831,23 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadStats() {
             try {
                 const dateRange = getGlobalDateRange();
-                const globalLang = document.getElementById('globalFunnelFilter')?.value || '';
-                
-                let params = new URLSearchParams();
+                let url = `${API_URL}/api/admin/stats`;
                 if (dateRange) {
-                    params.set('startDate', dateRange.startDate);
-                    params.set('endDate', dateRange.endDate);
+                    url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
-                if (globalLang) {
-                    params.set('language', globalLang);
-                }
-                
-                let url = `${API_URL}/api/admin/stats${params.toString() ? '?' + params.toString() : ''}`;
                 
                 const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (response.status === 401 || response.status === 403) { logout(); return; }
                 const data = await response.json();
                 
-                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-                setEl('statTotal', data.total.toLocaleString('pt-BR'));
-                setEl('statToday', data.today.toLocaleString('pt-BR'));
-                setEl('statWeek', data.thisWeek.toLocaleString('pt-BR'));
-                setEl('navLeadCount', data.total);
+                document.getElementById('statTotal').textContent = data.total.toLocaleString('pt-BR');
+                document.getElementById('statToday').textContent = data.today.toLocaleString('pt-BR');
+                document.getElementById('statWeek').textContent = data.thisWeek.toLocaleString('pt-BR');
+                document.getElementById('navLeadCount').textContent = data.total;
                 
                 const converted = data.byStatus?.find(s => s.status === 'converted')?.count || 0;
                 const rate = data.total > 0 ? ((converted / data.total) * 100).toFixed(1) : 0;
-                setEl('statConversion', rate + '%');
+                document.getElementById('statConversion').textContent = rate + '%';
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
