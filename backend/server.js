@@ -1959,6 +1959,33 @@ app.post('/api/postback/test', (req, res) => {
     });
 });
 
+// Helper: Authenticate with Monetizze API 2.1 (2-step auth)
+// Step 1: GET /token with X_CONSUMER_KEY header → returns temporary token
+// Step 2: Use TOKEN header for all subsequent requests
+async function getMonetizzeToken() {
+    const consumerKey = process.env.MONETIZZE_CONSUMER_KEY;
+    if (!consumerKey) throw new Error('MONETIZZE_CONSUMER_KEY not configured');
+    
+    console.log('🔑 Authenticating with Monetizze API 2.1...');
+    const response = await fetch('https://api.monetizze.com.br/2.1/token', {
+        method: 'GET',
+        headers: {
+            'X_CONSUMER_KEY': consumerKey,
+            'Accept': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Monetizze auth failed:', response.status, errorText);
+        throw new Error(`Auth failed (${response.status}): ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Monetizze token obtained successfully');
+    return data.token;
+}
+
 // Test Monetizze API connectivity (debug endpoint)
 app.get('/api/admin/test-monetizze-api', authenticateToken, requireAdmin, async (req, res) => {
     const consumerKey = process.env.MONETIZZE_CONSUMER_KEY;
@@ -1968,44 +1995,59 @@ app.get('/api/admin/test-monetizze-api', authenticateToken, requireAdmin, async 
         return res.json({ error: 'MONETIZZE_CONSUMER_KEY not configured', results });
     }
     
-    // Test different API endpoints with different auth methods
-    // Try multiple header formats and query param approaches
-    const endpoints = [
-        // API 2.1 with X_CONSUMER_KEY header (underscore)
-        { name: 'API 2.1 /vendas X_CONSUMER_KEY', url: 'https://api.monetizze.com.br/2.1/vendas', headers: { 'X_CONSUMER_KEY': consumerKey } },
-        // API 2.1 with X-Consumer-Key header (hyphen)
-        { name: 'API 2.1 /vendas X-Consumer-Key', url: 'https://api.monetizze.com.br/2.1/vendas', headers: { 'X-Consumer-Key': consumerKey } },
-        // API 2.1 with token as query param
-        { name: 'API 2.1 /vendas ?token=', url: `https://api.monetizze.com.br/2.1/vendas?token=${consumerKey}`, headers: {} },
-        // API 2.1 with X_CONSUMER_KEY as query param
-        { name: 'API 2.1 /vendas ?X_CONSUMER_KEY=', url: `https://api.monetizze.com.br/2.1/vendas?X_CONSUMER_KEY=${consumerKey}`, headers: {} },
-        // API 2.1 transacoes
-        { name: 'API 2.1 /transacoes X_CONSUMER_KEY', url: 'https://api.monetizze.com.br/2.1/transacoes', headers: { 'X_CONSUMER_KEY': consumerKey } },
-        { name: 'API 2.1 /transacoes ?token=', url: `https://api.monetizze.com.br/2.1/transacoes?token=${consumerKey}`, headers: {} },
-        // Try /token endpoint
-        { name: 'API 2.1 /token (auth endpoint)', url: `https://api.monetizze.com.br/2.1/token?X_CONSUMER_KEY=${consumerKey}`, headers: {} }
-    ];
-    
-    for (const ep of endpoints) {
-        try {
-            console.log(`Testing: ${ep.name}`);
-            const response = await fetch(ep.url, { method: 'GET', headers: { ...ep.headers, 'Accept': 'application/json' }, timeout: 15000 });
-            const text = await response.text();
-            results.tests.push({
-                name: ep.name,
-                status: response.status,
-                ok: response.ok,
-                body: text.substring(0, 500)
-            });
-            // If we got a 200, note it prominently
-            if (response.ok) {
-                console.log(`✅ SUCCESS: ${ep.name}`);
+    // Step 1: Try to get auth token
+    let monetizzeToken = null;
+    try {
+        console.log('Step 1: Getting auth token...');
+        const authResponse = await fetch('https://api.monetizze.com.br/2.1/token', {
+            method: 'GET',
+            headers: {
+                'X_CONSUMER_KEY': consumerKey,
+                'Accept': 'application/json'
             }
-        } catch (err) {
-            results.tests.push({
-                name: ep.name,
-                error: err.message
+        });
+        const authText = await authResponse.text();
+        results.tests.push({
+            name: 'Step 1: GET /token (X_CONSUMER_KEY header)',
+            status: authResponse.status,
+            ok: authResponse.ok,
+            body: authText.substring(0, 500)
+        });
+        
+        if (authResponse.ok) {
+            try {
+                const authData = JSON.parse(authText);
+                monetizzeToken = authData.token;
+                results.tokenObtained = true;
+                results.tokenPreview = monetizzeToken ? monetizzeToken.substring(0, 20) + '...' : 'null';
+            } catch (e) {
+                results.tokenObtained = false;
+            }
+        }
+    } catch (err) {
+        results.tests.push({ name: 'Step 1: GET /token', error: err.message });
+    }
+    
+    // Step 2: If we got a token, try to query transactions
+    if (monetizzeToken) {
+        try {
+            console.log('Step 2: Querying transactions with token...');
+            const txResponse = await fetch('https://api.monetizze.com.br/2.1/transactions', {
+                method: 'GET',
+                headers: {
+                    'TOKEN': monetizzeToken,
+                    'Accept': 'application/json'
+                }
             });
+            const txText = await txResponse.text();
+            results.tests.push({
+                name: 'Step 2: GET /transactions (TOKEN header)',
+                status: txResponse.status,
+                ok: txResponse.ok,
+                body: txText.substring(0, 1000)
+            });
+        } catch (err) {
+            results.tests.push({ name: 'Step 2: GET /transactions', error: err.message });
         }
     }
     
@@ -2013,11 +2055,11 @@ app.get('/api/admin/test-monetizze-api', authenticateToken, requireAdmin, async 
 });
 
 // Sync sales from Monetizze API (protected - admin only)
+// Uses 2-step auth: GET /token with X_CONSUMER_KEY → then GET /transactions with TOKEN
 app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { startDate, endDate, productCodes } = req.body;
         
-        // Monetizze API credentials from env (API 2.1 uses only X_CONSUMER_KEY)
         const consumerKey = process.env.MONETIZZE_CONSUMER_KEY;
         
         if (!consumerKey) {
@@ -2030,102 +2072,43 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
         console.log('🔄 Starting Monetizze sync...');
         console.log('📅 Date range:', startDate || 'today', 'to', endDate || 'today');
         
-        // Try API 2.1 first, then fallback to 2.0
-        let response = null;
-        let apiVersion = '2.1';
-        let lastError = null;
-        
-        // API 2.1 uses X-Consumer-Key header
-        const baseUrl21 = 'https://api.monetizze.com.br/2.1/vendas';
-        const params21 = new URLSearchParams();
-        if (startDate) params21.append('data_inicio', startDate);
-        if (endDate) params21.append('data_fim', endDate);
-        
-        const url21 = `${baseUrl21}${params21.toString() ? '?' + params21.toString() : ''}`;
-        console.log('🌐 Trying Monetizze API 2.1:', url21);
-        
+        // Step 1: Authenticate - get temporary token
+        let monetizzeToken;
         try {
-            response = await fetch(url21, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Consumer-Key': consumerKey
-                }
-            });
-        } catch (fetchError) {
-            console.error('❌ API 2.1 fetch error:', fetchError.message);
-            lastError = fetchError.message;
-            response = null;
-        }
-        
-        // If 2.1 fails, try 2.0 with query param
-        if (!response || !response.ok) {
-            console.log('⚠️ API 2.1 failed, trying API 2.0...');
-            apiVersion = '2.0';
-            
-            const baseUrl20 = 'https://api.monetizze.com.br/2.0/vendas';
-            const params20 = new URLSearchParams();
-            params20.append('token', consumerKey);
-            if (startDate) params20.append('data_inicio', startDate);
-            if (endDate) params20.append('data_fim', endDate);
-            
-            const url20 = `${baseUrl20}?${params20.toString()}`;
-            console.log('🌐 Trying Monetizze API 2.0:', url20);
-            
-            try {
-                response = await fetch(url20, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-            } catch (fetchError) {
-                console.error('❌ API 2.0 fetch error:', fetchError.message);
-                lastError = fetchError.message;
-                response = null;
-            }
-        }
-        
-        // Also try transacoes endpoint
-        if (!response || !response.ok) {
-            console.log('⚠️ Both vendas endpoints failed, trying transacoes...');
-            apiVersion = '2.1-transacoes';
-            
-            const urlTx = `https://api.monetizze.com.br/2.1/transacoes${params21.toString() ? '?' + params21.toString() : ''}`;
-            console.log('🌐 Trying Monetizze API 2.1 transacoes:', urlTx);
-            
-            try {
-                response = await fetch(urlTx, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Consumer-Key': consumerKey
-                    }
-                });
-            } catch (fetchError) {
-                console.error('❌ API 2.1 transacoes fetch error:', fetchError.message);
-                lastError = fetchError.message;
-                response = null;
-            }
-        }
-        
-        if (!response) {
+            monetizzeToken = await getMonetizzeToken();
+        } catch (authError) {
+            console.error('❌ Monetizze authentication failed:', authError.message);
             return res.status(200).json({ 
                 success: false,
-                error: 'Monetizze API request failed',
-                details: lastError || 'Failed to connect to Monetizze API',
-                hint: 'A API da Monetizze pode estar temporariamente indisponível. Tente novamente em alguns minutos.'
+                error: 'Monetizze authentication failed',
+                details: authError.message,
+                hint: 'Verifique se a MONETIZZE_CONSUMER_KEY está correta no Railway.'
             });
         }
         
-        const url = apiVersion;
-        console.log(`📡 Using API version ${apiVersion}`);
+        // Step 2: Query transactions with the token
+        const params = new URLSearchParams();
+        if (startDate) params.append('date_min', `${startDate} 00:00:00`);
+        if (endDate) params.append('date_max', `${endDate} 23:59:59`);
+        // Status: 2=Finalizada, 6=Completa (approved sales)
+        params.append('status[]', '2');
+        params.append('status[]', '6');
+        
+        const txUrl = `https://api.monetizze.com.br/2.1/transactions?${params.toString()}`;
+        console.log('🌐 Fetching transactions from Monetizze API 2.1:', txUrl);
+        
+        const response = await fetch(txUrl, {
+            method: 'GET',
+            headers: {
+                'TOKEN': monetizzeToken,
+                'Accept': 'application/json'
+            }
+        });
         
         if (!response.ok) {
             const errorText = await response.text();
             console.error('❌ Monetizze API error:', response.status, errorText);
-            console.error('❌ Request URL:', url);
-            console.error('❌ Consumer Key (first 10 chars):', consumerKey.substring(0, 10) + '...');
             
-            // Try to parse error as JSON
             let errorDetails = errorText;
             try {
                 const errorJson = JSON.parse(errorText);
@@ -2137,22 +2120,28 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 error: 'Monetizze API request failed',
                 status: response.status,
                 details: errorDetails,
-                hint: response.status === 401 ? 'Chave de API inválida. Verifique MONETIZZE_CONSUMER_KEY no Railway.' :
-                      response.status === 403 ? 'Acesso negado. A chave pode não ter permissão para acessar vendas.' :
-                      response.status === 404 ? 'Endpoint não encontrado. A API pode ter mudado.' :
-                      'Erro desconhecido na API da Monetizze.'
+                hint: response.status === 403 ? 'Token expirado. Tente novamente.' : 'Erro na API da Monetizze.'
             });
         }
         
         const data = await response.json();
-        console.log('📦 Received data from Monetizze:', data?.vendas?.length || 0, 'sales');
         
-        if (!data.vendas || data.vendas.length === 0) {
+        // API 2.1 returns data in 'dados' array (not 'vendas')
+        const transactions = data.dados || data.vendas || data.recordset || [];
+        console.log('📦 Received data from Monetizze:', typeof data, 'transactions:', transactions.length || 'N/A');
+        console.log('📦 Response keys:', Object.keys(data));
+        
+        // If data is an array directly
+        const salesArray = Array.isArray(data) ? data : (Array.isArray(transactions) ? transactions : []);
+        
+        if (salesArray.length === 0) {
             return res.json({
                 success: true,
                 message: 'No sales found for the specified period',
                 synced: 0,
-                skipped: 0
+                skipped: 0,
+                responseKeys: Object.keys(data),
+                rawPreview: JSON.stringify(data).substring(0, 500)
             });
         }
         
@@ -2160,8 +2149,8 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
         let skipped = 0;
         let errors = [];
         
-        // Process each sale
-        for (const venda of data.vendas) {
+        // Process each sale/transaction
+        for (const venda of salesArray) {
             try {
                 // Extract data from Monetizze API format
                 const transactionId = venda.codigo || venda.transacao;
