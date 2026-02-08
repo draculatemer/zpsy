@@ -1390,6 +1390,73 @@ app.delete('/api/admin/transactions/all', authenticateToken, requireAdmin, async
     }
 });
 
+// Migrate existing transactions to set funnel_source based on product codes
+app.post('/api/admin/transactions/migrate-source', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        // Affiliate product codes
+        const affiliateProductCodes = [
+            '330254', '341443', '341444', '341448',  // English Affiliates
+            '338375', '341452', '341453', '341454'   // Spanish Affiliates
+        ];
+        
+        // Update transactions that match affiliate product codes in raw_data
+        let updated = 0;
+        
+        // Method 1: Check raw_data for produto.codigo
+        for (const code of affiliateProductCodes) {
+            const result = await pool.query(`
+                UPDATE transactions 
+                SET funnel_source = 'affiliate'
+                WHERE funnel_source IS NULL OR funnel_source = 'main'
+                AND raw_data::text LIKE $1
+            `, [`%"codigo":"${code}"%`]);
+            updated += result.rowCount;
+            
+            // Also try numeric format
+            const result2 = await pool.query(`
+                UPDATE transactions 
+                SET funnel_source = 'affiliate'
+                WHERE (funnel_source IS NULL OR funnel_source = 'main')
+                AND raw_data::text LIKE $1
+            `, [`%"codigo":${code}%`]);
+            updated += result2.rowCount;
+        }
+        
+        // Method 2: Fix funnel_language for transactions that had 'en-aff' or 'es-aff'
+        const fixEnAff = await pool.query(`
+            UPDATE transactions 
+            SET funnel_language = 'en', funnel_source = 'affiliate'
+            WHERE funnel_language = 'en-aff'
+        `);
+        const fixEsAff = await pool.query(`
+            UPDATE transactions 
+            SET funnel_language = 'es', funnel_source = 'affiliate'
+            WHERE funnel_language = 'es-aff'
+        `);
+        updated += fixEnAff.rowCount + fixEsAff.rowCount;
+        
+        // Set remaining NULL funnel_source to 'main'
+        const fixNull = await pool.query(`
+            UPDATE transactions 
+            SET funnel_source = 'main'
+            WHERE funnel_source IS NULL
+        `);
+        
+        console.log(`🔄 Migration complete: ${updated} transactions marked as affiliate, ${fixNull.rowCount} set to main`);
+        
+        res.json({
+            success: true,
+            affiliateUpdated: updated,
+            mainUpdated: fixNull.rowCount,
+            message: `Migration complete. ${updated} affiliate, ${fixNull.rowCount} main.`
+        });
+        
+    } catch (error) {
+        console.error('Error migrating transaction sources:', error);
+        res.status(500).json({ error: 'Failed to migrate transaction sources' });
+    }
+});
+
 // Recalculate lead totals from transactions
 app.post('/api/admin/leads/recalculate', authenticateToken, async (req, res) => {
     try {
@@ -2265,19 +2332,12 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                     }
                 }
                 
-                // Detect funnel language and type (main vs affiliate)
-                const spanishMainCodes = ['349260', '349261', '349266', '349267'];
-                const spanishAffCodes = ['338375', '341452', '341453', '341454'];
-                const englishAffCodes = ['330254', '341443', '341444', '341448'];
+                // Detect funnel language and source (main vs affiliate)
+                const spanishCodes = ['349260', '349261', '349266', '349267', '338375', '341452', '341453', '341454'];
+                const affiliateCodes = ['330254', '341443', '341444', '341448', '338375', '341452', '341453', '341454'];
                 
-                let funnelLanguage = 'en';
-                if (spanishMainCodes.includes(String(productCode))) {
-                    funnelLanguage = 'es';
-                } else if (spanishAffCodes.includes(String(productCode))) {
-                    funnelLanguage = 'es-aff';
-                } else if (englishAffCodes.includes(String(productCode))) {
-                    funnelLanguage = 'en-aff';
-                }
+                let funnelLanguage = spanishCodes.includes(String(productCode)) ? 'es' : 'en';
+                const funnelSource = affiliateCodes.includes(String(productCode)) ? 'affiliate' : 'main';
                 
                 // Map status
                 const statusMap = {
@@ -2299,18 +2359,19 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                     continue;
                 }
                 
-                // Insert or update transaction with real sale date
+                // Insert or update transaction with real sale date and funnel_source
                 await pool.query(`
                     INSERT INTO transactions (
                         transaction_id, email, phone, name, product, value, 
-                        monetizze_status, status, raw_data, funnel_language, created_at
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, NOW()))
+                        monetizze_status, status, raw_data, funnel_language, funnel_source, created_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()))
                     ON CONFLICT (transaction_id) 
                     DO UPDATE SET 
                         monetizze_status = $7,
                         status = $8,
                         raw_data = $9,
                         funnel_language = $10,
+                        funnel_source = $11,
                         updated_at = NOW()
                 `, [
                     transactionId,
@@ -2323,6 +2384,7 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                     mappedStatus,
                     JSON.stringify(item),
                     funnelLanguage,
+                    funnelSource,
                     saleDate
                 ]);
                 
@@ -2615,7 +2677,14 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // English Main: X AI Monitor (341972), Affiliates: (330254)
         // Spanish Main: Detector de Infidelidad (349260), Affiliates: (338375)
         
-        console.log(`🌐 Funnel language detected: ${funnelLanguage} (product: ${productName}, code: ${productCode}, type: ${productType})`);
+        // Determine funnel source (main vs affiliate)
+        const affiliateProductCodes = [
+            '330254', '341443', '341444', '341448',  // English Affiliates
+            '338375', '341452', '341453', '341454'   // Spanish Affiliates
+        ];
+        const funnelSource = (productCode && affiliateProductCodes.includes(String(productCode))) ? 'affiliate' : 'main';
+        
+        console.log(`🌐 Funnel language: ${funnelLanguage}, source: ${funnelSource} (product: ${productName}, code: ${productCode}, type: ${productType})`);
         
         // Generate a transaction ID if none provided
         const transactionId = chave_unica || `monetizze_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -2670,19 +2739,20 @@ app.all('/api/postback/monetizze', async (req, res) => {
         }
         console.log(`📅 Sale date: ${saleDate ? saleDate.toISOString() : 'Using NOW()'}`);
         
-        // Store transaction in database with funnel_language
+        // Store transaction in database with funnel_language and funnel_source
         try {
             await pool.query(`
                 INSERT INTO transactions (
                     transaction_id, email, phone, name, product, value, 
-                    monetizze_status, status, raw_data, funnel_language, created_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, COALESCE($11, NOW()))
+                    monetizze_status, status, raw_data, funnel_language, funnel_source, created_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()))
                 ON CONFLICT (transaction_id) 
                 DO UPDATE SET 
                     monetizze_status = $7,
                     status = $8,
                     raw_data = $9,
                     funnel_language = $10,
+                    funnel_source = $11,
                     updated_at = NOW()
             `, [
                 transactionId,
@@ -2695,6 +2765,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 mappedStatus,
                 JSON.stringify(req.body),
                 funnelLanguage,
+                funnelSource,
                 saleDate
             ]);
             console.log(`✅ Transaction saved: ${transactionId}`);
@@ -3212,7 +3283,7 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
 // Get transactions (protected)
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate } = req.query;
+        const { language, startDate, endDate, source } = req.query;
         
         let query = `SELECT * FROM transactions WHERE 1=1`;
         let params = [];
@@ -3228,6 +3299,13 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
             paramIndex++;
         }
         
+        // Filter by funnel source (main/affiliate)
+        if (source === 'main' || source === 'affiliate') {
+            query += ` AND (funnel_source = $${paramIndex} OR (funnel_source IS NULL AND $${paramIndex} = 'main'))`;
+            params.push(source);
+            paramIndex++;
+        }
+        
         if (startDate && endDate) {
             query += ` AND created_at >= $${paramIndex} AND created_at <= $${paramIndex + 1}`;
             params.push(startDate, endDate);
@@ -3238,7 +3316,7 @@ app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
         
         const result = await pool.query(query, params);
         
-        res.json({ transactions: result.rows, language: language || 'all' });
+        res.json({ transactions: result.rows, language: language || 'all', source: source || 'all' });
         
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -3272,7 +3350,7 @@ app.delete('/api/admin/transactions/:id', authenticateToken, async (req, res) =>
 // Get sales stats (protected)
 app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate } = req.query;
+        const { language, startDate, endDate, source } = req.query;
         
         // Build language filter
         let langCondition = '';
@@ -3280,6 +3358,14 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         if (language === 'en' || language === 'es') {
             langCondition = `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))`;
             langParams = [language];
+        }
+        
+        // Build source filter (main/affiliate)
+        let sourceCondition = '';
+        if (source === 'main' || source === 'affiliate') {
+            const sourceIdx = langParams.length + 1;
+            sourceCondition = ` AND (funnel_source = $${sourceIdx} OR (funnel_source IS NULL AND $${sourceIdx} = 'main'))`;
+            langParams.push(source);
         }
         
         // Build date filter
@@ -3292,20 +3378,20 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         }
         
         const [totalResult, approvedResult, refundedResult, revenueResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE 1=1 ${langCondition}${dateCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${dateCondition}`, langParams),
-            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${dateCondition}`, langParams)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE 1=1 ${langCondition}${sourceCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams)
         ]);
         
         // Get today and this week
         const [todayResult, weekResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE ${langCondition}${dateCondition}`, langParams),
-            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}${dateCondition}`, langParams)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE ${langCondition}${sourceCondition}${dateCondition}`, langParams),
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status = 'approved' AND created_at >= CURRENT_DATE - INTERVAL '7 days' ${langCondition}${sourceCondition}${dateCondition}`, langParams)
         ]);
         
         // Calculate conversion rate (leads -> sales) - also filtered by language
-        const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${language ? `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))` : ''}`, langParams);
+        const leadsCount = await pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1 ${language ? `AND (funnel_language = $1 OR (funnel_language IS NULL AND $1 = 'en'))` : ''}`, language ? [language] : []);
         const conversionRate = parseInt(leadsCount.rows[0].count) > 0 
             ? ((parseInt(approvedResult.rows[0].count) / parseInt(leadsCount.rows[0].count)) * 100).toFixed(2)
             : 0;
@@ -3319,24 +3405,23 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
                 COALESCE(SUM(CAST(value AS DECIMAL)) FILTER (WHERE status = 'approved'), 0) as revenue,
                 COUNT(*) as total
             FROM transactions
-            WHERE product IS NOT NULL ${langCondition}${dateCondition}
+            WHERE product IS NOT NULL ${langCondition}${sourceCondition}${dateCondition}
             GROUP BY product
             ORDER BY approved DESC
         `, langParams);
         
         // Calculate upsell take rates based on language
-        // English products
-        // English products - include ZappDetect as front synonym
-        const enFrontKeywords = "product ILIKE '%Monitor%' OR product ILIKE '%ZappDetect%' OR product ILIKE '%341972%'";
-        const enUp1Keywords = "product ILIKE '%Message Vault%' OR product ILIKE '%349241%'";
-        const enUp2Keywords = "product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%'";
-        const enUp3Keywords = "product ILIKE '%Instant Access%' OR product ILIKE '%349243%'";
+        // English products (Main: 341972, 349241-349243 + Affiliates: 330254, 341443-341448)
+        const enFrontKeywords = "product ILIKE '%Monitor%' OR product ILIKE '%ZappDetect%' OR product ILIKE '%341972%' OR product ILIKE '%330254%'";
+        const enUp1Keywords = "product ILIKE '%Message Vault%' OR product ILIKE '%349241%' OR product ILIKE '%341443%'";
+        const enUp2Keywords = "product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%349242%' OR product ILIKE '%341444%'";
+        const enUp3Keywords = "product ILIKE '%Instant Access%' OR product ILIKE '%349243%' OR product ILIKE '%341448%'";
         
-        // Spanish products (Monetizze IDs: 349260, 349261, 349266, 349267)
-        const esFrontKeywords = "product ILIKE '%Infidelidad%' OR product ILIKE '%349260%'";
-        const esUp1Keywords = "product ILIKE '%Recuperación%' OR product ILIKE '%349261%'";
-        const esUp2Keywords = "product ILIKE '%Visión Total%' OR product ILIKE '%349266%'";
-        const esUp3Keywords = "product ILIKE '%VIP Sin Esperas%' OR product ILIKE '%349267%'";
+        // Spanish products (Main: 349260-349267 + Affiliates: 338375, 341452-341454)
+        const esFrontKeywords = "product ILIKE '%Infidelidad%' OR product ILIKE '%349260%' OR product ILIKE '%338375%'";
+        const esUp1Keywords = "product ILIKE '%Recuperación%' OR product ILIKE '%349261%' OR product ILIKE '%341452%'";
+        const esUp2Keywords = "product ILIKE '%Visión Total%' OR product ILIKE '%349266%' OR product ILIKE '%341453%'";
+        const esUp3Keywords = "product ILIKE '%VIP Sin Esperas%' OR product ILIKE '%349267%' OR product ILIKE '%341454%'";
         
         // Select keywords based on language filter
         let frontKeywords, up1Keywords, up2Keywords, up3Keywords;
@@ -3361,25 +3446,25 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         const frontSales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' AND (${frontKeywords}) ${langCondition}
+            WHERE status = 'approved' AND (${frontKeywords}) ${langCondition}${sourceCondition}
         `, langParams);
         
         const upsell1Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' AND (${up1Keywords}) ${langCondition}
+            WHERE status = 'approved' AND (${up1Keywords}) ${langCondition}${sourceCondition}
         `, langParams);
         
         const upsell2Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' AND (${up2Keywords}) ${langCondition}
+            WHERE status = 'approved' AND (${up2Keywords}) ${langCondition}${sourceCondition}
         `, langParams);
         
         const upsell3Sales = await pool.query(`
             SELECT COUNT(DISTINCT email) as count 
             FROM transactions 
-            WHERE status = 'approved' AND (${up3Keywords}) ${langCondition}
+            WHERE status = 'approved' AND (${up3Keywords}) ${langCondition}${sourceCondition}
         `, langParams);
         
         const frontCount = parseInt(frontSales.rows[0].count) || 0;
@@ -3397,6 +3482,7 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             conversionRate: parseFloat(conversionRate),
             byProduct: productStats.rows,
             language: language || 'all',
+            source: source || 'all',
             upsellStats: {
                 front: frontCount,
                 upsell1: up1Count,
@@ -3411,6 +3497,61 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching sales stats:', error);
         res.status(500).json({ error: 'Failed to fetch sales stats' });
+    }
+});
+
+// Migrate existing transactions to set funnel_source based on product codes
+app.post('/api/admin/migrate-funnel-source', authenticateToken, async (req, res) => {
+    try {
+        // Affiliate product codes
+        const affiliateCodes = ['330254', '341443', '341444', '341448', '338375', '341452', '341453', '341454'];
+        
+        // Update transactions that have affiliate product codes in raw_data
+        let updated = 0;
+        
+        // Method 1: Check raw_data for product codes
+        for (const code of affiliateCodes) {
+            const result = await pool.query(`
+                UPDATE transactions 
+                SET funnel_source = 'affiliate' 
+                WHERE (funnel_source IS NULL OR funnel_source = 'main')
+                AND (
+                    raw_data::text LIKE $1
+                    OR product ILIKE $2
+                )
+            `, [`%"codigo":${code}%`, `%${code}%`]);
+            updated += result.rowCount;
+        }
+        
+        // Also fix any funnel_language that was set as 'en-aff' or 'es-aff'
+        const fixLangAff = await pool.query(`
+            UPDATE transactions 
+            SET funnel_language = 'en', funnel_source = 'affiliate'
+            WHERE funnel_language = 'en-aff'
+        `);
+        updated += fixLangAff.rowCount;
+        
+        const fixLangAffEs = await pool.query(`
+            UPDATE transactions 
+            SET funnel_language = 'es', funnel_source = 'affiliate'
+            WHERE funnel_language = 'es-aff'
+        `);
+        updated += fixLangAffEs.rowCount;
+        
+        // Set remaining null funnel_source to 'main'
+        const fixNull = await pool.query(`
+            UPDATE transactions SET funnel_source = 'main' WHERE funnel_source IS NULL
+        `);
+        
+        res.json({ 
+            success: true, 
+            message: `Migration complete`, 
+            updated,
+            nullFixed: fixNull.rowCount
+        });
+    } catch (error) {
+        console.error('Error migrating funnel_source:', error);
+        res.status(500).json({ error: 'Migration failed', details: error.message });
     }
 });
 
@@ -3525,10 +3666,20 @@ async function initDatabase() {
         // Add funnel_language to transactions if not exists
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10);`);
         
+        // Add funnel_source to transactions (main vs affiliate)
+        await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS funnel_source VARCHAR(20) DEFAULT 'main';`);
+        
         // Create indexes for transactions
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_email ON transactions(email);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_created ON transactions(created_at DESC);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_transactions_funnel_source ON transactions(funnel_source);`);
+        
+        // Auto-migrate: fix funnel_language values that were set as 'en-aff' or 'es-aff'
+        await pool.query(`UPDATE transactions SET funnel_language = 'en', funnel_source = 'affiliate' WHERE funnel_language = 'en-aff'`);
+        await pool.query(`UPDATE transactions SET funnel_language = 'es', funnel_source = 'affiliate' WHERE funnel_language = 'es-aff'`);
+        // Set null funnel_source to 'main'
+        await pool.query(`UPDATE transactions SET funnel_source = 'main' WHERE funnel_source IS NULL`);
         
         // Create refund_requests table
         await pool.query(`

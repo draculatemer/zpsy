@@ -1325,6 +1325,11 @@
                             <option value="en">🇺🇸 Inglês</option>
                             <option value="es">🇪🇸 Espanhol</option>
                         </select>
+                        <select class="funnel-selector" id="globalSourceFilter" onchange="onGlobalFilterChange()" title="Filtrar por origem" style="min-width: 140px;">
+                            <option value="">📦 Todas as Origens</option>
+                            <option value="main">🏠 Principal</option>
+                            <option value="affiliate">🤝 Afiliados</option>
+                        </select>
                         <select class="funnel-selector" id="globalDateFilter" onchange="onGlobalFilterChange()" title="Filtrar por período" style="min-width: 150px;">
                             <option value="all">📅 Todo o período</option>
                             <option value="today">Hoje</option>
@@ -2019,13 +2024,14 @@
                                     <th>Email</th>
                                     <th>Produto</th>
                                     <th>Valor</th>
+                                    <th>Origem</th>
                                     <th>Status</th>
                                     <th>Data</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="transactionsTable">
-                                <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3><p>Configure o postback nas configurações.</p></div></td></tr>
+                                <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3><p>Configure o postback nas configurações.</p></div></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2638,6 +2644,17 @@
                             <input type="url" class="form-input" id="webhookUrl" placeholder="https://seu-webhook.com/endpoint">
                         </div>
                         <button class="btn-secondary" onclick="saveWebhook()">Salvar Webhook</button>
+                    </div>
+                    
+                    <div class="config-box" style="border-color: #a855f7; background: rgba(168,85,247,0.05);">
+                        <h3>🤝 Funis de Afiliados</h3>
+                        <p style="color: var(--text-muted);">Migração e manutenção dos dados de afiliados.</p>
+                        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                            <div>
+                                <button class="btn-secondary" style="background: #a855f7; color: white; border-color: #a855f7;" onclick="migrateFunnelSource()">🔄 Classificar Origem das Transações</button>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Classifica transações existentes como "Principal" ou "Afiliado" baseado no código do produto.</p>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="config-box" style="border-color: var(--danger); background: rgba(244,67,54,0.05);">
@@ -3297,12 +3314,13 @@ Estou aqui para esclarecer tudo! 😊`
             loadCountriesData();
         }
         
-        // Global filter change handler (language + date)
+        // Global filter change handler (language + date + source)
         function onGlobalFilterChange() {
             console.log('🔄 Global filter changed');
             const globalLangFilter = document.getElementById('globalFunnelFilter')?.value || '';
             const globalDateFilter = document.getElementById('globalDateFilter')?.value || 'all';
-            console.log('📊 Language:', globalLangFilter, 'Date:', globalDateFilter);
+            const globalSourceFilter = document.getElementById('globalSourceFilter')?.value || '';
+            console.log('📊 Language:', globalLangFilter, 'Date:', globalDateFilter, 'Source:', globalSourceFilter);
             
             // Sync with leads page filter
             const languageFilter = document.getElementById('languageFilter');
@@ -3310,6 +3328,11 @@ Estou aqui para esclarecer tudo! 😊`
             
             // Reload all data
             loadAllData();
+        }
+        
+        // Get global source filter value
+        function getGlobalSourceFilter() {
+            return document.getElementById('globalSourceFilter')?.value || '';
         }
         
         // Load funnel comparison data for Overview (EN vs ES stats in header)
@@ -4723,11 +4746,13 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
             try {
                 const globalFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                const sourceFilter = getGlobalSourceFilter();
                 const dateRange = getGlobalDateRange();
                 
                 // Build query params
                 let params = [];
                 if (globalFilter) params.push(`language=${globalFilter}`);
+                if (sourceFilter) params.push(`source=${sourceFilter}`);
                 if (dateRange) {
                     params.push(`startDate=${dateRange.startDate}`);
                     params.push(`endDate=${dateRange.endDate}`);
@@ -4743,7 +4768,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const trans = await transRes.json();
                 
                 // Update header indicator
-                updateSalesHeader(stats.language);
+                updateSalesHeader(stats.language, stats.source);
                 
                 // Main stats
                 const approved = stats.approved || 0;
@@ -4778,16 +4803,24 @@ Estou aqui para esclarecer tudo! 😊`
             }
         }
         
-        function updateSalesHeader(lang) {
+        function updateSalesHeader(lang, source) {
             const indicator = document.getElementById('salesLangIndicator');
             if (!indicator) return;
+            let langText = '';
             if (lang === 'en') {
-                indicator.innerHTML = '<span class="lang-badge en">🇺🇸 English Funnel</span>';
+                langText = '<span class="lang-badge en">🇺🇸 English</span>';
             } else if (lang === 'es') {
-                indicator.innerHTML = '<span class="lang-badge es">🇪🇸 Spanish Funnel</span>';
+                langText = '<span class="lang-badge es">🇪🇸 Spanish</span>';
             } else {
-                indicator.innerHTML = '<span class="lang-badge all">🌍 Todos os Funis</span>';
+                langText = '<span class="lang-badge all">🌍 Todos</span>';
             }
+            let sourceText = '';
+            if (source === 'main') {
+                sourceText = ' <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">🏠 Principal</span>';
+            } else if (source === 'affiliate') {
+                sourceText = ' <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🤝 Afiliados</span>';
+            }
+            indicator.innerHTML = langText + sourceText;
         }
         
         
@@ -4811,17 +4844,23 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderTransactions(transactions) {
-            if (!transactions?.length) { document.getElementById('transactionsTable').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3></div></td></tr>'; return; }
-            const statusLabelsT = { 'approved': 'Aprovada', 'pending_payment': 'Aguardando', 'cancelled': 'Cancelada', 'refunded': 'Reembolsada' };
+            if (!transactions?.length) { document.getElementById('transactionsTable').innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3></div></td></tr>'; return; }
+            const statusLabelsT = { 'approved': 'Aprovada', 'pending_payment': 'Aguardando', 'cancelled': 'Cancelada', 'refunded': 'Reembolsada', 'chargeback': 'Chargeback' };
             let html = '';
             transactions.forEach(t => {
                 const badgeClass = t.status === 'approved' ? 'badge-approved' : t.status === 'pending_payment' ? 'badge-pending' : 'badge-cancelled';
+                const isAffiliate = t.funnel_source === 'affiliate';
+                const sourceBadge = isAffiliate 
+                    ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🤝 Afiliado</span>'
+                    : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">🏠 Principal</span>';
+                const langBadge = t.funnel_language === 'es' ? '🇪🇸' : '🇺🇸';
                 html += `<tr>
                     <td class="mono">${t.transaction_id?.substring(0, 12) || '-'}...</td>
                     <td>${t.name || '-'}</td>
                     <td>${t.email || '-'}</td>
                     <td>${t.product || '-'}</td>
                     <td style="color:var(--accent-light)">R$ ${t.value || '0'}</td>
+                    <td>${langBadge} ${sourceBadge}</td>
                     <td><span class="badge ${badgeClass}"><span class="badge-dot"></span>${statusLabelsT[t.status] || t.status}</span></td>
                     <td>${formatDate(t.created_at)}</td>
                     <td><button class="action-btn danger" onclick="deleteTransaction(${t.id}, '${(t.product || '').replace(/'/g, "\\'")}' )" title="Deletar">🗑️</button></td>
@@ -7065,6 +7104,34 @@ Posso ajudar em algo mais? 😊`
             } catch (error) {
                 console.error('Clean test error:', error);
                 showToast('❌ Erro', 'Falha ao limpar transações de teste', 'error');
+            }
+        }
+        
+        async function migrateFunnelSource() {
+            try {
+                showToast('🔄 Migrando...', 'Classificando transações por origem...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/admin/migrate-funnel-source`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) { logout(); return; }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Migrado!', `${data.updated} transações classificadas como afiliado, ${data.nullFixed} definidas como principal.`, 'success');
+                    loadSalesData();
+                } else {
+                    showToast('Erro', data.error || 'Falha na migração', 'error');
+                }
+            } catch (error) {
+                console.error('Migration error:', error);
+                showToast('Erro', 'Falha ao migrar transações', 'error');
             }
         }
         
