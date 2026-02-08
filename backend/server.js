@@ -2094,6 +2094,12 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
         // 1=Aguardando, 2=Finalizada, 3=Cancelada, 4=Devolvida, 5=Bloqueada, 6=Completa
         ['1','2','3','4','5','6'].forEach(s => params.append('status[]', s));
         
+        // Only fetch our 8 specific products (4 English + 4 Spanish)
+        // English: 341972 (Front), 349241 (UP1), 349242 (UP2), 349243 (UP3)
+        // Spanish: 349260 (Front), 349261 (UP1), 349266 (UP2), 349267 (UP3)
+        const validProductCodes = ['341972', '349241', '349242', '349243', '349260', '349261', '349266', '349267'];
+        validProductCodes.forEach(code => params.append('product[]', code));
+        
         const txUrl = `https://api.monetizze.com.br/2.1/transactions?${params.toString()}`;
         console.log('🌐 Fetching transactions from Monetizze API 2.1:', txUrl);
         
@@ -2222,7 +2228,15 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 const status = vendaData.status || tipoEvento.descricao;
                 const statusCode = String(tipoEvento.codigo || item.codigo_status || '2');
                 
-                console.log(`📋 Processing sale: ID=${transactionId}, Product=${productName}, Value=${value}, Status=${status} (${statusCode})`);
+                console.log(`📋 Processing sale: ID=${transactionId}, Product=${productName} (${productCode}), Value=${value}, Status=${status} (${statusCode})`);
+                
+                // Double-check: only sync our 8 products (filter may not work perfectly in API)
+                const validProductCodes = ['341972', '349241', '349242', '349243', '349260', '349261', '349266', '349267'];
+                if (productCode && !validProductCodes.includes(String(productCode))) {
+                    console.log(`⏭️ Skipping product not in our funnel: ${productCode} - ${productName}`);
+                    skipped++;
+                    continue;
+                }
                 
                 // Extract real sale date from Monetizze
                 const saleDateStr = vendaData.dataInicio || vendaData.dataFinalizada || vendaData.dataVenda || vendaData.data || null;
