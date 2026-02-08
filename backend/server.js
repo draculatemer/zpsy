@@ -1938,6 +1938,47 @@ app.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req, re
 // Store last 20 postbacks for debugging
 const recentPostbacks = [];
 
+// TEMPORARY: Check today's sales count (no auth - REMOVE LATER)
+app.get('/api/admin/debug/today-sales', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // All transactions today (any status)
+        const allToday = await pool.query(`
+            SELECT transaction_id, email, product, value, status, monetizze_status, created_at
+            FROM transactions 
+            WHERE created_at::date = $1
+            ORDER BY created_at DESC
+        `, [today]);
+        
+        // Approved only
+        const approvedToday = await pool.query(`
+            SELECT COUNT(*) as count
+            FROM transactions 
+            WHERE created_at::date = $1 AND status = 'approved'
+        `, [today]);
+        
+        // By status breakdown
+        const byStatus = await pool.query(`
+            SELECT status, COUNT(*) as count
+            FROM transactions 
+            WHERE created_at::date = $1
+            GROUP BY status
+            ORDER BY count DESC
+        `, [today]);
+        
+        res.json({
+            today: today,
+            totalTransactions: allToday.rows.length,
+            approvedCount: parseInt(approvedToday.rows[0].count),
+            byStatus: byStatus.rows,
+            allTransactions: allToday.rows
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Debug endpoint to see recent postbacks (memory + DB)
 app.get('/api/admin/debug/postbacks', authenticateToken, async (req, res) => {
     // Extract value fields from each postback for easy viewing
