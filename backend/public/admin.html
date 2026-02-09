@@ -6462,6 +6462,8 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function filterRecoveryRefunds() {
+            // Reset pagination to page 1 when filtering
+            paginationState.refundsRecovery.currentPage = 1;
             renderAllRefundSections();
         }
         
@@ -6472,6 +6474,8 @@ Estou aqui para esclarecer tudo! 😊`
             if (statusEl) statusEl.value = '';
             if (langEl) langEl.value = '';
             if (searchEl) searchEl.value = '';
+            // Reset pagination to page 1 when clearing filters
+            paginationState.refundsRecovery.currentPage = 1;
             renderAllRefundSections();
         }
         
