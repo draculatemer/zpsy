@@ -4218,6 +4218,21 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
             dateFilter = `AND created_at >= '${startDate}' AND created_at <= '${endDate} 23:59:59'`;
         }
         
+        // Ensure recovery_contacts table exists before queries
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS recovery_contacts (
+                id SERIAL PRIMARY KEY,
+                lead_email VARCHAR(255) NOT NULL,
+                segment VARCHAR(50) NOT NULL,
+                template_used VARCHAR(100),
+                channel VARCHAR(20) DEFAULT 'whatsapp',
+                message TEXT,
+                status VARCHAR(20) DEFAULT 'sent',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
         if (segment === 'checkout_abandoned') {
             // Checkout abandoned leads
             const result = await pool.query(`
@@ -4625,6 +4640,21 @@ app.get('/api/admin/recovery/templates', authenticateToken, async (req, res) => 
 // Get recovery stats summary
 app.get('/api/admin/recovery/stats', authenticateToken, async (req, res) => {
     try {
+        // Ensure table exists
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS recovery_contacts (
+                id SERIAL PRIMARY KEY,
+                lead_email VARCHAR(255) NOT NULL,
+                segment VARCHAR(50) NOT NULL,
+                template_used VARCHAR(100),
+                channel VARCHAR(20) DEFAULT 'whatsapp',
+                message TEXT,
+                status VARCHAR(20) DEFAULT 'sent',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
         // Get recovery rate (last 30 days)
         const recoveryStats = await pool.query(`
             SELECT 

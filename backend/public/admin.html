@@ -5079,7 +5079,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 
                 const rateEl = document.getElementById('recoveryRateDisplay');
-                if (rateEl) rateEl.textContent = data.recovery_rate + '%';
+                if (rateEl) rateEl.textContent = (data.recovery_rate || 0) + '%';
                 
             } catch (error) {
                 console.error('Error loading recovery stats:', error);
