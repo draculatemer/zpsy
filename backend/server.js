@@ -4034,6 +4034,637 @@ app.post('/api/refund', async (req, res) => {
     }
 });
 
+// ==================== RECOVERY CENTER API ====================
+
+// Helper function to calculate recovery score
+function calculateRecoveryScore(lead, segment) {
+    let score = 0;
+    const now = new Date();
+    
+    // 1. Time Score (30%) - More recent = higher score
+    const eventTime = new Date(lead.last_event_at || lead.created_at);
+    const hoursAgo = (now - eventTime) / (1000 * 60 * 60);
+    let timeScore = 0;
+    if (hoursAgo <= 1) timeScore = 30;
+    else if (hoursAgo <= 6) timeScore = 27;
+    else if (hoursAgo <= 24) timeScore = 24;
+    else if (hoursAgo <= 48) timeScore = 20;
+    else if (hoursAgo <= 72) timeScore = 15;
+    else if (hoursAgo <= 168) timeScore = 10; // 7 days
+    else timeScore = 5;
+    
+    // 2. Engagement Score (25%) - Based on funnel events
+    const eventCount = parseInt(lead.event_count || 0);
+    let engagementScore = Math.min(25, eventCount * 3);
+    
+    // 3. Value Score (20%) - Based on potential value
+    const value = parseFloat(lead.potential_value || 47);
+    let valueScore = 0;
+    if (value >= 200) valueScore = 20;
+    else if (value >= 100) valueScore = 17;
+    else if (value >= 50) valueScore = 14;
+    else if (value >= 30) valueScore = 10;
+    else valueScore = 7;
+    
+    // 4. History Score (15%) - Has previous purchases
+    const hasPurchase = lead.has_purchase === true || lead.has_purchase === 't';
+    let historyScore = hasPurchase ? 15 : 5;
+    
+    // 5. Attempts Score (10%) - Fewer attempts = higher score
+    const attempts = parseInt(lead.contact_attempts || 0);
+    let attemptsScore = Math.max(0, 10 - (attempts * 2));
+    
+    score = timeScore + engagementScore + valueScore + historyScore + attemptsScore;
+    
+    return {
+        total: Math.min(100, Math.round(score)),
+        breakdown: {
+            time: timeScore,
+            engagement: engagementScore,
+            value: valueScore,
+            history: historyScore,
+            attempts: attemptsScore
+        }
+    };
+}
+
+// Get recovery segments summary
+app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
+    try {
+        const { language, startDate, endDate } = req.query;
+        
+        // Build date filter
+        let dateFilter = '';
+        let dateParams = [];
+        if (startDate && endDate) {
+            dateFilter = `AND created_at >= $1 AND created_at <= $2`;
+            dateParams = [startDate, endDate + ' 23:59:59'];
+        }
+        
+        // 1. Checkout Abandoned - People who clicked checkout but don't have approved transaction
+        const checkoutAbandoned = await pool.query(`
+            SELECT COUNT(DISTINCT fe.visitor_id) as count
+            FROM funnel_events fe
+            LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
+            WHERE fe.event = 'checkout_clicked'
+            ${language ? `AND fe.funnel_language = '${language}'` : ''}
+            AND NOT EXISTS (
+                SELECT 1 FROM transactions t 
+                WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
+                AND t.status = 'approved'
+            )
+            ${dateFilter.replace(/\$1/g, `$${dateParams.length > 0 ? 1 : 1}`).replace(/\$2/g, `$${dateParams.length > 0 ? 2 : 2}`)}
+        `, dateParams);
+        
+        // 2. Payment Failed - Transactions with failed status
+        const paymentFailed = await pool.query(`
+            SELECT COUNT(*) as count, COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total_value
+            FROM transactions
+            WHERE status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+            ${language ? `AND funnel_language = '${language}'` : ''}
+            ${dateFilter}
+        `, dateParams);
+        
+        // 3. Refund Requests - Current refund requests that are pending or handling
+        const refundRequests = await pool.query(`
+            SELECT COUNT(*) as count, COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total_value
+            FROM refund_requests
+            WHERE status IN ('pending', 'handling', 'processing')
+            ${language ? `AND funnel_language = '${language}'` : ''}
+            ${dateFilter}
+        `, dateParams);
+        
+        // 4. Upsell Declined - People who bought front but declined upsells
+        const upsellDeclined = await pool.query(`
+            SELECT COUNT(DISTINCT fe.visitor_id) as count
+            FROM funnel_events fe
+            INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+            WHERE fe.event LIKE '%_declined'
+            ${language ? `AND fe.funnel_language = '${language}'` : ''}
+            AND EXISTS (
+                SELECT 1 FROM transactions t 
+                WHERE LOWER(t.email) = LOWER(l.email)
+                AND t.status = 'approved'
+            )
+            ${dateFilter}
+        `, dateParams);
+        
+        // Calculate potential values
+        const frontPrice = 47;
+        const upsellPrice = 67;
+        
+        res.json({
+            segments: {
+                checkout_abandoned: {
+                    count: parseInt(checkoutAbandoned.rows[0]?.count || 0),
+                    potential_value: parseInt(checkoutAbandoned.rows[0]?.count || 0) * frontPrice,
+                    label: 'Abandonos Checkout',
+                    icon: '🛒',
+                    color: '#f59e0b'
+                },
+                payment_failed: {
+                    count: parseInt(paymentFailed.rows[0]?.count || 0),
+                    potential_value: parseFloat(paymentFailed.rows[0]?.total_value || 0),
+                    label: 'Pagamentos Recusados',
+                    icon: '💳',
+                    color: '#ef4444'
+                },
+                refund_requests: {
+                    count: parseInt(refundRequests.rows[0]?.count || 0),
+                    potential_value: parseFloat(refundRequests.rows[0]?.total_value || 0),
+                    label: 'Pedidos Reembolso',
+                    icon: '💸',
+                    color: '#8b5cf6'
+                },
+                upsell_declined: {
+                    count: parseInt(upsellDeclined.rows[0]?.count || 0),
+                    potential_value: parseInt(upsellDeclined.rows[0]?.count || 0) * upsellPrice,
+                    label: 'Recusas Upsell',
+                    icon: '📦',
+                    color: '#3b82f6'
+                }
+            },
+            totals: {
+                count: parseInt(checkoutAbandoned.rows[0]?.count || 0) + 
+                       parseInt(paymentFailed.rows[0]?.count || 0) + 
+                       parseInt(refundRequests.rows[0]?.count || 0) + 
+                       parseInt(upsellDeclined.rows[0]?.count || 0),
+                potential_value: (parseInt(checkoutAbandoned.rows[0]?.count || 0) * frontPrice) +
+                                parseFloat(paymentFailed.rows[0]?.total_value || 0) +
+                                parseFloat(refundRequests.rows[0]?.total_value || 0) +
+                                (parseInt(upsellDeclined.rows[0]?.count || 0) * upsellPrice)
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching recovery segments:', error);
+        res.status(500).json({ error: 'Failed to fetch recovery segments' });
+    }
+});
+
+// Get leads for a specific recovery segment
+app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
+    try {
+        const { segment } = req.params;
+        const { language, startDate, endDate, minScore, contactStatus, sortBy, page = 1, limit = 20 } = req.query;
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        
+        let leads = [];
+        let totalCount = 0;
+        
+        // Build common date filter
+        let dateFilter = '';
+        if (startDate && endDate) {
+            dateFilter = `AND created_at >= '${startDate}' AND created_at <= '${endDate} 23:59:59'`;
+        }
+        
+        if (segment === 'checkout_abandoned') {
+            // Checkout abandoned leads
+            const result = await pool.query(`
+                WITH checkout_leads AS (
+                    SELECT DISTINCT ON (COALESCE(l.email, fe.visitor_id))
+                        COALESCE(l.id, 0) as id,
+                        COALESCE(l.email, '') as email,
+                        COALESCE(l.name, 'Visitante') as name,
+                        COALESCE(l.whatsapp, '') as phone,
+                        COALESCE(l.country, '') as country,
+                        COALESCE(l.country_code, '') as country_code,
+                        fe.funnel_language as language,
+                        fe.created_at as last_event_at,
+                        'checkout_clicked' as event,
+                        47.00 as potential_value,
+                        'X AI Monitor' as product,
+                        (SELECT COUNT(*) FROM funnel_events fe2 WHERE fe2.visitor_id = fe.visitor_id) as event_count,
+                        EXISTS(SELECT 1 FROM transactions t WHERE LOWER(t.email) = LOWER(l.email) AND t.status = 'approved') as has_purchase,
+                        COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = l.email AND rc.segment = 'checkout_abandoned'), 0) as contact_attempts,
+                        (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = l.email) as last_contact
+                    FROM funnel_events fe
+                    LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
+                    WHERE fe.event = 'checkout_clicked'
+                    ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                    AND NOT EXISTS (
+                        SELECT 1 FROM transactions t 
+                        WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
+                        AND t.status = 'approved'
+                    )
+                    ${dateFilter}
+                    ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
+                )
+                SELECT * FROM checkout_leads
+                ORDER BY last_event_at DESC
+                LIMIT $1 OFFSET $2
+            `, [parseInt(limit), offset]);
+            
+            leads = result.rows;
+            
+            // Get total count
+            const countResult = await pool.query(`
+                SELECT COUNT(DISTINCT COALESCE(l.email, fe.visitor_id)) as count
+                FROM funnel_events fe
+                LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
+                WHERE fe.event = 'checkout_clicked'
+                ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                AND NOT EXISTS (
+                    SELECT 1 FROM transactions t 
+                    WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
+                    AND t.status = 'approved'
+                )
+                ${dateFilter}
+            `);
+            totalCount = parseInt(countResult.rows[0]?.count || 0);
+            
+        } else if (segment === 'payment_failed') {
+            // Payment failed leads
+            const result = await pool.query(`
+                SELECT 
+                    t.id,
+                    t.email,
+                    t.name,
+                    COALESCE(l.whatsapp, t.phone, '') as phone,
+                    COALESCE(l.country, '') as country,
+                    COALESCE(l.country_code, '') as country_code,
+                    t.funnel_language as language,
+                    t.created_at as last_event_at,
+                    t.status as event,
+                    CAST(t.value AS DECIMAL) as potential_value,
+                    t.product,
+                    1 as event_count,
+                    false as has_purchase,
+                    COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = t.email AND rc.segment = 'payment_failed'), 0) as contact_attempts,
+                    (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = t.email) as last_contact
+                FROM transactions t
+                LEFT JOIN leads l ON LOWER(t.email) = LOWER(l.email)
+                WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+                ${language ? `AND t.funnel_language = '${language}'` : ''}
+                ${dateFilter}
+                ORDER BY t.created_at DESC
+                LIMIT $1 OFFSET $2
+            `, [parseInt(limit), offset]);
+            
+            leads = result.rows;
+            
+            const countResult = await pool.query(`
+                SELECT COUNT(*) as count FROM transactions
+                WHERE status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+                ${language ? `AND funnel_language = '${language}'` : ''}
+                ${dateFilter}
+            `);
+            totalCount = parseInt(countResult.rows[0]?.count || 0);
+            
+        } else if (segment === 'refund_requests') {
+            // Refund requests
+            const result = await pool.query(`
+                SELECT 
+                    r.id,
+                    r.email,
+                    r.full_name as name,
+                    r.phone,
+                    '' as country,
+                    '' as country_code,
+                    r.funnel_language as language,
+                    r.created_at as last_event_at,
+                    r.reason as event,
+                    CAST(r.value AS DECIMAL) as potential_value,
+                    r.product,
+                    1 as event_count,
+                    true as has_purchase,
+                    COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = r.email AND rc.segment = 'refund_requests'), 0) as contact_attempts,
+                    (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = r.email) as last_contact,
+                    r.status as refund_status,
+                    r.protocol
+                FROM refund_requests r
+                WHERE r.status IN ('pending', 'handling', 'processing')
+                ${language ? `AND r.funnel_language = '${language}'` : ''}
+                ${dateFilter}
+                ORDER BY r.created_at DESC
+                LIMIT $1 OFFSET $2
+            `, [parseInt(limit), offset]);
+            
+            leads = result.rows;
+            
+            const countResult = await pool.query(`
+                SELECT COUNT(*) as count FROM refund_requests
+                WHERE status IN ('pending', 'handling', 'processing')
+                ${language ? `AND funnel_language = '${language}'` : ''}
+                ${dateFilter}
+            `);
+            totalCount = parseInt(countResult.rows[0]?.count || 0);
+            
+        } else if (segment === 'upsell_declined') {
+            // Upsell declined
+            const result = await pool.query(`
+                WITH declined_leads AS (
+                    SELECT DISTINCT ON (l.email)
+                        l.id,
+                        l.email,
+                        l.name,
+                        COALESCE(l.whatsapp, '') as phone,
+                        COALESCE(l.country, '') as country,
+                        COALESCE(l.country_code, '') as country_code,
+                        fe.funnel_language as language,
+                        fe.created_at as last_event_at,
+                        fe.event,
+                        67.00 as potential_value,
+                        CASE 
+                            WHEN fe.event LIKE 'upsell_1%' THEN 'Message Vault'
+                            WHEN fe.event LIKE 'upsell_2%' THEN 'AI Vision'
+                            WHEN fe.event LIKE 'upsell_3%' THEN 'VIP Priority'
+                            ELSE 'Upsell'
+                        END as product,
+                        (SELECT COUNT(*) FROM funnel_events fe2 WHERE fe2.visitor_id = fe.visitor_id) as event_count,
+                        true as has_purchase,
+                        COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = l.email AND rc.segment = 'upsell_declined'), 0) as contact_attempts,
+                        (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = l.email) as last_contact
+                    FROM funnel_events fe
+                    INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+                    WHERE fe.event LIKE '%_declined'
+                    ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                    AND EXISTS (
+                        SELECT 1 FROM transactions t 
+                        WHERE LOWER(t.email) = LOWER(l.email)
+                        AND t.status = 'approved'
+                    )
+                    ${dateFilter}
+                    ORDER BY l.email, fe.created_at DESC
+                )
+                SELECT * FROM declined_leads
+                ORDER BY last_event_at DESC
+                LIMIT $1 OFFSET $2
+            `, [parseInt(limit), offset]);
+            
+            leads = result.rows;
+            
+            const countResult = await pool.query(`
+                SELECT COUNT(DISTINCT l.email) as count
+                FROM funnel_events fe
+                INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+                WHERE fe.event LIKE '%_declined'
+                ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                AND EXISTS (
+                    SELECT 1 FROM transactions t 
+                    WHERE LOWER(t.email) = LOWER(l.email)
+                    AND t.status = 'approved'
+                )
+                ${dateFilter}
+            `);
+            totalCount = parseInt(countResult.rows[0]?.count || 0);
+            
+        } else {
+            return res.status(400).json({ error: 'Invalid segment' });
+        }
+        
+        // Calculate scores for each lead
+        const leadsWithScores = leads.map(lead => {
+            const scoreData = calculateRecoveryScore(lead, segment);
+            return {
+                ...lead,
+                score: scoreData.total,
+                score_breakdown: scoreData.breakdown,
+                time_ago: getTimeAgo(lead.last_event_at)
+            };
+        });
+        
+        // Filter by minimum score if specified
+        let filteredLeads = leadsWithScores;
+        if (minScore) {
+            filteredLeads = leadsWithScores.filter(l => l.score >= parseInt(minScore));
+        }
+        
+        // Filter by contact status if specified
+        if (contactStatus === 'not_contacted') {
+            filteredLeads = filteredLeads.filter(l => l.contact_attempts === 0);
+        } else if (contactStatus === 'contacted') {
+            filteredLeads = filteredLeads.filter(l => l.contact_attempts > 0);
+        }
+        
+        // Sort leads
+        if (sortBy === 'score') {
+            filteredLeads.sort((a, b) => b.score - a.score);
+        } else if (sortBy === 'value') {
+            filteredLeads.sort((a, b) => b.potential_value - a.potential_value);
+        }
+        // Default is already sorted by time (most recent first)
+        
+        res.json({
+            segment: segment,
+            leads: filteredLeads,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / parseInt(limit))
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching recovery segment leads:', error);
+        res.status(500).json({ error: 'Failed to fetch recovery leads' });
+    }
+});
+
+// Helper function for time ago formatting
+function getTimeAgo(date) {
+    if (!date) return 'N/A';
+    const now = new Date();
+    const then = new Date(date);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Agora';
+    if (diffMins < 60) return `${diffMins}min atrás`;
+    if (diffHours < 24) return `${diffHours}h atrás`;
+    if (diffDays < 7) return `${diffDays}d atrás`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}sem atrás`;
+    return `${Math.floor(diffDays / 30)}m atrás`;
+}
+
+// Register a recovery contact attempt
+app.post('/api/admin/recovery/contact', authenticateToken, async (req, res) => {
+    try {
+        const { email, segment, template, channel, message } = req.body;
+        
+        if (!email || !segment) {
+            return res.status(400).json({ error: 'Email and segment are required' });
+        }
+        
+        const result = await pool.query(`
+            INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status, created_at)
+            VALUES ($1, $2, $3, $4, $5, 'sent', NOW())
+            RETURNING *
+        `, [email, segment, template || null, channel || 'whatsapp', message || null]);
+        
+        res.json({
+            success: true,
+            contact: result.rows[0]
+        });
+        
+    } catch (error) {
+        console.error('Error registering recovery contact:', error);
+        res.status(500).json({ error: 'Failed to register contact' });
+    }
+});
+
+// Update recovery contact status (responded, converted)
+app.put('/api/admin/recovery/contact/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!['sent', 'responded', 'converted'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        
+        const result = await pool.query(`
+            UPDATE recovery_contacts SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *
+        `, [status, id]);
+        
+        res.json({ success: true, contact: result.rows[0] });
+        
+    } catch (error) {
+        console.error('Error updating recovery contact:', error);
+        res.status(500).json({ error: 'Failed to update contact' });
+    }
+});
+
+// Get recovery templates
+app.get('/api/admin/recovery/templates', authenticateToken, async (req, res) => {
+    try {
+        const templates = {
+            checkout_abandoned: [
+                {
+                    id: 'urgency',
+                    name: 'Urgência',
+                    icon: '⏰',
+                    message_en: "Hey {name}! 👋 I noticed you were checking out X AI Monitor but didn't complete your purchase. Just wanted to let you know we have LIMITED spots available. Don't miss out on discovering what's happening behind the scenes! 🔥",
+                    message_es: "¡Hola {name}! 👋 Vi que estabas por comprar X AI Monitor pero no completaste. Solo quería avisarte que tenemos CUPOS LIMITADOS. ¡No te pierdas la oportunidad de descubrir qué está pasando! 🔥",
+                    message_pt: "Oi {name}! 👋 Vi que você estava prestes a comprar o X AI Monitor mas não finalizou. Só queria avisar que temos VAGAS LIMITADAS. Não perca a chance de descobrir o que está acontecendo! 🔥"
+                },
+                {
+                    id: 'discount',
+                    name: 'Desconto Especial',
+                    icon: '💰',
+                    message_en: "Hi {name}! 🎁 I have a special offer just for you: Get 50% OFF on X AI Monitor for the next 24 hours! Use this exclusive link: [LINK]. Don't let this opportunity slip away!",
+                    message_es: "¡Hola {name}! 🎁 Tengo una oferta especial solo para ti: ¡50% DE DESCUENTO en X AI Monitor por las próximas 24 horas! Usa este link exclusivo: [LINK]. ¡No dejes escapar esta oportunidad!",
+                    message_pt: "Oi {name}! 🎁 Tenho uma oferta especial só pra você: 50% DE DESCONTO no X AI Monitor pelas próximas 24 horas! Use este link exclusivo: [LINK]. Não deixe essa oportunidade passar!"
+                },
+                {
+                    id: 'support',
+                    name: 'Suporte',
+                    icon: '🤝',
+                    message_en: "Hey {name}! 👋 I noticed you were interested in X AI Monitor. Is there anything I can help you with? Any questions about how it works? I'm here to help! 😊",
+                    message_es: "¡Hola {name}! 👋 Vi que te interesó X AI Monitor. ¿Hay algo en lo que pueda ayudarte? ¿Alguna pregunta sobre cómo funciona? ¡Estoy aquí para ayudar! 😊",
+                    message_pt: "Oi {name}! 👋 Vi que você se interessou pelo X AI Monitor. Tem algo que eu possa te ajudar? Alguma dúvida sobre como funciona? Estou aqui pra ajudar! 😊"
+                }
+            ],
+            payment_failed: [
+                {
+                    id: 'retry',
+                    name: 'Tentar Novamente',
+                    icon: '🔄',
+                    message_en: "Hi {name}! I noticed there was an issue with your payment for {product}. Sometimes this happens due to bank limits. Would you like to try again with a different card or payment method? I can help! 💳",
+                    message_es: "¡Hola {name}! Vi que hubo un problema con tu pago de {product}. A veces esto pasa por límites del banco. ¿Te gustaría intentar con otra tarjeta o método de pago? ¡Puedo ayudarte! 💳",
+                    message_pt: "Oi {name}! Vi que houve um problema com seu pagamento do {product}. Às vezes isso acontece por limites do banco. Quer tentar com outro cartão ou forma de pagamento? Posso ajudar! 💳"
+                },
+                {
+                    id: 'alternative',
+                    name: 'Pagamento Alternativo',
+                    icon: '💳',
+                    message_en: "Hey {name}! Your payment for {product} didn't go through. No worries! We have PIX and Boleto options available. Would you like me to send you an alternative payment link?",
+                    message_es: "¡Hola {name}! Tu pago de {product} no se procesó. ¡No te preocupes! Tenemos opciones de pago alternativas disponibles. ¿Te gustaría que te envíe otro link de pago?",
+                    message_pt: "Oi {name}! Seu pagamento do {product} não foi processado. Sem problemas! Temos opções de PIX e Boleto disponíveis. Quer que eu te envie um link de pagamento alternativo?"
+                }
+            ],
+            refund_requests: [
+                {
+                    id: 'understand',
+                    name: 'Entender Motivo',
+                    icon: '💬',
+                    message_en: "Hi {name}! I received your refund request. Before we proceed, I'd love to understand what happened. Was there something that didn't meet your expectations? Maybe I can help solve it! 🤝",
+                    message_es: "¡Hola {name}! Recibí tu solicitud de reembolso. Antes de proceder, me gustaría entender qué pasó. ¿Hubo algo que no cumplió tus expectativas? ¡Tal vez pueda ayudar a resolverlo! 🤝",
+                    message_pt: "Oi {name}! Recebi seu pedido de reembolso. Antes de prosseguir, gostaria de entender o que aconteceu. Teve algo que não atendeu suas expectativas? Talvez eu possa ajudar a resolver! 🤝"
+                },
+                {
+                    id: 'offer_help',
+                    name: 'Oferecer Ajuda',
+                    icon: '🎯',
+                    message_en: "Hey {name}! I saw you requested a refund for {product}. Many customers had similar concerns but after a quick tutorial, they loved the results! Would you give me 5 minutes to show you how to get the best out of it?",
+                    message_es: "¡Hola {name}! Vi que pediste reembolso de {product}. ¡Muchos clientes tenían dudas similares pero después de un tutorial rápido, amaron los resultados! ¿Me darías 5 minutos para mostrarte cómo aprovecharlo al máximo?",
+                    message_pt: "Oi {name}! Vi que você pediu reembolso do {product}. Muitos clientes tinham dúvidas parecidas mas depois de um tutorial rápido, amaram os resultados! Me dá 5 minutinhos pra te mostrar como aproveitar ao máximo?"
+                }
+            ],
+            upsell_declined: [
+                {
+                    id: 'benefit',
+                    name: 'Benefício Extra',
+                    icon: '🎁',
+                    message_en: "Hi {name}! Congrats on your purchase! 🎉 I noticed you didn't add {product} to your order. Did you know it can help you [BENEFIT]? I have a special 30% discount just for you!",
+                    message_es: "¡Hola {name}! ¡Felicidades por tu compra! 🎉 Vi que no agregaste {product} a tu pedido. ¿Sabías que puede ayudarte a [BENEFICIO]? ¡Tengo un descuento especial del 30% solo para ti!",
+                    message_pt: "Oi {name}! Parabéns pela compra! 🎉 Vi que você não adicionou o {product} no seu pedido. Sabia que ele pode te ajudar a [BENEFÍCIO]? Tenho um desconto especial de 30% só pra você!"
+                },
+                {
+                    id: 'bundle',
+                    name: 'Oferta Combo',
+                    icon: '📦',
+                    message_en: "Hey {name}! Quick question: Would you be interested in adding {product} to your X AI Monitor for a special bundle price? It's way more powerful together! 🚀",
+                    message_es: "¡Hola {name}! Pregunta rápida: ¿Te interesaría agregar {product} a tu X AI Monitor por un precio especial de combo? ¡Es mucho más poderoso junto! 🚀",
+                    message_pt: "Oi {name}! Pergunta rápida: Você teria interesse em adicionar o {product} ao seu X AI Monitor por um preço especial de combo? É muito mais poderoso junto! 🚀"
+                }
+            ]
+        };
+        
+        res.json({ templates });
+        
+    } catch (error) {
+        console.error('Error fetching templates:', error);
+        res.status(500).json({ error: 'Failed to fetch templates' });
+    }
+});
+
+// Get recovery stats summary
+app.get('/api/admin/recovery/stats', authenticateToken, async (req, res) => {
+    try {
+        // Get recovery rate (last 30 days)
+        const recoveryStats = await pool.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE status = 'converted') as converted,
+                COUNT(*) as total
+            FROM recovery_contacts
+            WHERE created_at >= NOW() - INTERVAL '30 days'
+        `);
+        
+        const converted = parseInt(recoveryStats.rows[0]?.converted || 0);
+        const total = parseInt(recoveryStats.rows[0]?.total || 0);
+        const recoveryRate = total > 0 ? Math.round((converted / total) * 100) : 0;
+        
+        // Get best hour for contact (based on conversions)
+        const bestHour = await pool.query(`
+            SELECT EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as count
+            FROM recovery_contacts
+            WHERE status = 'converted'
+            GROUP BY hour
+            ORDER BY count DESC
+            LIMIT 1
+        `);
+        
+        const bestContactHour = bestHour.rows[0]?.hour ? `${bestHour.rows[0].hour}:00` : '10:00';
+        
+        res.json({
+            recovery_rate: recoveryRate,
+            total_contacts: total,
+            total_converted: converted,
+            best_contact_hour: bestContactHour
+        });
+        
+    } catch (error) {
+        console.error('Error fetching recovery stats:', error);
+        res.status(500).json({ error: 'Failed to fetch recovery stats' });
+    }
+});
+
+// ==================== REFUND REQUESTS API ====================
+
 // Get all refund requests (protected) - now includes consolidated view
 app.get('/api/admin/refunds', authenticateToken, async (req, res) => {
     try {
@@ -5346,6 +5977,24 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS admin_notes TEXT;`);
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(100);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_visitor_id ON refund_requests(visitor_id);`);
+        
+        // Create recovery_contacts table for tracking contact attempts
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS recovery_contacts (
+                id SERIAL PRIMARY KEY,
+                lead_email VARCHAR(255) NOT NULL,
+                segment VARCHAR(50) NOT NULL,
+                template_used VARCHAR(100),
+                channel VARCHAR(20) DEFAULT 'whatsapp',
+                message TEXT,
+                status VARCHAR(20) DEFAULT 'sent',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_recovery_contacts_email ON recovery_contacts(lead_email);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_recovery_contacts_segment ON recovery_contacts(segment);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_recovery_contacts_status ON recovery_contacts(status);`);
         
         // Create admin_users table for multi-user access
         await pool.query(`

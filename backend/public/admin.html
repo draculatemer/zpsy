@@ -712,6 +712,96 @@
         .recovery-stat-value { font-size: 28px; font-weight: 800; color: var(--warning); text-shadow: 0 0 20px rgba(255, 171, 0, 0.3); }
         .recovery-stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         
+        /* Recovery Segment Tabs */
+        .recovery-segment-tab {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            min-width: 180px;
+        }
+        .recovery-segment-tab:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+        .recovery-segment-tab.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.1));
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
+        }
+        .recovery-segment-tab .segment-icon {
+            font-size: 24px;
+        }
+        .recovery-segment-tab .segment-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .recovery-segment-tab .segment-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .recovery-segment-tab .segment-count {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .recovery-segment-tab.active .segment-count {
+            color: #10b981;
+        }
+        
+        /* Score Badge */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .score-badge.high { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 2px solid rgba(34, 197, 94, 0.5); }
+        .score-badge.medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 2px solid rgba(245, 158, 11, 0.5); }
+        .score-badge.low { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 2px solid rgba(239, 68, 68, 0.5); }
+        
+        /* Recovery Template Item */
+        .recovery-template-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recovery-template-item:hover {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+        }
+        .recovery-template-item.selected {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.15);
+        }
+        .recovery-template-item .template-icon {
+            font-size: 20px;
+        }
+        .recovery-template-item .template-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
         /* Templates */
         .template-list { display: flex; flex-direction: column; gap: 12px; }
         .template-item { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: 0.15s; }
@@ -1686,97 +1776,170 @@
                 
                 <!-- Tab: Recovery -->
                 <div class="tab-content" id="tab-recovery">
-                    <div class="funnel-page-header">
-                        <h2>🔄 Recuperação de Vendas</h2>
-                        <div id="recoveryLangIndicator"><span class="lang-badge all">🌍 Todos</span></div>
-                    </div>
-                    <div class="config-box recovery-card">
-                        <div class="recovery-header">
-                            <div class="recovery-icon">🔄</div>
-                            <div class="recovery-title">
-                                <h3>Central de Recuperação de Vendas</h3>
-                                <p>Leads que chegaram perto de comprar mas abandonaram</p>
-                            </div>
+                    <!-- Header with Global Stats -->
+                    <div class="funnel-page-header" style="margin-bottom: 20px;">
+                        <div>
+                            <h2>🎯 Central de Recuperação</h2>
+                            <p style="color: var(--text-muted); margin: 0;">Recupere vendas perdidas com inteligência</p>
                         </div>
-                        
-                        <div class="recovery-stats">
-                            <div class="recovery-stat">
-                                <div class="recovery-stat-value" id="recoveryAbandonedCount">0</div>
-                                <div class="recovery-stat-label">Abandonos no Checkout</div>
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div style="text-align: center; padding: 12px 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px;">
+                                <div style="font-size: 24px; font-weight: 700; color: #10b981;" id="recoveryTotalLeads">0</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Leads para Recuperar</div>
                             </div>
-                            <div class="recovery-stat">
-                                <div class="recovery-stat-value" id="recoveryPendingCount">0</div>
-                                <div class="recovery-stat-label">Aguardando Contato</div>
+                            <div style="text-align: center; padding: 12px 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                                <div style="font-size: 24px; font-weight: 700; color: #3b82f6;" id="recoveryPotentialValue">R$ 0</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Valor Potencial</div>
                             </div>
-                            <div class="recovery-stat">
-                                <div class="recovery-stat-value" id="recoveryRecoveredCount">0</div>
-                                <div class="recovery-stat-label">Recuperados</div>
+                            <div style="text-align: center; padding: 12px 20px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px;">
+                                <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;" id="recoveryRateDisplay">0%</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Taxa de Recuperação</div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Templates de Mensagem -->
-                    <div class="chart-card" style="margin-bottom: 24px;">
-                        <div class="chart-header">
-                            <span class="chart-title">📝 Templates de Recuperação</span>
-                        </div>
-                        <div class="template-list">
-                            <div class="template-item active" onclick="selectTemplate(1)">
-                                <div class="template-icon">🔥</div>
-                                <div class="template-content">
-                                    <div class="template-name">Urgência</div>
-                                    <div class="template-preview">Olá! Notamos que você não finalizou sua compra. As vagas são limitadas...</div>
-                                </div>
+                    <!-- Segment Tabs -->
+                    <div class="recovery-segment-tabs" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="recovery-segment-tab active" data-segment="checkout_abandoned" onclick="selectRecoverySegment('checkout_abandoned')">
+                            <span class="segment-icon">🛒</span>
+                            <div class="segment-info">
+                                <span class="segment-name">Abandonos Checkout</span>
+                                <span class="segment-count" id="segmentCount_checkout_abandoned">0</span>
                             </div>
-                            <div class="template-item" onclick="selectTemplate(2)">
-                                <div class="template-icon">🎁</div>
-                                <div class="template-content">
-                                    <div class="template-name">Desconto Especial</div>
-                                    <div class="template-preview">Ei! Temos uma oferta especial de 20% OFF só para você finalizar...</div>
-                                </div>
+                        </button>
+                        <button class="recovery-segment-tab" data-segment="payment_failed" onclick="selectRecoverySegment('payment_failed')">
+                            <span class="segment-icon">💳</span>
+                            <div class="segment-info">
+                                <span class="segment-name">Pagamentos Recusados</span>
+                                <span class="segment-count" id="segmentCount_payment_failed">0</span>
                             </div>
-                            <div class="template-item" onclick="selectTemplate(3)">
-                                <div class="template-icon">❓</div>
-                                <div class="template-content">
-                                    <div class="template-name">Suporte</div>
-                                    <div class="template-preview">Olá! Vi que você teve interesse no ZapSpy. Posso ajudar com alguma dúvida?</div>
-                                </div>
+                        </button>
+                        <button class="recovery-segment-tab" data-segment="refund_requests" onclick="selectRecoverySegment('refund_requests')">
+                            <span class="segment-icon">💸</span>
+                            <div class="segment-info">
+                                <span class="segment-name">Pedidos Reembolso</span>
+                                <span class="segment-count" id="segmentCount_refund_requests">0</span>
                             </div>
-                        </div>
+                        </button>
+                        <button class="recovery-segment-tab" data-segment="upsell_declined" onclick="selectRecoverySegment('upsell_declined')">
+                            <span class="segment-icon">📦</span>
+                            <div class="segment-info">
+                                <span class="segment-name">Recusas Upsell</span>
+                                <span class="segment-count" id="segmentCount_upsell_declined">0</span>
+                            </div>
+                        </button>
                     </div>
                     
-                    <!-- Lista de Abandonos -->
+                    <!-- Filters -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+                        <select class="funnel-selector" id="recoveryFilterLanguage" onchange="loadRecoverySegmentLeads()" style="min-width: 150px;">
+                            <option value="">🌍 Todos Idiomas</option>
+                            <option value="en">🇺🇸 Inglês</option>
+                            <option value="es">🇪🇸 Espanhol</option>
+                        </select>
+                        <select class="funnel-selector" id="recoveryFilterPeriod" onchange="loadRecoverySegmentLeads()" style="min-width: 160px;">
+                            <option value="">📅 Todo período</option>
+                            <option value="today">Hoje</option>
+                            <option value="week">Últimos 7 dias</option>
+                            <option value="month">Últimos 30 dias</option>
+                        </select>
+                        <select class="funnel-selector" id="recoveryFilterScore" onchange="loadRecoverySegmentLeads()" style="min-width: 150px;">
+                            <option value="">⭐ Todos Scores</option>
+                            <option value="70">Score 70+</option>
+                            <option value="50">Score 50+</option>
+                            <option value="30">Score 30+</option>
+                        </select>
+                        <select class="funnel-selector" id="recoveryFilterContact" onchange="loadRecoverySegmentLeads()" style="min-width: 170px;">
+                            <option value="">📞 Todos Contatos</option>
+                            <option value="not_contacted">🆕 Não contatados</option>
+                            <option value="contacted">✅ Já contatados</option>
+                        </select>
+                        <select class="funnel-selector" id="recoveryFilterSort" onchange="loadRecoverySegmentLeads()" style="min-width: 150px;">
+                            <option value="time">🕐 Mais recentes</option>
+                            <option value="score">⭐ Maior score</option>
+                            <option value="value">💰 Maior valor</option>
+                        </select>
+                        <button class="btn-secondary" onclick="clearRecoveryFiltersNew()" style="padding: 12px 16px;">Limpar</button>
+                    </div>
+                    
+                    <!-- Leads Table -->
                     <div class="data-panel">
                         <div class="panel-header">
                             <div class="panel-title">
-                                <h2>🚪 Leads para Recuperar</h2>
-                                <span class="panel-count" id="recoveryLeadCount">0 leads</span>
-                            </div>
-                            <div class="panel-actions">
-                                <button class="btn-secondary btn-success" onclick="sendBulkRecovery()">
-                                    <span>📨</span> Enviar para Todos
-                                </button>
+                                <h2 id="recoverySegmentTitle">🛒 Abandonos de Checkout</h2>
+                                <span class="panel-count" id="recoverySegmentCount">0 leads</span>
                             </div>
                         </div>
                         
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Email</th>
+                                    <th style="width: 80px;">Score</th>
+                                    <th>Lead</th>
                                     <th>WhatsApp</th>
-                                    <th>Última Etapa</th>
-                                    <th>Há quanto tempo</th>
-                                    <th>Tentativas</th>
-                                    <th>Ações</th>
+                                    <th>Produto/Etapa</th>
+                                    <th style="width: 100px;">Valor</th>
+                                    <th style="width: 100px;">Tempo</th>
+                                    <th style="width: 80px;">Contatos</th>
+                                    <th style="width: 150px;">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="recoveryTableBody">
-                                <tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                            <tbody id="recoveryLeadsTableBody">
+                                <tr><td colspan="8"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
                             </tbody>
                         </table>
                         
-                        <!-- Pagination container for Recovery -->
-                        <div id="recoveryPaginationContainer"></div>
+                        <!-- Pagination -->
+                        <div class="pagination" id="recoveryNewPagination" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                            <div class="pagination-info" id="recoveryNewPaginationInfo" style="color: var(--text-muted); font-size: 13px;">
+                                Mostrando 0 de 0
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <select class="funnel-selector" id="recoveryPerPageNew" onchange="loadRecoverySegmentLeads()" style="min-width: 130px;">
+                                    <option value="10">10 por página</option>
+                                    <option value="25">25 por página</option>
+                                    <option value="50">50 por página</option>
+                                </select>
+                                <div class="pagination-buttons" id="recoveryNewPaginationButtons" style="display: flex; gap: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recovery Template Modal -->
+                <div class="modal-overlay" id="recoveryTemplateModal">
+                    <div class="modal" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3>📨 Enviar Mensagem de Recuperação</h3>
+                            <button class="modal-close" onclick="closeRecoveryTemplateModal()">&times;</button>
+                        </div>
+                        <div class="modal-body" style="padding: 20px;">
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Para:</label>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <span id="recoveryTemplateLead" style="font-weight: 600;"></span>
+                                    <span id="recoveryTemplatePhone" style="color: var(--accent);"></span>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Escolha um template:</label>
+                                <div id="recoveryTemplatesList" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Templates will be loaded here -->
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Pré-visualização:</label>
+                                <textarea id="recoveryMessagePreview" class="funnel-selector" style="width: 100%; height: 120px; resize: vertical; font-size: 14px;" placeholder="Selecione um template acima..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border);">
+                            <button class="btn-secondary" onclick="closeRecoveryTemplateModal()">Cancelar</button>
+                            <button class="btn-primary" onclick="sendRecoveryWhatsApp()" style="background: #25D366;">
+                                <span>📱</span> Enviar via WhatsApp
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -3678,7 +3841,7 @@ Estou aqui para esclarecer tudo! 😊`
             loadOverviewData();
             loadOverviewFunnelComparison();
             loadFunnelData();
-            loadRecoveryData();
+            initNewRecovery();
             loadRefunds();
             loadHeatmapData();
             loadPeriodComparison();
@@ -3883,7 +4046,7 @@ Estou aqui para esclarecer tudo! 😊`
             
             if (tabName === 'funnel') loadFunnelData();
             else if (tabName === 'sales') loadSalesData();
-            else if (tabName === 'recovery') loadRecoveryData();
+            else if (tabName === 'recovery') initNewRecovery();
             else if (tabName === 'refunds') loadRefunds();
             else if (tabName === 'countries') loadCountriesData();
             else if (tabName === 'reports') loadReportsStats();
@@ -4833,6 +4996,454 @@ Estou aqui para esclarecer tudo! 😊`
         function sendBulkRecovery() {
             showToast('Função em desenvolvimento', 'Disponível em breve!', 'warning');
         }
+        
+        // ==================== NEW RECOVERY CENTER ====================
+        let currentRecoverySegment = 'checkout_abandoned';
+        let recoverySegmentPage = 1;
+        let recoverySegmentLeads = [];
+        let recoveryTemplates = {};
+        let selectedRecoveryLead = null;
+        let selectedTemplateId = null;
+        
+        // Load recovery segments summary
+        async function loadRecoverySegments() {
+            try {
+                const language = document.getElementById('recoveryFilterLanguage')?.value || '';
+                const period = document.getElementById('recoveryFilterPeriod')?.value || '';
+                
+                let params = [];
+                if (language) params.push(`language=${language}`);
+                
+                // Convert period to date range
+                if (period) {
+                    const now = new Date();
+                    let startDate, endDate;
+                    endDate = now.toISOString().split('T')[0];
+                    
+                    if (period === 'today') {
+                        startDate = endDate;
+                    } else if (period === 'week') {
+                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+                        startDate = weekAgo.toISOString().split('T')[0];
+                    } else if (period === 'month') {
+                        const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+                        startDate = monthAgo.toISOString().split('T')[0];
+                    }
+                    
+                    if (startDate) {
+                        params.push(`startDate=${startDate}`);
+                        params.push(`endDate=${endDate}`);
+                    }
+                }
+                
+                const queryString = params.length > 0 ? '?' + params.join('&') : '';
+                
+                const response = await fetch(`${API_URL}/api/admin/recovery/segments${queryString}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401) { logout(); return; }
+                const data = await response.json();
+                
+                // Update segment counts
+                Object.keys(data.segments).forEach(segmentKey => {
+                    const countEl = document.getElementById(`segmentCount_${segmentKey}`);
+                    if (countEl) {
+                        countEl.textContent = data.segments[segmentKey].count;
+                    }
+                });
+                
+                // Update totals
+                const totalLeadsEl = document.getElementById('recoveryTotalLeads');
+                const potentialValueEl = document.getElementById('recoveryPotentialValue');
+                if (totalLeadsEl) totalLeadsEl.textContent = data.totals.count.toLocaleString('pt-BR');
+                if (potentialValueEl) potentialValueEl.textContent = 'R$ ' + data.totals.potential_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                
+                // Update nav badge
+                const navBadge = document.getElementById('navRecoveryCount');
+                if (navBadge) navBadge.textContent = data.totals.count;
+                
+            } catch (error) {
+                console.error('Error loading recovery segments:', error);
+            }
+        }
+        
+        // Load recovery stats
+        async function loadRecoveryStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/recovery/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401) return;
+                const data = await response.json();
+                
+                const rateEl = document.getElementById('recoveryRateDisplay');
+                if (rateEl) rateEl.textContent = data.recovery_rate + '%';
+                
+            } catch (error) {
+                console.error('Error loading recovery stats:', error);
+            }
+        }
+        
+        // Select a recovery segment
+        function selectRecoverySegment(segment) {
+            currentRecoverySegment = segment;
+            recoverySegmentPage = 1;
+            
+            // Update active tab
+            document.querySelectorAll('.recovery-segment-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.segment === segment) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Update title
+            const titles = {
+                checkout_abandoned: '🛒 Abandonos de Checkout',
+                payment_failed: '💳 Pagamentos Recusados',
+                refund_requests: '💸 Pedidos de Reembolso',
+                upsell_declined: '📦 Recusas de Upsell'
+            };
+            document.getElementById('recoverySegmentTitle').textContent = titles[segment] || segment;
+            
+            // Load leads for this segment
+            loadRecoverySegmentLeads();
+        }
+        
+        // Load leads for current segment
+        async function loadRecoverySegmentLeads() {
+            const tableBody = document.getElementById('recoveryLeadsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="8"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>';
+            
+            try {
+                const language = document.getElementById('recoveryFilterLanguage')?.value || '';
+                const period = document.getElementById('recoveryFilterPeriod')?.value || '';
+                const minScore = document.getElementById('recoveryFilterScore')?.value || '';
+                const contactStatus = document.getElementById('recoveryFilterContact')?.value || '';
+                const sortBy = document.getElementById('recoveryFilterSort')?.value || 'time';
+                const perPage = document.getElementById('recoveryPerPageNew')?.value || 10;
+                
+                let params = [`page=${recoverySegmentPage}`, `limit=${perPage}`, `sortBy=${sortBy}`];
+                if (language) params.push(`language=${language}`);
+                if (minScore) params.push(`minScore=${minScore}`);
+                if (contactStatus) params.push(`contactStatus=${contactStatus}`);
+                
+                // Convert period to date range
+                if (period) {
+                    const now = new Date();
+                    let startDate, endDate;
+                    endDate = now.toISOString().split('T')[0];
+                    
+                    if (period === 'today') {
+                        startDate = endDate;
+                    } else if (period === 'week') {
+                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+                        startDate = weekAgo.toISOString().split('T')[0];
+                    } else if (period === 'month') {
+                        const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+                        startDate = monthAgo.toISOString().split('T')[0];
+                    }
+                    
+                    if (startDate) {
+                        params.push(`startDate=${startDate}`);
+                        params.push(`endDate=${endDate}`);
+                    }
+                }
+                
+                const queryString = '?' + params.join('&');
+                
+                const response = await fetch(`${API_URL}/api/admin/recovery/${currentRecoverySegment}${queryString}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.status === 401) { logout(); return; }
+                const data = await response.json();
+                
+                recoverySegmentLeads = data.leads || [];
+                
+                // Update count
+                document.getElementById('recoverySegmentCount').textContent = `${data.pagination.total} leads`;
+                
+                // Render table
+                renderRecoveryLeadsTable(recoverySegmentLeads);
+                
+                // Render pagination
+                renderRecoveryNewPagination(data.pagination);
+                
+            } catch (error) {
+                console.error('Error loading recovery leads:', error);
+                tableBody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><h3>Erro ao carregar</h3><p>Tente novamente</p></div></td></tr>';
+            }
+        }
+        
+        // Render recovery leads table
+        function renderRecoveryLeadsTable(leads) {
+            const tableBody = document.getElementById('recoveryLeadsTableBody');
+            
+            if (!leads || leads.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">🎉</div><h3>Nenhum lead neste segmento</h3><p>Tente ajustar os filtros</p></div></td></tr>';
+                return;
+            }
+            
+            let html = '';
+            leads.forEach(lead => {
+                const scoreClass = lead.score >= 70 ? 'high' : lead.score >= 40 ? 'medium' : 'low';
+                const countryFlag = lead.country_code ? getCountryFlag(lead.country_code) : '🌍';
+                const langFlag = lead.language === 'en' ? '🇺🇸' : lead.language === 'es' ? '🇪🇸' : '🌍';
+                
+                html += `<tr>
+                    <td>
+                        <div class="score-badge ${scoreClass}" title="Score: ${lead.score}">${lead.score}</div>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; color: var(--text-primary);">${lead.name || 'Visitante'}</span>
+                            <span style="font-size: 12px; color: var(--text-muted);">${lead.email || '-'}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">${countryFlag} ${lead.country || ''} ${langFlag}</span>
+                        </div>
+                    </td>
+                    <td>
+                        ${lead.phone ? `<a href="https://wa.me/${lead.phone.replace(/\D/g, '')}" target="_blank" style="color: #25D366; font-weight: 600;">${lead.phone}</a>` : '<span style="color: var(--text-muted);">-</span>'}
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 500;">${lead.product || '-'}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">${lead.event || '-'}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="color: #10b981; font-weight: 700;">R$ ${parseFloat(lead.potential_value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </td>
+                    <td style="color: var(--text-muted);">${lead.time_ago || '-'}</td>
+                    <td>
+                        <span style="background: ${lead.contact_attempts > 0 ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)'}; color: ${lead.contact_attempts > 0 ? '#3b82f6' : 'var(--text-muted)'}; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            ${lead.contact_attempts || 0}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            ${lead.phone ? `<button class="action-btn" onclick="openRecoveryTemplateModal('${lead.email}', '${lead.name || 'Cliente'}', '${lead.phone}', '${lead.product || ''}')" title="Enviar mensagem" style="background: #25D366; color: white;">📱</button>` : ''}
+                            <button class="action-btn" onclick="markAsRecovered('${lead.email}')" title="Marcar como recuperado" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">✅</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+        
+        // Render pagination for new recovery
+        function renderRecoveryNewPagination(pagination) {
+            const infoEl = document.getElementById('recoveryNewPaginationInfo');
+            const buttonsEl = document.getElementById('recoveryNewPaginationButtons');
+            
+            const start = ((pagination.page - 1) * pagination.limit) + 1;
+            const end = Math.min(pagination.page * pagination.limit, pagination.total);
+            
+            infoEl.textContent = pagination.total > 0 ? `Mostrando ${start}-${end} de ${pagination.total}` : 'Nenhum resultado';
+            
+            // Generate pagination buttons
+            let html = '';
+            const btnStyle = (active, disabled) => `
+                padding: 8px 12px;
+                background: ${active ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(255,255,255,0.03)'};
+                border: 1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.1)'};
+                border-radius: 6px;
+                color: ${disabled ? 'rgba(255,255,255,0.3)' : active ? '#fff' : 'rgba(255,255,255,0.7)'};
+                font-size: 12px;
+                font-weight: 600;
+                cursor: ${disabled ? 'not-allowed' : 'pointer'};
+            `;
+            
+            html += `<button onclick="goToRecoverySegmentPage(${pagination.page - 1})" style="${btnStyle(false, pagination.page <= 1)}" ${pagination.page <= 1 ? 'disabled' : ''}>‹</button>`;
+            
+            for (let i = 1; i <= Math.min(pagination.totalPages, 5); i++) {
+                html += `<button onclick="goToRecoverySegmentPage(${i})" style="${btnStyle(i === pagination.page, false)}">${i}</button>`;
+            }
+            
+            if (pagination.totalPages > 5) {
+                html += `<span style="color: rgba(255,255,255,0.4);">...</span>`;
+                html += `<button onclick="goToRecoverySegmentPage(${pagination.totalPages})" style="${btnStyle(false, false)}">${pagination.totalPages}</button>`;
+            }
+            
+            html += `<button onclick="goToRecoverySegmentPage(${pagination.page + 1})" style="${btnStyle(false, pagination.page >= pagination.totalPages)}" ${pagination.page >= pagination.totalPages ? 'disabled' : ''}>›</button>`;
+            
+            buttonsEl.innerHTML = html;
+        }
+        
+        function goToRecoverySegmentPage(page) {
+            if (page >= 1) {
+                recoverySegmentPage = page;
+                loadRecoverySegmentLeads();
+            }
+        }
+        
+        // Clear new recovery filters
+        function clearRecoveryFiltersNew() {
+            document.getElementById('recoveryFilterLanguage').value = '';
+            document.getElementById('recoveryFilterPeriod').value = '';
+            document.getElementById('recoveryFilterScore').value = '';
+            document.getElementById('recoveryFilterContact').value = '';
+            document.getElementById('recoveryFilterSort').value = 'time';
+            recoverySegmentPage = 1;
+            loadRecoverySegments();
+            loadRecoverySegmentLeads();
+        }
+        
+        // Open recovery template modal
+        async function openRecoveryTemplateModal(email, name, phone, product) {
+            selectedRecoveryLead = { email, name, phone, product };
+            selectedTemplateId = null;
+            
+            document.getElementById('recoveryTemplateLead').textContent = name || email;
+            document.getElementById('recoveryTemplatePhone').textContent = phone;
+            document.getElementById('recoveryMessagePreview').value = '';
+            
+            // Load templates
+            try {
+                const response = await fetch(`${API_URL}/api/admin/recovery/templates`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                recoveryTemplates = data.templates;
+                
+                // Render templates for current segment
+                const templates = recoveryTemplates[currentRecoverySegment] || [];
+                const listEl = document.getElementById('recoveryTemplatesList');
+                
+                listEl.innerHTML = templates.map(t => `
+                    <div class="recovery-template-item" onclick="selectRecoveryTemplate('${t.id}')" data-template-id="${t.id}">
+                        <span class="template-icon">${t.icon}</span>
+                        <span class="template-name">${t.name}</span>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+            
+            document.getElementById('recoveryTemplateModal').classList.add('active');
+        }
+        
+        function closeRecoveryTemplateModal() {
+            document.getElementById('recoveryTemplateModal').classList.remove('active');
+        }
+        
+        // Select a template
+        function selectRecoveryTemplate(templateId) {
+            selectedTemplateId = templateId;
+            
+            // Update UI
+            document.querySelectorAll('.recovery-template-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.templateId === templateId) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // Find template and fill preview
+            const templates = recoveryTemplates[currentRecoverySegment] || [];
+            const template = templates.find(t => t.id === templateId);
+            
+            if (template && selectedRecoveryLead) {
+                // Get appropriate language message
+                let message = template.message_pt || template.message_en;
+                
+                // Replace variables
+                message = message.replace(/{name}/g, selectedRecoveryLead.name || 'Cliente');
+                message = message.replace(/{product}/g, selectedRecoveryLead.product || 'X AI Monitor');
+                message = message.replace(/{value}/g, 'R$ 47,00');
+                
+                document.getElementById('recoveryMessagePreview').value = message;
+            }
+        }
+        
+        // Send recovery WhatsApp message
+        async function sendRecoveryWhatsApp() {
+            if (!selectedRecoveryLead || !selectedRecoveryLead.phone) {
+                showToast('Erro', 'Número de telefone não disponível', 'error');
+                return;
+            }
+            
+            const message = document.getElementById('recoveryMessagePreview').value;
+            if (!message.trim()) {
+                showToast('Erro', 'Selecione um template ou escreva uma mensagem', 'error');
+                return;
+            }
+            
+            // Register contact attempt
+            try {
+                await fetch(`${API_URL}/api/admin/recovery/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        email: selectedRecoveryLead.email,
+                        segment: currentRecoverySegment,
+                        template: selectedTemplateId,
+                        channel: 'whatsapp',
+                        message: message
+                    })
+                });
+            } catch (error) {
+                console.error('Error registering contact:', error);
+            }
+            
+            // Open WhatsApp
+            const phone = selectedRecoveryLead.phone.replace(/\D/g, '');
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+            
+            closeRecoveryTemplateModal();
+            showToast('Sucesso', 'Mensagem enviada! Contato registrado.', 'success');
+            
+            // Reload data
+            setTimeout(() => {
+                loadRecoverySegments();
+                loadRecoverySegmentLeads();
+            }, 1000);
+        }
+        
+        // Mark lead as recovered
+        async function markAsRecovered(email) {
+            try {
+                await fetch(`${API_URL}/api/admin/recovery/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        segment: currentRecoverySegment,
+                        channel: 'manual',
+                        status: 'converted'
+                    })
+                });
+                
+                showToast('Sucesso', 'Lead marcado como recuperado!', 'success');
+                loadRecoverySegments();
+                loadRecoverySegmentLeads();
+                loadRecoveryStats();
+                
+            } catch (error) {
+                console.error('Error marking as recovered:', error);
+                showToast('Erro', 'Falha ao atualizar status', 'error');
+            }
+        }
+        
+        // Initialize new recovery when tab is shown
+        function initNewRecovery() {
+            loadRecoverySegments();
+            loadRecoveryStats();
+            loadRecoverySegmentLeads();
+        }
+        
+        // ==================== END NEW RECOVERY CENTER ====================
         
         // Funnel
         async function loadFunnelData() {
