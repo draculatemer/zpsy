@@ -2585,8 +2585,9 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
                 continue;
             }
             
-            // Priority: dataFinalizada (matches Monetizze UI) > dataInicio > dataVenda > data
-            const saleDateStr = vendaData.dataFinalizada || vendaData.dataInicio || vendaData.dataVenda || vendaData.data || null;
+            // Priority: dataInicio (Data Pedido in Monetizze UI) for consistent ordering
+            // dataFinalizada only exists for completed sales, so use dataInicio for all
+            const saleDateStr = vendaData.dataInicio || vendaData.dataFinalizada || vendaData.dataVenda || vendaData.data || null;
             const saleDate = parseMonetizzeDate(saleDateStr);
             
             // Debug log for date parsing (remove after testing)
@@ -2915,8 +2916,8 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 }
                 
                 // Extract real sale date from Monetizze (uses helper to handle BR/ISO formats)
-                // Priority: dataFinalizada (matches Monetizze UI) > dataInicio > dataVenda > data
-                const saleDateStr = vendaData.dataFinalizada || vendaData.dataInicio || vendaData.dataVenda || vendaData.data || null;
+                // Priority: dataInicio (Data Pedido in Monetizze UI) for consistent ordering
+                const saleDateStr = vendaData.dataInicio || vendaData.dataFinalizada || vendaData.dataVenda || vendaData.data || null;
                 const saleDate = parseMonetizzeDate(saleDateStr);
                 
                 // Detect funnel language and source (main vs affiliate)
@@ -3167,9 +3168,10 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // Funnel language from venda.idioma
         const idioma = venda.idioma || body['venda.idioma'] || body['venda[idioma]'] || 'en';
         
-        // Sale date - prioritize dataFinalizada to match Monetizze UI
+        // Sale date - prioritize dataInicio (Data Pedido) for consistent ordering with Monetizze UI
+        const dataInicioRaw = venda.dataInicio || body['venda.dataInicio'] || body['venda[dataInicio]'] || null;
         const dataFinalizadaRaw = venda.dataFinalizada || body['venda.dataFinalizada'] || body['venda[dataFinalizada]'] || null;
-        const dataVenda = dataFinalizadaRaw || venda.dataVenda || body['venda.dataVenda'] || body['venda[dataVenda]'] || 
+        const dataVenda = dataInicioRaw || dataFinalizadaRaw || venda.dataVenda || body['venda.dataVenda'] || body['venda[dataVenda]'] || 
                           venda.data || body.data || body['venda.data'] || null;
         
         console.log('📥 Extracted:', { 
