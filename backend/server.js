@@ -689,7 +689,7 @@ const requireAdmin = (req, res, next) => {
 app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, username, email, name, role, is_active, last_login, created_at
+            SELECT id, username, email, COALESCE(name, full_name) as name, role, is_active, last_login, created_at
             FROM admin_users
             ORDER BY created_at DESC
         `);
@@ -736,12 +736,13 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Insert new user
+        // Insert new user (use both name and full_name for compatibility)
+        const userName = name || username;
         const result = await pool.query(`
-            INSERT INTO admin_users (username, email, password_hash, name, role, is_active, created_by)
-            VALUES ($1, $2, $3, $4, $5, true, $6)
-            RETURNING id, username, email, name, role, is_active, created_at
-        `, [username, email, hashedPassword, name || username, userRole, req.user.userId]);
+            INSERT INTO admin_users (username, email, password_hash, name, full_name, role, is_active, created_by)
+            VALUES ($1, $2, $3, $4, $4, $5, true, $6)
+            RETURNING id, username, email, COALESCE(name, full_name) as name, role, is_active, created_at
+        `, [username, email, hashedPassword, userName, userRole, req.user.userId]);
         
         console.log(`✅ New user created: ${username} (${role}) by admin ${req.user.email}`);
         
@@ -5310,11 +5311,18 @@ async function initDatabase() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username);`);
         
         // Add missing columns to admin_users if they don't exist (for existing tables)
+        // Support both 'name' and 'full_name' columns for compatibility
         await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS name VARCHAR(255);`);
+        await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255);`);
         await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'support';`);
         await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;`);
         await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP WITH TIME ZONE;`);
         await pool.query(`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS created_by INTEGER;`);
+        
+        // Remove NOT NULL constraint from full_name if it exists
+        try {
+            await pool.query(`ALTER TABLE admin_users ALTER COLUMN full_name DROP NOT NULL;`);
+        } catch (e) { /* Column might not exist or already nullable */ }
         
         // Insert default admin user if not exists (using env vars)
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@zapspy.ai';
