@@ -4234,39 +4234,35 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
         `);
         
         if (segment === 'checkout_abandoned') {
-            // Checkout abandoned leads
+            // Checkout abandoned leads - simplified query
             const result = await pool.query(`
-                WITH checkout_leads AS (
-                    SELECT DISTINCT ON (COALESCE(l.email, fe.visitor_id))
-                        COALESCE(l.id, 0) as id,
-                        COALESCE(l.email, '') as email,
-                        COALESCE(l.name, 'Visitante') as name,
-                        COALESCE(l.whatsapp, '') as phone,
-                        COALESCE(l.country, '') as country,
-                        COALESCE(l.country_code, '') as country_code,
-                        fe.funnel_language as language,
-                        fe.created_at as last_event_at,
-                        'checkout_clicked' as event,
-                        47.00 as potential_value,
-                        'X AI Monitor' as product,
-                        (SELECT COUNT(*) FROM funnel_events fe2 WHERE fe2.visitor_id = fe.visitor_id) as event_count,
-                        EXISTS(SELECT 1 FROM transactions t WHERE LOWER(t.email) = LOWER(l.email) AND t.status = 'approved') as has_purchase,
-                        COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = l.email AND rc.segment = 'checkout_abandoned'), 0) as contact_attempts,
-                        (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = l.email) as last_contact
-                    FROM funnel_events fe
-                    LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
-                    WHERE fe.event = 'checkout_clicked'
-                    ${language ? `AND fe.funnel_language = '${language}'` : ''}
-                    AND NOT EXISTS (
-                        SELECT 1 FROM transactions t 
-                        WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
-                        AND t.status = 'approved'
-                    )
-                    ${dateFilter}
-                    ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
+                SELECT DISTINCT ON (COALESCE(l.email, fe.visitor_id))
+                    COALESCE(l.id, 0) as id,
+                    COALESCE(l.email, '') as email,
+                    COALESCE(l.name, 'Visitante') as name,
+                    COALESCE(l.whatsapp, '') as phone,
+                    COALESCE(l.country, '') as country,
+                    COALESCE(l.country_code, '') as country_code,
+                    fe.funnel_language as language,
+                    fe.created_at as last_event_at,
+                    'checkout_clicked' as event,
+                    47.00 as potential_value,
+                    'X AI Monitor' as product,
+                    1 as event_count,
+                    false as has_purchase,
+                    0 as contact_attempts,
+                    NULL as last_contact
+                FROM funnel_events fe
+                LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
+                WHERE fe.event = 'checkout_clicked'
+                ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                AND NOT EXISTS (
+                    SELECT 1 FROM transactions t 
+                    WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
+                    AND t.status = 'approved'
                 )
-                SELECT * FROM checkout_leads
-                ORDER BY last_event_at DESC
+                ${dateFilter}
+                ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
                 LIMIT $1 OFFSET $2
             `, [parseInt(limit), offset]);
             
@@ -4289,7 +4285,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'payment_failed') {
-            // Payment failed leads
+            // Payment failed leads - simplified query
             const result = await pool.query(`
                 SELECT 
                     t.id,
@@ -4305,8 +4301,8 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
                     t.product,
                     1 as event_count,
                     false as has_purchase,
-                    COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = t.email AND rc.segment = 'payment_failed'), 0) as contact_attempts,
-                    (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = t.email) as last_contact
+                    0 as contact_attempts,
+                    NULL as last_contact
                 FROM transactions t
                 LEFT JOIN leads l ON LOWER(t.email) = LOWER(l.email)
                 WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
@@ -4327,7 +4323,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'refund_requests') {
-            // Refund requests
+            // Refund requests - simplified query
             const result = await pool.query(`
                 SELECT 
                     r.id,
@@ -4343,8 +4339,8 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
                     r.product,
                     1 as event_count,
                     true as has_purchase,
-                    COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = r.email AND rc.segment = 'refund_requests'), 0) as contact_attempts,
-                    (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = r.email) as last_contact,
+                    0 as contact_attempts,
+                    NULL as last_contact,
                     r.status as refund_status,
                     r.protocol
                 FROM refund_requests r
@@ -4366,44 +4362,40 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'upsell_declined') {
-            // Upsell declined
+            // Upsell declined - simplified query
             const result = await pool.query(`
-                WITH declined_leads AS (
-                    SELECT DISTINCT ON (l.email)
-                        l.id,
-                        l.email,
-                        l.name,
-                        COALESCE(l.whatsapp, '') as phone,
-                        COALESCE(l.country, '') as country,
-                        COALESCE(l.country_code, '') as country_code,
-                        fe.funnel_language as language,
-                        fe.created_at as last_event_at,
-                        fe.event,
-                        67.00 as potential_value,
-                        CASE 
-                            WHEN fe.event LIKE 'upsell_1%' THEN 'Message Vault'
-                            WHEN fe.event LIKE 'upsell_2%' THEN 'AI Vision'
-                            WHEN fe.event LIKE 'upsell_3%' THEN 'VIP Priority'
-                            ELSE 'Upsell'
-                        END as product,
-                        (SELECT COUNT(*) FROM funnel_events fe2 WHERE fe2.visitor_id = fe.visitor_id) as event_count,
-                        true as has_purchase,
-                        COALESCE((SELECT COUNT(*) FROM recovery_contacts rc WHERE rc.lead_email = l.email AND rc.segment = 'upsell_declined'), 0) as contact_attempts,
-                        (SELECT MAX(created_at) FROM recovery_contacts rc WHERE rc.lead_email = l.email) as last_contact
-                    FROM funnel_events fe
-                    INNER JOIN leads l ON fe.visitor_id = l.visitor_id
-                    WHERE fe.event LIKE '%_declined'
-                    ${language ? `AND fe.funnel_language = '${language}'` : ''}
-                    AND EXISTS (
-                        SELECT 1 FROM transactions t 
-                        WHERE LOWER(t.email) = LOWER(l.email)
-                        AND t.status = 'approved'
-                    )
-                    ${dateFilter}
-                    ORDER BY l.email, fe.created_at DESC
+                SELECT DISTINCT ON (l.email)
+                    l.id,
+                    l.email,
+                    l.name,
+                    COALESCE(l.whatsapp, '') as phone,
+                    COALESCE(l.country, '') as country,
+                    COALESCE(l.country_code, '') as country_code,
+                    fe.funnel_language as language,
+                    fe.created_at as last_event_at,
+                    fe.event,
+                    67.00 as potential_value,
+                    CASE 
+                        WHEN fe.event LIKE 'upsell_1%' THEN 'Message Vault'
+                        WHEN fe.event LIKE 'upsell_2%' THEN 'AI Vision'
+                        WHEN fe.event LIKE 'upsell_3%' THEN 'VIP Priority'
+                        ELSE 'Upsell'
+                    END as product,
+                    1 as event_count,
+                    true as has_purchase,
+                    0 as contact_attempts,
+                    NULL as last_contact
+                FROM funnel_events fe
+                INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+                WHERE fe.event LIKE '%_declined'
+                ${language ? `AND fe.funnel_language = '${language}'` : ''}
+                AND EXISTS (
+                    SELECT 1 FROM transactions t 
+                    WHERE LOWER(t.email) = LOWER(l.email)
+                    AND t.status = 'approved'
                 )
-                SELECT * FROM declined_leads
-                ORDER BY last_event_at DESC
+                ${dateFilter}
+                ORDER BY l.email, fe.created_at DESC
                 LIMIT $1 OFFSET $2
             `, [parseInt(limit), offset]);
             
