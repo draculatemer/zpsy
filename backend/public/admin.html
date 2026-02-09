@@ -1890,9 +1890,9 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <select id="journeysPerPage" onchange="changeJourneysPerPage()" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 12px;">
-                                    <option value="10">10 por página</option>
+                                    <option value="10" selected>10 por página</option>
                                     <option value="25">25 por página</option>
-                                    <option value="50" selected>50 por página</option>
+                                    <option value="50">50 por página</option>
                                     <option value="100">100 por página</option>
                                 </select>
                                 <div class="pagination-buttons" id="journeysPaginationButtons" style="display: flex; gap: 4px;"></div>
@@ -2001,10 +2001,8 @@
                             </tbody>
                         </table>
                         
-                        <div class="pagination" id="transactionsPagination">
-                            <div class="pagination-info" id="transactionsPaginationInfo">Mostrando 0 de 0</div>
-                            <div class="pagination-buttons" id="transactionsPaginationButtons"></div>
-                        </div>
+                        <!-- Pagination container for Transactions -->
+                        <div id="transactionsPaginationContainer"></div>
                     </div>
                 </div>
                 
@@ -3245,6 +3243,7 @@ Posso ajudar com alguma dúvida?</textarea>
         let currentPage = 1;
         let transactionsCurrentPage = 1;
         let transactionsTotalPages = 1;
+        let transactionsPerPage = 10; // Default 10 per page
         let searchTimeout;
         let leadsChart, statusChart;
         let selectedTags = [];
@@ -3254,19 +3253,21 @@ Posso ajudar com alguma dúvida?</textarea>
         let filteredJourneysData = []; // Store filtered journeys for pagination
         let journeySearchTimeout;
         let journeysCurrentPage = 1;
-        let journeysPerPage = 50;
+        let journeysPerPage = 10; // Default 10 per page
         let journeysTotalPages = 1;
         
         // ============================================
         // UNIFIED PAGINATION SYSTEM
         // ============================================
-        // Stores pagination state for each section
+        // Stores pagination state for each section (default 10 per page)
         const paginationState = {
-            leads: { currentPage: 1, perPage: 25, totalPages: 1, allData: [], filteredData: [] },
-            refunds: { currentPage: 1, perPage: 25, totalPages: 1, allData: [], filteredData: [] },
-            recovery: { currentPage: 1, perPage: 25, totalPages: 1, allData: [], filteredData: [] },
-            monetizze: { currentPage: 1, perPage: 25, totalPages: 1, allData: [], filteredData: [] },
-            chargeback: { currentPage: 1, perPage: 25, totalPages: 1, allData: [], filteredData: [] }
+            leads: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            refunds: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            recovery: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            monetizze: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            chargeback: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            transactions: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            journeys: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] }
         };
         
         // Generic function to render pagination controls for unified system
@@ -4645,7 +4646,7 @@ Estou aqui para esclarecer tudo! 😊`
         
         // Recovery with pagination
         let recoveryCurrentPage = 1;
-        const recoveryPerPage = 25;
+        let recoveryPerPage = 10; // Default 10 per page
         let recoveryTotalPages = 1;
         let recoveryTotalCount = 0;
         
@@ -4695,11 +4696,9 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 if (leads.length === 0) {
                     document.getElementById('recoveryTableBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🎉</div><h3>Nenhum abandono!</h3><p>Todos os leads foram acompanhados.</p></div></td></tr>`;
-                    document.getElementById('recoveryPagination').style.display = 'none';
+                    document.getElementById('recoveryPaginationContainer').innerHTML = '';
                     return;
                 }
-                
-                document.getElementById('recoveryPagination').style.display = 'flex';
                 
                 let html = '';
                 leads.forEach(lead => {
@@ -4723,9 +4722,85 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function updateRecoveryPagination() {
-            document.getElementById('recoveryPageInfo').textContent = `Página ${recoveryCurrentPage} de ${recoveryTotalPages}`;
-            document.getElementById('recoveryPrevBtn').disabled = recoveryCurrentPage <= 1;
-            document.getElementById('recoveryNextBtn').disabled = recoveryCurrentPage >= recoveryTotalPages;
+            // Render unified style pagination
+            const container = document.getElementById('recoveryPaginationContainer');
+            if (!container) return;
+            
+            const total = recoveryTotalCount;
+            const perPage = recoveryPerPage;
+            const currentPage = recoveryCurrentPage;
+            const totalPages = recoveryTotalPages;
+            
+            if (total === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const start = (currentPage - 1) * perPage + 1;
+            const end = Math.min(currentPage * perPage, total);
+            
+            // Generate page buttons
+            let buttonsHtml = '';
+            const btnStyle = (active, disabled) => `
+                padding: 8px 12px;
+                background: ${active ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'rgba(255,255,255,0.03)'};
+                border: 1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.1)'};
+                border-radius: 6px;
+                color: ${disabled ? 'rgba(255,255,255,0.3)' : active ? '#fff' : 'rgba(255,255,255,0.7)'};
+                font-size: 12px;
+                font-weight: 600;
+                cursor: ${disabled ? 'not-allowed' : 'pointer'};
+                transition: all 0.2s;
+            `;
+            
+            // Previous button
+            buttonsHtml += `<button onclick="changeRecoveryPage(-1)" style="${btnStyle(false, currentPage <= 1)}" ${currentPage <= 1 ? 'disabled' : ''}>‹ Anterior</button>`;
+            
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage + 1 < maxVisible) startPage = Math.max(1, endPage - maxVisible + 1);
+            
+            if (startPage > 1) {
+                buttonsHtml += `<button onclick="goToRecoveryPage(1)" style="${btnStyle(false, false)}">1</button>`;
+                if (startPage > 2) buttonsHtml += `<span style="color: rgba(255,255,255,0.4); padding: 0 4px;">...</span>`;
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                buttonsHtml += `<button onclick="goToRecoveryPage(${i})" style="${btnStyle(i === currentPage, false)}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) buttonsHtml += `<span style="color: rgba(255,255,255,0.4); padding: 0 4px;">...</span>`;
+                buttonsHtml += `<button onclick="goToRecoveryPage(${totalPages})" style="${btnStyle(false, false)}">${totalPages}</button>`;
+            }
+            
+            // Next button
+            buttonsHtml += `<button onclick="changeRecoveryPage(1)" style="${btnStyle(false, currentPage >= totalPages)}" ${currentPage >= totalPages ? 'disabled' : ''}>Próximo ›</button>`;
+            
+            container.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 16px;">
+                    <div style="color: var(--text-muted); font-size: 13px;">
+                        Mostrando ${start}-${end} de ${total}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <select onchange="changeRecoveryPerPage(this.value)" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 12px;">
+                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10 por página</option>
+                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25 por página</option>
+                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50 por página</option>
+                            <option value="100" ${perPage === 100 ? 'selected' : ''}>100 por página</option>
+                        </select>
+                        <div style="display: flex; gap: 4px;">${buttonsHtml}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function goToRecoveryPage(page) {
+            if (page >= 1 && page <= recoveryTotalPages) {
+                loadRecoveryData(page);
+            }
         }
         
         function changeRecoveryPage(delta) {
@@ -4733,6 +4808,11 @@ Estou aqui para esclarecer tudo! 😊`
             if (newPage >= 1 && newPage <= recoveryTotalPages) {
                 loadRecoveryData(newPage);
             }
+        }
+        
+        function changeRecoveryPerPage(value) {
+            recoveryPerPage = parseInt(value);
+            loadRecoveryData(1);
         }
         
         function sendRecoveryMessage(phone) {
@@ -5789,7 +5869,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const statsQueryString = params.length > 0 ? '?' + params.join('&') : '';
                 
                 // Add pagination params for transactions
-                const transParams = [...params, `page=${page}`, `limit=10`];
+                const transParams = [...params, `page=${page}`, `limit=${transactionsPerPage || 10}`];
                 const transQueryString = '?' + transParams.join('&');
                 
                 const [statsRes, transRes] = await Promise.all([
@@ -5844,32 +5924,79 @@ Estou aqui para esclarecer tudo! 😊`
         
         function renderTransactionsPagination(pagination) {
             const { page, total, totalPages } = pagination;
-            const limit = pagination.limit || 10;
-            const start = total > 0 ? (page - 1) * limit + 1 : 0;
-            const end = Math.min(page * limit, total);
+            const perPage = pagination.limit || 10;
+            const start = total > 0 ? (page - 1) * perPage + 1 : 0;
+            const end = Math.min(page * perPage, total);
             
-            document.getElementById('transactionsPaginationInfo').textContent = total > 0 
-                ? `Mostrando ${start} - ${end} de ${total}` 
-                : 'Mostrando 0 de 0';
+            const container = document.getElementById('transactionsPaginationContainer');
+            if (!container) return;
             
-            let buttons = '';
-            if (totalPages > 1) {
-                buttons += `<button class="page-btn" onclick="loadTransactionsPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>←</button>`;
-                
-                // Show page numbers (max 5 visible)
-                let startPage = Math.max(1, page - 2);
-                let endPage = Math.min(totalPages, startPage + 4);
-                if (endPage - startPage < 4) {
-                    startPage = Math.max(1, endPage - 4);
-                }
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    buttons += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadTransactionsPage(${i})" style="${i === page ? 'background: var(--accent); color: white;' : ''}">${i}</button>`;
-                }
-                
-                buttons += `<button class="page-btn" onclick="loadTransactionsPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>→</button>`;
+            if (total === 0) {
+                container.innerHTML = '';
+                return;
             }
-            document.getElementById('transactionsPaginationButtons').innerHTML = buttons;
+            
+            // Generate page buttons
+            let buttonsHtml = '';
+            const btnStyle = (active, disabled) => `
+                padding: 8px 12px;
+                background: ${active ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'rgba(255,255,255,0.03)'};
+                border: 1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.1)'};
+                border-radius: 6px;
+                color: ${disabled ? 'rgba(255,255,255,0.3)' : active ? '#fff' : 'rgba(255,255,255,0.7)'};
+                font-size: 12px;
+                font-weight: 600;
+                cursor: ${disabled ? 'not-allowed' : 'pointer'};
+                transition: all 0.2s;
+            `;
+            
+            // Previous button
+            buttonsHtml += `<button onclick="loadTransactionsPage(${page - 1})" style="${btnStyle(false, page <= 1)}" ${page <= 1 ? 'disabled' : ''}>‹ Anterior</button>`;
+            
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage + 1 < maxVisible) startPage = Math.max(1, endPage - maxVisible + 1);
+            
+            if (startPage > 1) {
+                buttonsHtml += `<button onclick="loadTransactionsPage(1)" style="${btnStyle(false, false)}">1</button>`;
+                if (startPage > 2) buttonsHtml += `<span style="color: rgba(255,255,255,0.4); padding: 0 4px;">...</span>`;
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                buttonsHtml += `<button onclick="loadTransactionsPage(${i})" style="${btnStyle(i === page, false)}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) buttonsHtml += `<span style="color: rgba(255,255,255,0.4); padding: 0 4px;">...</span>`;
+                buttonsHtml += `<button onclick="loadTransactionsPage(${totalPages})" style="${btnStyle(false, false)}">${totalPages}</button>`;
+            }
+            
+            // Next button
+            buttonsHtml += `<button onclick="loadTransactionsPage(${page + 1})" style="${btnStyle(false, page >= totalPages)}" ${page >= totalPages ? 'disabled' : ''}>Próximo ›</button>`;
+            
+            container.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 16px;">
+                    <div style="color: var(--text-muted); font-size: 13px;">
+                        Mostrando ${start}-${end} de ${total}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <select onchange="changeTransactionsPerPage(this.value)" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 12px;">
+                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10 por página</option>
+                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25 por página</option>
+                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50 por página</option>
+                            <option value="100" ${perPage === 100 ? 'selected' : ''}>100 por página</option>
+                        </select>
+                        <div style="display: flex; gap: 4px;">${buttonsHtml}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function changeTransactionsPerPage(value) {
+            transactionsPerPage = parseInt(value);
+            loadSalesData(1);
         }
         
         function loadTransactionsPage(page) {
