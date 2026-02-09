@@ -3738,13 +3738,14 @@ Estou aqui para esclarecer tudo! 😊`
                     salesUrl += `source=${sourceFilter}&`;
                 }
                 
-                // Fetch all data in parallel
+                // Fetch all data in parallel - with no-cache headers for real-time updates
+                const headers = { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache, no-store, must-revalidate' };
                 const [leadsRes, salesRes, mainSalesRes, affSalesRes, refundsRes] = await Promise.all([
-                    fetch(leadsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(salesUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?source=main&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(`${API_URL}/api/admin/sales?source=affiliate&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null),
-                    fetch(refundsUrl, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(leadsUrl, { headers }),
+                    fetch(salesUrl, { headers }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?source=main&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers }).catch(() => null),
+                    fetch(`${API_URL}/api/admin/sales?source=affiliate&${langFilter ? `language=${langFilter}&` : ''}${dateParams}`, { headers }).catch(() => null),
+                    fetch(refundsUrl, { headers }).catch(() => null)
                 ]);
                 
                 if (leadsRes.status === 401 || leadsRes.status === 403) { logout(); return; }
@@ -9295,14 +9296,27 @@ Posso ajudar em algo mais? 😊`
                 if (!isAutoRefreshEnabled || document.hidden) return;
                 
                 try {
+                    // Build URLs with current date range filters
+                    const dateRange = getGlobalDateRange();
+                    let statsUrl = `${API_URL}/api/admin/stats`;
+                    let salesUrl = `${API_URL}/api/admin/sales`;
+                    
+                    if (dateRange) {
+                        const dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                        statsUrl += `?${dateParams}`;
+                        salesUrl += `?${dateParams}`;
+                    }
+                    
                     const [statsRes, salesRes] = await Promise.all([
-                        fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                        fetch(`${API_URL}/api/admin/sales`, { headers: { 'Authorization': `Bearer ${authToken}` } })
+                        fetch(statsUrl, { headers: { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache' } }),
+                        fetch(salesUrl, { headers: { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache' } })
                     ]);
                     
                     if (statsRes.ok && salesRes.ok) {
                         const stats = await statsRes.json();
                         const sales = await salesRes.json();
+                        
+                        console.log(`🔄 Auto-refresh: ${new Date().toLocaleTimeString()} | Vendas: ${sales.approved} | Faturamento: R$${sales.revenue?.toFixed(2)}`);
                         
                         // Check for new sales
                         if (lastSalesCount > 0 && sales.approved > lastSalesCount) {
@@ -9328,7 +9342,7 @@ Posso ajudar em algo mais? 😊`
                 } catch (error) {
                     updateRealtimeIndicator(false);
                 }
-            }, 30000); // 30 seconds
+            }, 15000); // 15 seconds for faster updates
             
             // Initial count
             initializeCounts();
