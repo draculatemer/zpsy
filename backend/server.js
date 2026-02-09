@@ -3168,8 +3168,8 @@ app.all('/api/postback/monetizze', async (req, res) => {
         const idioma = venda.idioma || body['venda.idioma'] || body['venda[idioma]'] || 'en';
         
         // Sale date - prioritize dataFinalizada to match Monetizze UI
-        const dataFinalizada = venda.dataFinalizada || body['venda.dataFinalizada'] || body['venda[dataFinalizada]'] || null;
-        const dataVenda = dataFinalizada || venda.dataVenda || body['venda.dataVenda'] || body['venda[dataVenda]'] || 
+        const dataFinalizadaRaw = venda.dataFinalizada || body['venda.dataFinalizada'] || body['venda[dataFinalizada]'] || null;
+        const dataVenda = dataFinalizadaRaw || venda.dataVenda || body['venda.dataVenda'] || body['venda[dataVenda]'] || 
                           venda.data || body.data || body['venda.data'] || null;
         
         console.log('📥 Extracted:', { 
