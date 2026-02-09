@@ -2321,8 +2321,7 @@
             
             if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
-            // Send only the phone number without country code (Monetizze has its own country selector)
-            if (userPhoneNumber) checkoutUrl += '&telefone=' + encodeURIComponent(userPhoneNumber);
+            // Phone removed - let customer fill it on Monetizze checkout
             
             // Redirect to checkout
             window.location.href = checkoutUrl;
@@ -2423,8 +2422,7 @@
             
             if (userName) checkoutUrl += '&nome=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
-            // Send only the phone number without country code (Monetizze has its own country selector)
-            if (userPhoneNumber) checkoutUrl += '&telefone=' + encodeURIComponent(userPhoneNumber);
+            // Phone removed - let customer fill it on Monetizze checkout
             
             window.location.href = checkoutUrl;
         }
