@@ -60,6 +60,7 @@ const countries = [
 
 let selectedCountry = countries[0];
 let currentStep = 1;
+let visitorId = null;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -67,7 +68,34 @@ document.addEventListener('DOMContentLoaded', function() {
     initCharCounter();
     initFormValidation();
     setMaxDate();
+    initFingerprint();
 });
+
+// Initialize FingerprintJS to get visitorId
+async function initFingerprint() {
+    try {
+        // Check if FingerprintJS is available
+        if (typeof FingerprintJS !== 'undefined') {
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            visitorId = result.visitorId;
+            console.log('🔗 Refund page: visitorId captured:', visitorId);
+        } else {
+            // Try loading it dynamically
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js';
+            script.onload = async function() {
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                visitorId = result.visitorId;
+                console.log('🔗 Refund page: visitorId captured (dynamic):', visitorId);
+            };
+            document.head.appendChild(script);
+        }
+    } catch (error) {
+        console.warn('⚠️ FingerprintJS initialization failed:', error);
+    }
+}
 
 // Set max date for purchase date (today)
 function setMaxDate() {
@@ -413,7 +441,8 @@ async function sendRefundRequest(data, protocol) {
             },
             body: JSON.stringify({
                 ...data,
-                protocol
+                protocol,
+                visitorId: visitorId || null  // Include visitorId for better cross-reference
             })
         });
 
@@ -426,7 +455,7 @@ async function sendRefundRequest(data, protocol) {
         console.warn('Backend not available, storing locally:', error);
         // Store locally as fallback
         const refunds = JSON.parse(localStorage.getItem('refundRequests') || '[]');
-        refunds.push({ ...data, protocol, status: 'pending' });
+        refunds.push({ ...data, protocol, visitorId, status: 'pending' });
         localStorage.setItem('refundRequests', JSON.stringify(refunds));
         return { success: true, protocol };
     }

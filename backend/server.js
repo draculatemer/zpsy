@@ -3615,7 +3615,8 @@ app.post('/api/refund', async (req, res) => {
             product,
             reason,
             details,
-            protocol
+            protocol,
+            visitorId  // NEW: visitorId from FingerprintJS
         } = req.body;
 
         // Validation
@@ -3628,29 +3629,90 @@ app.post('/api/refund', async (req, res) => {
 
         // ==================== CROSS-REFERENCE DATA ====================
         // Try to find this person in our leads and transactions to enrich the refund data
+        // Priority: 1. visitorId (most reliable), 2. email
         let detectedLanguage = null;
         let detectedValue = null;
         let matchedTransactionId = null;
         
         try {
-            // 1. Check transactions first (most reliable for language + value)
-            const txResult = await pool.query(`
-                SELECT transaction_id, value, funnel_language, product, status 
-                FROM transactions 
-                WHERE LOWER(email) = LOWER($1) AND status = 'approved'
-                ORDER BY created_at DESC 
-                LIMIT 1
-            `, [email]);
-            
-            if (txResult.rows.length > 0) {
-                const tx = txResult.rows[0];
-                detectedLanguage = tx.funnel_language || null;
-                detectedValue = tx.value || null;
-                matchedTransactionId = tx.transaction_id || null;
-                console.log(`🔗 Refund cross-ref: Found transaction for ${email} -> lang: ${detectedLanguage}, value: R$${detectedValue}, txId: ${matchedTransactionId}`);
+            // 1. FIRST: Try to find by visitorId (most reliable method)
+            if (visitorId) {
+                console.log(`🔗 Refund cross-ref: Searching by visitorId: ${visitorId}`);
+                
+                // Check transactions by visitorId
+                const txByVisitorResult = await pool.query(`
+                    SELECT transaction_id, value, funnel_language, product, status, email
+                    FROM transactions 
+                    WHERE visitor_id = $1 AND status = 'approved'
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                `, [visitorId]);
+                
+                if (txByVisitorResult.rows.length > 0) {
+                    const tx = txByVisitorResult.rows[0];
+                    detectedLanguage = tx.funnel_language || null;
+                    detectedValue = tx.value || null;
+                    matchedTransactionId = tx.transaction_id || null;
+                    console.log(`🔗 Refund cross-ref: Found transaction by visitorId! -> lang: ${detectedLanguage}, value: R$${detectedValue}, txId: ${matchedTransactionId}`);
+                }
+                
+                // Also check leads by visitorId if no transaction found
+                if (!detectedLanguage) {
+                    const leadByVisitorResult = await pool.query(`
+                        SELECT metadata
+                        FROM leads 
+                        WHERE visitor_id = $1
+                        ORDER BY created_at DESC 
+                        LIMIT 1
+                    `, [visitorId]);
+                    
+                    if (leadByVisitorResult.rows.length > 0) {
+                        const metadata = leadByVisitorResult.rows[0].metadata || {};
+                        detectedLanguage = metadata.funnelLanguage || null;
+                        console.log(`🔗 Refund cross-ref: Found lead by visitorId -> lang: ${detectedLanguage}`);
+                    }
+                }
+                
+                // Check funnel_events by visitorId
+                if (!detectedLanguage || !detectedValue) {
+                    const eventByVisitorResult = await pool.query(`
+                        SELECT metadata->>'funnelLanguage' as funnel_language
+                        FROM funnel_events 
+                        WHERE visitor_id = $1
+                        AND metadata->>'funnelLanguage' IS NOT NULL
+                        ORDER BY created_at DESC 
+                        LIMIT 1
+                    `, [visitorId]);
+                    
+                    if (eventByVisitorResult.rows.length > 0 && !detectedLanguage) {
+                        detectedLanguage = eventByVisitorResult.rows[0].funnel_language || null;
+                        console.log(`🔗 Refund cross-ref: Found funnel event by visitorId -> lang: ${detectedLanguage}`);
+                    }
+                }
             }
             
-            // 2. If no language from transaction, check leads (funnel_events metadata)
+            // 2. FALLBACK: If not found by visitorId, try by email
+            if (!matchedTransactionId) {
+                console.log(`🔗 Refund cross-ref: Fallback to email search: ${email}`);
+                
+                const txResult = await pool.query(`
+                    SELECT transaction_id, value, funnel_language, product, status 
+                    FROM transactions 
+                    WHERE LOWER(email) = LOWER($1) AND status = 'approved'
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                `, [email]);
+                
+                if (txResult.rows.length > 0) {
+                    const tx = txResult.rows[0];
+                    detectedLanguage = detectedLanguage || tx.funnel_language || null;
+                    detectedValue = detectedValue || tx.value || null;
+                    matchedTransactionId = matchedTransactionId || tx.transaction_id || null;
+                    console.log(`🔗 Refund cross-ref: Found transaction by email -> lang: ${detectedLanguage}, value: R$${detectedValue}, txId: ${matchedTransactionId}`);
+                }
+            }
+            
+            // 3. If still no language, check leads by email
             if (!detectedLanguage) {
                 const leadResult = await pool.query(`
                     SELECT l.id, l.metadata
@@ -3664,11 +3726,11 @@ app.post('/api/refund', async (req, res) => {
                     const lead = leadResult.rows[0];
                     const metadata = lead.metadata || {};
                     detectedLanguage = metadata.funnelLanguage || null;
-                    console.log(`🔗 Refund cross-ref: Found lead for ${email} -> lang: ${detectedLanguage}`);
+                    console.log(`🔗 Refund cross-ref: Found lead by email -> lang: ${detectedLanguage}`);
                 }
             }
             
-            // 3. If still no language, check funnel_events for this email
+            // 4. If still no language, check funnel_events by email
             if (!detectedLanguage) {
                 const eventResult = await pool.query(`
                     SELECT metadata->>'funnelLanguage' as funnel_language
@@ -3681,11 +3743,11 @@ app.post('/api/refund', async (req, res) => {
                 
                 if (eventResult.rows.length > 0) {
                     detectedLanguage = eventResult.rows[0].funnel_language || null;
-                    console.log(`🔗 Refund cross-ref: Found funnel event for ${email} -> lang: ${detectedLanguage}`);
+                    console.log(`🔗 Refund cross-ref: Found funnel event by email -> lang: ${detectedLanguage}`);
                 }
             }
             
-            console.log(`🔗 Refund cross-ref final: email=${email}, lang=${detectedLanguage || 'unknown'}, value=${detectedValue || 'unknown'}, txId=${matchedTransactionId || 'none'}`);
+            console.log(`🔗 Refund cross-ref final: visitorId=${visitorId || 'none'}, email=${email}, lang=${detectedLanguage || 'unknown'}, value=${detectedValue || 'unknown'}, txId=${matchedTransactionId || 'none'}`);
             
         } catch (crossRefError) {
             console.error('⚠️ Cross-reference error (non-blocking):', crossRefError.message);
@@ -3697,9 +3759,9 @@ app.post('/api/refund', async (req, res) => {
                 protocol, full_name, email, phone, country_code,
                 purchase_date, product, reason, details,
                 ip_address, user_agent, status, source, refund_type,
-                funnel_language, value, transaction_id, created_at
+                funnel_language, value, transaction_id, visitor_id, created_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', 'form', 'refund',
-                $12, $13, $14, NOW())
+                $12, $13, $14, $15, NOW())
         `, [
             protocol,
             fullName,
@@ -3714,7 +3776,8 @@ app.post('/api/refund', async (req, res) => {
             userAgent,
             detectedLanguage,
             detectedValue,
-            matchedTransactionId
+            matchedTransactionId,
+            visitorId || null
         ]);
 
         console.log(`📥 Refund request received: ${protocol} - ${email} - ${product} (lang: ${detectedLanguage || 'unknown'})`);
@@ -4605,6 +4668,8 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS funnel_language VARCHAR(10);`);
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS notes JSONB DEFAULT '[]';`);
         await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS admin_notes TEXT;`);
+        await pool.query(`ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(100);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_refunds_visitor_id ON refund_requests(visitor_id);`);
         
         // Create admin_users table for multi-user access
         await pool.query(`

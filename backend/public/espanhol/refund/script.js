@@ -69,6 +69,7 @@ const countries = [
 
 let selectedCountry = countries[0];
 let currentStep = 1;
+let visitorId = null;
 
 // Inicializar página
 document.addEventListener('DOMContentLoaded', function() {
@@ -76,7 +77,32 @@ document.addEventListener('DOMContentLoaded', function() {
     initCharCounter();
     initFormValidation();
     setMaxDate();
+    initFingerprint();
 });
+
+// Inicializar FingerprintJS para obtener visitorId
+async function initFingerprint() {
+    try {
+        if (typeof FingerprintJS !== 'undefined') {
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            visitorId = result.visitorId;
+            console.log('🔗 Página de reembolso: visitorId capturado:', visitorId);
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js';
+            script.onload = async function() {
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                visitorId = result.visitorId;
+                console.log('🔗 Página de reembolso: visitorId capturado (dinámico):', visitorId);
+            };
+            document.head.appendChild(script);
+        }
+    } catch (error) {
+        console.warn('⚠️ Falló la inicialización de FingerprintJS:', error);
+    }
+}
 
 // Establecer fecha máxima para la fecha de compra (hoy)
 function setMaxDate() {
@@ -422,7 +448,8 @@ async function sendRefundRequest(data, protocol) {
             },
             body: JSON.stringify({
                 ...data,
-                protocol
+                protocol,
+                visitorId: visitorId || null  // Incluir visitorId para mejor referencia cruzada
             })
         });
 
