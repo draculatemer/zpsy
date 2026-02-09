@@ -4239,7 +4239,19 @@ Estou aqui para esclarecer tudo! 😊`
         
         function formatDate(dateStr) {
             if (!dateStr) return '-';
-            return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            return new Date(dateStr).toLocaleDateString('pt-BR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Sao_Paulo'
+            });
+        }
+        
+        // Full date-time formatting with Brazil timezone
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         }
         
         function timeAgo(dateStr) {
@@ -5180,7 +5192,7 @@ Estou aqui para esclarecer tudo! 😊`
                                     <div style="font-size: 11px; color: var(--text-muted);">${event.page || '-'}</div>
                                 </div>
                                 <div style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
-                                    ${new Date(event.created_at).toLocaleString('pt-BR')}
+                                    ${formatDateTime(event.created_at)}
                                 </div>
                             </div>
                         `;
@@ -5303,8 +5315,7 @@ Estou aqui para esclarecer tudo! 😊`
             
             timeline.forEach((item, index) => {
                 const isFirst = index === 0;
-                const date = new Date(item.timestamp);
-                const timeStr = date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                const timeStr = new Date(item.timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
                 
                 let bgColor = '#3b82f6';
                 let icon = '📍';
@@ -6020,8 +6031,8 @@ Estou aqui para esclarecer tudo! 😊`
                 'other': 'Outro motivo'
             };
             
-            const date = refund.created_at ? new Date(refund.created_at).toLocaleString('pt-BR') : '-';
-            const purchaseDate = refund.purchase_date ? new Date(refund.purchase_date).toLocaleDateString('pt-BR') : '-';
+            const date = refund.created_at ? formatDateTime(refund.created_at) : '-';
+            const purchaseDate = refund.purchase_date ? formatDate(refund.purchase_date) : '-';
             const statusInfo = statusLabels[refund.status] || { text: refund.status, class: 'status-pending' };
             
             // Language badge for modal
@@ -7158,7 +7169,7 @@ Posso ajudar em algo mais? 😊`
                             <div style="text-align: right;">
                                 <span class="status-badge ${status.class}">${status.icon} ${status.text}</span>
                                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
-                                    ${new Date(refund.created_at).toLocaleString('pt-BR')}
+                                    ${formatDateTime(refund.created_at)}
                                 </div>
                             </div>
                         </div>
@@ -7424,7 +7435,7 @@ Posso ajudar em algo mais? 😊`
                         'Alvo': l.target_phone,
                         'Status': l.status,
                         'Tags': l.tags || '-',
-                        'Data': new Date(l.created_at).toLocaleString('pt-BR'),
+                        'Data': formatDateTime(l.created_at),
                         'Observações': l.notes || '-'
                     }));
                     const ws = XLSX.utils.json_to_sheet(leadsData);
@@ -7440,7 +7451,7 @@ Posso ajudar em algo mais? 😊`
                         'Status': s.status,
                         'Cliente': s.customer_name || '-',
                         'Email': s.customer_email || '-',
-                        'Data': new Date(s.created_at).toLocaleString('pt-BR')
+                        'Data': formatDateTime(s.created_at)
                     }));
                     const ws = XLSX.utils.json_to_sheet(salesData);
                     ws['!cols'] = [{wch:15},{wch:25},{wch:12},{wch:12},{wch:25},{wch:30},{wch:18}];
@@ -7456,7 +7467,7 @@ Posso ajudar em algo mais? 😊`
                         'Motivo': r.reason,
                         'Status': r.status,
                         'Data Compra': r.purchase_date,
-                        'Data Solicitação': new Date(r.created_at).toLocaleString('pt-BR'),
+                        'Data Solicitação': formatDateTime(r.created_at),
                         'Descrição': r.details || '-'
                     }));
                     const ws = XLSX.utils.json_to_sheet(refundsData);
@@ -7659,7 +7670,7 @@ Posso ajudar em algo mais? 😊`
                 if (type === 'leads' && data.leads) {
                     csvContent = 'Nome,Email,WhatsApp,Alvo,Status,Tags,Data,Observações\n';
                     data.leads.forEach(l => {
-                        csvContent += `"${l.name || ''}","${l.email}","${l.whatsapp || ''}","${l.target_phone || ''}","${l.status}","${l.tags || ''}","${new Date(l.created_at).toLocaleString('pt-BR')}","${(l.notes || '').replace(/"/g, '""')}"\n`;
+                        csvContent += `"${l.name || ''}","${l.email}","${l.whatsapp || ''}","${l.target_phone || ''}","${l.status}","${l.tags || ''}","${formatDateTime(l.created_at)}","${(l.notes || '').replace(/"/g, '""')}"\n`;
                     });
                     fileName = `leads-${new Date().toISOString().split('T')[0]}.csv`;
                 }
@@ -7667,7 +7678,7 @@ Posso ajudar em algo mais? 😊`
                 if (type === 'sales' && data.sales) {
                     csvContent = 'Código,Produto,Valor,Status,Cliente,Email,Data\n';
                     data.sales.forEach(s => {
-                        csvContent += `"${s.transaction_id}","${s.product_name || ''}","R$ ${parseFloat(s.amount || 0).toFixed(2)}","${s.status}","${s.customer_name || ''}","${s.customer_email || ''}","${new Date(s.created_at).toLocaleString('pt-BR')}"\n`;
+                        csvContent += `"${s.transaction_id}","${s.product_name || ''}","R$ ${parseFloat(s.amount || 0).toFixed(2)}","${s.status}","${s.customer_name || ''}","${s.customer_email || ''}","${formatDateTime(s.created_at)}"\n`;
                     });
                     fileName = `vendas-${new Date().toISOString().split('T')[0]}.csv`;
                 }
@@ -7675,7 +7686,7 @@ Posso ajudar em algo mais? 😊`
                 if (type === 'refunds' && data.refunds) {
                     csvContent = 'Protocolo,Nome,Email,Telefone,Motivo,Status,Data Compra,Data Solicitação,Descrição\n';
                     data.refunds.forEach(r => {
-                        csvContent += `"${r.protocol}","${r.full_name}","${r.email}","${r.phone || ''}","${r.reason}","${r.status}","${r.purchase_date}","${new Date(r.created_at).toLocaleString('pt-BR')}","${(r.details || '').replace(/"/g, '""')}"\n`;
+                        csvContent += `"${r.protocol}","${r.full_name}","${r.email}","${r.phone || ''}","${r.reason}","${r.status}","${r.purchase_date}","${formatDateTime(r.created_at)}","${(r.details || '').replace(/"/g, '""')}"\n`;
                     });
                     fileName = `reembolsos-${new Date().toISOString().split('T')[0]}.csv`;
                 }
@@ -7737,7 +7748,7 @@ Posso ajudar em algo mais? 😊`
                             output += `   Produto: ${tx.product}\n`;
                             output += `   Valor: R$ ${tx.value}\n`;
                             output += `   Status: ${tx.status} (Monetizze: ${tx.monetizze_status})\n`;
-                            output += `   Data: ${new Date(tx.created_at).toLocaleString('pt-BR')}\n\n`;
+                            output += `   Data: ${formatDateTime(tx.created_at)}\n\n`;
                         });
                     }
                     
@@ -7769,7 +7780,7 @@ Posso ajudar em algo mais? 😊`
                         output += '═══════════════════════════════════════════════════════════\n\n';
                         data.dbLogs.slice(0, 10).forEach((log, i) => {
                             const body = typeof log.body === 'string' ? JSON.parse(log.body) : log.body;
-                            output += `📝 LOG #${i + 1} (${new Date(log.created_at).toLocaleString('pt-BR')})\n`;
+                            output += `📝 LOG #${i + 1} (${formatDateTime(log.created_at)})\n`;
                             output += `   Content-Type: ${log.content_type}\n`;
                             output += `   Produto: ${body?.produto?.nome || body?.['produto.nome'] || 'N/A'}\n`;
                             output += `   Email: ${body?.comprador?.email || body?.['comprador.email'] || 'N/A'}\n`;
