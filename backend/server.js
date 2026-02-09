@@ -5096,7 +5096,8 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             // Count unique customers (not total transactions) for more accurate metrics
             pool.query(`SELECT COUNT(DISTINCT email) FROM transactions WHERE 1=1 ${langCondition}${sourceCondition}${dateCondition}`, langParams),
             pool.query(`SELECT COUNT(DISTINCT email) FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams),
-            pool.query(`SELECT COUNT(DISTINCT email) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
+            // Count actual refunded/chargeback transactions (not unique customers)
+            pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
             pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams),
             // Cancelled/rejected - count unique customers who ONLY have failed attempts (never succeeded)
             // This avoids counting someone who failed 10 times but eventually succeeded as "lost"
