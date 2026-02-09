@@ -2145,6 +2145,9 @@
                                         <tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando...</td></tr>
                                     </tbody>
                                 </table>
+                                
+                                <!-- Pagination for Refunds Recovery Section -->
+                                <div id="refundsRecoveryPaginationContainer"></div>
                             </div>
                         </div>
                     </div>
@@ -3263,6 +3266,7 @@ Posso ajudar com alguma dúvida?</textarea>
         const paginationState = {
             leads: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             refunds: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            refundsRecovery: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             recovery: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             monetizze: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             chargeback: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
@@ -3376,12 +3380,15 @@ Posso ajudar com alguma dúvida?</textarea>
             switch(sectionId) {
                 case 'refunds': renderRefundsPage(); break;
                 case 'recovery': renderRecoveryPage(); break;
+                case 'refundsRecovery': renderRefundsRecoveryPage(); break;
                 case 'monetizze': renderMonetizzePage(); break;
                 case 'chargeback': renderChargebackPage(); break;
             }
             
             // Scroll to table top
-            const tableId = sectionId + 'Table';
+            let tableId = sectionId + 'Table';
+            // Handle special cases where table ID doesn't match section ID pattern
+            if (sectionId === 'refundsRecovery') tableId = 'recoveryTable';
             document.getElementById(tableId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
@@ -6234,19 +6241,19 @@ Estou aqui para esclarecer tudo! 😊`
                 (r.protocol || '').toLowerCase().includes(search)
             );
             
-            // Store filtered data for pagination
-            paginationState.recovery.allData = refunds;
-            paginationState.recovery.filteredData = filtered;
+            // Store filtered data for pagination (using refundsRecovery to not conflict with leads recovery)
+            paginationState.refundsRecovery.allData = refunds;
+            paginationState.refundsRecovery.filteredData = filtered;
             
             if (filtered.length === 0) {
                 table.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma solicitação encontrada</td></tr>';
-                renderUnifiedPagination('recovery', 'recoveryPaginationContainer');
+                renderUnifiedPagination('refundsRecovery', 'refundsRecoveryPaginationContainer');
                 return;
             }
             
             // Get paginated data
-            const pageData = getPageData('recovery');
-            filtered = pageData.length > 0 ? pageData : filtered.slice(0, paginationState.recovery.perPage);
+            const pageData = getPageData('refundsRecovery');
+            filtered = pageData.length > 0 ? pageData : filtered.slice(0, paginationState.refundsRecovery.perPage);
             
             const statusLabels = {
                 'pending': { text: 'Pendente', color: '#f59e0b', icon: '⏳' },
@@ -6329,11 +6336,11 @@ Estou aqui para esclarecer tudo! 😊`
             table.innerHTML = html;
             
             // Render pagination
-            renderUnifiedPagination('recovery', 'recoveryPaginationContainer');
+            renderUnifiedPagination('refundsRecovery', 'refundsRecoveryPaginationContainer');
         }
         
-        // Function to re-render recovery page (called by pagination)
-        function renderRecoveryPage() {
+        // Function to re-render refunds recovery page (called by pagination)
+        function renderRefundsRecoveryPage() {
             const formRefunds = allRefunds.filter(r => !r.source || r.source === 'form');
             renderRecoveryTable(formRefunds);
         }
