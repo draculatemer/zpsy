@@ -2588,6 +2588,11 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
             const saleDateStr = vendaData.dataInicio || vendaData.dataFinalizada || vendaData.dataVenda || vendaData.data || null;
             const saleDate = parseMonetizzeDate(saleDateStr);
             
+            // Debug log for date parsing (remove after testing)
+            if (synced < 3) {
+                console.log(`📅 DEBUG DATE - Raw: "${saleDateStr}" | Parsed: ${saleDate ? saleDate.toISOString() : 'null'} | dataInicio: "${vendaData.dataInicio}" | dataFinalizada: "${vendaData.dataFinalizada}"`);
+            }
+            
             const funnelLanguage = spanishCodes.includes(String(productCode)) ? 'es' : 'en';
             const funnelSource = affiliateCodes.includes(String(productCode)) ? 'affiliate' : 'main';
             
