@@ -4132,43 +4132,64 @@ app.get('/api/admin/refunds/:id/notes', authenticateToken, async (req, res) => {
     }
 });
 
-// Get transactions (protected)
+// Get transactions (protected) - with pagination
 app.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate, source } = req.query;
+        const { language, startDate, endDate, source, page = 1, limit = 10 } = req.query;
         
-        let query = `SELECT * FROM transactions WHERE 1=1`;
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const offset = (pageNum - 1) * limitNum;
+        
+        let baseQuery = `FROM transactions WHERE 1=1`;
         let params = [];
         let paramIndex = 1;
         
         // Exclude test transactions
-        query += ` AND transaction_id NOT LIKE 'TEST%' AND transaction_id NOT LIKE '%TEST%'`;
-        query += ` AND email NOT LIKE '%test%@%' AND email NOT LIKE '%@test.%'`;
+        baseQuery += ` AND transaction_id NOT LIKE 'TEST%' AND transaction_id NOT LIKE '%TEST%'`;
+        baseQuery += ` AND email NOT LIKE '%test%@%' AND email NOT LIKE '%@test.%'`;
         
         if (language === 'en' || language === 'es') {
-            query += ` AND (funnel_language = $${paramIndex} OR (funnel_language IS NULL AND $${paramIndex} = 'en'))`;
+            baseQuery += ` AND (funnel_language = $${paramIndex} OR (funnel_language IS NULL AND $${paramIndex} = 'en'))`;
             params.push(language);
             paramIndex++;
         }
         
         // Filter by funnel source (main/affiliate)
         if (source === 'main' || source === 'affiliate') {
-            query += ` AND (funnel_source = $${paramIndex} OR (funnel_source IS NULL AND $${paramIndex} = 'main'))`;
+            baseQuery += ` AND (funnel_source = $${paramIndex} OR (funnel_source IS NULL AND $${paramIndex} = 'main'))`;
             params.push(source);
             paramIndex++;
         }
         
         if (startDate && endDate) {
-            query += ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${paramIndex}::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${paramIndex + 1}::date`;
+            baseQuery += ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${paramIndex}::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${paramIndex + 1}::date`;
             params.push(startDate, endDate);
             paramIndex += 2;
         }
         
-        query += ` ORDER BY created_at DESC LIMIT 100`;
+        // Get total count for pagination
+        const countResult = await pool.query(`SELECT COUNT(*) ${baseQuery}`, params);
+        const total = parseInt(countResult.rows[0].count);
+        const totalPages = Math.ceil(total / limitNum);
         
-        const result = await pool.query(query, params);
+        // Get paginated results
+        const dataQuery = `SELECT * ${baseQuery} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        params.push(limitNum, offset);
         
-        res.json({ transactions: result.rows, language: language || 'all', source: source || 'all' });
+        const result = await pool.query(dataQuery, params);
+        
+        res.json({ 
+            transactions: result.rows, 
+            language: language || 'all', 
+            source: source || 'all',
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages
+            }
+        });
         
     } catch (error) {
         console.error('Error fetching transactions:', error);

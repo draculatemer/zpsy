@@ -1990,6 +1990,11 @@
                                 <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📦</div><h3>Nenhuma transação</h3><p>Configure o postback nas configurações.</p></div></td></tr>
                             </tbody>
                         </table>
+                        
+                        <div class="pagination" id="transactionsPagination">
+                            <div class="pagination-info" id="transactionsPaginationInfo">Mostrando 0 de 0</div>
+                            <div class="pagination-buttons" id="transactionsPaginationButtons"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -3204,6 +3209,8 @@ Posso ajudar com alguma dúvida?</textarea>
         let authToken = localStorage.getItem('adminToken');
         let token = authToken; // Sync token with authToken for backward compatibility
         let currentPage = 1;
+        let transactionsCurrentPage = 1;
+        let transactionsTotalPages = 1;
         let searchTimeout;
         let leadsChart, statusChart;
         let selectedTags = [];
@@ -5395,7 +5402,8 @@ Estou aqui para esclarecer tudo! 😊`
         function closeCustomerJourneyModal() { document.getElementById('customerJourneyModal').classList.remove('active'); }
         
         // Sales
-        async function loadSalesData() {
+        async function loadSalesData(page = 1) {
+            transactionsCurrentPage = page;
             document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
             try {
                 const globalFilter = document.getElementById('globalFunnelFilter')?.value || '';
@@ -5410,11 +5418,15 @@ Estou aqui para esclarecer tudo! 😊`
                     params.push(`startDate=${dateRange.startDate}`);
                     params.push(`endDate=${dateRange.endDate}`);
                 }
-                const queryString = params.length > 0 ? '?' + params.join('&') : '';
+                const statsQueryString = params.length > 0 ? '?' + params.join('&') : '';
+                
+                // Add pagination params for transactions
+                const transParams = [...params, `page=${page}`, `limit=10`];
+                const transQueryString = '?' + transParams.join('&');
                 
                 const [statsRes, transRes] = await Promise.all([
-                    fetch(`${API_URL}/api/admin/sales${queryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/transactions${queryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } })
+                    fetch(`${API_URL}/api/admin/sales${statsQueryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/api/admin/transactions${transQueryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } })
                 ]);
                 if (statsRes.status === 401) { logout(); return; }
                 const stats = await statsRes.json();
@@ -5451,9 +5463,50 @@ Estou aqui para esclarecer tudo! 😊`
                 renderProductStats(stats.byProduct);
                 
                 renderTransactions(trans.transactions);
+                
+                // Render pagination
+                if (trans.pagination) {
+                    transactionsTotalPages = trans.pagination.totalPages;
+                    renderTransactionsPagination(trans.pagination);
+                }
             } catch (error) {
                 console.error('Error loading sales:', error);
             }
+        }
+        
+        function renderTransactionsPagination(pagination) {
+            const { page, total, totalPages } = pagination;
+            const limit = pagination.limit || 10;
+            const start = total > 0 ? (page - 1) * limit + 1 : 0;
+            const end = Math.min(page * limit, total);
+            
+            document.getElementById('transactionsPaginationInfo').textContent = total > 0 
+                ? `Mostrando ${start} - ${end} de ${total}` 
+                : 'Mostrando 0 de 0';
+            
+            let buttons = '';
+            if (totalPages > 1) {
+                buttons += `<button class="page-btn" onclick="loadTransactionsPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>←</button>`;
+                
+                // Show page numbers (max 5 visible)
+                let startPage = Math.max(1, page - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    buttons += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadTransactionsPage(${i})" style="${i === page ? 'background: var(--accent); color: white;' : ''}">${i}</button>`;
+                }
+                
+                buttons += `<button class="page-btn" onclick="loadTransactionsPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>→</button>`;
+            }
+            document.getElementById('transactionsPaginationButtons').innerHTML = buttons;
+        }
+        
+        function loadTransactionsPage(page) {
+            if (page < 1 || page > transactionsTotalPages) return;
+            loadSalesData(page);
         }
         
         function updateSalesHeader(lang, source) {
