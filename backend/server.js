@@ -3911,7 +3911,7 @@ app.get('/api/admin/refunds/:id/details', authenticateToken, async (req, res) =>
         let leadData = null;
         if (email) {
             const leadResult = await pool.query(`
-                SELECT id, email, name, phone, country, status, source,
+                SELECT id, email, name, whatsapp as phone, country, status, source,
                     products_purchased, total_spent, first_purchase_at, last_purchase_at,
                     metadata, created_at
                 FROM leads 
