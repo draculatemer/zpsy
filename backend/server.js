@@ -314,6 +314,7 @@ function buildDateFilter(startDate, endDate, columnName = 'created_at') {
 
 // Helper function to parse Monetizze dates
 // Handles both Brazilian format (DD/MM/YYYY HH:MM:SS) and ISO format (YYYY-MM-DD HH:MM:SS)
+// IMPORTANT: Monetizze sends dates in Brazil timezone (UTC-3), so we must interpret them correctly
 function parseMonetizzeDate(dateStr) {
     if (!dateStr) return null;
     try {
@@ -321,10 +322,21 @@ function parseMonetizzeDate(dateStr) {
         const brDateMatch = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/);
         if (brDateMatch) {
             const [, day, month, year, hour, minute, second] = brDateMatch;
-            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
+            // Create ISO string with Brazil timezone offset (-03:00)
+            // This ensures the date is interpreted as Brazil time, not server local time
+            const isoString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${hour}:${minute}:${second}-03:00`;
+            const date = new Date(isoString);
             return isNaN(date.getTime()) ? null : date;
         }
-        // Try standard parsing (ISO format from API 2.1)
+        // Check if it's already in ISO format but without timezone (assume Brazil time)
+        const isoNoTzMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+        if (isoNoTzMatch) {
+            const [, year, month, day, hour, minute, second] = isoNoTzMatch;
+            const isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}-03:00`;
+            const date = new Date(isoString);
+            return isNaN(date.getTime()) ? null : date;
+        }
+        // Try standard parsing (ISO format with timezone from API 2.1)
         const date = new Date(dateStr);
         return isNaN(date.getTime()) ? null : date;
     } catch (e) {
