@@ -856,24 +856,45 @@
             .filter-search { grid-column: span 1; }
         }
         
-        /* Global Funnel Selector */
+        /* Global Funnel Selector - Unified Filter Style */
         .funnel-selector {
-            padding: 12px 40px 12px 16px;
+            padding: 12px 16px;
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
             backdrop-filter: blur(10px);
             border: 1px solid var(--accent);
             border-radius: var(--radius-md);
             color: var(--text-primary);
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+        /* Select elements get dropdown arrow and extra padding */
+        select.funnel-selector {
+            padding-right: 40px;
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 14px center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 180px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+        /* Input elements */
+        input.funnel-selector {
+            cursor: text;
+        }
+        input.funnel-selector::placeholder {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        /* Textarea elements */
+        textarea.funnel-selector {
+            cursor: text;
+            resize: vertical;
+            font-family: inherit;
+        }
+        textarea.funnel-selector::placeholder {
+            color: var(--text-muted);
+            font-weight: 500;
         }
         .funnel-selector:hover { 
             border-color: var(--accent); 
@@ -884,6 +905,7 @@
             border-color: var(--accent); 
             box-shadow: 0 0 0 3px var(--accent-glow), 0 4px 12px rgba(16, 185, 129, 0.25); 
             outline: none; 
+            transform: translateY(0);
         }
         .funnel-selector option { 
             background: var(--bg-secondary); 
@@ -1620,21 +1642,19 @@
                                 <h2>Todos os Leads</h2>
                                 <span class="panel-count" id="panelLeadCount">0 leads</span>
                             </div>
-                            <div class="panel-actions">
-                                <div class="search-box">
-                                    <input type="text" id="searchInput" placeholder="Buscar por email, telefone...">
-                                </div>
-                                <select class="filter-select" id="languageFilter">
-                                    <option value="">Todos os Funis</option>
+                            <div class="panel-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <input type="text" id="searchInput" placeholder="🔍 Buscar por email, telefone..." class="funnel-selector" style="min-width: 220px;">
+                                <select class="funnel-selector" id="languageFilter" style="min-width: 150px;">
+                                    <option value="">🌍 Todos os Funis</option>
                                     <option value="en">🇺🇸 Inglês</option>
                                     <option value="es">🇪🇸 Espanhol</option>
                                 </select>
-                                <select class="filter-select" id="statusFilter">
-                                    <option value="">Todos os Status</option>
-                                    <option value="new">Novo</option>
-                                    <option value="contacted">Contatado</option>
-                                    <option value="converted">Convertido</option>
-                                    <option value="lost">Perdido</option>
+                                <select class="funnel-selector" id="statusFilter" style="min-width: 160px;">
+                                    <option value="">📋 Todos os Status</option>
+                                    <option value="new">🆕 Novo</option>
+                                    <option value="contacted">📞 Contatado</option>
+                                    <option value="converted">✅ Convertido</option>
+                                    <option value="lost">❌ Perdido</option>
                                 </select>
                             </div>
                         </div>
@@ -1827,27 +1847,24 @@
                                 </div>
                             </div>
                             <!-- Filtros de Jornadas -->
-                            <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
                                 <div style="flex: 1; min-width: 200px;">
                                     <input type="text" id="journeySearchEmail" placeholder="🔍 Buscar por email, telefone ou ID..." 
-                                           style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 13px;"
+                                           class="funnel-selector" style="width: 100%; min-width: 200px;"
                                            onkeyup="debounceJourneySearch()">
                                 </div>
-                                <select id="journeyFilterFunnel" onchange="filterJourneys()" 
-                                        style="padding: 10px 14px; background: #1e1e2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 13px; min-width: 120px; cursor: pointer;">
-                                    <option value="">Todos Funis</option>
+                                <select id="journeyFilterFunnel" onchange="filterJourneys()" class="funnel-selector" style="min-width: 140px;">
+                                    <option value="">🌍 Todos Funis</option>
                                     <option value="en">🇺🇸 Inglês</option>
                                     <option value="es">🇪🇸 Espanhol</option>
                                 </select>
-                                <select id="journeyFilterGender" onchange="filterJourneys()" 
-                                        style="padding: 10px 14px; background: #1e1e2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 13px; min-width: 120px; cursor: pointer;">
-                                    <option value="">Todos Gêneros</option>
+                                <select id="journeyFilterGender" onchange="filterJourneys()" class="funnel-selector" style="min-width: 150px;">
+                                    <option value="">👥 Todos Gêneros</option>
                                     <option value="male">👨 Masculino</option>
                                     <option value="female">👩 Feminino</option>
                                 </select>
-                                <select id="journeyFilterStage" onchange="filterJourneys()" 
-                                        style="padding: 10px 14px; background: #1e1e2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 13px; min-width: 150px; cursor: pointer;">
-                                    <option value="">Todas Etapas</option>
+                                <select id="journeyFilterStage" onchange="filterJourneys()" class="funnel-selector" style="min-width: 160px;">
+                                    <option value="">📊 Todas Etapas</option>
                                     <option value="checkout_clicked">✅ Chegou no Checkout</option>
                                     <option value="email_captured">📧 Capturou Email</option>
                                     <option value="upsell_1_view">🎁 Viu Upsell 1</option>
@@ -1856,10 +1873,9 @@
                                     <option value="upsell_2_accepted">💰 Comprou Upsell 2</option>
                                     <option value="thankyou_view">🎉 Chegou no Obrigado</option>
                                 </select>
-                                <select id="journeyFilterHasEmail" onchange="filterJourneys()" 
-                                        style="padding: 10px 14px; background: #1e1e2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 13px; min-width: 130px; cursor: pointer;">
-                                    <option value="">Email: Todos</option>
-                                    <option value="yes">📧 Com Email</option>
+                                <select id="journeyFilterHasEmail" onchange="filterJourneys()" class="funnel-selector" style="min-width: 140px;">
+                                    <option value="">📧 Email: Todos</option>
+                                    <option value="yes">✅ Com Email</option>
                                     <option value="no">❌ Sem Email</option>
                                 </select>
                             </div>
@@ -2083,38 +2099,26 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="filters-grid" style="grid-template-columns: repeat(4, 1fr);">
-                                    <div class="filter-group">
-                                        <label class="filter-label">Status</label>
-                                        <select class="filter-input" id="recoveryFilterStatus" onchange="filterRecoveryRefunds()">
-                                            <option value="">Todos</option>
-                                            <option value="pending">⏳ Pendentes</option>
-                                            <option value="handling">🎯 Em Tratamento</option>
-                                            <option value="convinced">🏆 Convencidos</option>
-                                            <option value="refunded">💸 Reembolsados</option>
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label class="filter-label">Idioma</label>
-                                        <select class="filter-input" id="recoveryFilterLanguage" onchange="filterRecoveryRefunds()">
-                                            <option value="">Todos</option>
-                                            <option value="en">🇺🇸 Inglês</option>
-                                            <option value="es">🇪🇸 Espanhol</option>
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label class="filter-label">Período</label>
-                                        <select class="filter-input" id="recoveryFilterPeriod" onchange="filterRecoveryRefunds()">
-                                            <option value="">Todo período</option>
-                                            <option value="today">Hoje</option>
-                                            <option value="week">Últimos 7 dias</option>
-                                            <option value="month">Últimos 30 dias</option>
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label class="filter-label">Buscar</label>
-                                        <input type="text" class="filter-input" id="recoverySearchInput" placeholder="Nome, email, protocolo..." onkeyup="filterRecoveryRefunds()">
-                                    </div>
+                                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                    <select class="funnel-selector" id="recoveryFilterStatus" onchange="filterRecoveryRefunds()" style="min-width: 160px;">
+                                        <option value="">📋 Todos Status</option>
+                                        <option value="pending">⏳ Pendentes</option>
+                                        <option value="handling">🎯 Em Tratamento</option>
+                                        <option value="convinced">🏆 Convencidos</option>
+                                        <option value="refunded">💸 Reembolsados</option>
+                                    </select>
+                                    <select class="funnel-selector" id="recoveryFilterLanguage" onchange="filterRecoveryRefunds()" style="min-width: 150px;">
+                                        <option value="">🌍 Todos Idiomas</option>
+                                        <option value="en">🇺🇸 Inglês</option>
+                                        <option value="es">🇪🇸 Espanhol</option>
+                                    </select>
+                                    <select class="funnel-selector" id="recoveryFilterPeriod" onchange="filterRecoveryRefunds()" style="min-width: 160px;">
+                                        <option value="">📅 Todo período</option>
+                                        <option value="today">Hoje</option>
+                                        <option value="week">Últimos 7 dias</option>
+                                        <option value="month">Últimos 30 dias</option>
+                                    </select>
+                                    <input type="text" class="funnel-selector" id="recoverySearchInput" placeholder="🔍 Nome, email, protocolo..." onkeyup="filterRecoveryRefunds()" style="min-width: 220px; flex: 1;">
                                 </div>
                             </div>
                         </div>
@@ -2356,7 +2360,7 @@
                             <input type="hidden" id="noteRefundId">
                             <div style="margin-bottom: 16px;">
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tipo de Ação:</label>
-                                <select id="noteAction" class="filter-input" style="width: 100%;">
+                                <select id="noteAction" class="funnel-selector" style="width: 100%;">
                                     <option value="call">📞 Ligação</option>
                                     <option value="whatsapp">💬 WhatsApp</option>
                                     <option value="email">📧 Email</option>
@@ -2365,7 +2369,7 @@
                             </div>
                             <div>
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nota:</label>
-                                <textarea id="noteText" class="filter-input" style="width: 100%; height: 120px; resize: vertical;" placeholder="Descreva o contato realizado, resposta do cliente, próximos passos..."></textarea>
+                                <textarea id="noteText" class="funnel-selector" style="width: 100%; height: 120px; resize: vertical;" placeholder="Descreva o contato realizado, resposta do cliente, próximos passos..."></textarea>
                             </div>
                         </div>
                         <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -2653,8 +2657,8 @@
                                 <span class="lead-count" id="refundRequestsCount">0 pedidos</span>
                             </div>
                             <div class="panel-actions">
-                                <select class="filter-select" id="refundStatusFilter" onchange="loadRefundRequests()">
-                                    <option value="">Todos os Status</option>
+                                <select class="funnel-selector" id="refundStatusFilter" onchange="loadRefundRequests()" style="min-width: 170px;">
+                                    <option value="">📋 Todos os Status</option>
                                     <option value="pending">⏳ Pendente</option>
                                     <option value="approved">✅ Aprovado</option>
                                     <option value="rejected">❌ Rejeitado</option>
@@ -2997,7 +3001,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nível de Acesso</label>
-                    <select class="filter-select" id="newUserRole" style="width: 100%;">
+                    <select class="funnel-selector" id="newUserRole" style="width: 100%;">
                         <option value="support">💬 Suporte - Atendimento e recuperação</option>
                         <option value="viewer">👁️ Visualizador - Apenas leitura</option>
                         <option value="admin">🔐 Admin - Acesso total</option>
@@ -3025,7 +3029,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Nível de Acesso</label>
-                <select class="filter-select" id="editUserRole" style="width: 100%;">
+                <select class="funnel-selector" id="editUserRole" style="width: 100%;">
                     <option value="support">💬 Suporte</option>
                     <option value="viewer">👁️ Visualizador</option>
                     <option value="admin">🔐 Admin</option>
@@ -3033,7 +3037,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Status</label>
-                <select class="filter-select" id="editUserStatus" style="width: 100%;">
+                <select class="funnel-selector" id="editUserStatus" style="width: 100%;">
                     <option value="true">✅ Ativo</option>
                     <option value="false">🚫 Inativo</option>
                 </select>
@@ -3059,11 +3063,11 @@
             <input type="hidden" id="editLeadId">
             <div class="form-group">
                 <label class="form-label">Status</label>
-                <select class="filter-select" id="editStatus" style="width: 100%;">
-                    <option value="new">Novo</option>
-                    <option value="contacted">Contatado</option>
-                    <option value="converted">Convertido</option>
-                    <option value="lost">Perdido</option>
+                <select class="funnel-selector" id="editStatus" style="width: 100%;">
+                    <option value="new">🆕 Novo</option>
+                    <option value="contacted">📞 Contatado</option>
+                    <option value="converted">✅ Convertido</option>
+                    <option value="lost">❌ Perdido</option>
                 </select>
             </div>
             <div class="form-group">
