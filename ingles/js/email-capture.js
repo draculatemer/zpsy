@@ -376,8 +376,19 @@ const EmailCapture = {
                 funnelLanguage: 'en',
                 funnelSource: 'main',
                 fbc: localStorage.getItem('_fbc') || '',
-                fbp: localStorage.getItem('_fbp') || ''
+                fbp: localStorage.getItem('_fbp') || '',
+                // UTM parameters for attribution
+                utm_source: localStorage.getItem('utm_source') || '',
+                utm_medium: localStorage.getItem('utm_medium') || '',
+                utm_campaign: localStorage.getItem('utm_campaign') || '',
+                utm_content: localStorage.getItem('utm_content') || '',
+                utm_term: localStorage.getItem('utm_term') || ''
             });
+            
+            // Track CAPI Lead event
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: name });
+            }
             
             // Track event
             if (typeof ZapSpyTracking !== 'undefined') {

@@ -98,7 +98,7 @@ const FacebookCAPI = {
                 // Spanish funnel specific config
                 pixelIds: this.PIXEL_IDS,
                 accessToken: this.ACCESS_TOKEN,
-                funnelLanguage: 'es-aff',
+                funnelLanguage: 'es',
                 ...customData
             };
             
