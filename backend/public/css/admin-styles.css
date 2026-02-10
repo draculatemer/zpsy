@@ -1183,6 +1183,11 @@
         .btn-secondary, .btn-primary { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-secondary:active, .btn-primary:active { transform: scale(0.95); }
         
+        /* Pixel filter buttons */
+        .pixel-filter { padding: 8px 14px !important; font-size: 12px !important; }
+        .pixel-filter.active { background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important; }
+        .pixel-filter:not(.active):hover { background: rgba(0, 212, 170, 0.1) !important; border-color: var(--accent) !important; }
+        
         /* Table row animations */
         .data-table tbody tr { animation: fadeInUp 0.3s ease backwards; transition: background 0.2s ease; }
         .data-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
