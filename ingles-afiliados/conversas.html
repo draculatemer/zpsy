@@ -49,8 +49,6 @@
     } catch(e) {}
     
     fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
-    fbq('track', 'ViewContent', {content_name: 'Conversations List', content_category: 'Funnel Step', value: 0, currency: 'USD'});
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
@@ -62,7 +60,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FacebookCAPI !== 'undefined') {
-                // Track ViewContent via CAPI (browser already tracked above)
+                FacebookCAPI.init('Conversations List');
                 FacebookCAPI.trackViewContent('Conversations List', 'Funnel Step', 0);
             }
         });

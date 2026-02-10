@@ -1146,7 +1146,7 @@ app.post('/api/capi/test', async (req, res) => {
         
         // Build test custom data
         const customData = {
-            value: lang === 'es' ? 37.00 : 47.00,
+            value: lang === 'es' ? 27.00 : 37.00,
             currency: 'USD',
             content_name: 'Test Event',
             content_category: 'test'
@@ -4833,14 +4833,20 @@ app.all('/api/postback/monetizze', async (req, res) => {
             }
         }
         
-        // Custom data for Facebook CAPI - enriched with all available data
+        // Convert Monetizze value (BRL) to USD so pixel and Facebook see one currency (same as frontend)
+        const brlToUsdRate = parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+        const valueBRL = parseFloat(transactionValue) || 0;
+        const valueUSD = Math.round((valueBRL * brlToUsdRate) * 100) / 100;
+        if (valueBRL > 0) console.log(`📤 CAPI: Converting value R$${valueBRL} → $${valueUSD} USD (rate ${brlToUsdRate})`);
+
+        // Custom data for Facebook CAPI - enriched with all available data (USD = same as frontend pixel)
         const fbCustomData = {
             content_name: productName,
             content_ids: [productCode || chave_unica],
             content_type: 'product',
             content_category: productType || 'digital_product',  // Product category
-            value: parseFloat(transactionValue) || 0,
-            currency: 'BRL',
+            value: valueUSD,
+            currency: 'USD',
             order_id: chave_unica,  // Transaction ID for tracking
             num_items: 1,  // Number of items
             customer_segmentation: customerSegmentation  // New vs returning customer
@@ -5012,8 +5018,8 @@ app.post('/api/admin/test-postback', authenticateToken, requireAdmin, async (req
             content_name: 'Test Product',
             content_ids: ['TEST'],
             content_type: 'product',
-            value: 47,
-            currency: 'BRL',
+            value: funnelLanguage === 'es' ? 27 : 37,
+            currency: 'USD',
             order_id: chave_unica,
             num_items: 1,
             customer_segmentation: 'new_customer_to_business'
@@ -5449,7 +5455,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res) => {
                     l.funnel_language as language,
                     fe.created_at as last_event_at,
                     'checkout_clicked' as event,
-                    47.00 as potential_value,
+                    (CASE WHEN l.funnel_language = 'es' THEN 27.00 ELSE 37.00 END) as potential_value,
                     'X AI Monitor' as product,
                     1 as event_count,
                     false as has_purchase,

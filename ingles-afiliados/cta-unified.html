@@ -41,7 +41,6 @@
     
     // Initialize pixels with Advanced Matching
     fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
@@ -56,7 +55,7 @@
     <script src="js/ab-testing.js"></script>
     <script>
         // Default product value (can be overridden by A/B testing)
-        window.productValue = 47;
+        window.productValue = 37;
         window.checkoutCode = 'PBM476086';
         
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1941,8 +1940,8 @@
         <div class="pricing-section" id="pricing">
             <div class="discount-badge" data-ab-discount>76% OFF - LIMITED TIME</div>
             <div class="price-original" data-ab-original-price>$197</div>
-            <div class="price-current" data-ab-price>$47</div>
-            <div class="price-savings" data-ab-savings>You save $150 today!</div>
+            <div class="price-current" data-ab-price>$37</div>
+            <div class="price-savings" data-ab-savings>You save $160 today!</div>
             <div class="price-info">One-time payment • Instant access • 30-day guarantee</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Unlock full access to ZapSpy.ai">
                 <span class="cta-button-icon">🔓</span> Unlock Full Access Now
@@ -2380,11 +2379,11 @@
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
             // Get current product value (may be modified by A/B testing)
-            const currentValue = window.productValue || 47;
+            const currentValue = window.productValue || 37;
             const currentCheckoutCode = window.checkoutCode || 'KFS429964';
             
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackAddToCart(currentValue, 'ZapSpy.ai VIP Access');
                 FacebookCAPI.trackInitiateCheckout(currentValue, 'ZapSpy.ai VIP Access');
             } else if (typeof fbq !== 'undefined') {
                 // Fallback to browser only
@@ -2533,11 +2532,11 @@
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track('checkout_50off_clicked', { discount: '50%' });
             }
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackInitiateCheckout(23.50, '50% OFF Offer');
+                FacebookCAPI.trackAddToCart(18.50, '50% OFF Offer');
+                FacebookCAPI.trackInitiateCheckout(18.50, '50% OFF Offer');
             } else if (typeof fbq !== 'undefined') {
-                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
+                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 18.50, currency: 'USD' });
             }
             
             // Build checkout URL with preserved UTMs + internal tracking

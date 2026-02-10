@@ -40,8 +40,6 @@
     } catch(e) {}
     
     fbq('init', '534495082571779', userData);
-    fbq('track', 'PageView');
-    fbq('track', 'ViewContent', {content_name: 'Chat View', content_category: 'Funnel Step', value: 0, currency: 'USD'});
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -58,7 +56,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FacebookCAPI !== 'undefined') {
-                // Track ViewContent via CAPI (browser already tracked above)
+                FacebookCAPI.init('Chat View');
                 FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 0);
             }
         });

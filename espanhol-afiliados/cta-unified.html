@@ -40,7 +40,6 @@
     } catch(e) {}
     
     fbq('init', '534495082571779', userData);
-    fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -55,7 +54,7 @@
     <script src="js/ab-testing.js"></script>
     <script>
         // Valor del producto por defecto (puede ser modificado por A/B testing)
-        window.productValue = 37;
+        window.productValue = 27;
         window.checkoutCode = 'DZC357746';
         
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1940,8 +1939,8 @@
         <div class="pricing-section" id="pricing">
             <div class="discount-badge">81% DESCUENTO - TIEMPO LIMITADO</div>
             <div class="price-original" data-ab-original-price>$197</div>
-            <div class="price-current" data-ab-price>$37</div>
-            <div class="price-savings" data-ab-savings>¡Ahorras $160 hoy!</div>
+            <div class="price-current" data-ab-price>$27</div>
+            <div class="price-savings" data-ab-savings>¡Ahorras $170 hoy!</div>
             <div class="price-info">Pago único • Acceso instantáneo • Garantía de 30 días</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Desbloquear acceso completo a ZapSpy.ai">
                 <span class="cta-button-icon">🔓</span> Desbloquear Acceso Ahora
@@ -2113,7 +2112,7 @@
     <div class="fixed-cta">
         <div class="fixed-cta-content">
             <div class="fixed-cta-info">
-                <div class="fixed-cta-price">$37 <span>$197</span></div>
+                <div class="fixed-cta-price">$27 <span>$197</span></div>
                 <div class="fixed-cta-slots">¡Solo quedan <span id="slotsLeftFixed">3</span> espacios!</div>
             </div>
             <button onclick="handlePurchase()">Desbloquear Ahora</button>
@@ -2387,14 +2386,13 @@
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
             // Obtener valor actual del producto (puede ser modificado por A/B testing)
-            const currentValue = window.productValue || 37;
+            const currentValue = window.productValue || 27;
             const currentCheckoutCode = window.checkoutCode || 'DZC357746';
             
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackAddToCart(currentValue, 'ZapSpy.ai VIP Access');
                 FacebookCAPI.trackInitiateCheckout(currentValue, 'ZapSpy.ai VIP Access');
             } else if (typeof fbq !== 'undefined') {
-                // Fallback to browser only
                 fbq('track', 'InitiateCheckout', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
@@ -2542,11 +2540,11 @@
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track('checkout_50off_clicked', { discount: '50%' });
             }
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackInitiateCheckout(23.50, '50% OFF Offer');
+                FacebookCAPI.trackAddToCart(13.50, '50% OFF Offer');
+                FacebookCAPI.trackInitiateCheckout(13.50, '50% OFF Offer');
             } else if (typeof fbq !== 'undefined') {
-                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
+                fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 13.50, currency: 'USD' });
             }
             
             // Build checkout URL with preserved UTMs + internal tracking

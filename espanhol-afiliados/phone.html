@@ -87,7 +87,6 @@
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '534495082571779');
-    fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -2412,8 +2411,14 @@
             // Mostrar pantalla de carga
             showScreen('screenLoading');
             
-            // Rastrear evento Lead en Meta Pixel
-            if (typeof fbq !== 'undefined') {
+            const fullNum = (country && String(country).replace('+', '')) + phone;
+            localStorage.setItem('userWhatsApp', fullNum);
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'Número de Teléfono Enviado',
+                    content_category: 'Monitoreo de WhatsApp'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'Número de Teléfono Enviado',
                     content_category: 'Monitoreo de WhatsApp'
@@ -2660,8 +2665,12 @@
                 });
             }
             
-            // Rastrear evento Lead para Facebook
-            if (typeof fbq !== 'undefined') {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'ZapSpy Captura de Lead',
+                    content_category: 'phone_confirmation'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'ZapSpy Captura de Lead',
                     content_category: 'phone_confirmation'
