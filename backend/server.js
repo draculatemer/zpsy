@@ -294,8 +294,26 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
+// Origens permitidas para CORS (funis + admin). FRONTEND_URL sobrescreve se definido.
+const ALLOWED_ORIGINS = [
+    'https://ingles.zappdetect.com',
+    'https://espanhol.zappdetect.com',
+    'https://afiliado.whatstalker.com',
+    'https://www.afiliado.whatstalker.com',
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5500'
+];
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: function(origin, callback) {
+        if (!origin) return callback(null, true); // same-origin ou Postman
+        const allowed = process.env.FRONTEND_URL
+            ? process.env.FRONTEND_URL.split(',').map(s => s.trim())
+            : ALLOWED_ORIGINS;
+        if (allowed.includes('*') || allowed.includes(origin)) return callback(null, true);
+        callback(new Error('CORS not allowed'), false);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -952,25 +970,53 @@ app.get('/api/admin/pixel-stats', authenticateToken, async (req, res) => {
         let startDate = req.query.startDate;
         let endDate = req.query.endDate;
         const days = parseInt(req.query.days, 10);
-        if (days > 0) {
+        const hours = parseFloat(req.query.hours, 10);
+        const minutes = parseInt(req.query.minutes, 10);
+        const useInterval = minutes > 0 || (hours > 0 && hours < 24 * 365);
+
+        if (minutes > 0) {
+            startDate = null;
+            endDate = null;
+        } else if (hours > 0) {
+            startDate = null;
+            endDate = null;
+        } else if (days > 0) {
             endDate = new Date().toISOString().slice(0, 10);
             const d = new Date();
             d.setDate(d.getDate() - days);
             startDate = d.toISOString().slice(0, 10);
         }
-        if (!startDate || !endDate) {
-            return res.status(400).json({ error: 'startDate and endDate required, or days (1, 7, 30)' });
+        if (!useInterval && !startDate && !endDate) {
+            return res.status(400).json({ error: 'Use startDate+endDate, days (1,7,30), hours (1,2,6,12), or minutes (30,60)' });
         }
         const language = req.query.language || ''; // '' = all, 'en', 'es'
 
-        const conditions = [`(created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date`, `(created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`];
-        const params = [startDate, endDate];
-        if (language === 'en') {
-            conditions.push(`(funnel_language = 'en' OR funnel_language IS NULL)`);
-        } else if (language === 'es') {
-            conditions.push(`funnel_language = 'es'`);
+        let whereClause;
+        let params;
+        let txWhereClause;
+        let txParams;
+
+        if (minutes > 0) {
+            whereClause = `created_at >= NOW() - ($1::int || ' minutes')::interval`;
+            params = [minutes];
+            txWhereClause = `created_at >= NOW() - ($1::int || ' minutes')::interval AND status = 'approved'`;
+            txParams = [minutes];
+        } else if (hours > 0) {
+            whereClause = `created_at >= NOW() - ($1::numeric || ' hours')::interval`;
+            params = [hours];
+            txWhereClause = `created_at >= NOW() - ($1::numeric || ' hours')::interval AND status = 'approved'`;
+            txParams = [hours];
+        } else {
+            whereClause = `(created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`;
+            params = [startDate, endDate];
+            txWhereClause = `(created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date AND status = 'approved'`;
+            txParams = [startDate, endDate];
         }
-        const whereClause = conditions.join(' AND ');
+        if (language === 'en') {
+            whereClause += ` AND (funnel_language = 'en' OR funnel_language IS NULL)`;
+        } else if (language === 'es') {
+            whereClause += ` AND funnel_language = 'es'`;
+        }
 
         const baseQuery = `SELECT 
             COUNT(*)::int as total,
@@ -1002,10 +1048,8 @@ app.get('/api/admin/pixel-stats', authenticateToken, async (req, res) => {
             pool.query(`
                 SELECT COALESCE(SUM(CAST(value AS NUMERIC)), 0) as total_value
                 FROM transactions
-                WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
-                  AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date
-                  AND status = 'approved'
-            `, [startDate, endDate])
+                WHERE ${txWhereClause}
+            `, txParams)
         ]);
 
         const row = aggResult.rows[0];
@@ -1016,10 +1060,21 @@ app.get('/api/admin/pixel-stats', authenticateToken, async (req, res) => {
         });
         const totalValueBRL = parseFloat(valueResult.rows[0]?.total_value || 0);
         const brlToUsd = parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+        if (minutes > 0) {
+            const end = new Date();
+            const start = new Date(end.getTime() - minutes * 60 * 1000);
+            startDate = start.toISOString().slice(0, 19);
+            endDate = end.toISOString().slice(0, 19);
+        } else if (hours > 0) {
+            const end = new Date();
+            const start = new Date(end.getTime() - hours * 60 * 60 * 1000);
+            startDate = start.toISOString().slice(0, 19);
+            endDate = end.toISOString().slice(0, 19);
+        }
 
         res.json({
-            startDate,
-            endDate,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
             total: row.total,
             with_fbp: row.with_fbp,
             with_fbc: row.with_fbc,

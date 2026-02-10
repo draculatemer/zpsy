@@ -1675,6 +1675,11 @@
                             <button class="btn-secondary pixel-filter" data-filter="es" onclick="filterPixelData('es')">🇪🇸 Espanhol</button>
                             <span style="font-size: 12px; color: var(--text-muted); align-self: center; margin-left: 8px;">Período:</span>
                             <select class="form-input" id="pixelDateRange" style="width: auto; padding: 8px 12px;" onchange="loadPixelStats()">
+                                <option value="30min">Últimos 30 min</option>
+                                <option value="1h">Última 1h</option>
+                                <option value="2h">Últimas 2h</option>
+                                <option value="6h">Últimas 6h</option>
+                                <option value="12h">Últimas 12h</option>
                                 <option value="today">Hoje</option>
                                 <option value="7days" selected>Últimos 7 dias</option>
                                 <option value="30days">Últimos 30 dias</option>
@@ -7995,16 +8000,25 @@ Obrigado pela compreensão.`
                 const headers = { 'Authorization': `Bearer ${authToken}` };
                 const dateRange = document.getElementById('pixelDateRange')?.value || '7days';
                 let days = 7;
+                let hours = 0;
+                let minutes = 0;
                 if (dateRange === 'today') days = 1;
                 else if (dateRange === '30days') days = 30;
+                else if (dateRange === '30min') minutes = 30;
+                else if (dateRange === '1h') hours = 1;
+                else if (dateRange === '2h') hours = 2;
+                else if (dateRange === '6h') hours = 6;
+                else if (dateRange === '12h') hours = 12;
+                const periodLabels = { '30min': 'Últimos 30 min', '1h': 'Última 1h', '2h': 'Últimas 2h', '6h': 'Últimas 6h', '12h': 'Últimas 12h', 'today': 'Hoje', '7days': 'Últimos 7 dias', '30days': 'Últimos 30 dias' };
+                const periodLabel = periodLabels[dateRange] || 'Últimos 7 dias';
+                document.getElementById('pixelEventsTotalLabel').textContent = 'Leads no período · ' + periodLabel;
                 const activeFilter = document.querySelector('.pixel-filter.active');
                 const language = (activeFilter && activeFilter.getAttribute('data-filter')) || 'all';
                 const langParam = language === 'all' ? '' : language;
-                
-                const periodLabel = dateRange === 'today' ? 'Hoje' : dateRange === '7days' ? 'Últimos 7 dias' : 'Últimos 30 dias';
-                document.getElementById('pixelEventsTotalLabel').textContent = 'Leads no período · ' + periodLabel;
-                
-                let url = `${API_URL}/api/admin/pixel-stats?days=${days}`;
+                let url;
+                if (minutes > 0) url = `${API_URL}/api/admin/pixel-stats?minutes=${minutes}`;
+                else if (hours > 0) url = `${API_URL}/api/admin/pixel-stats?hours=${hours}`;
+                else url = `${API_URL}/api/admin/pixel-stats?days=${days}`;
                 if (langParam) url += `&language=${langParam}`;
                 const statsRes = await fetch(url, { headers });
                 if (!statsRes.ok) throw new Error('Erro ao buscar estatísticas');
@@ -8163,13 +8177,21 @@ Obrigado pela compreensão.`
         async function exportPixelStatsCSV() {
             try {
                 const dateRange = document.getElementById('pixelDateRange')?.value || '7days';
-                let days = 7;
+                let days = 7, hours = 0, minutes = 0;
                 if (dateRange === 'today') days = 1;
                 else if (dateRange === '30days') days = 30;
+                else if (dateRange === '30min') minutes = 30;
+                else if (dateRange === '1h') hours = 1;
+                else if (dateRange === '2h') hours = 2;
+                else if (dateRange === '6h') hours = 6;
+                else if (dateRange === '12h') hours = 12;
                 const activeFilter = document.querySelector('.pixel-filter.active');
                 const language = (activeFilter && activeFilter.getAttribute('data-filter')) || 'all';
                 const langParam = language === 'all' ? '' : language;
-                let url = `${API_URL}/api/admin/pixel-stats?days=${days}`;
+                let url;
+                if (minutes > 0) url = `${API_URL}/api/admin/pixel-stats?minutes=${minutes}`;
+                else if (hours > 0) url = `${API_URL}/api/admin/pixel-stats?hours=${hours}`;
+                else url = `${API_URL}/api/admin/pixel-stats?days=${days}`;
                 if (langParam) url += `&language=${langParam}`;
                 const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (!res.ok) throw new Error('Erro ao buscar dados');
@@ -8214,7 +8236,7 @@ Obrigado pela compreensão.`
                 const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'pixel-capi-qualidade-' + s.startDate + '-a-' + s.endDate + '.csv';
+                a.download = 'pixel-capi-qualidade-' + (s.startDate || '').replace(/:/g, '-') + '-a-' + (s.endDate || '').replace(/:/g, '-') + '.csv';
                 a.click();
                 URL.revokeObjectURL(a.href);
                 showNotification('CSV exportado com sucesso', 'success');

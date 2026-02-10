@@ -7,7 +7,8 @@
  */
 
 const FacebookCAPI = {
-    API_URL: (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://zapspy-funnel-production.up.railway.app',
+    // Siempre usar el backend Railway para CAPI (los funnels pueden estar en otro dominio)
+    API_URL: 'https://zapspy-funnel-production.up.railway.app',
 
     PIXEL_IDS: ['534495082571779'],
     ACCESS_TOKEN: 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',

@@ -11,7 +11,8 @@
  */
 
 const FacebookCAPI = {
-    API_URL: (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://zapspy-funnel-production.up.railway.app',
+    // Sempre usar o backend Railway para CAPI (funis podem estar em outro domínio)
+    API_URL: 'https://zapspy-funnel-production.up.railway.app',
 
     // Generate unique event ID for deduplication
     generateEventId: function(eventName) {
