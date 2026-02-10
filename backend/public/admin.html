@@ -2182,6 +2182,47 @@
                             3. Selecione os eventos desejados<br>
                             4. Clique em "Testar"
                         </div>
+                        <p style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+                            <a href="https://apidoc.monetizze.com.br/postback/index.html" target="_blank" rel="noopener">Documentação Postback Monetizze</a> •
+                            <a href="https://api.monetizze.com.br/2.1/apidoc/" target="_blank" rel="noopener">API 2.1</a>
+                        </p>
+                    </div>
+                    
+                    <div class="config-box">
+                        <h3>🧪 Testar Postback → Initiate Checkout / Purchase</h3>
+                        <p>Simule um postback da Monetizze e confira se os eventos <strong>Initiate Checkout</strong> e <strong>Purchase</strong> são enviados ao Meta (CAPI). Os eventos vão para <strong>Test Events</strong> no Gerenciador de Eventos.</p>
+                        <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div class="form-group">
+                                <label class="form-label">Status (tipoEvento.codigo)</label>
+                                <select class="form-input" id="testPostbackStatus">
+                                    <option value="7">7 - Abandono de Checkout → Initiate Checkout</option>
+                                    <option value="1">1 - Aguardando pagamento → Initiate Checkout</option>
+                                    <option value="2">2 - Aprovada / Finalizada → Purchase</option>
+                                    <option value="6">6 - Completa → Purchase</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email (opcional)</label>
+                                <input type="text" class="form-input" id="testPostbackEmail" placeholder="lead@email.com">
+                                <span style="font-size: 11px; color: var(--text-muted);">Se existir lead, enriquece fbc/fbp no evento</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Idioma do pixel</label>
+                                <select class="form-input" id="testPostbackLang">
+                                    <option value="en">Inglês</option>
+                                    <option value="es">Espanhol</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="btn-primary" onclick="runTestPostback()">📤 Enviar postback de teste</button>
+                        </div>
+                        <div id="testPostbackResult" style="margin-top: 16px; display: none;">
+                            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                                <div id="testPostbackMessage" style="font-weight: 600;"></div>
+                                <div id="testPostbackDetail" style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"></div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="config-box">
@@ -9570,6 +9611,45 @@ Posso ajudar em algo mais? 😊`
                 }
             } catch (error) {
                 showToast('❌ Erro', 'Endpoint não está respondendo', 'error');
+            }
+        }
+        
+        async function runTestPostback() {
+            const statusCode = document.getElementById('testPostbackStatus').value;
+            const email = document.getElementById('testPostbackEmail').value.trim() || undefined;
+            const language = document.getElementById('testPostbackLang').value;
+            const resultDiv = document.getElementById('testPostbackResult');
+            const msgEl = document.getElementById('testPostbackMessage');
+            const detailEl = document.getElementById('testPostbackDetail');
+            resultDiv.style.display = 'block';
+            msgEl.textContent = 'Enviando...';
+            detailEl.textContent = '';
+            try {
+                const response = await fetch(`${API_URL}/api/admin/test-postback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ statusCode, email, language })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    msgEl.textContent = '✅ ' + data.message;
+                    msgEl.style.color = 'var(--success)';
+                    detailEl.innerHTML = `Evento: <strong>${data.eventSent}</strong> | Status testado: ${data.statusCode} | Test code: ${data.testEventCode || '-'}<br>${data.hint || ''}`;
+                    showToast('Teste OK', data.eventSent + ' enviado ao Meta (Test Events)', 'success');
+                } else {
+                    msgEl.textContent = '❌ ' + (data.error || 'Erro ao enviar');
+                    msgEl.style.color = 'var(--danger)';
+                    detailEl.textContent = data.error || '';
+                    showToast('Erro', data.error || 'Verifique o console', 'error');
+                }
+            } catch (error) {
+                msgEl.textContent = '❌ Falha na requisição';
+                msgEl.style.color = 'var(--danger)';
+                detailEl.textContent = error.message;
+                showToast('Erro', error.message, 'error');
             }
         }
         

@@ -4949,6 +4949,87 @@ app.all('/api/postback/monetizze', async (req, res) => {
     }
 });
 
+// Admin: Test Monetizze postback → Initiate Checkout / Purchase (sends to Meta Test Events only)
+// Docs: https://apidoc.monetizze.com.br/postback/index.html
+app.post('/api/admin/test-postback', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { statusCode, email, language = 'en' } = req.body;
+        // statusCode: 1=Aguardando, 2=Aprovada, 6=Completa, 7=Abandono
+        const code = String(statusCode || '7');
+        const validCodes = ['1', '2', '6', '7'];
+        if (!validCodes.includes(code)) {
+            return res.status(400).json({
+                success: false,
+                error: 'statusCode must be 1, 2, 6 or 7',
+                mapping: { '1': 'InitiateCheckout (aguardando)', '2': 'Purchase (aprovada)', '6': 'Purchase (completa)', '7': 'InitiateCheckout (abandono)' }
+            });
+        }
+        const testEmail = email || `test-postback-${Date.now()}@test.local`;
+        const chave_unica = `test_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        const funnelLanguage = (language === 'es' ? 'es' : 'en');
+
+        let leadData = null;
+        try {
+            const leadResult = await pool.query(
+                `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id 
+                 FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
+                [testEmail]
+            );
+            if (leadResult.rows.length > 0) leadData = leadResult.rows[0];
+        } catch (e) { /* ignore */ }
+
+        const fbUserData = {
+            email: testEmail,
+            phone: leadData?.whatsapp || null,
+            firstName: leadData?.name || 'Test',
+            ip: leadData?.ip_address || null,
+            userAgent: leadData?.user_agent || null,
+            fbc: leadData?.fbc || null,
+            fbp: leadData?.fbp || null,
+            country: leadData?.country_code || null,
+            city: leadData?.city || null,
+            gender: leadData?.target_gender || null,
+            externalId: leadData?.visitor_id || null
+        };
+        const fbCustomData = {
+            content_name: 'Test Product',
+            content_ids: ['TEST'],
+            content_type: 'product',
+            value: 47,
+            currency: 'BRL',
+            order_id: chave_unica,
+            num_items: 1,
+            customer_segmentation: 'new_customer_to_business'
+        };
+        const eventSourceUrl = funnelLanguage === 'es' ? 'https://spy-espanhol.zapspy.shop/' : 'https://spy-ingles.zapspy.shop/';
+        const eventId = `test_${chave_unica}`;
+        const testCode = funnelLanguage === 'es' ? (process.env.FB_TEST_CODE_ES || 'TEST96875') : (process.env.FB_TEST_CODE_EN || 'TEST23104');
+        const capiOptions = { language: funnelLanguage, testEventCode: testCode };
+
+        let eventSent = 'none';
+        if (code === '7' || code === '1') {
+            await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_checkout`, capiOptions);
+            eventSent = 'InitiateCheckout';
+        } else if (code === '2' || code === '6') {
+            await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_purchase`, capiOptions);
+            eventSent = 'Purchase';
+        }
+
+        return res.json({
+            success: true,
+            message: `Postback de teste processado. Evento enviado: ${eventSent}`,
+            statusCode: code,
+            eventSent,
+            eventName: eventSent,
+            testEventCode: capiOptions.testEventCode,
+            hint: 'Verifique no Gerenciador de Eventos do Meta (Test Events) se o evento apareceu.'
+        });
+    } catch (error) {
+        console.error('Test postback error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // ==================== REFUND REQUESTS API ====================
 
 // Submit refund request (public)
