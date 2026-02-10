@@ -1876,98 +1876,125 @@
                         <div class="loading"><div class="spinner"></div>Carregando testes...</div>
                     </div>
                     
-                    <!-- Help Section -->
-                    <div class="config-box" style="margin-top: 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));">
-                        <h3 style="margin-top: 0;">📖 Como funciona o Teste A/B</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 16px;">
-                            <div>
-                                <strong style="color: #3b82f6;">1. Crie um teste</strong>
-                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 13px;">
-                                    Defina duas variantes: A (controle) e B (teste). Ex: sem VSL vs com VSL.
-                                </p>
+                    <!-- Help Section - Compact -->
+                    <div style="margin-top: 24px; padding: 16px 20px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <span style="font-size: 16px;">💡</span>
+                            <span style="font-size: 13px; font-weight: 500; color: #888;">Como funciona</span>
+                        </div>
+                        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #3b82f6; font-weight: 600;">1.</span>
+                                <span style="font-size: 13px; color: #888;">Crie um teste com duas variantes</span>
                             </div>
-                            <div>
-                                <strong style="color: #8b5cf6;">2. Divida o tráfego</strong>
-                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 13px;">
-                                    Configure a porcentagem de visitantes que verá cada versão (padrão: 50/50).
-                                </p>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #8b5cf6; font-weight: 600;">2.</span>
+                                <span style="font-size: 13px; color: #888;">Divida o tráfego entre elas</span>
                             </div>
-                            <div>
-                                <strong style="color: #10b981;">3. Acompanhe resultados</strong>
-                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 13px;">
-                                    Veja leads, vendas e conversões de cada variante em tempo real.
-                                </p>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #10b981; font-weight: 600;">3.</span>
+                                <span style="font-size: 13px; color: #888;">Compare conversões</span>
                             </div>
-                            <div>
-                                <strong style="color: #f59e0b;">4. Escolha o vencedor</strong>
-                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 13px;">
-                                    Quando tiver dados suficientes, defina o vencedor e aplique no funil.
-                                </p>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #f59e0b; font-weight: 600;">4.</span>
+                                <span style="font-size: 13px; color: #888;">Aplique o vencedor</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- A/B Test Modal -->
+                <!-- A/B Test Modal - Clean & Simple -->
                 <div id="abTestModal" class="modal" style="display: none;">
-                    <div class="modal-content" style="max-width: 500px;">
-                        <div class="modal-header">
-                            <h3 id="abTestModalTitle">Novo Teste A/B</h3>
-                            <button class="modal-close" onclick="closeABTestModal()">&times;</button>
+                    <div class="modal-content" style="max-width: 480px; border-radius: 16px; overflow: hidden; background: #1a1a1a;">
+                        <!-- Header -->
+                        <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3 id="abTestModalTitle" style="margin: 0; font-size: 18px; font-weight: 600;">Novo Teste A/B</h3>
+                                <button class="modal-close" onclick="closeABTestModal()" style="background: none; border: none; color: #888; font-size: 24px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+                            </div>
                         </div>
-                        <div class="modal-body">
+                        
+                        <!-- Body -->
+                        <div style="padding: 24px;">
                             <form id="abTestForm">
                                 <input type="hidden" id="abTestId">
                                 
-                                <div class="form-group">
-                                    <label>Nome do Teste *</label>
-                                    <input type="text" id="abTestName" placeholder="Ex: Teste VSL Inglês" required>
+                                <!-- Nome do Teste -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Nome do Teste *</label>
+                                    <input type="text" id="abTestName" placeholder="Ex: Teste VSL Homepage" required 
+                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label>Descrição</label>
-                                    <textarea id="abTestDescription" placeholder="Descreva o objetivo do teste..." rows="2"></textarea>
+                                <!-- Descrição -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Descrição</label>
+                                    <input type="text" id="abTestDescription" placeholder="Descrição opcional do teste" 
+                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label>Funil *</label>
-                                    <select id="abTestFunnel" required>
+                                <!-- Funil -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Funil *</label>
+                                    <select id="abTestFunnel" required 
+                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px; cursor: pointer;">
                                         <option value="">Selecione...</option>
                                         <option value="ingles">Inglês</option>
-                                        <option value="ingles-afiliados">Inglês Afiliados</option>
+                                        <option value="ingles-afiliados">Inglês (Afiliados)</option>
                                         <option value="espanhol">Espanhol</option>
-                                        <option value="espanhol-afiliados">Espanhol Afiliados</option>
+                                        <option value="espanhol-afiliados">Espanhol (Afiliados)</option>
                                     </select>
                                 </div>
                                 
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                    <div class="form-group">
-                                        <label style="color: #3b82f6;">Variante A (Controle)</label>
-                                        <input type="text" id="abTestVariantAName" placeholder="Ex: Sem VSL" value="Sem VSL">
-                                        <input type="text" id="abTestVariantAParam" placeholder="Parâmetro URL" value="control" style="margin-top: 8px; font-family: monospace; font-size: 12px;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label style="color: #10b981;">Variante B (Teste)</label>
-                                        <input type="text" id="abTestVariantBName" placeholder="Ex: Com VSL" value="Com VSL">
-                                        <input type="text" id="abTestVariantBParam" placeholder="Parâmetro URL" value="test" style="margin-top: 8px; font-family: monospace; font-size: 12px;">
+                                <!-- Variantes lado a lado -->
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #ccc;">Variantes</label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <div>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                                <span style="background: #3b82f6; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                                <span style="font-size: 13px; color: #3b82f6; font-weight: 500;">Controle</span>
+                                            </div>
+                                            <input type="text" id="abTestVariantAName" value="Sem VSL" 
+                                                style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.1); color: #fff; font-size: 13px;">
+                                            <input type="hidden" id="abTestVariantAParam" value="control">
+                                        </div>
+                                        <div>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                                <span style="background: #10b981; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                                <span style="font-size: 13px; color: #10b981; font-weight: 500;">Teste</span>
+                                            </div>
+                                            <input type="text" id="abTestVariantBName" value="Com VSL" 
+                                                style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #fff; font-size: 13px;">
+                                            <input type="hidden" id="abTestVariantBParam" value="test">
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label>Divisão de Tráfego: <strong id="trafficSplitLabel">50% / 50%</strong></label>
-                                    <input type="range" id="abTestTrafficSplit" min="10" max="90" value="50" 
-                                        oninput="document.getElementById('trafficSplitLabel').textContent = this.value + '% / ' + (100 - this.value) + '%'"
-                                        style="width: 100%;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
-                                        <span>Variante A</span>
-                                        <span>Variante B</span>
+                                <!-- Divisão de Tráfego -->
+                                <div style="margin-bottom: 8px;">
+                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #ccc;">Divisão do Tráfego: <span id="trafficSplitLabel" style="color: #25D366;">50% / 50%</span></label>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="font-size: 12px; color: #3b82f6; font-weight: 600;" id="splitA">50%</span>
+                                        <input type="range" id="abTestTrafficSplit" min="10" max="90" value="50" 
+                                            oninput="document.getElementById('splitA').textContent = this.value + '%'; document.getElementById('splitB').textContent = (100 - this.value) + '%'; document.getElementById('trafficSplitLabel').textContent = this.value + '% / ' + (100 - this.value) + '%';"
+                                            style="flex: 1; height: 6px; border-radius: 3px; cursor: pointer; accent-color: #25D366;">
+                                        <span style="font-size: 12px; color: #10b981; font-weight: 600;" id="splitB">50%</span>
                                     </div>
                                 </div>
                             </form>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn-secondary" onclick="closeABTestModal()">Cancelar</button>
-                            <button type="button" class="btn-primary" onclick="saveABTest()">Salvar Teste</button>
+                        
+                        <!-- Footer -->
+                        <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 12px;">
+                            <button type="button" onclick="closeABTestModal()" 
+                                style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: transparent; color: #ccc; font-size: 14px; cursor: pointer;">
+                                Cancelar
+                            </button>
+                            <button type="button" onclick="saveABTest()" 
+                                style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #25D366; color: #000; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                Salvar Teste
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -7180,11 +7207,15 @@ Obrigado pela compreensão.`
             
             if (abTests.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state" style="padding: 60px 20px; text-align: center; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-                        <span style="font-size: 64px; display: block; margin-bottom: 16px;">🧪</span>
-                        <h3 style="margin: 0 0 8px 0;">Nenhum teste A/B criado</h3>
-                        <p style="color: var(--text-muted); margin: 0 0 20px 0;">Crie seu primeiro teste para comparar diferentes versões do funil</p>
-                        <button class="btn-primary" onclick="showCreateABTestModal()">+ Criar Primeiro Teste</button>
+                    <div style="padding: 48px 20px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🧪</div>
+                        <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500; color: #ccc;">Nenhum teste A/B criado</h3>
+                        <p style="color: #666; margin: 0 0 20px 0; font-size: 13px;">
+                            Crie seu primeiro teste para comparar versões do funil
+                        </p>
+                        <button class="btn-primary" onclick="showCreateABTestModal()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">
+                            + Criar Primeiro Teste
+                        </button>
                     </div>
                 `;
                 return;
@@ -7355,6 +7386,8 @@ Obrigado pela compreensão.`
             document.getElementById('abTestVariantBName').value = 'Com VSL';
             document.getElementById('abTestVariantBParam').value = 'test';
             document.getElementById('abTestTrafficSplit').value = 50;
+            document.getElementById('splitA').textContent = '50%';
+            document.getElementById('splitB').textContent = '50%';
             document.getElementById('trafficSplitLabel').textContent = '50% / 50%';
             document.getElementById('abTestModal').style.display = 'flex';
         }
@@ -7373,6 +7406,8 @@ Obrigado pela compreensão.`
             document.getElementById('abTestVariantBName').value = test.variant_b_name || 'Teste';
             document.getElementById('abTestVariantBParam').value = test.variant_b_param || 'test';
             document.getElementById('abTestTrafficSplit').value = test.traffic_split;
+            document.getElementById('splitA').textContent = test.traffic_split + '%';
+            document.getElementById('splitB').textContent = (100 - test.traffic_split) + '%';
             document.getElementById('trafficSplitLabel').textContent = `${test.traffic_split}% / ${100 - test.traffic_split}%`;
             document.getElementById('abTestModal').style.display = 'flex';
         }

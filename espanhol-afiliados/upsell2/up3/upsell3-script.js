@@ -226,23 +226,6 @@
         section.classList.add('fade-in');
     });
 
-    // ============================================
-    // URGENCY REMINDER POPUP
-    // ============================================
-    setTimeout(function() {
-        var reminder = document.createElement('div');
-        reminder.className = 'urgency-popup';
-        reminder.textContent = '⏰ ¡Oferta VIP por tiempo limitado!';
-        
-        document.body.appendChild(reminder);
-        
-        setTimeout(function() {
-            reminder.classList.add('fade-out');
-            setTimeout(function() {
-                if (reminder.parentNode) reminder.parentNode.removeChild(reminder);
-            }, 500);
-        }, 5000);
-    }, 25000);
 
     // ============================================
     // PREVENT PAGE EXIT

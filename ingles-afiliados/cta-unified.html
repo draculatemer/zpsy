@@ -997,23 +997,54 @@
 
         .cta-button {
             width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            border: none;
-            border-radius: 12px;
+            padding: 22px 24px;
+            background: linear-gradient(135deg, #25D366 0%, #20BA5C 50%, #128C7E 100%);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
             color: white;
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             cursor: pointer;
             margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: megaPulse 2s ease-in-out infinite;
+            box-shadow: 
+                0 0 20px rgba(37, 211, 102, 0.5),
+                0 0 40px rgba(37, 211, 102, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
             overflow: hidden;
         }
 
+        @keyframes megaPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 0 20px rgba(37, 211, 102, 0.5),
+                    0 0 40px rgba(37, 211, 102, 0.3),
+                    0 8px 32px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            50% { 
+                transform: scale(1.03);
+                box-shadow: 
+                    0 0 30px rgba(37, 211, 102, 0.7),
+                    0 0 60px rgba(37, 211, 102, 0.4),
+                    0 12px 40px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
+        }
+
         .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3);
+            transform: scale(1.05);
+            box-shadow: 
+                0 0 40px rgba(37, 211, 102, 0.8),
+                0 0 80px rgba(37, 211, 102, 0.5),
+                0 15px 50px rgba(0, 0, 0, 0.4);
+            animation: none;
         }
 
         .cta-button::before {
@@ -1023,8 +1054,20 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: btn-shimmer 2s infinite;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: btn-shimmer 1.5s infinite;
+        }
+
+        .cta-button-icon {
+            display: inline-block;
+            margin-right: 10px;
+            animation: iconShake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes iconShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
         }
 
         @keyframes btn-shimmer {
@@ -1868,7 +1911,7 @@
             <div class="price-savings">You save $150 today!</div>
             <div class="price-info">One-time payment • Instant access • 30-day guarantee</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Unlock full access to ZapSpy.ai">
-                Unlock Full Access Now
+                <span class="cta-button-icon">🔓</span> Unlock Full Access Now
             </button>
             <p class="cta-subtext">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1877,47 +1920,10 @@
                 </svg>
                 Secure payment • Access released in up to 2 minutes
             </p>
-            <div class="payment-methods">
-                <span class="payment-method">Credit Card</span>
-                <span class="payment-method">Debit Card</span>
-                <span class="payment-method">PayPal</span>
-                <span class="payment-method">Apple Pay</span>
-            </div>
+            <!-- Payment Methods - Removido -->
         </div>
 
-        <!-- Benefits List -->
-        <div class="benefits-list">
-            <div class="benefit-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>All conversations from the target number</span>
-            </div>
-            <div class="benefit-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>All photos and videos (including deleted)</span>
-            </div>
-            <div class="benefit-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Real-time location tracking</span>
-            </div>
-            <div class="benefit-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Lifetime access - No monthly fees</span>
-            </div>
-            <div class="benefit-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>3 exclusive bonuses worth $117</span>
-            </div>
-        </div>
+        <!-- Benefits List - Removido -->
 
         <!-- Testimonials -->
         <div class="testimonials-section">
@@ -2067,15 +2073,7 @@
             </div>
         </div>
 
-        <!-- Guarantee -->
-        <div class="guarantee-section">
-            <svg class="guarantee-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                <polyline points="9 12 11 14 15 10"></polyline>
-            </svg>
-            <h3 class="guarantee-title">30-Day Money-Back Guarantee</h3>
-            <p class="guarantee-text">Test risk-free! If you don't like it, we refund 100% of your money, no questions asked.</p>
-        </div>
+        <!-- Guarantee - Removido -->
     </div>
 
     <!-- Fixed CTA -->
