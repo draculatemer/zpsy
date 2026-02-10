@@ -11,7 +11,7 @@
  */
 
 const FacebookCAPI = {
-    API_URL: 'https://zapspy-funnel-production.up.railway.app',
+    API_URL: (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'https://zapspy-funnel-production.up.railway.app',
     
     // Generate unique event ID for deduplication
     generateEventId: function(eventName) {

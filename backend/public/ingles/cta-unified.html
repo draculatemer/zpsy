@@ -41,7 +41,6 @@
     
     // Initialize pixels with Advanced Matching
     fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
@@ -2344,8 +2343,9 @@
         
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
+            // Track AddToCart + InitiateCheckout (Pixel + CAPI with same event_id)
             if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackAddToCart(47.00, 'ZapSpy.ai VIP Access');
                 FacebookCAPI.trackInitiateCheckout(47.00, 'ZapSpy.ai VIP Access');
             } else if (typeof fbq !== 'undefined') {
                 // Fallback to browser only
@@ -2489,8 +2489,9 @@
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track('checkout_50off_clicked', { discount: '50%' });
             }
-            // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
+            // Track AddToCart + InitiateCheckout (Pixel + CAPI)
             if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackAddToCart(23.50, '50% OFF Offer');
                 FacebookCAPI.trackInitiateCheckout(23.50, '50% OFF Offer');
             } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 23.50, currency: 'USD' });
