@@ -4744,28 +4744,49 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // ==================== FACEBOOK CONVERSIONS API EVENTS ====================
         
         // Try to get enriched data from the lead record (IP, userAgent, fbc, fbp, country, city)
+        // Quality score depends heavily on fbc, fbp, ip, user_agent - we need the lead to have them
         let leadData = null;
         const emailForCAPI = finalEmail || buyerEmail;
         if (emailForCAPI) {
             try {
-                const leadResult = await pool.query(
+                let leadResult = await pool.query(
                     `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
-                     FROM leads WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+                     FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                     [emailForCAPI]
                 );
+                // Fallback: if no lead by email, try by phone (buyer may have used different email at checkout)
+                if (leadResult.rows.length === 0 && buyerPhone) {
+                    const digitsOnly = (s) => (s || '').replace(/\D/g, '');
+                    const buyerDigits = digitsOnly(buyerPhone);
+                    if (buyerDigits.length >= 10) {
+                        leadResult = await pool.query(
+                            `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                             FROM leads 
+                             WHERE REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') = $1 
+                                OR REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') LIKE $2 
+                             ORDER BY created_at DESC LIMIT 1`,
+                            [buyerDigits, '%' + buyerDigits.slice(-10)]
+                        );
+                        if (leadResult.rows.length > 0) {
+                            console.log(`📊 CAPI: Lead found by phone fallback (email had no match)`);
+                        }
+                    }
+                }
                 if (leadResult.rows.length > 0) {
                     leadData = leadResult.rows[0];
                     console.log(`📊 Found lead data for CAPI enrichment: IP=${leadData.ip_address ? 'Yes' : 'No'}, UA=${leadData.user_agent ? 'Yes' : 'No'}, fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, Country=${leadData.country_code || 'No'}, Gender=${leadData.target_gender || 'No'}, VisitorID=${leadData.visitor_id || 'No'}`);
+                } else {
+                    console.log(`📊 No lead found for CAPI (email/phone). Purchase/Checkout will be sent with fewer parameters - quality score may be lower.`);
                 }
             } catch (leadErr) {
                 console.error('⚠️ Error fetching lead data for CAPI:', leadErr.message);
             }
         }
         
-        // User data for Facebook CAPI - enriched with lead data
+        // User data for Facebook CAPI - enriched with lead data (more params = better match quality)
         const fbUserData = {
             email: emailForCAPI,
-            phone: leadData?.whatsapp || buyerPhone,  // Prefer WhatsApp from lead (has country code)
+            phone: leadData?.whatsapp || finalPhone || buyerPhone,  // Prefer WhatsApp from lead (has country code)
             firstName: leadData?.name || buyerName,
             // Add enriched data from lead record
             ip: leadData?.ip_address || null,
