@@ -374,7 +374,9 @@ const EmailCapture = {
                 referrer: document.referrer,
                 visitorId: visitorId,
                 funnelLanguage: 'en',
-                funnelSource: 'main'
+                funnelSource: 'main',
+                fbc: localStorage.getItem('_fbc') || '',
+                fbp: localStorage.getItem('_fbp') || ''
             });
             
             // Track event
