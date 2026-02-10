@@ -1330,21 +1330,7 @@
             .modal-content { margin: 16px; max-width: calc(100% - 32px); }
         }
         
-        /* Focus Mode Styles */
-        body.focus-mode .sidebar {
-            width: 200px;
-        }
-        body.focus-mode .main-content {
-            margin-left: 200px;
-        }
-        body.focus-mode .header-title p {
-            display: none;
-        }
-        @media (max-width: 1024px) {
-            body.focus-mode .sidebar { width: 60px; }
-            body.focus-mode .main-content { margin-left: 60px; }
-        }
-        @media (max-width: 768px) {
-            body.focus-mode .sidebar { display: none; }
-            body.focus-mode .main-content { margin-left: 0; }
+        /* Focus Mode Styles - simplified sidebar */
+        body.focus-mode .nav-item.focus-hidden {
+            display: none !important;
         }
