@@ -68,11 +68,42 @@ function hashData(data) {
     return crypto.createHash('sha256').update(data.toLowerCase().trim()).digest('hex');
 }
 
-// Normalize phone number for Facebook
-function normalizePhone(phone) {
+// Normalize phone number for Facebook (must include country code)
+function normalizePhone(phone, countryCode = null) {
     if (!phone) return null;
     // Remove all non-numeric characters
-    return phone.replace(/\D/g, '');
+    let normalized = phone.replace(/\D/g, '');
+    
+    // If phone doesn't start with a country code, try to add one
+    // Common patterns: US/CA starts with 1, BR starts with 55, ES/MX etc.
+    if (normalized.length > 0) {
+        // If it's a short number (10-11 digits), it probably doesn't have country code
+        if (normalized.length <= 11 && !normalized.startsWith('1') && !normalized.startsWith('55')) {
+            // Try to detect based on countryCode parameter
+            if (countryCode) {
+                const countryPrefixes = {
+                    'US': '1', 'CA': '1', 'BR': '55', 'ES': '34', 'MX': '52',
+                    'AR': '54', 'CL': '56', 'CO': '57', 'PE': '51', 'VE': '58',
+                    'GB': '44', 'DE': '49', 'FR': '33', 'IT': '39', 'PT': '351'
+                };
+                const prefix = countryPrefixes[countryCode.toUpperCase()];
+                if (prefix && !normalized.startsWith(prefix)) {
+                    normalized = prefix + normalized;
+                }
+            }
+        }
+    }
+    
+    return normalized;
+}
+
+// Normalize gender for Facebook (m or f, lowercase)
+function normalizeGender(gender) {
+    if (!gender) return null;
+    const g = gender.toLowerCase().trim();
+    if (g === 'male' || g === 'm' || g === 'masculino' || g === 'hombre') return 'm';
+    if (g === 'female' || g === 'f' || g === 'feminino' || g === 'mujer') return 'f';
+    return null;
 }
 
 // Send event to Facebook Conversions API
@@ -89,43 +120,70 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
     // Build user_data object
     const user_data = {};
     
+    // Email (required, hashed)
     if (userData.email) {
         user_data.em = [hashData(userData.email)];
     }
+    
+    // Phone (hashed, with country code)
     if (userData.phone) {
-        user_data.ph = [hashData(normalizePhone(userData.phone))];
+        const normalizedPhone = normalizePhone(userData.phone, userData.country);
+        if (normalizedPhone) {
+            user_data.ph = [hashData(normalizedPhone)];
+        }
     }
+    
+    // First Name and Last Name (hashed)
     if (userData.firstName) {
         const names = userData.firstName.trim().split(' ');
-        user_data.fn = [hashData(names[0])];
+        user_data.fn = [hashData(names[0].toLowerCase())];
         if (names.length > 1) {
-            user_data.ln = [hashData(names.slice(1).join(' '))];
+            user_data.ln = [hashData(names.slice(1).join(' ').toLowerCase())];
         }
     }
     if (userData.lastName) {
-        user_data.ln = [hashData(userData.lastName)];
+        user_data.ln = [hashData(userData.lastName.toLowerCase())];
     }
+    
+    // Gender (hashed, m or f)
+    if (userData.gender) {
+        const normalizedGender = normalizeGender(userData.gender);
+        if (normalizedGender) {
+            user_data.ge = [hashData(normalizedGender)];
+        }
+    }
+    
+    // Client IP Address (NOT hashed - required for server events)
     if (userData.ip) {
         user_data.client_ip_address = userData.ip;
     }
+    
+    // Client User Agent (NOT hashed - required for server events)
     if (userData.userAgent) {
         user_data.client_user_agent = userData.userAgent;
     }
+    
+    // Facebook Click ID (NOT hashed)
     if (userData.fbc) {
         user_data.fbc = userData.fbc;
     }
+    
+    // Facebook Browser ID (NOT hashed)
     if (userData.fbp) {
         user_data.fbp = userData.fbp;
     }
+    
     // Country code (2-letter ISO 3166-1 alpha-2, lowercase, hashed)
     if (userData.country) {
         user_data.country = [hashData(userData.country.toLowerCase())];
     }
-    // City (lowercase, no spaces, hashed)
+    
+    // City (lowercase, no spaces, no punctuation, hashed)
     if (userData.city) {
-        user_data.ct = [hashData(userData.city.toLowerCase().replace(/\s+/g, ''))];
+        user_data.ct = [hashData(userData.city.toLowerCase().replace(/[^a-z]/g, ''))];
     }
-    // External ID for cross-device tracking
+    
+    // External ID for cross-device tracking (hashed)
     if (userData.externalId) {
         user_data.external_id = [hashData(userData.externalId)];
     }
@@ -4113,13 +4171,13 @@ app.all('/api/postback/monetizze', async (req, res) => {
         if (emailForCAPI) {
             try {
                 const leadResult = await pool.query(
-                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name 
+                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp 
                      FROM leads WHERE LOWER(email) = LOWER($1) LIMIT 1`,
                     [emailForCAPI]
                 );
                 if (leadResult.rows.length > 0) {
                     leadData = leadResult.rows[0];
-                    console.log(`📊 Found lead data for CAPI enrichment: IP=${leadData.ip_address ? 'Yes' : 'No'}, UA=${leadData.user_agent ? 'Yes' : 'No'}, fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, Country=${leadData.country || 'No'}`);
+                    console.log(`📊 Found lead data for CAPI enrichment: IP=${leadData.ip_address ? 'Yes' : 'No'}, UA=${leadData.user_agent ? 'Yes' : 'No'}, fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, Country=${leadData.country_code || 'No'}, Gender=${leadData.target_gender || 'No'}`);
                 }
             } catch (leadErr) {
                 console.error('⚠️ Error fetching lead data for CAPI:', leadErr.message);
@@ -4129,7 +4187,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
         // User data for Facebook CAPI - enriched with lead data
         const fbUserData = {
             email: emailForCAPI,
-            phone: buyerPhone,
+            phone: leadData?.whatsapp || buyerPhone,  // Prefer WhatsApp from lead (has country code)
             firstName: leadData?.name || buyerName,
             // Add enriched data from lead record
             ip: leadData?.ip_address || null,
@@ -4137,7 +4195,8 @@ app.all('/api/postback/monetizze', async (req, res) => {
             fbc: leadData?.fbc || null,
             fbp: leadData?.fbp || null,
             country: leadData?.country_code || null,
-            city: leadData?.city || null
+            city: leadData?.city || null,
+            gender: leadData?.target_gender || null  // Gender for better matching
         };
         
         // Custom data for Facebook CAPI
