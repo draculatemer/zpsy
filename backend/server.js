@@ -5482,20 +5482,34 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             // Count actual refunded/chargeback transactions (not unique customers)
             pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
             pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams),
-            // Cancelled/rejected - count unique TRANSACTIONS (by transaction_id) with failed status
-            // Only count 'cancelled' status to match Monetizze exactly
+            // Cancelled/rejected - count unique CUSTOMERS (by email) who have cancelled transactions
+            // but NEVER had an approved transaction - this matches Monetizze's "lost sales" count
             pool.query(`
-                SELECT COUNT(DISTINCT transaction_id) 
+                SELECT COUNT(DISTINCT email) 
                 FROM transactions t 
                 WHERE t.status = 'cancelled'
                 ${langCondition}${sourceCondition}${dateCondition}
+                AND NOT EXISTS (
+                    SELECT 1 FROM transactions t2 
+                    WHERE t2.email = t.email 
+                    AND t2.status = 'approved'
+                )
             `, langParams),
-            // Lost revenue - sum value of cancelled transactions only
+            // Lost revenue - sum the HIGHEST value attempt per customer (not all attempts)
             pool.query(`
-                SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total
-                FROM transactions t
-                WHERE t.status = 'cancelled'
-                ${langCondition}${sourceCondition}${dateCondition}
+                SELECT COALESCE(SUM(max_value), 0) as total
+                FROM (
+                    SELECT email, MAX(CAST(value AS DECIMAL)) as max_value
+                    FROM transactions t
+                    WHERE t.status = 'cancelled'
+                    ${langCondition}${sourceCondition}${dateCondition}
+                    AND NOT EXISTS (
+                        SELECT 1 FROM transactions t2 
+                        WHERE t2.email = t.email 
+                        AND t2.status = 'approved'
+                    )
+                    GROUP BY email
+                ) unique_customers
             `, langParams),
             // Upsell revenue (for average upsell ticket)
             pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' AND (product ILIKE '%Message Vault%' OR product ILIKE '%Vault%' OR product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%Instant%' OR product ILIKE '%Recuperación%' OR product ILIKE '%Visión%' OR product ILIKE '%VIP%') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
