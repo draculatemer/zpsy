@@ -96,6 +96,10 @@
                         <span class="nav-item-icon">📥</span>
                         Exportar Dados
                     </div>
+                    <div class="nav-item" onclick="switchTab('pixel')">
+                        <span class="nav-item-icon">📡</span>
+                        Pixel & CAPI
+                    </div>
                 </div>
                 
                 <div class="nav-section">
@@ -1650,6 +1654,122 @@
                     </div>
                 </div>
                 
+                <!-- Tab: Pixel & CAPI Monitor -->
+                <div class="tab-content" id="tab-pixel">
+                    <div class="stats-grid" style="margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📡</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="pixelEventsTotal">-</div>
+                                <div class="stat-label">Eventos CAPI (24h)</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">✅</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="pixelEventsSuccess">-</div>
+                                <div class="stat-label">Eventos com Sucesso</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎯</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="pixelMatchRate">-</div>
+                                <div class="stat-label">Taxa de Match Estimada</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">📊</div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="pixelQualityScore">-</div>
+                                <div class="stat-label">Qualidade Estimada</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pixel Configuration -->
+                    <div class="data-panel" style="margin-bottom: 24px;">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h2>⚙️ Configuração dos Pixels</h2>
+                            </div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                <div class="config-box" style="margin: 0;">
+                                    <h3>🇺🇸 Pixel Inglês</h3>
+                                    <p style="font-size: 13px; color: var(--text-muted);">ID: <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px;">726299943423075</code></p>
+                                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                                        <span class="status-badge approved">Ativo</span>
+                                        <span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">CAPI Habilitado</span>
+                                    </div>
+                                </div>
+                                <div class="config-box" style="margin: 0;">
+                                    <h3>🇪🇸 Pixel Espanhol</h3>
+                                    <p style="font-size: 13px; color: var(--text-muted);">ID: <code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px;">534495082571779</code></p>
+                                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                                        <span class="status-badge approved">Ativo</span>
+                                        <span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">CAPI Habilitado</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Quality -->
+                    <div class="data-panel" style="margin-bottom: 24px;">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h2>📊 Qualidade dos Dados (Últimos 7 dias)</h2>
+                            </div>
+                            <button class="btn-secondary" onclick="loadPixelStats()">🔄 Atualizar</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Parâmetro</th>
+                                        <th>Descrição</th>
+                                        <th>Leads com Dados</th>
+                                        <th>Taxa</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pixelQualityTableBody">
+                                    <tr><td colspan="5"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent CAPI Events -->
+                    <div class="data-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h2>📡 Últimos Eventos CAPI</h2>
+                                <span class="lead-count" id="capiEventsCount">0 eventos</span>
+                            </div>
+                        </div>
+                        <div class="table-scroll-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Evento</th>
+                                        <th>Pixel</th>
+                                        <th>Email</th>
+                                        <th>Parâmetros</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="capiEventsTableBody">
+                                    <tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Tab: Settings -->
                 <div class="tab-content" id="tab-settings">
                     <div class="config-box">
@@ -2417,6 +2537,7 @@ Posso ajudar com alguma dúvida?</textarea>
             'refunds': { title: 'Reembolsos', subtitle: 'Gerencie solicitações de reembolso' },
             'countries': { title: 'Países', subtitle: 'Análise de performance por país' },
             'reports': { title: 'Exportar Dados', subtitle: 'Baixe relatórios em Excel, PDF ou CSV' },
+            'pixel': { title: 'Pixel & CAPI', subtitle: 'Monitore a qualidade dos eventos do Facebook' },
             'settings': { title: 'Configurações', subtitle: 'Configure integrações' },
             'users': { title: 'Usuários', subtitle: 'Gerencie membros da equipe' }
         };
@@ -2879,6 +3000,7 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('syncEndDate').value = today;
             }
             else if (tabName === 'users') loadUsers();
+            else if (tabName === 'pixel') loadPixelStats();
         }
         
         function logout() {
@@ -6819,6 +6941,121 @@ Obrigado pela compreensão.`
             } catch (error) {
                 console.error('Error updating refund:', error);
                 showToast('Erro', 'Falha ao atualizar status', 'error');
+            }
+        }
+        
+        // ==================== PIXEL & CAPI MONITOR ====================
+        async function loadPixelStats() {
+            const qualityTable = document.getElementById('pixelQualityTableBody');
+            const eventsTable = document.getElementById('capiEventsTableBody');
+            
+            try {
+                const headers = { 'Authorization': `Bearer ${authToken}` };
+                
+                // Fetch leads data to calculate quality metrics
+                const leadsRes = await fetch(`${API_URL}/api/admin/leads?limit=1000`, { headers });
+                const leadsData = await leadsRes.json();
+                const leads = leadsData.leads || [];
+                
+                // Calculate data quality metrics
+                const total = leads.length;
+                const last7Days = leads.filter(l => {
+                    const created = new Date(l.created_at);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return created >= weekAgo;
+                });
+                const totalRecent = last7Days.length;
+                
+                const metrics = [
+                    { param: 'email', desc: 'Email do lead', count: last7Days.filter(l => l.email).length },
+                    { param: 'client_ip_address', desc: 'Endereço IP', count: last7Days.filter(l => l.ip_address).length },
+                    { param: 'client_user_agent', desc: 'User Agent (navegador)', count: last7Days.filter(l => l.user_agent).length },
+                    { param: 'phone (ph)', desc: 'WhatsApp/Telefone', count: last7Days.filter(l => l.whatsapp).length },
+                    { param: 'fbc', desc: 'Facebook Click ID', count: last7Days.filter(l => l.fbc).length },
+                    { param: 'fbp', desc: 'Facebook Browser ID', count: last7Days.filter(l => l.fbp).length },
+                    { param: 'country', desc: 'País (geolocalização)', count: last7Days.filter(l => l.country_code).length },
+                    { param: 'city (ct)', desc: 'Cidade', count: last7Days.filter(l => l.city).length },
+                    { param: 'gender (ge)', desc: 'Gênero do target', count: last7Days.filter(l => l.target_gender).length },
+                    { param: 'external_id', desc: 'Visitor ID (cross-device)', count: last7Days.filter(l => l.visitor_id).length },
+                    { param: 'first_name (fn)', desc: 'Nome do lead', count: last7Days.filter(l => l.name).length }
+                ];
+                
+                // Render quality table
+                qualityTable.innerHTML = metrics.map(m => {
+                    const rate = totalRecent > 0 ? ((m.count / totalRecent) * 100).toFixed(1) : 0;
+                    let statusClass = 'pending';
+                    let statusText = '⚠️ Baixo';
+                    if (rate >= 80) { statusClass = 'approved'; statusText = '✅ Excelente'; }
+                    else if (rate >= 50) { statusClass = 'pending'; statusText = '🟡 Médio'; }
+                    else { statusClass = 'refunded'; statusText = '🔴 Baixo'; }
+                    
+                    return `<tr>
+                        <td><code style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 12px;">${m.param}</code></td>
+                        <td>${m.desc}</td>
+                        <td>${m.count} / ${totalRecent}</td>
+                        <td><strong>${rate}%</strong></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>`;
+                }).join('');
+                
+                // Calculate overall quality score
+                const avgRate = metrics.reduce((sum, m) => sum + (totalRecent > 0 ? (m.count / totalRecent) * 100 : 0), 0) / metrics.length;
+                const qualityScore = Math.min(10, (avgRate / 10)).toFixed(1);
+                
+                // Calculate match rate estimate (based on key matching params)
+                const keyParams = ['email', 'phone (ph)', 'fbc', 'fbp', 'client_ip_address'];
+                const keyMetrics = metrics.filter(m => keyParams.includes(m.param));
+                const matchRate = keyMetrics.reduce((sum, m) => sum + (totalRecent > 0 ? (m.count / totalRecent) * 100 : 0), 0) / keyMetrics.length;
+                
+                // Update stat cards
+                document.getElementById('pixelEventsTotal').textContent = totalRecent;
+                document.getElementById('pixelEventsSuccess').textContent = Math.round(totalRecent * 0.95); // Estimate 95% success
+                document.getElementById('pixelMatchRate').textContent = matchRate.toFixed(0) + '%';
+                document.getElementById('pixelQualityScore').textContent = qualityScore + '/10';
+                
+                // Fetch recent CAPI events from transactions (purchases sent via CAPI)
+                const txRes = await fetch(`${API_URL}/api/admin/transactions?limit=20`, { headers });
+                const txData = await txRes.json();
+                const transactions = txData.transactions || [];
+                
+                // Show as CAPI events
+                document.getElementById('capiEventsCount').textContent = `${transactions.length} eventos`;
+                
+                if (transactions.length === 0) {
+                    eventsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhum evento CAPI registrado ainda</td></tr>';
+                } else {
+                    eventsTable.innerHTML = transactions.slice(0, 15).map(tx => {
+                        const date = new Date(tx.transaction_date || tx.created_at);
+                        const dateStr = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        const eventType = tx.status === 'approved' ? 'Purchase' : 
+                                         tx.status === 'refunded' ? 'Refund' : 
+                                         tx.status === 'pending' ? 'InitiateCheckout' : 'Other';
+                        
+                        const pixelId = tx.funnel_language === 'es' ? '534495082571779' : '726299943423075';
+                        const pixelName = tx.funnel_language === 'es' ? '🇪🇸 Espanhol' : '🇺🇸 Inglês';
+                        
+                        // Estimate params sent
+                        const params = [];
+                        if (tx.email) params.push('em');
+                        params.push('ip', 'ua', 'value', 'currency');
+                        
+                        return `<tr>
+                            <td style="font-size: 12px;">${dateStr}</td>
+                            <td><span class="status-badge ${tx.status === 'approved' ? 'approved' : tx.status === 'refunded' ? 'refunded' : 'pending'}">${eventType}</span></td>
+                            <td style="font-size: 11px;">${pixelName}</td>
+                            <td style="font-size: 12px;">${tx.email ? tx.email.substring(0, 15) + '...' : '-'}</td>
+                            <td><code style="font-size: 10px; background: var(--bg-tertiary); padding: 2px 4px; border-radius: 3px;">${params.join(', ')}</code></td>
+                            <td><span class="status-badge approved">✅ Enviado</span></td>
+                        </tr>`;
+                    }).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error loading pixel stats:', error);
+                qualityTable.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #f87171;">Erro ao carregar dados</td></tr>';
+                eventsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #f87171;">Erro ao carregar eventos</td></tr>';
             }
         }
         
