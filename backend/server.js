@@ -443,6 +443,58 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Public endpoint to check recent CAPI activity (limited info for debugging)
+app.get('/api/capi/status', async (req, res) => {
+    try {
+        // Get recent transaction counts
+        const last24h = await pool.query(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = 'refunded' THEN 1 ELSE 0 END) as refunded
+            FROM transactions 
+            WHERE created_at > NOW() - INTERVAL '24 hours'
+        `);
+        
+        // Get recent postback logs count
+        const postbackLogs = await pool.query(`
+            SELECT COUNT(*) as count 
+            FROM postback_logs 
+            WHERE created_at > NOW() - INTERVAL '24 hours'
+        `);
+        
+        // Get last 5 transactions (limited info)
+        const recentTx = await pool.query(`
+            SELECT 
+                status, 
+                funnel_language,
+                created_at,
+                CASE WHEN value > 0 THEN 'has_value' ELSE 'no_value' END as value_status
+            FROM transactions 
+            ORDER BY created_at DESC 
+            LIMIT 5
+        `);
+        
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            last24h: {
+                totalTransactions: parseInt(last24h.rows[0]?.total || 0),
+                approved: parseInt(last24h.rows[0]?.approved || 0),
+                pending: parseInt(last24h.rows[0]?.pending || 0),
+                refunded: parseInt(last24h.rows[0]?.refunded || 0)
+            },
+            postbacksReceived24h: parseInt(postbackLogs.rows[0]?.count || 0),
+            recentTransactions: recentTx.rows,
+            capiEndpoint: '/api/capi/event',
+            postbackEndpoint: '/api/postback/monetizze'
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Database diagnostic endpoint (protected - admin only)
 app.get('/api/health/db', authenticateToken, async (req, res) => {
     try {
