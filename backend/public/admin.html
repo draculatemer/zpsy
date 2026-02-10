@@ -3164,19 +3164,72 @@ Estou aqui para esclarecer tudo! 😊`
         // Toast notifications
         function showToast(title, message, type = 'success') {
             const container = document.getElementById('toastContainer');
-            const icons = { success: '✅', warning: '⚠️', error: '❌' };
+            
+            const config = {
+                success: { icon: '✓', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.3)' },
+                warning: { icon: '!', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.3)' },
+                error: { icon: '✕', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.3)' },
+                info: { icon: 'i', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.3)' }
+            };
+            
+            const cfg = config[type] || config.info;
+            
             const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span class="toast-icon">${icons[type]}</span>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            toast.style.cssText = `
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                background: ${cfg.bg};
+                backdrop-filter: blur(20px);
+                border: 1px solid ${cfg.border};
+                border-left: 4px solid ${cfg.color};
+                border-radius: 12px;
+                padding: 16px 20px;
+                margin-bottom: 12px;
+                min-width: 320px;
+                max-width: 420px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: toastSlideIn 0.3s ease;
+                position: relative;
             `;
+            
+            toast.innerHTML = `
+                <div style="
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    background: ${cfg.color};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 14px;
+                    color: #fff;
+                    flex-shrink: 0;
+                ">${cfg.icon}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 4px;">${title}</div>
+                    <div style="color: rgba(255,255,255,0.7); font-size: 13px; line-height: 1.4;">${message}</div>
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    background: none;
+                    border: none;
+                    color: rgba(255,255,255,0.5);
+                    cursor: pointer;
+                    font-size: 18px;
+                    padding: 0;
+                    line-height: 1;
+                    transition: color 0.2s;
+                " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">×</button>
+            `;
+            
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
+            
+            // Auto remove after 4 seconds with fade out
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
         }
         
         // Charts
