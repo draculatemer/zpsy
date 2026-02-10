@@ -1532,13 +1532,7 @@
     </div>
 
     <!-- Timer Bar -->
-    <div class="timer-bar">
-        <div class="timer-info">
-            <p><strong>Completa tu compra en <span class="timer-countdown" id="countdown">08:00</span></strong></p>
-            <p style="margin-top: 2px;">Cuando el temporizador llegue a cero, este precio promocional especial expirará.</p>
-        </div>
-        <button class="timer-btn" onclick="scrollToPricing()" aria-label="Ir a la sección de precios">Desbloquear Ahora</button>
-    </div>
+    <!-- Timer bar removido -->
 
     <div class="container">
         <!-- Scarcity Banner -->
@@ -2094,14 +2088,7 @@
         </div>
     </div>
 
-    <!-- Activity Notification -->
-    <div class="activity-notification" id="activityNotification">
-        <div class="activity-avatar" id="activityEmoji">👤</div>
-        <div class="activity-content">
-            <div class="activity-text" id="activityText"><strong>Alguien</strong> acaba de desbloquear acceso</div>
-            <div class="activity-time" id="activityTime">hace 2 minutos</div>
-        </div>
-    </div>
+    <!-- Activity Notification - Removido -->
 
     <!-- Matrix Effect - Initialized from shared module -->
     <script>
@@ -2328,10 +2315,11 @@
             }, 4000);
         }
 
-        setTimeout(showActivityNotification, 5000);
-        setInterval(() => {
-            if (Math.random() > 0.3) showActivityNotification();
-        }, 20000);
+        // Activity notifications removidas
+        // setTimeout(showActivityNotification, 5000);
+        // setInterval(() => {
+        //     if (Math.random() > 0.3) showActivityNotification();
+        // }, 20000);
 
         // Scroll to pricing
         function scrollToPricing() {

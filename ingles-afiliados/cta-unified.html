@@ -1533,13 +1533,7 @@
     </div>
 
     <!-- Timer Bar -->
-    <div class="timer-bar">
-        <div class="timer-info">
-            <p><strong>Complete your purchase in <span class="timer-countdown" id="countdown">08:00</span></strong></p>
-            <p style="margin-top: 2px;">When the timer reaches zero, this special promotional price expires.</p>
-        </div>
-        <button class="timer-btn" onclick="scrollToPricing()" aria-label="Scroll to pricing section">Unlock Now</button>
-    </div>
+    <!-- Timer bar removido -->
 
     <div class="container">
         <!-- Scarcity Banner -->
@@ -2085,24 +2079,9 @@
     </div>
 
     <!-- Fixed CTA -->
-    <div class="fixed-cta">
-        <div class="fixed-cta-content">
-            <div class="fixed-cta-info">
-                <div class="fixed-cta-price">$47 <span>$197</span></div>
-                <div class="fixed-cta-slots">Only <span id="slotsLeftFixed">3</span> slots left!</div>
-            </div>
-            <button onclick="handlePurchase()">Unlock Now</button>
-        </div>
-    </div>
+    <!-- Fixed CTA removido -->
 
-    <!-- Activity Notification -->
-    <div class="activity-notification" id="activityNotification">
-        <div class="activity-avatar" id="activityEmoji">👤</div>
-        <div class="activity-content">
-            <div class="activity-text" id="activityText"><strong>Someone</strong> just unlocked access</div>
-            <div class="activity-time" id="activityTime">2 minutes ago</div>
-        </div>
-    </div>
+    <!-- Activity Notification - Removido -->
 
     <!-- Matrix Effect - Initialized from shared module -->
     <script>
@@ -2329,10 +2308,11 @@
             }, 4000);
         }
 
-        setTimeout(showActivityNotification, 5000);
-        setInterval(() => {
-            if (Math.random() > 0.3) showActivityNotification();
-        }, 20000);
+        // Activity notifications removidas
+        // setTimeout(showActivityNotification, 5000);
+        // setInterval(() => {
+        //     if (Math.random() > 0.3) showActivityNotification();
+        // }, 20000);
 
         // Scroll to pricing
         function scrollToPricing() {
