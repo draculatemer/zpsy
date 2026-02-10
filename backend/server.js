@@ -946,6 +946,104 @@ app.get('/api/capi/status', async (req, res) => {
     }
 });
 
+// Pixel & CAPI aggregated stats (protected - for admin dashboard)
+app.get('/api/admin/pixel-stats', authenticateToken, async (req, res) => {
+    try {
+        let startDate = req.query.startDate;
+        let endDate = req.query.endDate;
+        const days = parseInt(req.query.days, 10);
+        if (days > 0) {
+            endDate = new Date().toISOString().slice(0, 10);
+            const d = new Date();
+            d.setDate(d.getDate() - days);
+            startDate = d.toISOString().slice(0, 10);
+        }
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: 'startDate and endDate required, or days (1, 7, 30)' });
+        }
+        const language = req.query.language || ''; // '' = all, 'en', 'es'
+
+        const conditions = [`(created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date`, `(created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`];
+        const params = [startDate, endDate];
+        if (language === 'en') {
+            conditions.push(`(funnel_language = 'en' OR funnel_language IS NULL)`);
+        } else if (language === 'es') {
+            conditions.push(`funnel_language = 'es'`);
+        }
+        const whereClause = conditions.join(' AND ');
+
+        const baseQuery = `SELECT 
+            COUNT(*)::int as total,
+            COUNT(*) FILTER (WHERE fbp IS NOT NULL AND fbp != '')::int as with_fbp,
+            COUNT(*) FILTER (WHERE fbc IS NOT NULL AND fbc != '')::int as with_fbc,
+            COUNT(*) FILTER (WHERE email IS NOT NULL AND email != '')::int as with_email,
+            COUNT(*) FILTER (WHERE whatsapp IS NOT NULL AND whatsapp != '')::int as with_phone,
+            COUNT(*) FILTER (WHERE ip_address IS NOT NULL AND ip_address != '')::int as with_ip,
+            COUNT(*) FILTER (WHERE user_agent IS NOT NULL AND user_agent != '')::int as with_user_agent,
+            COUNT(*) FILTER (WHERE visitor_id IS NOT NULL AND visitor_id != '')::int as with_visitor_id,
+            COUNT(*) FILTER (WHERE country_code IS NOT NULL AND country_code != '')::int as with_country,
+            COUNT(*) FILTER (WHERE (fbc IS NOT NULL AND fbc != '') OR utm_source = 'facebook')::int as facebook_ads,
+            COUNT(*) FILTER (WHERE ((fbc IS NOT NULL AND fbc != '') OR utm_source = 'facebook') AND fbc IS NOT NULL AND fbc != '')::int as facebook_ads_with_fbc,
+            COUNT(*) FILTER (WHERE (fbc IS NULL OR fbc = '') AND (utm_source IS NULL OR utm_source = '') AND (referrer IS NULL OR referrer = ''))::int as direct,
+            COUNT(*) FILTER (WHERE utm_source IS NOT NULL AND utm_source != '' AND utm_source != 'facebook')::int as other,
+            COUNT(*) FILTER (WHERE (fbc IS NULL OR fbc = '') AND (utm_source IS NULL OR utm_source = ''))::int as unidentified
+        FROM leads WHERE ${whereClause}`;
+
+        const [aggResult, byLangResult, valueResult] = await Promise.all([
+            pool.query(baseQuery, params),
+            pool.query(`
+                SELECT funnel_language as lang,
+                    COUNT(*)::int as total,
+                    COUNT(*) FILTER (WHERE fbp IS NOT NULL AND fbp != '')::int as with_fbp,
+                    COUNT(*) FILTER (WHERE fbc IS NOT NULL AND fbc != '')::int as with_fbc
+                FROM leads WHERE ${whereClause}
+                GROUP BY funnel_language
+            `, params),
+            pool.query(`
+                SELECT COALESCE(SUM(CAST(value AS NUMERIC)), 0) as total_value
+                FROM transactions
+                WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date
+                  AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date
+                  AND status = 'approved'
+            `, [startDate, endDate])
+        ]);
+
+        const row = aggResult.rows[0];
+        const byLang = {};
+        (byLangResult.rows || []).forEach(r => {
+            const lang = r.lang || 'en';
+            byLang[lang] = { total: r.total, with_fbp: r.with_fbp, with_fbc: r.with_fbc };
+        });
+        const totalValueBRL = parseFloat(valueResult.rows[0]?.total_value || 0);
+        const brlToUsd = parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+
+        res.json({
+            startDate,
+            endDate,
+            total: row.total,
+            with_fbp: row.with_fbp,
+            with_fbc: row.with_fbc,
+            with_email: row.with_email,
+            with_phone: row.with_phone,
+            with_ip: row.with_ip,
+            with_user_agent: row.with_user_agent,
+            with_visitor_id: row.with_visitor_id,
+            with_country: row.with_country,
+            facebook_ads: row.facebook_ads,
+            facebook_ads_with_fbc: row.facebook_ads_with_fbc,
+            direct: row.direct,
+            other: row.other,
+            unidentified: row.unidentified,
+            by_language: byLang,
+            total_value_brl: totalValueBRL,
+            total_value_usd_approx: Math.round(totalValueBRL * brlToUsd * 100) / 100
+        });
+    } catch (error) {
+        console.error('pixel-stats error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Database diagnostic endpoint (protected - admin only)
 app.get('/api/health/db', authenticateToken, async (req, res) => {
     try {
