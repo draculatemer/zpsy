@@ -555,18 +555,24 @@
                             </div>
                         </div>
                         
-                        <!-- Paginação: acima da tabela para ficar sempre visível -->
-                        <div id="leadsPaginationContainer" class="leads-pagination-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 20px; margin-bottom: 12px; background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.25); border-radius: var(--radius-md); color: var(--text-muted); font-size: 13px;">
-                            <span id="leadsPaginationInfo" style="font-weight: 600;">Carregando...</span>
-                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                <select onchange="changeLeadsPerPage(this.value)" class="funnel-selector" id="leadsPerPageSelect" style="padding: 8px 36px 8px 12px; font-size: 12px;">
-                                    <option value="10">10 por página</option>
-                                    <option value="25">25 por página</option>
-                                    <option value="50">50 por página</option>
-                                    <option value="100">100 por página</option>
-                                </select>
-                                <div id="leadsPaginationButtons" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                        <!-- Paginação: sempre visível acima e abaixo da tabela -->
+                        <div id="leadsPaginationContainer" class="leads-pagination-bar" style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 14px 20px; background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.25); border-radius: var(--radius-md);">
+                                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                    <span id="leadsPaginationInfo" style="font-weight: 600; color: var(--text-primary); font-size: 14px;">Carregando...</span>
+                                    <span id="leadsPaginationPageOf" style="color: var(--text-muted); font-size: 13px;"></span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <select onchange="changeLeadsPerPage(this.value)" class="funnel-selector" id="leadsPerPageSelect" style="padding: 8px 36px 8px 12px; font-size: 12px;">
+                                        <option value="10">10 por página</option>
+                                        <option value="25">25 por página</option>
+                                        <option value="50">50 por página</option>
+                                        <option value="100">100 por página</option>
+                                    </select>
+                                    <div id="leadsPaginationButtons" style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 36px;"></div>
+                                </div>
                             </div>
+                            <p id="leadsPaginationHint" style="margin: 8px 0 0 0; font-size: 12px; color: var(--text-muted); display: none;"></p>
                         </div>
                         
                         <div class="table-scroll-container">
@@ -591,6 +597,8 @@
                                 </tbody>
                             </table>
                         </div>
+                        <!-- Paginação também abaixo da tabela -->
+                        <div id="leadsPaginationContainerBottom" style="margin-top: 16px;"></div>
                     </div>
                 </div>
                 
@@ -4115,55 +4123,99 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderPagination(pagination) {
+            if (!pagination) return;
             const { page, total, totalPages, limit } = pagination;
             const perPage = limit || 10;
             const start = total > 0 ? (page - 1) * perPage + 1 : 0;
             const end = Math.min(page * perPage, total);
             
             const infoEl = document.getElementById('leadsPaginationInfo');
+            const pageOfEl = document.getElementById('leadsPaginationPageOf');
             const buttonsEl = document.getElementById('leadsPaginationButtons');
             const perPageSelect = document.getElementById('leadsPerPageSelect');
+            const hintEl = document.getElementById('leadsPaginationHint');
             if (!infoEl || !buttonsEl) return;
             
             infoEl.textContent = total === 0 ? 'Nenhum lead' : `Mostrando ${start}-${end} de ${total}`;
-            if (perPageSelect) {
-                perPageSelect.value = String(perPage);
+            if (perPageSelect) perPageSelect.value = String(perPage);
+            
+            // "Página X de Y" sempre que houver pelo menos 1 página
+            if (pageOfEl) {
+                if (total > 0 && totalPages >= 1) {
+                    pageOfEl.textContent = `Página ${page} de ${totalPages}`;
+                    pageOfEl.style.display = '';
+                } else {
+                    pageOfEl.textContent = '';
+                    pageOfEl.style.display = 'none';
+                }
+            }
+            
+            // Dica quando filtro de data pode estar escondendo leads
+            if (hintEl) {
+                const dateFilter = document.getElementById('globalDateFilter')?.value;
+                if (total === 0 && dateFilter && dateFilter !== 'all') {
+                    hintEl.textContent = '💡 Nenhum lead no período selecionado. Altere o filtro de data no topo para "Todo o período" para ver todos os leads.';
+                    hintEl.style.display = 'block';
+                } else {
+                    hintEl.textContent = '';
+                    hintEl.style.display = 'none';
+                }
             }
             
             const btnStyle = (active, disabled) => `
-                padding: 8px 14px; 
-                background: ${active ? 'var(--accent-gradient)' : disabled ? 'rgba(0,0,0,0.2)' : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1))'}; 
-                border: 1px solid ${active ? 'var(--accent)' : disabled ? 'var(--border)' : 'var(--accent)'}; 
-                border-radius: var(--radius-md); 
-                color: ${active ? '#000' : disabled ? 'var(--text-muted)' : 'var(--text-primary)'}; 
-                cursor: ${disabled ? 'not-allowed' : 'pointer'}; 
-                font-size: 12px;
-                font-weight: ${active ? '700' : '600'};
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: ${active ? '0 4px 16px rgba(0, 212, 170, 0.35)' : disabled ? 'none' : '0 2px 8px rgba(16, 185, 129, 0.15)'};
+                padding: 10px 16px; min-width: 40px;
+                background: ${active ? 'var(--accent-gradient)' : disabled ? 'rgba(0,0,0,0.2)' : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.1))'};
+                border: 1px solid ${active ? 'var(--accent)' : disabled ? 'var(--border)' : 'var(--accent)'};
+                border-radius: var(--radius-md);
+                color: ${active ? '#000' : disabled ? 'var(--text-muted)' : 'var(--text-primary)'};
+                cursor: ${disabled ? 'not-allowed' : 'pointer'};
+                font-size: 13px; font-weight: ${active ? '700' : '600'};
             `;
             
             let buttonsHtml = '';
-            if (totalPages > 1) {
-                buttonsHtml += `<button onclick="loadLeads(${page - 1})" style="${btnStyle(false, page === 1)}" ${page === 1 ? 'disabled' : ''}>◀ Anterior</button>`;
-                const maxVisible = 5;
+            if (totalPages >= 1) {
+                buttonsHtml += `<button type="button" onclick="loadLeads(${page - 1})" style="${btnStyle(false, page <= 1)}" ${page <= 1 ? 'disabled' : ''}>◀ Anterior</button>`;
+                const maxVisible = 7;
                 let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisible - 1);
                 if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
                 if (startPage > 1) {
-                    buttonsHtml += `<button onclick="loadLeads(1)" style="${btnStyle(false, false)}">1</button>`;
-                    if (startPage > 2) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 4px;">...</span>`;
+                    buttonsHtml += `<button type="button" onclick="loadLeads(1)" style="${btnStyle(false, false)}">1</button>`;
+                    if (startPage > 2) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 6px;">…</span>`;
                 }
                 for (let i = startPage; i <= endPage; i++) {
-                    buttonsHtml += `<button onclick="loadLeads(${i})" style="${btnStyle(i === page, false)}">${i}</button>`;
+                    buttonsHtml += `<button type="button" onclick="loadLeads(${i})" style="${btnStyle(i === page, false)}">${i}</button>`;
                 }
                 if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 4px;">...</span>`;
-                    buttonsHtml += `<button onclick="loadLeads(${totalPages})" style="${btnStyle(false, false)}">${totalPages}</button>`;
+                    if (endPage < totalPages - 1) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 6px;">…</span>`;
+                    buttonsHtml += `<button type="button" onclick="loadLeads(${totalPages})" style="${btnStyle(false, false)}">${totalPages}</button>`;
                 }
-                buttonsHtml += `<button onclick="loadLeads(${page + 1})" style="${btnStyle(false, page === totalPages)}" ${page === totalPages ? 'disabled' : ''}>Próximo ▶</button>`;
+                buttonsHtml += `<button type="button" onclick="loadLeads(${page + 1})" style="${btnStyle(false, page >= totalPages)}" ${page >= totalPages ? 'disabled' : ''}>Próximo ▶</button>`;
             }
             buttonsEl.innerHTML = buttonsHtml;
+            
+            // Réplica da barra abaixo da tabela para não precisar rolar
+            const bottomEl = document.getElementById('leadsPaginationContainerBottom');
+            if (bottomEl) {
+                const pageOfText = total > 0 && totalPages >= 1 ? `Página ${page} de ${totalPages}` : '';
+                bottomEl.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 14px 20px; background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.25); border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <span style="font-weight: 600; color: var(--text-primary); font-size: 14px;">${total === 0 ? 'Nenhum lead' : `Mostrando ${start}-${end} de ${total}`}</span>
+                            ${pageOfText ? `<span style="color: var(--text-muted); font-size: 13px;">${pageOfText}</span>` : ''}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <select onchange="changeLeadsPerPage(this.value)" class="funnel-selector" style="padding: 8px 36px 8px 12px; font-size: 12px;">
+                                <option value="10" ${perPage === 10 ? 'selected' : ''}>10 por página</option>
+                                <option value="25" ${perPage === 25 ? 'selected' : ''}>25 por página</option>
+                                <option value="50" ${perPage === 50 ? 'selected' : ''}>50 por página</option>
+                                <option value="100" ${perPage === 100 ? 'selected' : ''}>100 por página</option>
+                            </select>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 36px;">${buttonsHtml}</div>
+                        </div>
+                    </div>
+                `;
+            }
         }
         
         // Variable to track current leads per page

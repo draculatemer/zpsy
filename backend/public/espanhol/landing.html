@@ -17,7 +17,28 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '534495082571779');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    fbq('init', '534495082571779', userData);
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -34,8 +55,23 @@
     <script>
         // Inicializar CAPI y rastrear PageView tanto en navegador como servidor
         document.addEventListener('DOMContentLoaded', function() {
+            // Early geo detection for CAPI quality
+            (function() {
+                if (!localStorage.getItem('userCity') || !localStorage.getItem('userState')) {
+                    fetch('https://ipapi.co/json/').then(r => r.json()).then(function(data) {
+                        if (data.city) localStorage.setItem('userCity', data.city);
+                        if (data.region) localStorage.setItem('userState', data.region);
+                        if (data.country_code && !localStorage.getItem('userCountryCode')) {
+                            localStorage.setItem('userCountryCode', data.country_code);
+                        }
+                    }).catch(function(e) { console.log('Geo detection error:', e); });
+                }
+            })();
+
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Landing Page');
+                // Track ViewContent on landing page
+                FacebookCAPI.trackViewContent('Landing Page', 'Funnel - Entry', 0);
             }
         });
     </script>

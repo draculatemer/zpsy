@@ -183,6 +183,11 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
         user_data.ct = [hashData(userData.city.toLowerCase().replace(/[^a-z]/g, ''))];
     }
     
+    // State/Province (lowercase, no spaces, no punctuation, hashed)
+    if (userData.state) {
+        user_data.st = [hashData(userData.state.toLowerCase().replace(/[^a-z]/g, ''))];
+    }
+    
     // External ID for cross-device tracking (hashed)
     if (userData.externalId) {
         user_data.external_id = [hashData(userData.externalId)];
@@ -347,7 +352,7 @@ async function getCountryFromIP(ip) {
             console.log('Geolocation: Looking up IP:', cleanIP);
             
             // Using ip-api.com (free, no key required, 45 requests/minute)
-            const url = `http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,city`;
+            const url = `http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,city,regionName`;
             
             http.get(url, (res) => {
                 let data = '';
@@ -361,29 +366,30 @@ async function getCountryFromIP(ip) {
                         const json = JSON.parse(data);
                         
                         if (json.status === 'success') {
-                            console.log('Geolocation: Found -', json.country, json.countryCode, json.city);
+                            console.log('Geolocation: Found -', json.country, json.countryCode, json.city, json.regionName);
                             resolve({
                                 country: json.country || null,
                                 country_code: json.countryCode || null,
-                                city: json.city || null
+                                city: json.city || null,
+                                state: json.regionName || null
                             });
                         } else {
                             console.log('Geolocation: API returned fail status');
-                            resolve({ country: null, country_code: null, city: null });
+                            resolve({ country: null, country_code: null, city: null, state: null });
                         }
                     } catch (parseError) {
                         console.log('Geolocation parse error:', parseError.message);
-                        resolve({ country: null, country_code: null, city: null });
+                        resolve({ country: null, country_code: null, city: null, state: null });
                     }
                 });
             }).on('error', (error) => {
                 console.log('Geolocation request error:', error.message);
-                resolve({ country: null, country_code: null, city: null });
+                resolve({ country: null, country_code: null, city: null, state: null });
             });
             
         } catch (error) {
             console.log('Geolocation error:', error.message);
-            resolve({ country: null, country_code: null, city: null });
+            resolve({ country: null, country_code: null, city: null, state: null });
         }
     });
 }
@@ -1145,6 +1151,10 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             whatsapp,
             targetPhone,
             targetGender,
+            city: frontendCity,              // City from frontend geo detection
+            country_code: frontendCountryCode, // Country code from frontend
+            state: frontendState,            // State/province from frontend geo detection
+            pageUrl,                         // Actual page URL for eventSourceUrl
             referrer,
             userAgent,
             fbc,  // Facebook click ID (from URL param or cookie)
@@ -1175,8 +1185,14 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         // Determine source (default to 'main' for backward compatibility)
         const source = funnelSource || 'main';
         
-        // Get country from IP (non-blocking)
-        const geoData = await getCountryFromIP(ipAddress);
+        // Get country from IP (non-blocking), but prefer frontend-provided values
+        const ipGeoData = await getCountryFromIP(ipAddress);
+        const geoData = {
+            country: ipGeoData.country,
+            country_code: frontendCountryCode || ipGeoData.country_code,
+            city: frontendCity || ipGeoData.city,
+            state: frontendState || ipGeoData.state
+        };
         
         // Check if lead already exists (by email or whatsapp)
         const existingLead = await pool.query(
@@ -1211,20 +1227,21 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                     utm_term = COALESCE($18, utm_term),
                     fbc = COALESCE($19, fbc),
                     fbp = COALESCE($20, fbp),
+                    state = COALESCE($21, state),
                     last_visit_at = NOW(),
                     updated_at = NOW()
                 WHERE id = $13
                 RETURNING id, created_at`,
-                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null]
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, geoData.state || null]
             );
             console.log(`Returning lead [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
             result = await pool.query(
-                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
                  RETURNING id, created_at`,
-                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null]
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, geoData.state || null, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null]
             );
             isNewLead = true;
             console.log(`New lead captured [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}${utm_source ? ` [UTM: ${utm_source}]` : ''}`);
@@ -1236,6 +1253,11 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                 email: email,
                 phone: whatsapp,
                 firstName: name,
+                country: geoData.country_code,
+                city: geoData.city,
+                state: geoData.state,
+                gender: targetGender,
+                externalId: visitorId,
                 ip: ipAddress,
                 userAgent: ua,
                 fbc: fbc,
@@ -1243,7 +1265,7 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             }, {
                 content_name: 'Lead Capture Form',
                 content_category: 'Lead'
-            }, referrer, null, { language: language });
+            }, pageUrl || referrer, null, { language: language });
         } catch (capiError) {
             console.error('CAPI Lead error (non-blocking):', capiError.message);
         }
@@ -1346,6 +1368,7 @@ app.post('/api/capi/event', async (req, res) => {
             lastName,
             country,           // Country code (2-letter ISO) for better match quality
             city,              // City name for better match quality
+            state,             // State/province for better match quality
             gender,            // Gender (m/f) for better match quality
             value,
             currency,
@@ -1379,6 +1402,7 @@ app.post('/api/capi/event', async (req, res) => {
             lastName,
             country,           // Country code for CAPI matching
             city,              // City for CAPI matching
+            state,             // State/province for CAPI matching
             gender,            // Gender for CAPI matching
             externalId,        // For cross-device tracking
             ip: ipAddress,
@@ -4926,7 +4950,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
         if (emailForCAPI) {
             try {
                 let leadResult = await pool.query(
-                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                      FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                     [emailForCAPI]
                 );
@@ -4936,7 +4960,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                     const buyerDigits = digitsOnly(buyerPhone);
                     if (buyerDigits.length >= 10) {
                         leadResult = await pool.query(
-                            `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                            `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                              FROM leads 
                              WHERE REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') = $1 
                                 OR REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') LIKE $2 
@@ -4971,6 +4995,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
             fbp: leadData?.fbp || null,
             country: leadData?.country_code || null,
             city: leadData?.city || null,
+            state: leadData?.state || null,  // State/province for better matching
             gender: leadData?.target_gender || null,  // Gender for better matching
             externalId: leadData?.visitor_id || null,  // Cross-device tracking
             referrer: leadData?.referrer || null  // HTTP referrer for attribution
@@ -5153,7 +5178,7 @@ app.post('/api/admin/test-postback', authenticateToken, requireAdmin, async (req
         let leadData = null;
         try {
             const leadResult = await pool.query(
-                `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, name, target_gender, whatsapp, visitor_id 
+                `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id 
                  FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                 [testEmail]
             );
@@ -5170,6 +5195,7 @@ app.post('/api/admin/test-postback', authenticateToken, requireAdmin, async (req
             fbp: leadData?.fbp || null,
             country: leadData?.country_code || null,
             city: leadData?.city || null,
+            state: leadData?.state || null,
             gender: leadData?.target_gender || null,
             externalId: leadData?.visitor_id || null
         };
@@ -7281,6 +7307,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country VARCHAR(100);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS country_code VARCHAR(10);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS city VARCHAR(100);`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS state VARCHAR(100);`);
         
         // Add customer journey tracking columns
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(100);`);

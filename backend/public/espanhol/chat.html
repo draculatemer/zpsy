@@ -28,6 +28,10 @@
         var em = localStorage.getItem('userEmail');
         var ph = localStorage.getItem('userWhatsApp');
         var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
         if (fn) {
@@ -35,6 +39,10 @@
             userData.fn = names[0].toLowerCase();
             if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
         }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
     } catch(e) {}
     
     fbq('init', '534495082571779', userData);

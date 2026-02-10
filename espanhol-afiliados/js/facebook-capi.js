@@ -64,12 +64,24 @@ const FacebookCAPI = {
     },
 
     getUserData: function() {
+        // Try to get city/state from individual keys first, then from userGeo JSON as fallback
+        var city = localStorage.getItem('userCity') || null;
+        var state = localStorage.getItem('userState') || null;
+        var country = localStorage.getItem('userCountryCode') || null;
+        if (!city || !country) {
+            try {
+                var geo = JSON.parse(localStorage.getItem('userGeo') || '{}');
+                if (!city && geo.city) city = geo.city;
+                if (!country && geo.country) country = geo.country;
+            } catch(e) {}
+        }
         return {
             email: localStorage.getItem('userEmail') || null,
             phone: localStorage.getItem('userWhatsApp') || null,
             firstName: localStorage.getItem('userName') || null,
-            country: localStorage.getItem('userCountryCode') || localStorage.getItem('detectedCountry') || null,
-            city: localStorage.getItem('userCity') || localStorage.getItem('detectedCity') || null,
+            country: country,
+            city: city,
+            state: state,
             gender: localStorage.getItem('targetGender') || null,
             visitorId: this.getVisitorId(),
             fbc: this.getFbc(),
@@ -100,6 +112,7 @@ const FacebookCAPI = {
                 externalId: userData.visitorId,
                 country: userData.country,
                 city: userData.city,
+                state: userData.state,
                 gender: userData.gender,
                 fbc: userData.fbc,
                 fbp: userData.fbp,
