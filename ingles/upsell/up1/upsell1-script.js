@@ -122,11 +122,17 @@
     function initActivityFeed() {
         if (!activityFeed) return;
         
-        // Create all static items
+        // Create all static items with organized layout
         staticBuyers.forEach(function(buyer) {
             const item = document.createElement('div');
             item.className = 'activity-item';
-            item.innerHTML = '<span class="activity-icon">✅</span> <strong>' + buyer.name + '</strong> from ' + buyer.location + ' ' + buyer.action + ' <span class="activity-time">' + buyer.time + '</span>';
+            item.innerHTML = 
+                '<span class="activity-icon">✅</span>' +
+                '<div class="activity-content">' +
+                    '<span class="activity-name">' + buyer.name + ' from ' + buyer.location + '</span>' +
+                    '<span class="activity-action">' + buyer.action + '</span>' +
+                '</div>' +
+                '<span class="activity-time">' + buyer.time + '</span>';
             activityFeed.appendChild(item);
         });
     }
