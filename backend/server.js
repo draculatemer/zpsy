@@ -5298,37 +5298,20 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             // Count actual refunded/chargeback transactions (not unique customers)
             pool.query(`SELECT COUNT(*) FROM transactions WHERE status IN ('refunded', 'chargeback') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
             pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' ${langCondition}${sourceCondition}${dateCondition}`, langParams),
-            // Cancelled/rejected - count unique customers who ONLY have failed attempts (never succeeded)
-            // This avoids counting someone who failed 10 times but eventually succeeded as "lost"
+            // Cancelled/rejected - count ALL failed transactions (not unique customers)
+            // This shows the actual number of failed payment attempts
             pool.query(`
-                SELECT COUNT(DISTINCT t.email) 
+                SELECT COUNT(*) 
                 FROM transactions t 
-                WHERE t.status IN ('cancelled', 'pending_payment', 'blocked') 
+                WHERE t.status IN ('cancelled', 'pending_payment', 'blocked', 'refused', 'rejected', 'waiting_payment') 
                 ${langCondition}${sourceCondition}${dateCondition}
-                AND NOT EXISTS (
-                    SELECT 1 FROM transactions t2 
-                    WHERE t2.email = t.email 
-                    AND t2.product = t.product 
-                    AND t2.status = 'approved'
-                )
             `, langParams),
-            // Lost revenue - sum the value of ONE failed transaction per customer/product (the highest value attempt)
-            // This gives a realistic estimate of what we could have earned
+            // Lost revenue - sum ALL failed transactions value
             pool.query(`
-                SELECT COALESCE(SUM(max_value), 0) as total
-                FROM (
-                    SELECT t.email, t.product, MAX(CAST(t.value AS DECIMAL)) as max_value
-                    FROM transactions t
-                    WHERE t.status IN ('cancelled', 'pending_payment', 'blocked')
-                    ${langCondition}${sourceCondition}${dateCondition}
-                    AND NOT EXISTS (
-                        SELECT 1 FROM transactions t2 
-                        WHERE t2.email = t.email 
-                        AND t2.product = t.product 
-                        AND t2.status = 'approved'
-                    )
-                    GROUP BY t.email, t.product
-                ) as unique_lost
+                SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total
+                FROM transactions t
+                WHERE t.status IN ('cancelled', 'pending_payment', 'blocked', 'refused', 'rejected', 'waiting_payment')
+                ${langCondition}${sourceCondition}${dateCondition}
             `, langParams),
             // Upsell revenue (for average upsell ticket)
             pool.query(`SELECT COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total FROM transactions WHERE status = 'approved' AND (product ILIKE '%Message Vault%' OR product ILIKE '%Vault%' OR product ILIKE '%360%' OR product ILIKE '%Tracker%' OR product ILIKE '%Instant%' OR product ILIKE '%Recuperación%' OR product ILIKE '%Visión%' OR product ILIKE '%VIP%') ${langCondition}${sourceCondition}${dateCondition}`, langParams),
