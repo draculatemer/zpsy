@@ -53,11 +53,45 @@
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
     <script src="js/facebook-capi.js"></script>
+    <script src="js/ab-testing.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Default product value (can be overridden by A/B testing)
+        window.productValue = 47;
+        window.checkoutCode = 'PBM476086';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize A/B Testing and apply config
+            if (typeof ABTesting !== 'undefined') {
+                await ABTesting.init('ingles-afiliados');
+                
+                // Apply A/B config to CTA page (updates prices, headlines, etc.)
+                ABTesting.applyConfig('cta');
+                
+                // Update productValue if A/B test changed it
+                const abPrice = ABTesting.getPrice();
+                if (abPrice) {
+                    window.productValue = abPrice;
+                    
+                    // Also update savings text
+                    const originalPrice = ABTesting.getOriginalPrice() || 197;
+                    const savings = originalPrice - abPrice;
+                    const savingsEl = document.querySelector('.price-savings, [data-ab-savings]');
+                    if (savingsEl) {
+                        savingsEl.textContent = `You save $${savings} today!`;
+                    }
+                }
+                
+                // Update checkout code if A/B test provides one
+                const abCheckoutCode = ABTesting.getCheckoutCode();
+                if (abCheckoutCode) {
+                    window.checkoutCode = abCheckoutCode;
+                }
+            }
+            
+            // Initialize Facebook CAPI with current product value
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('CTA Page');
-                FacebookCAPI.trackViewContent('CTA Page', 'Funnel - Final Step', 47);
+                FacebookCAPI.trackViewContent('CTA Page', 'Funnel - Final Step', window.productValue);
             }
         });
     </script>
@@ -1905,10 +1939,10 @@
 
         <!-- Pricing -->
         <div class="pricing-section" id="pricing">
-            <div class="discount-badge">76% OFF - LIMITED TIME</div>
-            <div class="price-original">$197</div>
-            <div class="price-current">$47</div>
-            <div class="price-savings">You save $150 today!</div>
+            <div class="discount-badge" data-ab-discount>76% OFF - LIMITED TIME</div>
+            <div class="price-original" data-ab-original-price>$197</div>
+            <div class="price-current" data-ab-price>$47</div>
+            <div class="price-savings" data-ab-savings>You save $150 today!</div>
             <div class="price-info">One-time payment • Instant access • 30-day guarantee</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Unlock full access to ZapSpy.ai">
                 <span class="cta-button-icon">🔓</span> Unlock Full Access Now
@@ -2345,15 +2379,19 @@
         
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
+            // Get current product value (may be modified by A/B testing)
+            const currentValue = window.productValue || 47;
+            const currentCheckoutCode = window.checkoutCode || 'KFS429964';
+            
             // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackInitiateCheckout(47.00, 'ZapSpy.ai VIP Access');
+                FacebookCAPI.trackInitiateCheckout(currentValue, 'ZapSpy.ai VIP Access');
             } else if (typeof fbq !== 'undefined') {
                 // Fallback to browser only
                 fbq('track', 'InitiateCheckout', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
-                    value: 47.00
+                    value: currentValue
                 });
             }
             
@@ -2362,7 +2400,7 @@
                 ZapSpyTracking.trackStandardEvent('AddToCart', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
-                    value: 47.00
+                    value: currentValue
                 });
             }
             
@@ -2371,9 +2409,14 @@
                 FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
             }
             
+            // Track A/B test conversion if active
+            if (typeof ABTesting !== 'undefined' && ABTesting.hasActiveTest()) {
+                ABTesting.trackConversion('checkout_click', currentValue);
+            }
+            
             // Build checkout URL with user data
             // Use original UTMs from Meta Ads (for Utmify) + custom zs_* params (for internal tracking)
-            let checkoutUrl = 'https://pay.monetizze.com.br/KFS429964';
+            let checkoutUrl = 'https://pay.monetizze.com.br/' + currentCheckoutCode;
             
             // Get preserved UTMs from Meta Ads (if they exist)
             const utm_source = localStorage.getItem('utm_source') || 'zapspy';

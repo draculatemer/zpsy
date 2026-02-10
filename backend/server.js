@@ -451,12 +451,13 @@ app.get('/api/ab/variant', async (req, res) => {
         const { funnel, visitor_id } = req.query;
         
         if (!funnel || !visitor_id) {
-            return res.json({ variant: null, test_id: null });
+            return res.json({ variant: null, test_id: null, config: null });
         }
         
         // Check if visitor already has a variant assigned
         const existing = await pool.query(`
-            SELECT atv.variant, atv.test_id, at.variant_a_param, at.variant_b_param
+            SELECT atv.variant, atv.test_id, at.variant_a_param, at.variant_b_param,
+                   at.test_type, at.config_a, at.config_b
             FROM ab_test_visitors atv
             JOIN ab_tests at ON at.id = atv.test_id
             WHERE atv.visitor_id = $1 AND at.funnel = $2 AND at.status = 'running'
@@ -466,23 +467,27 @@ app.get('/api/ab/variant', async (req, res) => {
         if (existing.rows.length > 0) {
             const row = existing.rows[0];
             const param = row.variant === 'A' ? row.variant_a_param : row.variant_b_param;
+            const config = row.variant === 'A' ? row.config_a : row.config_b;
             return res.json({ 
                 variant: row.variant, 
                 test_id: row.test_id,
-                param: param
+                param: param,
+                test_type: row.test_type,
+                config: config || {}
             });
         }
         
         // Get active test for this funnel
         const test = await pool.query(`
-            SELECT id, traffic_split, variant_a_param, variant_b_param
+            SELECT id, traffic_split, variant_a_param, variant_b_param,
+                   test_type, config_a, config_b
             FROM ab_tests 
             WHERE funnel = $1 AND status = 'running'
             LIMIT 1
         `, [funnel]);
         
         if (test.rows.length === 0) {
-            return res.json({ variant: null, test_id: null });
+            return res.json({ variant: null, test_id: null, config: null });
         }
         
         const activeTest = test.rows[0];
@@ -491,6 +496,7 @@ app.get('/api/ab/variant', async (req, res) => {
         const random = Math.random() * 100;
         const variant = random < activeTest.traffic_split ? 'A' : 'B';
         const param = variant === 'A' ? activeTest.variant_a_param : activeTest.variant_b_param;
+        const config = variant === 'A' ? activeTest.config_a : activeTest.config_b;
         
         // Save assignment
         await pool.query(`
@@ -502,7 +508,9 @@ app.get('/api/ab/variant', async (req, res) => {
         res.json({ 
             variant, 
             test_id: activeTest.id,
-            param: param
+            param: param,
+            test_type: activeTest.test_type,
+            config: config || {}
         });
         
     } catch (error) {
@@ -672,7 +680,10 @@ app.post('/api/admin/ab-tests', authenticateToken, async (req, res) => {
             variant_a_param,
             variant_b_name, 
             variant_b_param,
-            traffic_split 
+            traffic_split,
+            test_type,
+            config_a,
+            config_b
         } = req.body;
         
         if (!name || !funnel) {
@@ -684,20 +695,24 @@ app.post('/api/admin/ab-tests', authenticateToken, async (req, res) => {
                 name, description, funnel, 
                 variant_a_name, variant_a_param,
                 variant_b_name, variant_b_param,
-                traffic_split, status, created_by
+                traffic_split, status, created_by,
+                test_type, config_a, config_b
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft', $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft', $9, $10, $11, $12)
             RETURNING *
         `, [
             name, 
             description || '', 
             funnel,
-            variant_a_name || 'Control (sem VSL)',
+            variant_a_name || 'Controle',
             variant_a_param || 'control',
-            variant_b_name || 'Test (com VSL)',
+            variant_b_name || 'Teste',
             variant_b_param || 'test',
             traffic_split || 50,
-            req.user.id
+            req.user.id,
+            test_type || 'vsl',
+            JSON.stringify(config_a || {}),
+            JSON.stringify(config_b || {})
         ]);
         
         res.json(result.rows[0]);
@@ -719,7 +734,10 @@ app.put('/api/admin/ab-tests/:id', authenticateToken, async (req, res) => {
             variant_a_param,
             variant_b_name, 
             variant_b_param,
-            traffic_split 
+            traffic_split,
+            test_type,
+            config_a,
+            config_b
         } = req.body;
         
         const result = await pool.query(`
@@ -730,10 +748,25 @@ app.put('/api/admin/ab-tests/:id', authenticateToken, async (req, res) => {
                 variant_a_param = COALESCE($4, variant_a_param),
                 variant_b_name = COALESCE($5, variant_b_name),
                 variant_b_param = COALESCE($6, variant_b_param),
-                traffic_split = COALESCE($7, traffic_split)
-            WHERE id = $8
+                traffic_split = COALESCE($7, traffic_split),
+                test_type = COALESCE($8, test_type),
+                config_a = COALESCE($9, config_a),
+                config_b = COALESCE($10, config_b)
+            WHERE id = $11
             RETURNING *
-        `, [name, description, variant_a_name, variant_a_param, variant_b_name, variant_b_param, traffic_split, id]);
+        `, [
+            name, 
+            description, 
+            variant_a_name, 
+            variant_a_param, 
+            variant_b_name, 
+            variant_b_param, 
+            traffic_split,
+            test_type,
+            config_a ? JSON.stringify(config_a) : null,
+            config_b ? JSON.stringify(config_b) : null,
+            id
+        ]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Test not found' });
@@ -7161,6 +7194,22 @@ async function initDatabase() {
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_ab_tests_funnel ON ab_tests(funnel);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_ab_tests_status ON ab_tests(status);`);
+        
+        // Add new columns for A/B test types and configs (if not exist)
+        await pool.query(`
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='test_type') THEN
+                    ALTER TABLE ab_tests ADD COLUMN test_type VARCHAR(20) DEFAULT 'vsl';
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='config_a') THEN
+                    ALTER TABLE ab_tests ADD COLUMN config_a JSONB DEFAULT '{}';
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='config_b') THEN
+                    ALTER TABLE ab_tests ADD COLUMN config_b JSONB DEFAULT '{}';
+                END IF;
+            END $$;
+        `);
         
         // Create A/B test visitors table
         await pool.query(`

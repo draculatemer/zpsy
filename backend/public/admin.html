@@ -1903,9 +1903,9 @@
                     </div>
                 </div>
                 
-                <!-- A/B Test Modal - Clean & Simple -->
+                <!-- A/B Test Modal - Complete System -->
                 <div id="abTestModal" class="modal" style="display: none;">
-                    <div class="modal-content" style="max-width: 480px; border-radius: 16px; overflow: hidden; background: #1a1a1a;">
+                    <div class="modal-content" style="max-width: 560px; border-radius: 16px; overflow: hidden; background: #1a1a1a;">
                         <!-- Header -->
                         <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1915,71 +1915,231 @@
                         </div>
                         
                         <!-- Body -->
-                        <div style="padding: 24px;">
+                        <div style="padding: 24px; max-height: 70vh; overflow-y: auto;">
                             <form id="abTestForm">
                                 <input type="hidden" id="abTestId">
+                                <input type="hidden" id="abTestVariantAParam" value="control">
+                                <input type="hidden" id="abTestVariantBParam" value="test">
                                 
-                                <!-- Nome do Teste -->
-                                <div style="margin-bottom: 20px;">
-                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Nome do Teste *</label>
-                                    <input type="text" id="abTestName" placeholder="Ex: Teste VSL Homepage" required 
-                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                <!-- Row 1: Nome e Funil -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                    <div>
+                                        <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">NOME DO TESTE</label>
+                                        <input type="text" id="abTestName" placeholder="Ex: Teste Preço $29 vs $47" required 
+                                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">FUNIL</label>
+                                        <select id="abTestFunnel" required 
+                                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px; cursor: pointer;">
+                                            <option value="">Selecione...</option>
+                                            <option value="ingles">Inglês</option>
+                                            <option value="ingles-afiliados">Inglês (Afiliados)</option>
+                                            <option value="espanhol">Espanhol</option>
+                                            <option value="espanhol-afiliados">Espanhol (Afiliados)</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 
                                 <!-- Descrição -->
-                                <div style="margin-bottom: 20px;">
-                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Descrição</label>
-                                    <input type="text" id="abTestDescription" placeholder="Descrição opcional do teste" 
-                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                <div style="margin-bottom: 24px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">DESCRIÇÃO (opcional)</label>
+                                    <input type="text" id="abTestDescription" placeholder="Breve descrição do objetivo do teste" 
+                                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
                                 </div>
                                 
-                                <!-- Funil -->
-                                <div style="margin-bottom: 20px;">
-                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #ccc;">Funil *</label>
-                                    <select id="abTestFunnel" required 
-                                        style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px; cursor: pointer;">
-                                        <option value="">Selecione...</option>
-                                        <option value="ingles">Inglês</option>
-                                        <option value="ingles-afiliados">Inglês (Afiliados)</option>
-                                        <option value="espanhol">Espanhol</option>
-                                        <option value="espanhol-afiliados">Espanhol (Afiliados)</option>
-                                    </select>
+                                <!-- Tipo de Teste -->
+                                <div style="margin-bottom: 24px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 12px; color: #888;">TIPO DE TESTE</label>
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('vsl')">
+                                            <input type="radio" name="testType" value="vsl" checked style="display: none;">
+                                            <span style="font-size: 24px; margin-bottom: 6px;">🎬</span>
+                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">VSL</span>
+                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Com/Sem vídeo</span>
+                                        </label>
+                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('price')">
+                                            <input type="radio" name="testType" value="price" style="display: none;">
+                                            <span style="font-size: 24px; margin-bottom: 6px;">💰</span>
+                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Preço</span>
+                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Valores diferentes</span>
+                                        </label>
+                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('headline')">
+                                            <input type="radio" name="testType" value="headline" style="display: none;">
+                                            <span style="font-size: 24px; margin-bottom: 6px;">📝</span>
+                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Headline</span>
+                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Textos diferentes</span>
+                                        </label>
+                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('page')">
+                                            <input type="radio" name="testType" value="page" style="display: none;">
+                                            <span style="font-size: 24px; margin-bottom: 6px;">📄</span>
+                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Página</span>
+                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">URLs diferentes</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 
-                                <!-- Variantes lado a lado -->
-                                <div style="margin-bottom: 20px;">
-                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #ccc;">Variantes</label>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                        <div>
-                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                                <span style="background: #3b82f6; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
-                                                <span style="font-size: 13px; color: #3b82f6; font-weight: 500;">Controle</span>
+                                <!-- Configuração Dinâmica por Tipo -->
+                                <div id="testTypeConfig" style="margin-bottom: 24px;">
+                                    <!-- VSL Config (default) -->
+                                    <div id="configVsl" class="config-section">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
+                                                </div>
+                                                <div style="background: #0d0d0d; padding: 12px; border-radius: 8px; text-align: center;">
+                                                    <span style="font-size: 20px;">🚫</span>
+                                                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #ccc;">Sem VSL</p>
+                                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #666;">Pula direto para o CTA</p>
+                                                </div>
+                                                <input type="hidden" id="configVslA" value='{"show_vsl":false}'>
                                             </div>
-                                            <input type="text" id="abTestVariantAName" value="Sem VSL" 
-                                                style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.1); color: #fff; font-size: 13px;">
-                                            <input type="hidden" id="abTestVariantAParam" value="control">
-                                        </div>
-                                        <div>
-                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                                <span style="background: #10b981; color: #fff; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
-                                                <span style="font-size: 13px; color: #10b981; font-weight: 500;">Teste</span>
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
+                                                </div>
+                                                <div style="background: #0d0d0d; padding: 12px; border-radius: 8px; text-align: center;">
+                                                    <span style="font-size: 20px;">🎬</span>
+                                                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #ccc;">Com VSL</p>
+                                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #666;">Mostra vídeo de vendas</p>
+                                                </div>
+                                                <input type="hidden" id="configVslB" value='{"show_vsl":true}'>
                                             </div>
-                                            <input type="text" id="abTestVariantBName" value="Com VSL" 
-                                                style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #fff; font-size: 13px;">
-                                            <input type="hidden" id="abTestVariantBParam" value="test">
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Price Config -->
+                                    <div id="configPrice" class="config-section" style="display: none;">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço</label>
+                                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                                        <span style="color: #666;">$</span>
+                                                        <input type="number" id="priceA" value="47" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 16px; font-weight: 600;">
+                                                    </div>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço Original (riscado)</label>
+                                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                                        <span style="color: #666;">$</span>
+                                                        <input type="number" id="priceOriginalA" value="197" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Código Monetizze</label>
+                                                    <input type="text" id="checkoutCodeA" value="KKM446018" placeholder="Ex: KKM446018" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                                </div>
+                                            </div>
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço</label>
+                                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                                        <span style="color: #666;">$</span>
+                                                        <input type="number" id="priceB" value="29" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 16px; font-weight: 600;">
+                                                    </div>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço Original (riscado)</label>
+                                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                                        <span style="color: #666;">$</span>
+                                                        <input type="number" id="priceOriginalB" value="97" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Código Monetizze</label>
+                                                    <input type="text" id="checkoutCodeB" value="" placeholder="Ex: XXX123456" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p style="margin: 12px 0 0 0; font-size: 11px; color: #666; text-align: center;">💡 Crie produtos diferentes na Monetizze com preços diferentes e use os códigos aqui</p>
+                                    </div>
+                                    
+                                    <!-- Headline Config -->
+                                    <div id="configHeadline" class="config-section" style="display: none;">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Título Principal</label>
+                                                    <textarea id="headlineA" rows="2" placeholder="Headline A..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px; resize: none;"></textarea>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Subtítulo (opcional)</label>
+                                                    <input type="text" id="subheadlineA" placeholder="Subtítulo A..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px;">
+                                                </div>
+                                            </div>
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
+                                                </div>
+                                                <div style="margin-bottom: 10px;">
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Título Principal</label>
+                                                    <textarea id="headlineB" rows="2" placeholder="Headline B..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px; resize: none;"></textarea>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Subtítulo (opcional)</label>
+                                                    <input type="text" id="subheadlineB" placeholder="Subtítulo B..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Page Config -->
+                                    <div id="configPage" class="config-section" style="display: none;">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Página A</span>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL da Página</label>
+                                                    <input type="text" id="pageUrlA" placeholder="/ingles/phone.html" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                                </div>
+                                            </div>
+                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
+                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Página B</span>
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL da Página</label>
+                                                    <input type="text" id="pageUrlB" placeholder="/ingles-v2/phone.html" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p style="margin: 12px 0 0 0; font-size: 11px; color: #666; text-align: center;">💡 Para testar páginas diferentes, você pode duplicar a pasta do funil e fazer alterações na cópia</p>
                                     </div>
                                 </div>
                                 
                                 <!-- Divisão de Tráfego -->
-                                <div style="margin-bottom: 8px;">
-                                    <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #ccc;">Divisão do Tráfego: <span id="trafficSplitLabel" style="color: #25D366;">50% / 50%</span></label>
+                                <div style="padding: 16px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <label style="font-size: 12px; font-weight: 500; color: #888;">DIVISÃO DE TRÁFEGO</label>
+                                        <span id="trafficSplitLabel" style="font-size: 14px; font-weight: 600; color: #25D366;">50% / 50%</span>
+                                    </div>
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="font-size: 12px; color: #3b82f6; font-weight: 600;" id="splitA">50%</span>
+                                        <span style="font-size: 13px; color: #3b82f6; font-weight: 600; min-width: 36px;" id="splitA">50%</span>
                                         <input type="range" id="abTestTrafficSplit" min="10" max="90" value="50" 
-                                            oninput="document.getElementById('splitA').textContent = this.value + '%'; document.getElementById('splitB').textContent = (100 - this.value) + '%'; document.getElementById('trafficSplitLabel').textContent = this.value + '% / ' + (100 - this.value) + '%';"
-                                            style="flex: 1; height: 6px; border-radius: 3px; cursor: pointer; accent-color: #25D366;">
-                                        <span style="font-size: 12px; color: #10b981; font-weight: 600;" id="splitB">50%</span>
+                                            oninput="updateTrafficSplit(this.value)"
+                                            style="flex: 1; height: 8px; border-radius: 4px; cursor: pointer; accent-color: #25D366;">
+                                        <span style="font-size: 13px; color: #10b981; font-weight: 600; min-width: 36px; text-align: right;" id="splitB">50%</span>
                                     </div>
                                 </div>
                             </form>
@@ -7251,7 +7411,15 @@ Obrigado pela compreensão.`
                 'completed': { bg: '#3b82f6', text: 'Concluído' }
             };
             
+            const testTypeLabels = {
+                'vsl': { icon: '🎬', text: 'VSL' },
+                'price': { icon: '💰', text: 'Preço' },
+                'headline': { icon: '📝', text: 'Headline' },
+                'page': { icon: '📄', text: 'Página' }
+            };
+            
             const status = statusColors[test.status] || statusColors.draft;
+            const testType = testTypeLabels[test.test_type] || testTypeLabels.vsl;
             
             const visitorsA = parseInt(test.visitors_a) || 0;
             const visitorsB = parseInt(test.visitors_b) || 0;
@@ -7272,6 +7440,17 @@ Obrigado pela compreensão.`
             const bWinning = parseFloat(convRateB) > parseFloat(convRateA);
             const totalVisitors = visitorsA + visitorsB;
             
+            // Get config summary
+            let configSummaryA = test.variant_a_name || 'Controle';
+            let configSummaryB = test.variant_b_name || 'Teste';
+            
+            if (test.config_a && test.test_type === 'price') {
+                configSummaryA = `$${test.config_a.price || 47}`;
+            }
+            if (test.config_b && test.test_type === 'price') {
+                configSummaryB = `$${test.config_b.price || 29}`;
+            }
+            
             return `
                 <div class="ab-test-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; ${test.status === 'running' ? 'border-left: 4px solid #10b981;' : ''}">
                     <!-- Header -->
@@ -7280,12 +7459,14 @@ Obrigado pela compreensão.`
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                                 <h3 style="margin: 0; font-size: 18px;">${test.name}</h3>
                                 <span style="background: ${status.bg}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${status.text}</span>
+                                <span style="background: rgba(255,255,255,0.1); color: #ccc; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">${testType.icon} ${testType.text}</span>
                                 ${test.winner ? `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">🏆 Vencedor: ${test.winner}</span>` : ''}
                             </div>
                             <p style="margin: 0; color: var(--text-muted); font-size: 13px;">
                                 Funil: <strong>${test.funnel}</strong> • 
                                 Tráfego: ${test.traffic_split}% / ${100 - test.traffic_split}% •
-                                Total: ${totalVisitors.toLocaleString()} visitantes
+                                Total: ${totalVisitors.toLocaleString()} visitantes •
+                                <span style="color: #3b82f6;">A: ${configSummaryA}</span> vs <span style="color: #10b981;">B: ${configSummaryB}</span>
                             </p>
                         </div>
                         <div style="display: flex; gap: 8px;">
@@ -7377,18 +7558,157 @@ Obrigado pela compreensão.`
             `;
         }
         
+        // Current selected test type
+        let currentTestType = 'vsl';
+        
+        function selectTestType(type) {
+            currentTestType = type;
+            
+            // Update radio buttons
+            document.querySelectorAll('input[name="testType"]').forEach(radio => {
+                radio.checked = radio.value === type;
+            });
+            
+            // Update visual selection
+            document.querySelectorAll('.test-type-option').forEach(option => {
+                const radio = option.querySelector('input[type="radio"]');
+                if (radio.value === type) {
+                    option.style.borderColor = '#25D366';
+                    option.style.background = 'rgba(37, 211, 102, 0.1)';
+                } else {
+                    option.style.borderColor = '#333';
+                    option.style.background = '#0d0d0d';
+                }
+            });
+            
+            // Show/hide config sections
+            document.querySelectorAll('.config-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            const configMap = {
+                'vsl': 'configVsl',
+                'price': 'configPrice',
+                'headline': 'configHeadline',
+                'page': 'configPage'
+            };
+            
+            const configSection = document.getElementById(configMap[type]);
+            if (configSection) {
+                configSection.style.display = 'block';
+            }
+        }
+        
+        function updateTrafficSplit(value) {
+            document.getElementById('splitA').textContent = value + '%';
+            document.getElementById('splitB').textContent = (100 - value) + '%';
+            document.getElementById('trafficSplitLabel').textContent = value + '% / ' + (100 - value) + '%';
+        }
+        
+        function getConfigFromType(variant) {
+            switch (currentTestType) {
+                case 'vsl':
+                    return variant === 'A' 
+                        ? { show_vsl: false } 
+                        : { show_vsl: true };
+                        
+                case 'price':
+                    const priceEl = document.getElementById('price' + variant);
+                    const priceOrigEl = document.getElementById('priceOriginal' + variant);
+                    const checkoutEl = document.getElementById('checkoutCode' + variant);
+                    return {
+                        price: parseFloat(priceEl?.value || 47),
+                        original_price: parseFloat(priceOrigEl?.value || 197),
+                        checkout_code: checkoutEl?.value || ''
+                    };
+                    
+                case 'headline':
+                    const headlineEl = document.getElementById('headline' + variant);
+                    const subheadlineEl = document.getElementById('subheadline' + variant);
+                    return {
+                        headline: headlineEl?.value || '',
+                        subheadline: subheadlineEl?.value || ''
+                    };
+                    
+                case 'page':
+                    const pageUrlEl = document.getElementById('pageUrl' + variant);
+                    return {
+                        redirect_url: pageUrlEl?.value || ''
+                    };
+                    
+                default:
+                    return {};
+            }
+        }
+        
+        function setConfigToForm(configA, configB, testType) {
+            currentTestType = testType || 'vsl';
+            selectTestType(currentTestType);
+            
+            if (!configA && !configB) return;
+            
+            switch (currentTestType) {
+                case 'price':
+                    if (configA) {
+                        document.getElementById('priceA').value = configA.price || 47;
+                        document.getElementById('priceOriginalA').value = configA.original_price || 197;
+                        document.getElementById('checkoutCodeA').value = configA.checkout_code || '';
+                    }
+                    if (configB) {
+                        document.getElementById('priceB').value = configB.price || 29;
+                        document.getElementById('priceOriginalB').value = configB.original_price || 97;
+                        document.getElementById('checkoutCodeB').value = configB.checkout_code || '';
+                    }
+                    break;
+                    
+                case 'headline':
+                    if (configA) {
+                        document.getElementById('headlineA').value = configA.headline || '';
+                        document.getElementById('subheadlineA').value = configA.subheadline || '';
+                    }
+                    if (configB) {
+                        document.getElementById('headlineB').value = configB.headline || '';
+                        document.getElementById('subheadlineB').value = configB.subheadline || '';
+                    }
+                    break;
+                    
+                case 'page':
+                    if (configA) {
+                        document.getElementById('pageUrlA').value = configA.redirect_url || '';
+                    }
+                    if (configB) {
+                        document.getElementById('pageUrlB').value = configB.redirect_url || '';
+                    }
+                    break;
+            }
+        }
+        
+        function getVariantNameFromType() {
+            switch (currentTestType) {
+                case 'vsl':
+                    return { a: 'Sem VSL', b: 'Com VSL' };
+                case 'price':
+                    const priceA = document.getElementById('priceA')?.value || '47';
+                    const priceB = document.getElementById('priceB')?.value || '29';
+                    return { a: `Preço $${priceA}`, b: `Preço $${priceB}` };
+                case 'headline':
+                    return { a: 'Headline A', b: 'Headline B' };
+                case 'page':
+                    return { a: 'Página A', b: 'Página B' };
+                default:
+                    return { a: 'Controle', b: 'Teste' };
+            }
+        }
+        
         function showCreateABTestModal() {
             document.getElementById('abTestModalTitle').textContent = 'Novo Teste A/B';
             document.getElementById('abTestId').value = '';
             document.getElementById('abTestForm').reset();
-            document.getElementById('abTestVariantAName').value = 'Sem VSL';
             document.getElementById('abTestVariantAParam').value = 'control';
-            document.getElementById('abTestVariantBName').value = 'Com VSL';
             document.getElementById('abTestVariantBParam').value = 'test';
             document.getElementById('abTestTrafficSplit').value = 50;
-            document.getElementById('splitA').textContent = '50%';
-            document.getElementById('splitB').textContent = '50%';
-            document.getElementById('trafficSplitLabel').textContent = '50% / 50%';
+            updateTrafficSplit(50);
+            selectTestType('vsl');
             document.getElementById('abTestModal').style.display = 'flex';
         }
         
@@ -7401,14 +7721,14 @@ Obrigado pela compreensão.`
             document.getElementById('abTestName').value = test.name;
             document.getElementById('abTestDescription').value = test.description || '';
             document.getElementById('abTestFunnel').value = test.funnel;
-            document.getElementById('abTestVariantAName').value = test.variant_a_name || 'Controle';
             document.getElementById('abTestVariantAParam').value = test.variant_a_param || 'control';
-            document.getElementById('abTestVariantBName').value = test.variant_b_name || 'Teste';
             document.getElementById('abTestVariantBParam').value = test.variant_b_param || 'test';
             document.getElementById('abTestTrafficSplit').value = test.traffic_split;
-            document.getElementById('splitA').textContent = test.traffic_split + '%';
-            document.getElementById('splitB').textContent = (100 - test.traffic_split) + '%';
-            document.getElementById('trafficSplitLabel').textContent = `${test.traffic_split}% / ${100 - test.traffic_split}%`;
+            updateTrafficSplit(test.traffic_split);
+            
+            // Set test type and config
+            setConfigToForm(test.config_a, test.config_b, test.test_type);
+            
             document.getElementById('abTestModal').style.display = 'flex';
         }
         
@@ -7418,15 +7738,20 @@ Obrigado pela compreensão.`
         
         async function saveABTest() {
             const id = document.getElementById('abTestId').value;
+            const variantNames = getVariantNameFromType();
+            
             const data = {
                 name: document.getElementById('abTestName').value,
                 description: document.getElementById('abTestDescription').value,
                 funnel: document.getElementById('abTestFunnel').value,
-                variant_a_name: document.getElementById('abTestVariantAName').value,
+                variant_a_name: variantNames.a,
                 variant_a_param: document.getElementById('abTestVariantAParam').value,
-                variant_b_name: document.getElementById('abTestVariantBName').value,
+                variant_b_name: variantNames.b,
                 variant_b_param: document.getElementById('abTestVariantBParam').value,
-                traffic_split: parseInt(document.getElementById('abTestTrafficSplit').value)
+                traffic_split: parseInt(document.getElementById('abTestTrafficSplit').value),
+                test_type: currentTestType,
+                config_a: getConfigFromType('A'),
+                config_b: getConfigFromType('B')
             };
             
             if (!data.name || !data.funnel) {

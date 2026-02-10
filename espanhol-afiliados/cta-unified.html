@@ -52,11 +52,45 @@
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
     <script src="js/facebook-capi.js"></script>
+    <script src="js/ab-testing.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Valor del producto por defecto (puede ser modificado por A/B testing)
+        window.productValue = 37;
+        window.checkoutCode = 'DZC357746';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Inicializar A/B Testing y aplicar config
+            if (typeof ABTesting !== 'undefined') {
+                await ABTesting.init('espanhol-afiliados');
+                
+                // Aplicar config A/B a la página CTA (actualiza precios, headlines, etc.)
+                ABTesting.applyConfig('cta');
+                
+                // Actualizar productValue si el test A/B lo cambió
+                const abPrice = ABTesting.getPrice();
+                if (abPrice) {
+                    window.productValue = abPrice;
+                    
+                    // También actualizar texto de ahorro
+                    const originalPrice = ABTesting.getOriginalPrice() || 197;
+                    const savings = originalPrice - abPrice;
+                    const savingsEl = document.querySelector('.price-savings, [data-ab-savings]');
+                    if (savingsEl) {
+                        savingsEl.textContent = `¡Ahorras $${savings} hoy!`;
+                    }
+                }
+                
+                // Actualizar checkout code si el test A/B lo provee
+                const abCheckoutCode = ABTesting.getCheckoutCode();
+                if (abCheckoutCode) {
+                    window.checkoutCode = abCheckoutCode;
+                }
+            }
+            
+            // Inicializar Facebook CAPI con el valor actual del producto
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('CTA Page');
-                FacebookCAPI.trackViewContent('CTA Page', 'Funnel - Final Step', 47);
+                FacebookCAPI.trackViewContent('CTA Page', 'Funnel - Final Step', window.productValue);
             }
         });
     </script>
@@ -1905,9 +1939,9 @@
         <!-- Pricing -->
         <div class="pricing-section" id="pricing">
             <div class="discount-badge">81% DESCUENTO - TIEMPO LIMITADO</div>
-            <div class="price-original">$197</div>
-            <div class="price-current">$37</div>
-            <div class="price-savings">¡Ahorras $160 hoy!</div>
+            <div class="price-original" data-ab-original-price>$197</div>
+            <div class="price-current" data-ab-price>$37</div>
+            <div class="price-savings" data-ab-savings>¡Ahorras $160 hoy!</div>
             <div class="price-info">Pago único • Acceso instantáneo • Garantía de 30 días</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Desbloquear acceso completo a ZapSpy.ai">
                 <span class="cta-button-icon">🔓</span> Desbloquear Acceso Ahora
@@ -2352,15 +2386,19 @@
         
         // Proceed to checkout with all tracking
         function proceedToCheckout() {
+            // Obtener valor actual del producto (puede ser modificado por A/B testing)
+            const currentValue = window.productValue || 37;
+            const currentCheckoutCode = window.checkoutCode || 'DZC357746';
+            
             // Track InitiateCheckout via unified system (Browser + CAPI with same event ID)
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackInitiateCheckout(37.00, 'ZapSpy.ai VIP Access');
+                FacebookCAPI.trackInitiateCheckout(currentValue, 'ZapSpy.ai VIP Access');
             } else if (typeof fbq !== 'undefined') {
                 // Fallback to browser only
                 fbq('track', 'InitiateCheckout', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
-                    value: 37.00
+                    value: currentValue
                 });
             }
             
@@ -2369,7 +2407,7 @@
                 ZapSpyTracking.trackStandardEvent('AddToCart', {
                     content_name: 'ZapSpy.ai VIP Access',
                     currency: 'USD',
-                    value: 27.00
+                    value: currentValue
                 });
             }
             
@@ -2378,10 +2416,15 @@
                 FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
             }
             
+            // Track A/B test conversion if active
+            if (typeof ABTesting !== 'undefined' && ABTesting.hasActiveTest()) {
+                ABTesting.trackConversion('checkout_click', currentValue);
+            }
+            
             // Build checkout URL with user data
             // X Ai - Detector de Infidelidad (349260) - Produto Front Espanhol
             // Use original UTMs from Meta Ads (for Utmify) + custom zs_* params (for internal tracking)
-            let checkoutUrl = 'https://pay.monetizze.com.br/DZC357746';
+            let checkoutUrl = 'https://pay.monetizze.com.br/' + currentCheckoutCode;
             
             // Get preserved UTMs from Meta Ads (if they exist)
             const utm_source = localStorage.getItem('utm_source') || 'zapspy';

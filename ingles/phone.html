@@ -2839,18 +2839,37 @@
         function startHacking() {
             showScreen('screen3');
             
-            // Check A/B test - if variant B (test) show VSL, if variant A (control) skip to hacking
-            const abVariant = localStorage.getItem('ab_variant');
+            // Check A/B test configuration
+            let showVSL = true; // Default: show VSL
             
-            if (abVariant === 'A') {
-                // Control group - skip VSL, go straight to fast hacking
-                console.log('🧪 A/B: Variant A - Skipping VSL');
+            if (typeof ABTesting !== 'undefined') {
+                const testType = ABTesting.getTestType();
+                const config = ABTesting.getConfig();
+                
+                if (testType === 'vsl' && config) {
+                    // VSL test - use show_vsl config
+                    showVSL = config.show_vsl !== false; // Default true if not specified
+                    console.log('🧪 A/B: VSL test - show_vsl:', showVSL);
+                } else if (testType === 'page' && config && config.redirect_url) {
+                    // Page test - redirect to different page
+                    console.log('🧪 A/B: Page test - redirecting to:', config.redirect_url);
+                    window.location.href = config.redirect_url;
+                    return;
+                } else {
+                    // Other test types or no config - show VSL by default
+                    console.log('🧪 A/B: Test type:', testType, '- showing VSL by default');
+                }
+            }
+            
+            if (!showVSL) {
+                // Skip VSL, go straight to fast hacking
+                console.log('🧪 A/B: Skipping VSL');
                 document.getElementById('vslSection').style.display = 'none';
                 document.getElementById('hackingScreen').style.display = 'block';
                 startFinalHacking();
             } else {
-                // Test group (B) or no test running - show VSL
-                console.log('🧪 A/B: Variant B or no test - Showing VSL');
+                // Show VSL
+                console.log('🧪 A/B: Showing VSL');
                 startVSLPhase();
             }
             

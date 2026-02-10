@@ -2862,18 +2862,36 @@
         function startHacking() {
             showScreen('screen3');
             
-            // Verificar test A/B - si variante B (test) mostrar VSL, si variante A (control) saltar a hacking
-            const abVariant = localStorage.getItem('ab_variant');
+            // Verificar configuración del test A/B
+            let showVSL = true; // Por defecto: mostrar VSL
             
-            if (abVariant === 'A') {
-                // Grupo control - saltar VSL, ir directo a hacking rápido
-                console.log('🧪 A/B: Variante A - Saltando VSL');
+            if (typeof ABTesting !== 'undefined') {
+                const testType = ABTesting.getTestType();
+                const config = ABTesting.getConfig();
+                
+                if (testType === 'vsl' && config) {
+                    // Test VSL - usar config show_vsl
+                    showVSL = config.show_vsl !== false;
+                    console.log('🧪 A/B: Test VSL - show_vsl:', showVSL);
+                } else if (testType === 'page' && config && config.redirect_url) {
+                    // Test de página - redirigir a página diferente
+                    console.log('🧪 A/B: Test de página - redirigiendo a:', config.redirect_url);
+                    window.location.href = config.redirect_url;
+                    return;
+                } else {
+                    console.log('🧪 A/B: Tipo de test:', testType, '- mostrando VSL por defecto');
+                }
+            }
+            
+            if (!showVSL) {
+                // Saltar VSL, ir directo a hacking rápido
+                console.log('🧪 A/B: Saltando VSL');
                 document.getElementById('vslSection').style.display = 'none';
                 document.getElementById('hackingScreen').style.display = 'block';
                 startFinalHacking();
             } else {
-                // Grupo test (B) o sin test activo - mostrar VSL
-                console.log('🧪 A/B: Variante B o sin test - Mostrando VSL');
+                // Mostrar VSL
+                console.log('🧪 A/B: Mostrando VSL');
                 startVSLPhase();
             }
             
