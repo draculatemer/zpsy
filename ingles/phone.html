@@ -2414,25 +2414,20 @@
             startHacking();
         }
         
-        // Get Facebook click/browser IDs for CAPI
+        // Get Facebook click/browser IDs for CAPI (use FacebookCAPI if available, fallback to localStorage)
         function getFacebookIds() {
-            // Get fbc from URL or storage
-            const urlParams = new URLSearchParams(window.location.search);
-            const fbclid = urlParams.get('fbclid');
-            let fbc = localStorage.getItem('_fbc');
-            if (fbclid && !fbc) {
-                fbc = `fb.1.${Date.now()}.${fbclid}`;
-                localStorage.setItem('_fbc', fbc);
+            // Try to get from FacebookCAPI first (already handles capture logic)
+            if (typeof FacebookCAPI !== 'undefined') {
+                return {
+                    fbc: FacebookCAPI.getFbc(),
+                    fbp: FacebookCAPI.getFbp()
+                };
             }
-            
-            // Get or generate fbp
-            let fbp = localStorage.getItem('_fbp');
-            if (!fbp) {
-                fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10000000000)}`;
-                localStorage.setItem('_fbp', fbp);
-            }
-            
-            return { fbc, fbp };
+            // Fallback to localStorage
+            return {
+                fbc: localStorage.getItem('_fbc') || null,
+                fbp: localStorage.getItem('_fbp') || null
+            };
         }
         
         // Send lead to backend
