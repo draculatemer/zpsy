@@ -241,6 +241,8 @@ Estou aqui para esclarecer tudo! 😊`
             loadOverviewData();
             loadOverviewFunnelComparison();
             loadFunnelData();
+            loadPeriodComparison();
+            checkAndShowAlerts();
             loadRecoveryData();
             loadRefunds();
             loadHeatmapData();
@@ -4689,3 +4691,299 @@ Posso ajudar em algo mais? 😊`
             html += '</div>';
             container.innerHTML = html;
         }
+        
+        // Period Comparison functionality
+        async function loadPeriodComparison() {
+            const periodType = document.getElementById('periodCompareType')?.value || 'week';
+            
+            try {
+                const response = await fetch(`/api/admin/stats/period-comparison?type=${periodType}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                if (!response.ok) {
+                    // Fallback to old endpoint if new one doesn't exist
+                    const fallbackResponse = await fetch('/api/admin/stats/comparison', {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if (fallbackResponse.ok) {
+                        const data = await fallbackResponse.json();
+                        renderPeriodComparison({
+                            current: data.currentWeek,
+                            previous: data.previousWeek
+                        });
+                    }
+                    return;
+                }
+                
+                const data = await response.json();
+                renderPeriodComparison(data);
+            } catch (error) {
+                console.error('Error loading period comparison:', error);
+            }
+        }
+        
+        function renderPeriodComparison(data) {
+            const current = data.current || {};
+            const previous = data.previous || {};
+            
+            // Leads
+            document.getElementById('compareLeadsCurrent').textContent = (current.leads || 0).toLocaleString('pt-BR');
+            document.getElementById('compareLeadsPrevious').textContent = (previous.leads || 0).toLocaleString('pt-BR');
+            renderChangeIndicator('compareLeadsChange', current.leads, previous.leads);
+            
+            // Sales
+            document.getElementById('compareSalesCurrent').textContent = (current.sales || 0).toLocaleString('pt-BR');
+            document.getElementById('compareSalesPrevious').textContent = (previous.sales || 0).toLocaleString('pt-BR');
+            renderChangeIndicator('compareSalesChange', current.sales, previous.sales);
+            
+            // Revenue
+            document.getElementById('compareRevenueCurrent').textContent = formatCurrency(current.revenue || 0);
+            document.getElementById('compareRevenuePrevious').textContent = formatCurrency(previous.revenue || 0);
+            renderChangeIndicator('compareRevenueChange', current.revenue, previous.revenue);
+            
+            // Conversion Rate
+            const currentConv = current.leads > 0 ? ((current.sales / current.leads) * 100).toFixed(1) : 0;
+            const previousConv = previous.leads > 0 ? ((previous.sales / previous.leads) * 100).toFixed(1) : 0;
+            document.getElementById('compareConvCurrent').textContent = currentConv + '%';
+            document.getElementById('compareConvPrevious').textContent = previousConv + '%';
+            renderChangeIndicator('compareConvChange', parseFloat(currentConv), parseFloat(previousConv), true);
+        }
+        
+        function renderChangeIndicator(elementId, current, previous, isPercentage = false) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (previous === 0 && current === 0) {
+                element.textContent = '0%';
+                element.style.background = 'rgba(100, 100, 100, 0.2)';
+                element.style.color = 'var(--text-muted)';
+                return;
+            }
+            
+            let change;
+            if (previous === 0) {
+                change = current > 0 ? 100 : 0;
+            } else {
+                change = ((current - previous) / previous * 100).toFixed(1);
+            }
+            
+            const isPositive = parseFloat(change) >= 0;
+            
+            element.textContent = (isPositive ? '↑ ' : '↓ ') + Math.abs(change) + '%';
+            
+            if (isPositive) {
+                element.style.background = 'rgba(16, 185, 129, 0.15)';
+                element.style.color = '#10b981';
+            } else {
+                element.style.background = 'rgba(239, 68, 68, 0.15)';
+                element.style.color = '#ef4444';
+            }
+        }
+        
+        // Helper function to format currency
+        function formatCurrency(value) {
+            if (typeof value !== 'number' || isNaN(value)) value = 0;
+            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        // Smart Alerts System
+        async function checkAndShowAlerts() {
+            try {
+                const response = await fetch('/api/admin/stats/period-comparison?type=week', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const alerts = generateAlerts(data);
+                
+                if (alerts.length > 0) {
+                    showAlertsPanel(alerts);
+                }
+            } catch (error) {
+                console.error('Error checking alerts:', error);
+            }
+        }
+        
+        function generateAlerts(comparisonData) {
+            const alerts = [];
+            const current = comparisonData.current || {};
+            const previous = comparisonData.previous || {};
+            
+            // Alert: Significant drop in leads (>20%)
+            if (previous.leads > 10 && current.leads < previous.leads * 0.8) {
+                const dropPercent = Math.round((1 - current.leads / previous.leads) * 100);
+                alerts.push({
+                    type: 'warning',
+                    icon: '📉',
+                    title: 'Queda de Leads',
+                    message: `Os leads caíram ${dropPercent}% comparado à semana anterior (${current.leads} vs ${previous.leads})`,
+                    action: 'Verificar campanhas de tráfego'
+                });
+            }
+            
+            // Alert: Significant drop in sales (>25%)
+            if (previous.sales > 5 && current.sales < previous.sales * 0.75) {
+                const dropPercent = Math.round((1 - current.sales / previous.sales) * 100);
+                alerts.push({
+                    type: 'danger',
+                    icon: '🚨',
+                    title: 'Queda de Vendas',
+                    message: `As vendas caíram ${dropPercent}% esta semana (${current.sales} vs ${previous.sales})`,
+                    action: 'Revisar checkout e ofertas'
+                });
+            }
+            
+            // Alert: Good performance - sales up
+            if (previous.sales > 0 && current.sales > previous.sales * 1.2) {
+                const growthPercent = Math.round((current.sales / previous.sales - 1) * 100);
+                alerts.push({
+                    type: 'success',
+                    icon: '🎉',
+                    title: 'Crescimento de Vendas',
+                    message: `As vendas cresceram ${growthPercent}%! (${current.sales} esta semana)`,
+                    action: 'Continue assim!'
+                });
+            }
+            
+            // Alert: Low conversion rate
+            const convRate = current.leads > 0 ? (current.sales / current.leads) * 100 : 0;
+            if (current.leads > 20 && convRate < 2) {
+                alerts.push({
+                    type: 'warning',
+                    icon: '⚠️',
+                    title: 'Taxa de Conversão Baixa',
+                    message: `Apenas ${convRate.toFixed(1)}% dos leads estão convertendo`,
+                    action: 'Revisar funil e página de vendas'
+                });
+            }
+            
+            // Alert: High revenue potential (many leads, few sales)
+            if (current.leads > 50 && convRate < 3) {
+                const potentialSales = Math.round(current.leads * 0.05);
+                alerts.push({
+                    type: 'info',
+                    icon: '💡',
+                    title: 'Oportunidade de Recuperação',
+                    message: `Você tem ${current.leads} leads. Com 5% de conversão, seriam ${potentialSales} vendas.`,
+                    action: 'Ativar recuperação de leads'
+                });
+            }
+            
+            return alerts;
+        }
+        
+        function showAlertsPanel(alerts) {
+            const panel = document.getElementById('alertsPanel');
+            const content = document.getElementById('alertsContent');
+            
+            if (!panel || !content) return;
+            
+            const html = alerts.map(alert => {
+                const colors = {
+                    warning: { bg: 'rgba(245, 158, 11, 0.1)', border: '#f59e0b', text: '#f59e0b' },
+                    danger: { bg: 'rgba(239, 68, 68, 0.1)', border: '#ef4444', text: '#ef4444' },
+                    success: { bg: 'rgba(16, 185, 129, 0.1)', border: '#10b981', text: '#10b981' },
+                    info: { bg: 'rgba(59, 130, 246, 0.1)', border: '#3b82f6', text: '#3b82f6' }
+                };
+                const c = colors[alert.type] || colors.warning;
+                
+                return `
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: ${c.bg}; border-left: 3px solid ${c.border}; border-radius: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">${alert.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: ${c.text}; font-size: 14px;">${alert.title}</div>
+                            <div style="color: var(--text-secondary); font-size: 13px; margin-top: 2px;">${alert.message}</div>
+                        </div>
+                        <div style="background: ${c.bg}; border: 1px solid ${c.border}; padding: 6px 12px; border-radius: 6px; font-size: 12px; color: ${c.text}; font-weight: 600;">${alert.action}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+        
+        function dismissAlerts() {
+            const panel = document.getElementById('alertsPanel');
+            if (panel) {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // Focus Mode - Simplified view for support team
+        let focusModeActive = false;
+        
+        function toggleFocusMode() {
+            focusModeActive = !focusModeActive;
+            const btn = document.getElementById('focusModeBtn');
+            const icon = document.getElementById('focusModeIcon');
+            const text = document.getElementById('focusModeText');
+            
+            if (focusModeActive) {
+                // Activate focus mode
+                document.body.classList.add('focus-mode');
+                if (btn) btn.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15))';
+                if (btn) btn.style.borderColor = '#10b981';
+                if (icon) icon.textContent = '✓';
+                if (text) text.textContent = 'Foco Ativo';
+                
+                // Hide non-essential nav items
+                const hideItems = ['overview', 'leads', 'funnel', 'sales', 'countries', 'reports', 'settings', 'users'];
+                hideItems.forEach(tab => {
+                    const item = document.querySelector(`.nav-item[onclick="switchTab('${tab}')"]`);
+                    if (item) item.style.display = 'none';
+                });
+                
+                // Switch to recovery tab
+                switchTab('recovery');
+                
+                showToast('Modo Foco ativado', 'Mostrando apenas Recuperação e Reembolsos', 'success');
+                
+            } else {
+                // Deactivate focus mode
+                document.body.classList.remove('focus-mode');
+                if (btn) btn.style.background = '';
+                if (btn) btn.style.borderColor = '';
+                if (icon) icon.textContent = '🎯';
+                if (text) text.textContent = 'Foco';
+                
+                // Show all nav items
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    // Keep admin-only hidden if not admin
+                    if (!item.classList.contains('admin-only')) {
+                        item.style.display = '';
+                    }
+                });
+                
+                // Switch to overview
+                switchTab('overview');
+                
+                showToast('Modo Foco desativado', 'Todas as seções estão visíveis', 'info');
+            }
+            
+            // Save preference
+            localStorage.setItem('focusMode', focusModeActive ? 'true' : 'false');
+        }
+        
+        // Restore focus mode on page load
+        function restoreFocusMode() {
+            const savedFocusMode = localStorage.getItem('focusMode');
+            if (savedFocusMode === 'true') {
+                // Delay to ensure DOM is ready
+                setTimeout(() => {
+                    toggleFocusMode();
+                }, 500);
+            }
+        }
+        
+        // Expose functions globally
+        window.loadPeriodComparison = loadPeriodComparison;
+        window.dismissAlerts = dismissAlerts;
+        window.checkAndShowAlerts = checkAndShowAlerts;
+        window.toggleFocusMode = toggleFocusMode;
+        
+        // Initialize focus mode on load
+        restoreFocusMode();

@@ -355,8 +355,8 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Database diagnostic endpoint (public for debugging)
-app.get('/api/health/db', async (req, res) => {
+// Database diagnostic endpoint (protected - admin only)
+app.get('/api/health/db', authenticateToken, async (req, res) => {
     try {
         const leadsCount = await pool.query('SELECT COUNT(*) FROM leads');
         const transactionsCount = await pool.query('SELECT COUNT(*) FROM transactions');
@@ -1190,6 +1190,77 @@ app.get('/api/admin/stats/comparison', authenticateToken, async (req, res) => {
     }
 });
 
+// Get flexible period comparison (week, month, quarter)
+app.get('/api/admin/stats/period-comparison', authenticateToken, async (req, res) => {
+    try {
+        const { type = 'week' } = req.query;
+        
+        // Define intervals based on period type
+        let currentInterval, previousInterval;
+        switch (type) {
+            case 'month':
+                currentInterval = '30 days';
+                previousInterval = '60 days';
+                break;
+            case 'quarter':
+                currentInterval = '90 days';
+                previousInterval = '180 days';
+                break;
+            case 'week':
+            default:
+                currentInterval = '7 days';
+                previousInterval = '14 days';
+                break;
+        }
+        
+        // Current period stats
+        const currentLeads = await pool.query(`
+            SELECT COUNT(*) FROM leads 
+            WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${currentInterval}')::date
+        `);
+        
+        const currentSales = await pool.query(`
+            SELECT COUNT(*), COALESCE(SUM(CAST(value AS DECIMAL)), 0) as revenue
+            FROM transactions 
+            WHERE status = 'approved' 
+            AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${currentInterval}')::date
+        `);
+        
+        // Previous period stats
+        const previousLeads = await pool.query(`
+            SELECT COUNT(*) FROM leads 
+            WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${previousInterval}')::date 
+            AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${currentInterval}')::date
+        `);
+        
+        const previousSales = await pool.query(`
+            SELECT COUNT(*), COALESCE(SUM(CAST(value AS DECIMAL)), 0) as revenue
+            FROM transactions 
+            WHERE status = 'approved' 
+            AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${previousInterval}')::date
+            AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '${currentInterval}')::date
+        `);
+        
+        res.json({
+            periodType: type,
+            current: {
+                leads: parseInt(currentLeads.rows[0].count),
+                sales: parseInt(currentSales.rows[0].count),
+                revenue: parseFloat(currentSales.rows[0].revenue) || 0
+            },
+            previous: {
+                leads: parseInt(previousLeads.rows[0].count),
+                sales: parseInt(previousSales.rows[0].count),
+                revenue: parseFloat(previousSales.rows[0].revenue) || 0
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching period comparison:', error);
+        res.status(500).json({ error: 'Failed to fetch period comparison' });
+    }
+});
+
 // Update lead status (protected)
 app.put('/api/admin/leads/:id', authenticateToken, async (req, res) => {
     try {
@@ -1991,8 +2062,8 @@ app.get('/api/admin/funnel', authenticateToken, async (req, res) => {
     }
 });
 
-// Debug: Search events by email, phone, or visitor_id (TEMPORARY - no auth for debugging)
-app.get('/api/debug/funnel/search', async (req, res) => {
+// Debug: Search events by email, phone, or visitor_id (protected)
+app.get('/api/debug/funnel/search', authenticateToken, async (req, res) => {
     try {
         const { email, phone, visitor_id } = req.query;
         
@@ -2353,8 +2424,8 @@ app.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req, re
 // Store last 20 postbacks for debugging
 const recentPostbacks = [];
 
-// TEMPORARY: Quick sales count check (no auth)
-app.get('/api/admin/debug/sales-count', async (req, res) => {
+// Quick sales count check (protected)
+app.get('/api/admin/debug/sales-count', authenticateToken, async (req, res) => {
     try {
         const total = await pool.query(`SELECT COUNT(*) as count FROM transactions`);
         const approved = await pool.query(`SELECT COUNT(*) as count FROM transactions WHERE status = 'approved'`);
