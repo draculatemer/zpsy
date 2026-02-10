@@ -5552,26 +5552,19 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
             WHERE event = 'checkout_clicked'${funnelLangCondition}${funnelSourceCondition}${funnelDateCondition}
         `);
         
-        // Count checkout abandonment more accurately:
-        // Visitors who clicked checkout but have NO payment attempt at all (not even rejected)
-        // People with rejected cards TRIED to pay, so they are NOT abandoned
-        const checkoutAbandonedResult = await pool.query(`
-            SELECT COUNT(DISTINCT fe.visitor_id) as count
-            FROM funnel_events fe
-            LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
-            WHERE fe.event = 'checkout_clicked'
-            ${funnelLangCondition.replace(/metadata/g, 'fe.metadata')}
-            ${funnelSourceCondition.replace(/metadata/g, 'fe.metadata')}
-            ${funnelDateCondition.replace(/created_at/g, 'fe.created_at')}
-            AND (
-                l.email IS NULL 
-                OR NOT EXISTS (
-                    SELECT 1 FROM transactions t 
-                    WHERE LOWER(t.email) = LOWER(l.email)
-                    AND t.status IN ('approved', 'cancelled', 'refused', 'rejected', 'pending_payment', 'blocked', 'waiting_payment', 'refunded', 'chargeback')
-                )
-            )
-        `);
+        // Count unique customers who attempted payment (any status)
+        // This is more reliable than trying to match visitor_id to leads to transactions
+        const paymentAttemptsResult = await pool.query(`
+            SELECT COUNT(DISTINCT LOWER(email)) as count 
+            FROM transactions 
+            WHERE 1=1 ${langCondition}${sourceCondition}${dateCondition}
+        `, langParams);
+        
+        const paymentAttempts = parseInt(paymentAttemptsResult.rows[0].count) || 0;
+        
+        // Checkout abandoned = people who clicked checkout but never attempted payment
+        // This is calculated as: checkoutClicked - paymentAttempts
+        // Note: This is an approximation since we can't directly link visitor_id to transactions
         
         // Count unique emails with approved transactions (for other metrics)
         const approvedEmailsResult = await pool.query(`
@@ -5581,7 +5574,9 @@ app.get('/api/admin/sales', authenticateToken, async (req, res) => {
         `, langParams);
         
         const checkoutClicked = parseInt(checkoutClickedResult.rows[0].count) || 0;
-        const checkoutAbandoned = parseInt(checkoutAbandonedResult.rows[0].count) || 0;
+        // Checkout abandoned = clicked checkout minus those who attempted payment
+        // If more people attempted payment than clicked checkout (direct link access), set to 0
+        const checkoutAbandoned = Math.max(0, checkoutClicked - paymentAttempts);
         const approvedEmails = parseInt(approvedEmailsResult.rows[0].count) || 0;
         
         // Calculate conversion rate (leads -> sales) - filtered by language, source AND date
