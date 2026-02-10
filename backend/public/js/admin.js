@@ -4984,6 +4984,8 @@ Posso ajudar em algo mais? 😊`
         window.dismissAlerts = dismissAlerts;
         window.checkAndShowAlerts = checkAndShowAlerts;
         window.toggleFocusMode = toggleFocusMode;
+        window.switchTab = switchTab;
+        window.showToast = showToast;
         
         // Initialize focus mode on load
         restoreFocusMode();
