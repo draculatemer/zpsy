@@ -555,6 +555,20 @@
                             </div>
                         </div>
                         
+                        <!-- Paginação: acima da tabela para ficar sempre visível -->
+                        <div id="leadsPaginationContainer" class="leads-pagination-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 20px; margin-bottom: 12px; background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.25); border-radius: var(--radius-md); color: var(--text-muted); font-size: 13px;">
+                            <span id="leadsPaginationInfo" style="font-weight: 600;">Carregando...</span>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                <select onchange="changeLeadsPerPage(this.value)" class="funnel-selector" id="leadsPerPageSelect" style="padding: 8px 36px 8px 12px; font-size: 12px;">
+                                    <option value="10">10 por página</option>
+                                    <option value="25">25 por página</option>
+                                    <option value="50">50 por página</option>
+                                    <option value="100">100 por página</option>
+                                </select>
+                                <div id="leadsPaginationButtons" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                            </div>
+                        </div>
+                        
                         <div class="table-scroll-container">
                             <table class="data-table">
                                 <thead>
@@ -577,9 +591,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <!-- Pagination container for Leads -->
-                        <div id="leadsPaginationContainer"></div>
                     </div>
                 </div>
                 
@@ -639,19 +650,8 @@
                         </button>
                     </div>
                     
-                    <!-- Filters -->
+                    <!-- Filters (idioma e período vêm dos filtros gerais do header) -->
                     <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
-                        <select class="funnel-selector" id="recoveryFilterLanguage" onchange="loadRecoverySegmentLeads()" style="min-width: 150px;">
-                            <option value="">🌍 Todos Idiomas</option>
-                            <option value="en">🇺🇸 Inglês</option>
-                            <option value="es">🇪🇸 Espanhol</option>
-                        </select>
-                        <select class="funnel-selector" id="recoveryFilterPeriod" onchange="loadRecoverySegmentLeads()" style="min-width: 160px;">
-                            <option value="">📅 Todo período</option>
-                            <option value="today">Hoje</option>
-                            <option value="week">Últimos 7 dias</option>
-                            <option value="month">Últimos 30 dias</option>
-                        </select>
                         <select class="funnel-selector" id="recoveryFilterScore" onchange="loadRecoverySegmentLeads()" style="min-width: 150px;">
                             <option value="">⭐ Todos Scores</option>
                             <option value="70">Score 70+</option>
@@ -1082,17 +1082,6 @@
                                         <option value="handling">🎯 Em Tratamento</option>
                                         <option value="convinced">🏆 Convencidos</option>
                                         <option value="refunded">💸 Reembolsados</option>
-                                    </select>
-                                    <select class="funnel-selector" id="recoveryFilterLanguage" onchange="filterRecoveryRefunds()" style="min-width: 150px;">
-                                        <option value="">🌍 Todos Idiomas</option>
-                                        <option value="en">🇺🇸 Inglês</option>
-                                        <option value="es">🇪🇸 Espanhol</option>
-                                    </select>
-                                    <select class="funnel-selector" id="recoveryFilterPeriod" onchange="filterRecoveryRefunds()" style="min-width: 160px;">
-                                        <option value="">📅 Todo período</option>
-                                        <option value="today">Hoje</option>
-                                        <option value="week">Últimos 7 dias</option>
-                                        <option value="month">Últimos 30 dias</option>
                                     </select>
                                     <input type="text" class="funnel-selector" id="recoverySearchInput" placeholder="🔍 Nome, email, protocolo..." onkeyup="filterRecoveryRefunds()" style="min-width: 220px; flex: 1;">
                                 </div>
@@ -3271,12 +3260,6 @@ Estou aqui para esclarecer tudo! 😊`
             const languageFilter = document.getElementById('languageFilter');
             if (languageFilter) languageFilter.value = globalLangFilter;
             
-            // Sync with recovery filter (but don't override if user manually selected)
-            const recoveryLangFilter = document.getElementById('recoveryFilterLanguage');
-            if (recoveryLangFilter && !recoveryLangFilter.value) {
-                // Only sync if recovery filter is empty (user hasn't selected manually)
-            }
-            
             // Only reload if not custom or if custom dates are selected
             if (globalDateFilter !== 'custom' || (dateStartInput?.value && dateEndInput?.value)) {
                 loadAllData();
@@ -3451,7 +3434,8 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('pageSubtitle').textContent = pageInfo.subtitle;
             }
             
-            if (tabName === 'funnel') loadFunnelData();
+            if (tabName === 'leads') loadLeads(currentPage || 1);
+            else if (tabName === 'funnel') loadFunnelData();
             else if (tabName === 'sales') loadSalesData();
             else if (tabName === 'recovery') initNewRecovery();
             else if (tabName === 'refunds') loadRefunds();
@@ -4136,8 +4120,15 @@ Estou aqui para esclarecer tudo! 😊`
             const start = total > 0 ? (page - 1) * perPage + 1 : 0;
             const end = Math.min(page * perPage, total);
             
-            const container = document.getElementById('leadsPaginationContainer');
-            if (!container) return;
+            const infoEl = document.getElementById('leadsPaginationInfo');
+            const buttonsEl = document.getElementById('leadsPaginationButtons');
+            const perPageSelect = document.getElementById('leadsPerPageSelect');
+            if (!infoEl || !buttonsEl) return;
+            
+            infoEl.textContent = total === 0 ? 'Nenhum lead' : `Mostrando ${start}-${end} de ${total}`;
+            if (perPageSelect) {
+                perPageSelect.value = String(perPage);
+            }
             
             const btnStyle = (active, disabled) => `
                 padding: 8px 14px; 
@@ -4153,51 +4144,26 @@ Estou aqui para esclarecer tudo! 😊`
             `;
             
             let buttonsHtml = '';
-            
             if (totalPages > 1) {
-                // Previous button
                 buttonsHtml += `<button onclick="loadLeads(${page - 1})" style="${btnStyle(false, page === 1)}" ${page === 1 ? 'disabled' : ''}>◀ Anterior</button>`;
-                
-                // Page numbers with ellipsis
                 const maxVisible = 5;
                 let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisible - 1);
                 if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
-                
                 if (startPage > 1) {
                     buttonsHtml += `<button onclick="loadLeads(1)" style="${btnStyle(false, false)}">1</button>`;
                     if (startPage > 2) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 4px;">...</span>`;
                 }
-                
                 for (let i = startPage; i <= endPage; i++) {
                     buttonsHtml += `<button onclick="loadLeads(${i})" style="${btnStyle(i === page, false)}">${i}</button>`;
                 }
-                
                 if (endPage < totalPages) {
                     if (endPage < totalPages - 1) buttonsHtml += `<span style="color: var(--text-muted); padding: 0 4px;">...</span>`;
                     buttonsHtml += `<button onclick="loadLeads(${totalPages})" style="${btnStyle(false, false)}">${totalPages}</button>`;
                 }
-                
-                // Next button
                 buttonsHtml += `<button onclick="loadLeads(${page + 1})" style="${btnStyle(false, page === totalPages)}" ${page === totalPages ? 'disabled' : ''}>Próximo ▶</button>`;
             }
-            
-            container.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); margin-top: 16px; border: 1px solid var(--border);">
-                    <div style="color: var(--text-muted); font-size: 13px; font-weight: 500;">
-                        ${total === 0 ? 'Nenhum lead' : `Mostrando ${start}-${end} de ${total}`}
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <select onchange="changeLeadsPerPage(this.value)" class="funnel-selector" style="padding: 8px 36px 8px 12px; font-size: 12px;">
-                            <option value="10" ${perPage === 10 ? 'selected' : ''}>10 por página</option>
-                            <option value="25" ${perPage === 25 ? 'selected' : ''}>25 por página</option>
-                            <option value="50" ${perPage === 50 ? 'selected' : ''}>50 por página</option>
-                            <option value="100" ${perPage === 100 ? 'selected' : ''}>100 por página</option>
-                        </select>
-                        <div style="display: flex; gap: 6px;">${buttonsHtml}</div>
-                    </div>
-                </div>
-            `;
+            buttonsEl.innerHTML = buttonsHtml;
         }
         
         // Variable to track current leads per page
@@ -4600,39 +4566,17 @@ Estou aqui para esclarecer tudo! 😊`
         let selectedRecoveryLead = null;
         let selectedTemplateId = null;
         
-        // Load recovery segments summary
+        // Load recovery segments summary (usa filtros gerais: idioma e período do header)
         async function loadRecoverySegments() {
             try {
-                // Check local filter first, then fallback to global filter
-                const localLanguage = document.getElementById('recoveryFilterLanguage')?.value || '';
-                const globalLanguage = document.getElementById('globalFunnelFilter')?.value || '';
-                const language = localLanguage || globalLanguage; // Local filter takes priority
-                
-                const period = document.getElementById('recoveryFilterPeriod')?.value || '';
+                const language = document.getElementById('globalFunnelFilter')?.value || '';
+                const dateRange = getGlobalDateRange();
                 
                 let params = [];
                 if (language) params.push(`language=${language}`);
-                
-                // Convert period to date range
-                if (period) {
-                    const now = new Date();
-                    let startDate, endDate;
-                    endDate = now.toISOString().split('T')[0];
-                    
-                    if (period === 'today') {
-                        startDate = endDate;
-                    } else if (period === 'week') {
-                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-                        startDate = weekAgo.toISOString().split('T')[0];
-                    } else if (period === 'month') {
-                        const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-                        startDate = monthAgo.toISOString().split('T')[0];
-                    }
-                    
-                    if (startDate) {
-                        params.push(`startDate=${startDate}`);
-                        params.push(`endDate=${endDate}`);
-                    }
+                if (dateRange && dateRange.startDate && dateRange.endDate) {
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
                 }
                 
                 const queryString = params.length > 0 ? '?' + params.join('&') : '';
@@ -4717,12 +4661,8 @@ Estou aqui para esclarecer tudo! 😊`
             tableBody.innerHTML = '<tr><td colspan="8"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>';
             
             try {
-                // Check local filter first, then fallback to global filter
-                const localLanguage = document.getElementById('recoveryFilterLanguage')?.value || '';
-                const globalLanguage = document.getElementById('globalFunnelFilter')?.value || '';
-                const language = localLanguage || globalLanguage; // Local filter takes priority
-                
-                const period = document.getElementById('recoveryFilterPeriod')?.value || '';
+                const language = document.getElementById('globalFunnelFilter')?.value || '';
+                const dateRange = getGlobalDateRange();
                 const minScore = document.getElementById('recoveryFilterScore')?.value || '';
                 const contactStatus = document.getElementById('recoveryFilterContact')?.value || '';
                 const sortBy = document.getElementById('recoveryFilterSort')?.value || 'time';
@@ -4732,27 +4672,9 @@ Estou aqui para esclarecer tudo! 😊`
                 if (language) params.push(`language=${language}`);
                 if (minScore) params.push(`minScore=${minScore}`);
                 if (contactStatus) params.push(`contactStatus=${contactStatus}`);
-                
-                // Convert period to date range
-                if (period) {
-                    const now = new Date();
-                    let startDate, endDate;
-                    endDate = now.toISOString().split('T')[0];
-                    
-                    if (period === 'today') {
-                        startDate = endDate;
-                    } else if (period === 'week') {
-                        const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-                        startDate = weekAgo.toISOString().split('T')[0];
-                    } else if (period === 'month') {
-                        const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-                        startDate = monthAgo.toISOString().split('T')[0];
-                    }
-                    
-                    if (startDate) {
-                        params.push(`startDate=${startDate}`);
-                        params.push(`endDate=${endDate}`);
-                    }
+                if (dateRange && dateRange.startDate && dateRange.endDate) {
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
                 }
                 
                 const queryString = '?' + params.join('&');
@@ -4908,13 +4830,14 @@ Estou aqui para esclarecer tudo! 😊`
             }
         }
         
-        // Clear new recovery filters
+        // Clear new recovery filters (idioma/período vêm do header, só limpamos os locais)
         function clearRecoveryFiltersNew() {
-            document.getElementById('recoveryFilterLanguage').value = '';
-            document.getElementById('recoveryFilterPeriod').value = '';
-            document.getElementById('recoveryFilterScore').value = '';
-            document.getElementById('recoveryFilterContact').value = '';
-            document.getElementById('recoveryFilterSort').value = 'time';
+            const scoreEl = document.getElementById('recoveryFilterScore');
+            const contactEl = document.getElementById('recoveryFilterContact');
+            const sortEl = document.getElementById('recoveryFilterSort');
+            if (scoreEl) scoreEl.value = '';
+            if (contactEl) contactEl.value = '';
+            if (sortEl) sortEl.value = 'time';
             recoverySegmentPage = 1;
             loadRecoverySegments();
             loadRecoverySegmentLeads();
@@ -6506,10 +6429,10 @@ Estou aqui para esclarecer tudo! 😊`
             const table = document.getElementById('recoveryTable');
             if (!table) return;
             
-            // Apply filters
+            // Apply filters (idioma vem do filtro geral do header)
             let filtered = [...refunds];
             const status = document.getElementById('recoveryFilterStatus')?.value;
-            const language = document.getElementById('recoveryFilterLanguage')?.value;
+            const language = document.getElementById('globalFunnelFilter')?.value;
             const search = document.getElementById('recoverySearchInput')?.value?.toLowerCase();
             
             if (status) filtered = filtered.filter(r => r.status === status);
@@ -6748,12 +6671,9 @@ Estou aqui para esclarecer tudo! 😊`
         
         function clearRecoveryFilters() {
             const statusEl = document.getElementById('recoveryFilterStatus');
-            const langEl = document.getElementById('recoveryFilterLanguage');
             const searchEl = document.getElementById('recoverySearchInput');
             if (statusEl) statusEl.value = '';
-            if (langEl) langEl.value = '';
             if (searchEl) searchEl.value = '';
-            // Reset pagination to page 1 when clearing filters
             paginationState.refundsRecovery.currentPage = 1;
             renderAllRefundSections();
         }
