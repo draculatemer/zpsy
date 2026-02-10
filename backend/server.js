@@ -1050,6 +1050,18 @@ app.get('/api/admin/leads', authenticateToken, async (req, res) => {
             params.push(startDate, endDate);
         }
         
+        // WhatsApp verification filter
+        const whatsappVerified = req.query.whatsapp_verified || '';
+        if (whatsappVerified) {
+            if (whatsappVerified === 'verified') {
+                conditions.push(`whatsapp_verified = true`);
+            } else if (whatsappVerified === 'invalid') {
+                conditions.push(`whatsapp_verified = false`);
+            } else if (whatsappVerified === 'pending') {
+                conditions.push(`whatsapp_verified IS NULL`);
+            }
+        }
+        
         if (conditions.length > 0) {
             query += ` WHERE ${conditions.join(' AND ')}`;
             countQuery += ` WHERE ${conditions.join(' AND ')}`;
@@ -1386,6 +1398,155 @@ app.get('/api/admin/stats/weekly-performance', authenticateToken, async (req, re
     } catch (error) {
         console.error('Error fetching weekly performance:', error);
         res.status(500).json({ error: 'Failed to fetch weekly performance' });
+    }
+});
+
+// ==================== WHATSAPP VERIFICATION ====================
+// Z-API credentials (same as funnel)
+const ZAPI_INSTANCE = '3E7938F228CBB0978267A6F61CAAA8C7';
+const ZAPI_TOKEN = '983F7A4EF1F159FAD3C42B05';
+const ZAPI_CLIENT_TOKEN = 'F0f2cc62f6c4f46088783537c957b7fd6S';
+
+// Verify a single WhatsApp number
+app.post('/api/admin/leads/:id/verify-whatsapp', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Get lead's phone number
+        const leadResult = await pool.query('SELECT * FROM leads WHERE id = $1', [id]);
+        if (leadResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Lead not found' });
+        }
+        
+        const lead = leadResult.rows[0];
+        let phone = lead.whatsapp || lead.phone || '';
+        
+        if (!phone) {
+            return res.status(400).json({ error: 'No phone number available', verified: false });
+        }
+        
+        // Clean phone number - remove all non-digits
+        phone = phone.replace(/\D/g, '');
+        
+        // Check if number exists on WhatsApp via Z-API
+        try {
+            const response = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/phone-exists/${phone}`, {
+                headers: { 'client-token': ZAPI_CLIENT_TOKEN }
+            });
+            
+            const data = await response.json();
+            const isRegistered = data.exists === true;
+            
+            // Try to get profile picture if registered
+            let profilePicture = null;
+            if (isRegistered) {
+                try {
+                    const picResponse = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/profile-picture?phone=${phone}`, {
+                        headers: { 'client-token': ZAPI_CLIENT_TOKEN }
+                    });
+                    const picData = await picResponse.json();
+                    if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
+                        profilePicture = picData.link;
+                    }
+                } catch (e) {
+                    console.log('Profile picture fetch error:', e);
+                }
+            }
+            
+            // Update lead in database
+            await pool.query(`
+                UPDATE leads SET 
+                    whatsapp_verified = $1,
+                    whatsapp_verified_at = NOW(),
+                    whatsapp_profile_pic = $2,
+                    updated_at = NOW()
+                WHERE id = $3
+            `, [isRegistered, profilePicture, id]);
+            
+            res.json({ 
+                success: true, 
+                verified: isRegistered, 
+                profilePicture,
+                phone
+            });
+            
+        } catch (apiError) {
+            console.error('Z-API error:', apiError);
+            res.status(500).json({ error: 'WhatsApp API error', details: apiError.message });
+        }
+        
+    } catch (error) {
+        console.error('Error verifying WhatsApp:', error);
+        res.status(500).json({ error: 'Failed to verify WhatsApp' });
+    }
+});
+
+// Bulk verify multiple leads (with rate limiting)
+app.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (req, res) => {
+    try {
+        const { leadIds } = req.body;
+        
+        if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {
+            return res.status(400).json({ error: 'No lead IDs provided' });
+        }
+        
+        // Limit to 20 at a time to avoid rate limiting
+        const limitedIds = leadIds.slice(0, 20);
+        
+        // Get leads
+        const leadsResult = await pool.query(
+            'SELECT id, whatsapp, phone FROM leads WHERE id = ANY($1)',
+            [limitedIds]
+        );
+        
+        const results = [];
+        
+        for (const lead of leadsResult.rows) {
+            let phone = lead.whatsapp || lead.phone || '';
+            if (!phone) {
+                results.push({ id: lead.id, verified: false, error: 'No phone' });
+                continue;
+            }
+            
+            phone = phone.replace(/\D/g, '');
+            
+            try {
+                const response = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/phone-exists/${phone}`, {
+                    headers: { 'client-token': ZAPI_CLIENT_TOKEN }
+                });
+                
+                const data = await response.json();
+                const isRegistered = data.exists === true;
+                
+                // Update lead
+                await pool.query(`
+                    UPDATE leads SET 
+                        whatsapp_verified = $1,
+                        whatsapp_verified_at = NOW(),
+                        updated_at = NOW()
+                    WHERE id = $2
+                `, [isRegistered, lead.id]);
+                
+                results.push({ id: lead.id, verified: isRegistered });
+                
+                // Rate limit: wait 500ms between requests
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+            } catch (e) {
+                results.push({ id: lead.id, verified: false, error: e.message });
+            }
+        }
+        
+        res.json({ 
+            success: true, 
+            results,
+            verified: results.filter(r => r.verified).length,
+            failed: results.filter(r => !r.verified).length
+        });
+        
+    } catch (error) {
+        console.error('Error bulk verifying WhatsApp:', error);
+        res.status(500).json({ error: 'Failed to bulk verify WhatsApp' });
     }
 });
 
@@ -6116,6 +6277,11 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS utm_campaign VARCHAR(500);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS utm_content VARCHAR(500);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS utm_term VARCHAR(255);`);
+        
+        // WhatsApp verification columns
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS whatsapp_verified BOOLEAN DEFAULT NULL;`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS whatsapp_verified_at TIMESTAMP WITH TIME ZONE;`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS whatsapp_profile_pic TEXT;`);
         
         // Create funnel_events table for tracking
         await pool.query(`

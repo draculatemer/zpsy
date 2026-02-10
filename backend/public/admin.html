@@ -532,12 +532,22 @@
                                     <option value="converted">✅ Convertido</option>
                                     <option value="lost">❌ Perdido</option>
                                 </select>
+                                <select class="funnel-selector" id="whatsappFilter" onchange="loadLeads()" style="min-width: 180px;">
+                                    <option value="">📱 WhatsApp: Todos</option>
+                                    <option value="verified">✓ Verificados</option>
+                                    <option value="invalid">✕ Inválidos</option>
+                                    <option value="pending">⏳ Não verificados</option>
+                                </select>
+                                <button class="btn-secondary" onclick="bulkVerifyWhatsApp()" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1)); border-color: #10b981;" title="Verificar WhatsApp dos leads selecionados">
+                                    🔍 Verificar Selecionados
+                                </button>
                             </div>
                         </div>
                         
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllLeads" onchange="toggleAllLeads(this)" title="Selecionar todos"></th>
                                     <th>Nome</th>
                                     <th>Email</th>
                                     <th>WhatsApp</th>
@@ -551,7 +561,7 @@
                                 </tr>
                             </thead>
                             <tbody id="leadsTableBody">
-                                <tr><td colspan="10"><div class="loading"><div class="spinner"></div>Carregando leads...</div></td></tr>
+                                <tr><td colspan="11"><div class="loading"><div class="spinner"></div>Carregando leads...</div></td></tr>
                             </tbody>
                         </table>
                         
@@ -3365,16 +3375,22 @@ Estou aqui para esclarecer tudo! 😊`
             const search = document.getElementById('searchInput').value;
             const status = document.getElementById('statusFilter').value;
             const language = document.getElementById('languageFilter').value;
+            const whatsappFilter = document.getElementById('whatsappFilter')?.value || '';
             const dateRange = getGlobalDateRange();
             
             // Update leads header indicator
             updateLeadsHeader(language);
+            
+            // Uncheck "select all" when loading new data
+            const selectAllCheckbox = document.getElementById('selectAllLeads');
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
             
             try {
                 let url = `${API_URL}/api/admin/leads?page=${page}&limit=${leadsPerPage || 10}`;
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 if (status) url += `&status=${status}`;
                 if (language) url += `&language=${language}`;
+                if (whatsappFilter) url += `&whatsapp_verified=${whatsappFilter}`;
                 if (dateRange) {
                     url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
@@ -3409,7 +3425,7 @@ Estou aqui para esclarecer tudo! 😊`
         
         function renderLeads(leads) {
             if (!leads || leads.length === 0) {
-                document.getElementById('leadsTableBody').innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">👥</div><h3>Nenhum lead encontrado</h3></div></td></tr>`;
+                document.getElementById('leadsTableBody').innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">👥</div><h3>Nenhum lead encontrado</h3></div></td></tr>`;
                 return;
             }
             
@@ -3430,10 +3446,38 @@ Estou aqui para esclarecer tudo! 😊`
                     ? `<span title="${lead.country || ''} - ${lead.city || ''}">${getCountryFlag(lead.country_code)} ${lead.country_code}</span>`
                     : '<span style="color: var(--text-muted);">-</span>';
                 
+                // WhatsApp verification badge
+                const whatsappVerified = lead.whatsapp_verified;
+                let whatsappDisplay = lead.whatsapp || '-';
+                let verifyBtn = '';
+                
+                if (lead.whatsapp) {
+                    if (whatsappVerified === true) {
+                        whatsappDisplay = `<span style="display: inline-flex; align-items: center; gap: 6px;">
+                            ${lead.whatsapp_profile_pic ? `<img src="${lead.whatsapp_profile_pic}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">` : ''}
+                            <span>${lead.whatsapp}</span>
+                            <span title="WhatsApp Verificado" style="color: #10b981; font-size: 14px;">✓</span>
+                        </span>`;
+                    } else if (whatsappVerified === false) {
+                        whatsappDisplay = `<span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <span style="color: #ef4444;">${lead.whatsapp}</span>
+                            <span title="Número inválido" style="color: #ef4444; font-size: 12px;">✕</span>
+                        </span>`;
+                    } else {
+                        // Not verified yet - show verify button
+                        verifyBtn = `<button class="action-btn" onclick="verifyWhatsApp(${lead.id}, this)" title="Verificar WhatsApp" style="background: rgba(16, 185, 129, 0.15); padding: 2px 6px; font-size: 10px;">🔍</button>`;
+                        whatsappDisplay = `<span style="display: inline-flex; align-items: center; gap: 4px;">
+                            <span>${lead.whatsapp}</span>
+                            ${verifyBtn}
+                        </span>`;
+                    }
+                }
+                
                 html += `<tr>
+                    <td><input type="checkbox" class="lead-checkbox" value="${lead.id}"></td>
                     <td><strong>${lead.name || '-'}</strong></td>
                     <td class="text-primary">${lead.email}</td>
-                    <td class="mono">${lead.whatsapp}</td>
+                    <td class="mono">${whatsappDisplay}</td>
                     <td>${langBadge}</td>
                     <td>${countryDisplay}</td>
                     <td class="mono">${lead.target_phone || '-'}</td>
@@ -3660,6 +3704,95 @@ Estou aqui para esclarecer tudo! 😊`
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
             closeWhatsAppModal();
             showToast('WhatsApp aberto!', 'A conversa foi iniciada', 'success');
+        }
+        
+        // WhatsApp Verification
+        async function verifyWhatsApp(leadId, buttonEl) {
+            try {
+                // Change button to loading state
+                const originalContent = buttonEl.innerHTML;
+                buttonEl.innerHTML = '⏳';
+                buttonEl.disabled = true;
+                
+                const response = await fetch(`${API_URL}/api/admin/leads/${leadId}/verify-whatsapp`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.verified) {
+                    // Show verified badge
+                    const parentSpan = buttonEl.parentElement;
+                    const phoneText = parentSpan.querySelector('span')?.textContent || '';
+                    parentSpan.innerHTML = `
+                        ${data.profilePicture ? `<img src="${data.profilePicture}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">` : ''}
+                        <span>${phoneText}</span>
+                        <span title="WhatsApp Verificado" style="color: #10b981; font-size: 14px;">✓</span>
+                    `;
+                    showToast('WhatsApp Verificado', 'O número está registrado no WhatsApp', 'success');
+                } else {
+                    // Show invalid badge
+                    const parentSpan = buttonEl.parentElement;
+                    const phoneText = parentSpan.querySelector('span')?.textContent || '';
+                    parentSpan.innerHTML = `
+                        <span style="color: #ef4444;">${phoneText}</span>
+                        <span title="Número inválido" style="color: #ef4444; font-size: 12px;">✕</span>
+                    `;
+                    showToast('Número Inválido', 'Este número não está registrado no WhatsApp', 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Verify WhatsApp error:', error);
+                buttonEl.innerHTML = '❌';
+                buttonEl.disabled = false;
+                showToast('Erro', 'Não foi possível verificar o número', 'error');
+            }
+        }
+        
+        // Bulk verify WhatsApp numbers
+        async function bulkVerifyWhatsApp() {
+            const checkboxes = document.querySelectorAll('.lead-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showToast('Nenhum lead selecionado', 'Selecione os leads para verificar', 'warning');
+                return;
+            }
+            
+            const leadIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            showToast('Verificando...', `Verificando ${leadIds.length} números`, 'info');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/leads/bulk-verify-whatsapp`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ leadIds })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Verificação Concluída', `${data.verified} válidos, ${data.failed} inválidos`, 'success');
+                    // Reload leads to show updated badges
+                    loadLeads();
+                }
+                
+            } catch (error) {
+                console.error('Bulk verify error:', error);
+                showToast('Erro', 'Não foi possível verificar os números', 'error');
+            }
+        }
+        
+        // Toggle all checkboxes
+        function toggleAllLeads(checkbox) {
+            const allCheckboxes = document.querySelectorAll('.lead-checkbox');
+            allCheckboxes.forEach(cb => cb.checked = checkbox.checked);
         }
         
         function selectTemplate(id) {
