@@ -61,122 +61,7 @@
     <script type="text/javascript" src="https://app.monetizze.com.br/1buyclick.php?u=c5fcb2f7ba87f745a8d8dc1c65dd8bf1"></script>
 </head>
 <body>
-    <!-- VIP Processing Overlay - Se muestra por ~35 segundos antes del contenido -->
-    <div class="vip-processing-overlay" id="vipProcessingOverlay">
-        <div class="vip-processing-container">
-            <!-- Header -->
-            <div class="vip-header">
-                <div class="vip-badge-icon">🔓</div>
-                <h1 class="vip-title">Procesando Acceso VIP</h1>
-                <p class="vip-subtitle">Por favor espera mientras preparamos tu oferta exclusiva de actualización...</p>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="vip-progress-container">
-                <div class="vip-progress-bar">
-                    <div class="vip-progress-fill" id="progressFill"></div>
-                </div>
-                <div class="vip-progress-text">
-                    <span id="progressPercent">0%</span>
-                    <span id="progressStatus">Inicializando...</span>
-                </div>
-            </div>
-
-            <!-- Processing Steps -->
-            <div class="vip-steps" id="vipSteps">
-                <div class="vip-step" data-step="1">
-                    <div class="vip-step-icon">
-                        <span class="step-spinner"></span>
-                    </div>
-                    <div class="vip-step-content">
-                        <div class="vip-step-title">Verificando tu compra</div>
-                        <div class="vip-step-desc">Confirmando los detalles de tu pedido...</div>
-                    </div>
-                    <div class="vip-step-status"></div>
-                </div>
-                <div class="vip-step" data-step="2">
-                    <div class="vip-step-icon">
-                        <span class="step-spinner"></span>
-                    </div>
-                    <div class="vip-step-content">
-                        <div class="vip-step-title">Verificando disponibilidad VIP</div>
-                        <div class="vip-step-desc">Cupos limitados disponibles hoy...</div>
-                    </div>
-                    <div class="vip-step-status"></div>
-                </div>
-                <div class="vip-step" data-step="3">
-                    <div class="vip-step-icon">
-                        <span class="step-spinner"></span>
-                    </div>
-                    <div class="vip-step-content">
-                        <div class="vip-step-title">Escaneando datos del objetivo</div>
-                        <div class="vip-step-desc">Analizando contenido recuperable...</div>
-                    </div>
-                    <div class="vip-step-status"></div>
-                </div>
-                <div class="vip-step" data-step="4">
-                    <div class="vip-step-icon">
-                        <span class="step-spinner"></span>
-                    </div>
-                    <div class="vip-step-content">
-                        <div class="vip-step-title">Reservando tu oferta exclusiva</div>
-                        <div class="vip-step-desc">Asegurando tu precio con descuento...</div>
-                    </div>
-                    <div class="vip-step-status"></div>
-                </div>
-            </div>
-
-            <!-- Live Discoveries -->
-            <div class="vip-discoveries" id="vipDiscoveries">
-                <div class="discoveries-header">
-                    <span class="pulse-indicator"></span>
-                    <span>Datos Encontrados para Recuperar</span>
-                </div>
-                <div class="discoveries-grid">
-                    <div class="discovery-item">
-                        <div class="discovery-icon">💬</div>
-                        <div class="discovery-count" id="msgCount">0</div>
-                        <div class="discovery-label">Mensajes</div>
-                    </div>
-                    <div class="discovery-item">
-                        <div class="discovery-icon">📸</div>
-                        <div class="discovery-count" id="photoCount">0</div>
-                        <div class="discovery-label">Fotos</div>
-                    </div>
-                    <div class="discovery-item">
-                        <div class="discovery-icon">🎥</div>
-                        <div class="discovery-count" id="videoCount">0</div>
-                        <div class="discovery-label">Videos</div>
-                    </div>
-                    <div class="discovery-item highlight">
-                        <div class="discovery-icon">🗑️</div>
-                        <div class="discovery-count" id="deletedCount">0</div>
-                        <div class="discovery-label">Eliminados</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Live Upgrades Feed -->
-            <div class="vip-live-feed" id="vipLiveFeed">
-                <div class="live-feed-header">
-                    <span class="live-dot"></span>
-                    <span>Activaciones en Vivo</span>
-                    <span class="live-tag">EN VIVO</span>
-                </div>
-                <div class="live-feed-items" id="liveFeedItems">
-                    <!-- Items added dynamically -->
-                </div>
-            </div>
-
-            <!-- Security Footer -->
-            <div class="vip-security">
-                <span class="security-icon">🔒</span>
-                <span>Encriptación SSL 256-bit • No cierres esta página</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay REMOVED - was interfering with Monetizze 1-click processing -->
+    <!-- VIP Processing Overlay REMOVED - direct content display -->
 
     <div class="page">
         <!-- HEADER -->
@@ -290,7 +175,21 @@
                         <span class="live-badge">EN VIVO</span>
                     </div>
                     <div class="activity-items" id="activityFeed">
-                        <!-- Items son generados dinámicamente por JavaScript -->
+                        <div class="activity-item"><span class="activity-flag">🇲🇽</span><span class="activity-name">Ana M.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 2 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇦🇷</span><span class="activity-name">Carlos R.</span><span class="activity-action">recuperó 847 mensajes</span><span class="activity-time">hace 5 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇪🇸</span><span class="activity-name">María S.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 8 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇨🇴</span><span class="activity-name">David L.</span><span class="activity-action">recuperó 1,234 fotos</span><span class="activity-time">hace 12 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇨🇱</span><span class="activity-name">Patricia V.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 15 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇵🇪</span><span class="activity-name">Roberto G.</span><span class="activity-action">recuperó 56 videos</span><span class="activity-time">hace 18 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇪🇨</span><span class="activity-name">Laura M.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 22 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇻🇪</span><span class="activity-name">José A.</span><span class="activity-action">recuperó 2,156 mensajes</span><span class="activity-time">hace 25 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇺🇾</span><span class="activity-name">Carmen D.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 28 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇧🇴</span><span class="activity-name">Miguel T.</span><span class="activity-action">recuperó 432 fotos</span><span class="activity-time">hace 31 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇵🇾</span><span class="activity-name">Sandra L.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 35 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇨🇷</span><span class="activity-name">Fernando R.</span><span class="activity-action">recuperó 89 videos</span><span class="activity-time">hace 38 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇵🇦</span><span class="activity-name">Isabel C.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 42 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇬🇹</span><span class="activity-name">Ricardo H.</span><span class="activity-action">recuperó 1,567 mensajes</span><span class="activity-time">hace 45 min</span></div>
+                        <div class="activity-item"><span class="activity-flag">🇭🇳</span><span class="activity-name">Mónica P.</span><span class="activity-action">activó Message Vault</span><span class="activity-time">hace 48 min</span></div>
                     </div>
                 </div>
             </section>

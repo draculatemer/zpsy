@@ -128,11 +128,15 @@ body {
 
 .price-tag {
     margin: 10px 0 0;
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    color: #22c55e;
     text-align: center;
-    opacity: 0.5;
+}
+@media (max-width: 720px) {
+    .price-tag {
+        display: none;
+    }
 }
 
 .charge-notice {
