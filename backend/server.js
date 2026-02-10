@@ -220,48 +220,65 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
         'es': process.env.FB_TEST_CODE_ES || null   // Set to 'TEST96875' to enable testing
     };
     
-    // Send to all pixels
+    // Send to all pixels (with retry for transient failures)
     const results = [];
-    
+    const maxRetries = 2;
+    const retryDelayMs = 500;
+
     for (const pixel of pixels) {
-        try {
-            const url = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}/events?access_token=${pixel.token}`;
-            
-            // Build request body
-            const requestBody = {
-                data: [eventPayload]
-            };
-            
-            // Add test_event_code if in test mode (from options or env var)
-            const testCode = options.testEventCode || testEventCodes[options.language];
-            if (testCode) {
-                requestBody.test_event_code = testCode;
-                console.log(`🧪 TEST MODE: Using test_event_code ${testCode} for ${pixel.name}`);
+        const url = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}/events?access_token=${pixel.token}`;
+        const requestBody = {
+            data: [eventPayload]
+        };
+        const testCode = options.testEventCode || testEventCodes[options.language];
+        if (testCode) {
+            requestBody.test_event_code = testCode;
+            console.log(`🧪 TEST MODE: Using test_event_code ${testCode} for ${pixel.name}`);
+        }
+
+        let lastError = null;
+        let lastResult = null;
+        let success = false;
+
+        for (let attempt = 0; attempt <= maxRetries && !success; attempt++) {
+            try {
+                if (attempt > 0) {
+                    await new Promise(r => setTimeout(r, retryDelayMs));
+                    console.log(`🔄 CAPI [${pixel.name}] ${eventName}: retry ${attempt}/${maxRetries}`);
+                }
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                lastResult = await response.json();
+
+                if (response.ok) {
+                    console.log(`✅ CAPI [${pixel.name}] ${eventName}: success (id: ${finalEventId}, events_received: ${lastResult.events_received || 1})`);
+                    results.push({ pixel: pixel.id, success: true, result: lastResult, eventId: finalEventId });
+                    success = true;
+                } else {
+                    lastError = lastResult;
+                    const isRetryable = response.status >= 500 || response.status === 429;
+                    if (!isRetryable || attempt === maxRetries) {
+                        console.error(`❌ CAPI [${pixel.name}] ${eventName}: error`, lastResult);
+                        results.push({ pixel: pixel.id, success: false, error: lastResult });
+                        break;
+                    }
+                }
+            } catch (error) {
+                lastError = error.message;
+                if (attempt === maxRetries) {
+                    console.error(`❌ CAPI [${pixel.name}] ${eventName}: exception`, error.message);
+                    results.push({ pixel: pixel.id, success: false, error: error.message });
+                }
             }
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                console.log(`✅ CAPI [${pixel.name}] ${eventName}: success (id: ${finalEventId}, events_received: ${result.events_received || 1})`);
-                results.push({ pixel: pixel.id, success: true, result, eventId: finalEventId });
-            } else {
-                console.error(`❌ CAPI [${pixel.name}] ${eventName}: error`, result);
-                results.push({ pixel: pixel.id, success: false, error: result });
-            }
-        } catch (error) {
-            console.error(`❌ CAPI [${pixel.name}] ${eventName}: exception`, error.message);
-            results.push({ pixel: pixel.id, success: false, error: error.message });
+        }
+        if (!success && results.filter(r => r.pixel === pixel.id).length === 0) {
+            results.push({ pixel: pixel.id, success: false, error: lastError || lastResult || 'Max retries exceeded' });
         }
     }
-    
+
     return results;
 }
 

@@ -2082,8 +2082,15 @@
             // Mostrar pantalla de carga
             showScreen('screenLoading');
             
-            // Rastrear evento Lead en Meta Pixel
-            if (typeof fbq !== 'undefined') {
+            // Persistir teléfono para CAPI (Lead = Pixel + Servidor con mismo event_id)
+            const fullNum = (country && String(country).replace('+', '')) + phone;
+            localStorage.setItem('userWhatsApp', fullNum);
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'Número de Teléfono Enviado',
+                    content_category: 'Monitoreo de WhatsApp'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'Número de Teléfono Enviado',
                     content_category: 'Monitoreo de WhatsApp'
@@ -2330,8 +2337,13 @@
                 });
             }
             
-            // Rastrear evento Lead para Facebook
-            if (typeof fbq !== 'undefined') {
+            // Rastrear Lead (Pixel + CAPI con mismo event_id para dedup)
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'ZapSpy Captura de Lead',
+                    content_category: 'phone_confirmation'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'ZapSpy Captura de Lead',
                     content_category: 'phone_confirmation'

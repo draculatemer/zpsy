@@ -2153,8 +2153,15 @@
             // Show loading screen
             showScreen('screenLoading');
             
-            // Track Lead event in Meta Pixel
-            if (typeof fbq !== 'undefined') {
+            // Persist phone for CAPI (Lead = Pixel + Server with same event_id)
+            const fullNum = (country && String(country).replace('+', '')) + phone;
+            localStorage.setItem('userWhatsApp', fullNum);
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'Phone Number Submitted',
+                    content_category: 'WhatsApp Monitoring'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'Phone Number Submitted',
                     content_category: 'WhatsApp Monitoring'
@@ -2401,8 +2408,13 @@
                 });
             }
             
-            // Track Lead event for Facebook
-            if (typeof fbq !== 'undefined') {
+            // Track Lead (Pixel + CAPI with same event_id for dedup)
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'ZapSpy Lead Capture',
+                    content_category: 'phone_confirmation'
+                });
+            } else if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: 'ZapSpy Lead Capture',
                     content_category: 'phone_confirmation'
