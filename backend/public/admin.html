@@ -2030,7 +2030,10 @@
                                 <h2>🛒 Purchase Events - Log de Atribuição</h2>
                                 <span class="lead-count" id="purchaseLogCount">0 eventos</span>
                             </div>
-                            <button class="btn-secondary" onclick="loadPurchaseCAPILogs()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-secondary" onclick="runCAPICatchup()" style="font-size: 12px; padding: 6px 12px;" id="capiCatchupBtn">🚀 Enviar Faltantes</button>
+                                <button class="btn-secondary" onclick="loadPurchaseCAPILogs()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
+                            </div>
                         </div>
                         
                         <!-- Purchase Summary Cards -->
@@ -8616,6 +8619,30 @@ Obrigado pela compreensão.`
                 qualityTable.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #f87171;">Erro ao carregar dados</td></tr>';
                 eventsTable.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #f87171;">Erro ao carregar eventos</td></tr>';
             }
+        }
+        
+        // ==================== CAPI CATCH-UP (MANUAL TRIGGER) ====================
+        async function runCAPICatchup() {
+            const btn = document.getElementById('capiCatchupBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Enviando...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/capi-catchup`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btn.textContent = '✅ Concluído!';
+                    setTimeout(() => { loadPurchaseCAPILogs(); loadPixelStats(); }, 1000);
+                } else {
+                    btn.textContent = '❌ Erro';
+                }
+            } catch (err) {
+                btn.textContent = '❌ Erro';
+            }
+            setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 3000);
         }
         
         // ==================== PURCHASE CAPI ATTRIBUTION LOG ====================

@@ -5525,7 +5525,15 @@ async function sendMissingCAPIPurchases() {
 }
 
 function startAutoSync() {
-    // Run startup tasks 30 seconds after server start
+    // Run CAPI catch-up IMMEDIATELY (10 seconds after start) - don't wait for heavy sync
+    setTimeout(async () => {
+        console.log('🚀 Running CAPI catch-up immediately (before heavy sync)...');
+        await sendMissingCAPIPurchases();
+        // Schedule recurring CAPI catch-up every 10 minutes
+        setInterval(sendMissingCAPIPurchases, 10 * 60 * 1000);
+    }, 10000);
+    
+    // Run heavy startup tasks 30 seconds after server start
     setTimeout(async () => {
         // Step 1: Deep sync last 60 days (day-by-day to avoid pagination limits)
         await runDeepSync();
@@ -5537,17 +5545,27 @@ function startAutoSync() {
         await runRefundBackfill();
         // Step 5: Run diagnostic to see what's in the DB
         await runDiagnosticLog();
-        // Step 6: Send CAPI Purchase for approved sales missing from capi_purchase_logs
+        // Step 6: Run CAPI catch-up again after sync (catches newly synced approved sales)
         await sendMissingCAPIPurchases();
         // Regular sync every 5 minutes (just yesterday + today) - near real-time
         autoSyncInterval = setInterval(runAutoSync, 5 * 60 * 1000);
         // Re-check approved transactions every 6 hours for status changes
         setInterval(recheckApprovedTransactions, 6 * 60 * 60 * 1000);
-        // Check for missing CAPI Purchase events every 10 minutes
-        setInterval(sendMissingCAPIPurchases, 10 * 60 * 1000);
         console.log('🔄 Auto-sync scheduled: every 5 minutes | Re-check: every 6 hours | CAPI catch-up: every 10 min');
     }, 30000);
 }
+
+// Manual CAPI catch-up trigger (admin only) - sends Purchase events for approved sales missing from capi_purchase_logs
+app.post('/api/admin/capi-catchup', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        console.log('🔄 Manual CAPI catch-up triggered by admin...');
+        await sendMissingCAPIPurchases();
+        res.json({ success: true, message: 'CAPI catch-up executado. Verifique os logs de Purchase.' });
+    } catch (error) {
+        console.error('CAPI catch-up error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // Sync sales from Monetizze API (protected - admin only)
 // Uses 2-step auth: GET /token with X_CONSUMER_KEY → then GET /transactions with TOKEN
