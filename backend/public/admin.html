@@ -2573,38 +2573,64 @@
     
     <!-- Edit User Modal -->
     <div class="modal-overlay" id="editUserModal">
-        <div class="modal" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>✏️ Editar Usuário</h3>
-                <p>Altere as permissões do usuário</p>
+        <div class="modal" style="max-width: 520px; padding: 0;">
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 24px 28px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">✏️ Editar Usuário</h3>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-muted);">
+                        <span id="editUserUsernameInfo" style="font-weight: 500;"></span>
+                    </p>
+                </div>
+                <button onclick="closeEditUserModal()" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); cursor: pointer; font-size: 18px; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.15)'; this.style.color='var(--danger)'; this.style.borderColor='rgba(239,68,68,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--text-muted)'; this.style.borderColor='var(--border)';">✕</button>
             </div>
-            <input type="hidden" id="editUserId">
-            <div class="form-group">
-                <label class="form-label">Nome</label>
-                <input type="text" class="form-input" id="editUserName" placeholder="Nome completo">
+            
+            <!-- Body -->
+            <div style="padding: 24px 28px;">
+                <input type="hidden" id="editUserId">
+                
+                <!-- Nome -->
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Nome</label>
+                    <input type="text" class="form-input" id="editUserName" placeholder="Nome completo" style="width: 100%; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <!-- Email -->
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Email</label>
+                    <input type="email" class="form-input" id="editUserEmail" placeholder="email@exemplo.com" style="width: 100%; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                
+                <!-- Role & Status side by side -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Nível de Acesso</label>
+                        <select class="funnel-selector" id="editUserRole" style="width: 100%; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                            <option value="support">💬 Suporte</option>
+                            <option value="viewer">👁️ Visualizador</option>
+                            <option value="admin">🔐 Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Status</label>
+                        <select class="funnel-selector" id="editUserStatus" style="width: 100%; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                            <option value="true">✅ Ativo</option>
+                            <option value="false">🚫 Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Password -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Nova Senha <span style="font-weight: 400; text-transform: none; letter-spacing: normal;">(deixe em branco para manter)</span></label>
+                    <input type="password" class="form-input" id="editUserPassword" placeholder="••••••••" minlength="6" style="width: 100%; padding: 10px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Nível de Acesso</label>
-                <select class="funnel-selector" id="editUserRole" style="width: 100%;">
-                    <option value="support">💬 Suporte</option>
-                    <option value="viewer">👁️ Visualizador</option>
-                    <option value="admin">🔐 Admin</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Status</label>
-                <select class="funnel-selector" id="editUserStatus" style="width: 100%;">
-                    <option value="true">✅ Ativo</option>
-                    <option value="false">🚫 Inativo</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Nova Senha (deixe em branco para manter)</label>
-                <input type="password" class="form-input" id="editUserPassword" placeholder="Nova senha" minlength="6">
-            </div>
-            <div class="modal-actions">
-                <button class="btn-primary" onclick="saveUserEdit()">Salvar</button>
-                <button class="btn-secondary" onclick="closeEditUserModal()">Cancelar</button>
+            
+            <!-- Footer -->
+            <div style="display: flex; gap: 12px; padding: 20px 28px; border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.15); border-radius: 0 0 16px 16px;">
+                <button class="btn-primary" id="editUserSaveBtn" onclick="saveUserEdit()" style="flex: 1; justify-content: center; padding: 12px; font-size: 14px; font-weight: 600;">Salvar Alterações</button>
+                <button class="btn-secondary" onclick="closeEditUserModal()" style="padding: 12px 20px; font-size: 14px;">Cancelar</button>
             </div>
         </div>
     </div>
@@ -3518,6 +3544,9 @@ Estou aqui para esclarecer tudo! 😊`
         
         // ==================== USER MANAGEMENT ====================
         
+        // Store loaded users data for safe reference (avoids broken onclick string interpolation)
+        let _loadedUsers = [];
+        
         async function loadUsers() {
             try {
                 const response = await fetch(`${API_URL}/api/admin/users`, {
@@ -3530,7 +3559,8 @@ Estou aqui para esclarecer tudo! 😊`
                 }
                 
                 const data = await response.json();
-                renderUsers(data.users || []);
+                _loadedUsers = data.users || [];
+                renderUsers(_loadedUsers);
             } catch (error) {
                 console.error('Error loading users:', error);
             }
@@ -3573,9 +3603,11 @@ Estou aqui para esclarecer tudo! 😊`
             grid.innerHTML = users.map(user => {
                 const role = roleLabels[user.role] || roleLabels.viewer;
                 const isCurrentUser = currentUser && (currentUser.id === user.id || currentUser.email === user.email);
-                const isMainAdmin = user.id === 1;
+                const isMainAdmin = parseInt(user.id) === 1;
                 const lastLogin = user.last_login ? new Date(user.last_login) : null;
                 const createdAt = new Date(user.created_at);
+                const editDisabled = isMainAdmin && !isCurrentUser;
+                const deleteDisabled = isMainAdmin || isCurrentUser;
                 
                 return `
                     <div class="stat-card" style="position: relative; overflow: hidden; border: 1px solid ${user.is_active ? 'var(--border)' : 'rgba(239, 68, 68, 0.3)'}; ${isCurrentUser ? 'box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);' : ''}">
@@ -3632,17 +3664,17 @@ Estou aqui para esclarecer tudo! 😊`
                         <div style="display: flex; gap: 8px;">
                             <button 
                                 class="btn-secondary" 
-                                onclick="openEditUserModal(${user.id}, '${(user.name || '').replace(/'/g, "\\'")}', '${user.role}', ${user.is_active})" 
+                                data-edit-user-id="${user.id}"
                                 style="flex: 1; padding: 10px; font-size: 13px; font-weight: 600;"
-                                ${isMainAdmin && !isCurrentUser ? 'disabled' : ''}
+                                ${editDisabled ? 'disabled' : ''}
                             >
                                 ✏️ Editar
                             </button>
                             <button 
                                 class="btn-secondary" 
-                                onclick="deleteUser(${user.id}, '${(user.name || user.username).replace(/'/g, "\\'")}')  " 
-                                style="padding: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger);"
-                                ${isMainAdmin || isCurrentUser ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                                data-delete-user-id="${user.id}"
+                                style="padding: 10px; ${deleteDisabled ? 'opacity: 0.3; cursor: not-allowed;' : ''} background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger);"
+                                ${deleteDisabled ? 'disabled' : ''}
                                 title="${isCurrentUser ? 'Você não pode excluir sua própria conta' : isMainAdmin ? 'Admin principal não pode ser excluído' : 'Excluir usuário'}"
                             >
                                 🗑️
@@ -3651,6 +3683,23 @@ Estou aqui para esclarecer tudo! 😊`
                     </div>
                 `;
             }).join('');
+            
+            // Attach event listeners via delegation (safe - no inline string interpolation)
+            grid.querySelectorAll('[data-edit-user-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = parseInt(btn.dataset.editUserId);
+                    const user = _loadedUsers.find(u => parseInt(u.id) === userId);
+                    if (user) openEditUserModal(user);
+                });
+            });
+            
+            grid.querySelectorAll('[data-delete-user-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = parseInt(btn.dataset.deleteUserId);
+                    const user = _loadedUsers.find(u => parseInt(u.id) === userId);
+                    if (user) deleteUser(user.id, user.name || user.username);
+                });
+            });
         }
         
         function openAddUserModal() {
@@ -3684,7 +3733,6 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    // Show specific error messages
                     let errorMsg = data.error || 'Falha ao criar usuário';
                     if (response.status === 409) {
                         errorMsg = data.error || 'Email ou username já está em uso';
@@ -3709,12 +3757,18 @@ Estou aqui para esclarecer tudo! 😊`
             }
         }
         
-        function openEditUserModal(id, name, role, isActive) {
-            document.getElementById('editUserId').value = id;
-            document.getElementById('editUserName').value = name;
-            document.getElementById('editUserRole').value = role;
-            document.getElementById('editUserStatus').value = isActive.toString();
+        function openEditUserModal(user) {
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.name || '';
+            document.getElementById('editUserEmail').value = user.email || '';
+            document.getElementById('editUserRole').value = user.role;
+            document.getElementById('editUserStatus').value = (!!user.is_active).toString();
             document.getElementById('editUserPassword').value = '';
+            
+            // Show username (read-only info)
+            const usernameInfo = document.getElementById('editUserUsernameInfo');
+            if (usernameInfo) usernameInfo.textContent = '@' + (user.username || '');
+            
             document.getElementById('editUserModal').classList.add('active');
         }
         
@@ -3725,12 +3779,29 @@ Estou aqui para esclarecer tudo! 😊`
         async function saveUserEdit() {
             const id = document.getElementById('editUserId').value;
             const name = document.getElementById('editUserName').value.trim();
+            const email = document.getElementById('editUserEmail').value.trim().toLowerCase();
             const role = document.getElementById('editUserRole').value;
             const is_active = document.getElementById('editUserStatus').value === 'true';
             const password = document.getElementById('editUserPassword').value;
             
-            const body = { name, role, is_active };
+            if (!name) {
+                showToast('Erro', 'Nome é obrigatório', 'error');
+                return;
+            }
+            if (!email) {
+                showToast('Erro', 'Email é obrigatório', 'error');
+                return;
+            }
+            
+            const body = { name, email, role, is_active };
             if (password) body.password = password;
+            
+            // Disable save button while saving
+            const saveBtn = document.getElementById('editUserSaveBtn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvando...';
+            }
             
             try {
                 const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
@@ -3749,13 +3820,18 @@ Estou aqui para esclarecer tudo! 😊`
                     return;
                 }
                 
-                showToast('Sucesso!', 'Usuário atualizado', 'success');
+                showToast('Sucesso!', 'Usuário atualizado com sucesso', 'success');
                 closeEditUserModal();
                 loadUsers();
                 
             } catch (error) {
                 console.error('Error updating user:', error);
                 showToast('Erro', 'Falha ao atualizar usuário', 'error');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salvar Alterações';
+                }
             }
         }
         

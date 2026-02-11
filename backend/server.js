@@ -1673,9 +1673,9 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
 app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, role, is_active, password } = req.body;
+        const { name, email, role, is_active, password } = req.body;
         
-        // Don't allow modifying the main admin (id = 1)
+        // Don't allow modifying the main admin (id = 1) by non-main-admins
         if (parseInt(id) === 1 && req.user.userId !== 1) {
             return res.status(403).json({ error: 'Cannot modify main admin user' });
         }
@@ -1689,6 +1689,18 @@ app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res
             updates.push(`name = $${paramCount++}`);
             values.push(name);
         }
+        if (email !== undefined && email.trim()) {
+            // Check if email is already in use by another user
+            const emailCheck = await pool.query(
+                'SELECT id FROM admin_users WHERE email = $1 AND id != $2',
+                [email.trim().toLowerCase(), id]
+            );
+            if (emailCheck.rows.length > 0) {
+                return res.status(409).json({ error: 'Este email já está em uso por outro usuário' });
+            }
+            updates.push(`email = $${paramCount++}`);
+            values.push(email.trim().toLowerCase());
+        }
         if (role !== undefined) {
             const allowedRoles = ['admin', 'support', 'viewer'];
             if (allowedRoles.includes(role)) {
@@ -1701,6 +1713,9 @@ app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, res
             values.push(is_active);
         }
         if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres' });
+            }
             const hashedPassword = await bcrypt.hash(password, 10);
             updates.push(`password_hash = $${paramCount++}`);
             values.push(hashedPassword);
