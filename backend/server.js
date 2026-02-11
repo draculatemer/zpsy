@@ -1464,6 +1464,7 @@ app.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html><head>
 <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
+<meta name="facebook-domain-verification" content="mmgxqvywkcn38obhqg1g5j1cj3g7d8" />
 <title>ZapSpy.ai</title>
 </head><body>
 <h1>ZapSpy.ai API</h1>
