@@ -117,10 +117,17 @@ const ZapSpyTracking = {
     },
     
     /**
+     * Generate unique event ID for deduplication
+     */
+    generateEventId: function(eventName) {
+        return eventName + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    },
+    
+    /**
      * Track AddToCart event (used before checkout)
      */
     trackAddToCart: function(value = 49.00, currency = 'USD') {
-        this.trackEvent('AddToCart', {
+        this.trackStandardEvent('AddToCart', {
             content_name: 'ZapSpy.ai VIP Access',
             content_category: 'Subscription',
             currency: currency,
@@ -134,14 +141,15 @@ const ZapSpyTracking = {
      * @param {Object} params - Event parameters
      */
     trackEvent: function(eventName, params = {}) {
-        // Meta Pixel
+        const eventId = this.generateEventId(eventName);
+        
         if (typeof fbq !== 'undefined') {
-            fbq('trackCustom', eventName, params);
+            fbq('trackCustom', eventName, params, { eventID: eventId });
         }
         
         // Console log for debugging (remove in production)
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.log('Track Event:', eventName, params);
+            console.log('Track Event:', eventName, params, 'eventID:', eventId);
         }
     },
     
@@ -151,8 +159,10 @@ const ZapSpyTracking = {
      * @param {Object} params - Event parameters
      */
     trackStandardEvent: function(eventName, params = {}) {
+        const eventId = this.generateEventId(eventName);
+        
         if (typeof fbq !== 'undefined') {
-            fbq('track', eventName, params);
+            fbq('track', eventName, params, { eventID: eventId });
         }
     }
 };

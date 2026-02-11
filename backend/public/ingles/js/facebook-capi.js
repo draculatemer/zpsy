@@ -139,9 +139,10 @@ const FacebookCAPI = {
                 fbc: userData.fbc,
                 fbp: userData.fbp,
                 eventSourceUrl: window.location.href,
+                funnelLanguage: 'en',
                 ...customData
             };
-            
+
             const response = await fetch(`${this.API_URL}/api/capi/event`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

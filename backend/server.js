@@ -1304,28 +1304,10 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             console.log(`New lead captured [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}${utm_source ? ` [UTM: ${utm_source}]` : ''}`);
         }
         
-        // Send Lead event to Facebook Conversions API (using correct pixels for language)
-        try {
-            await sendToFacebookCAPI('Lead', {
-                email: email,
-                phone: whatsapp,
-                firstName: name,
-                country: geoData.country_code,
-                city: geoData.city,
-                state: geoData.state,
-                gender: targetGender,
-                externalId: visitorId,
-                ip: ipAddress,
-                userAgent: ua,
-                fbc: fbc,
-                fbp: fbp
-            }, {
-                content_name: 'Lead Capture Form',
-                content_category: 'Lead'
-            }, pageUrl || referrer, null, { language: language });
-        } catch (capiError) {
-            console.error('CAPI Lead error (non-blocking):', capiError.message);
-        }
+        // NOTE: Lead CAPI event is already sent by the frontend (FacebookCAPI.trackEvent('Lead'))
+        // with proper eventID for deduplication. Sending another here with null eventID would cause duplicates.
+        // The /api/leads endpoint only stores the lead data now.
+        console.log(`📊 Lead stored. CAPI Lead event handled by frontend with deduplication.`);
         
         res.status(201).json({
             success: true,

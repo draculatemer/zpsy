@@ -134,6 +134,7 @@ const FacebookCAPI = {
                 fbc: userData.fbc,
                 fbp: userData.fbp,
                 eventSourceUrl: window.location.href,
+                funnelLanguage: 'en',
                 ...customData
             };
 
