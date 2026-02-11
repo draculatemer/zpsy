@@ -173,25 +173,17 @@
     
     window.addEventListener('beforeunload', function (e) {
         if (isProcessingPayment) {
-            e.preventDefault();
-            e.returnValue = '¡Tu pago está siendo procesado! Por favor no abandones esta página.';
-            return e.returnValue;
+            return undefined;
         }
         e.preventDefault();
         e.returnValue = '¿Estás seguro de que quieres salir? ¡Podrías perder tu descuento especial!';
         return e.returnValue;
     });
 
-    // ============================================
-    // LOADING OVERLAY ON CTA CLICK - DISABLED
-    // ============================================
-    // Loading overlay removed to avoid interfering with Monetizze 1-click processing
-    
     var ctaButtons = document.querySelectorAll('.btn-primary[data-upsell]');
     
     ctaButtons.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
-            // Just mark as processing for beforeunload warning
             isProcessingPayment = true;
         });
     });

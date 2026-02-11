@@ -418,32 +418,31 @@
     // ============================================
     // PREVENT ACCIDENTAL PAGE EXIT
     // ============================================
+    // IMPORTANT: Do NOT block navigation when payment is processing!
+    // After 1-click buy, Monetizze redirects to the next upsell page.
+    // If we block that redirect, the customer never sees UP2/UP3.
     let isProcessingPayment = false;
     
     window.addEventListener('beforeunload', function (e) {
+        // If payment is being processed, ALLOW navigation (Monetizze is redirecting to next upsell)
         if (isProcessingPayment) {
-            e.preventDefault();
-            e.returnValue = 'Your payment is being processed! Please do not leave this page.';
-            return e.returnValue;
+            return undefined;
         }
+        // Only warn if user tries to leave WITHOUT buying (accidental exit)
         e.preventDefault();
         e.returnValue = 'Are you sure you want to leave? You may lose your special discount!';
         return e.returnValue;
     });
 
     // ============================================
-    // LOADING OVERLAY ON CTA CLICK - DISABLED
+    // CTA CLICK HANDLER
     // ============================================
-    // Loading overlay removed to avoid interfering with Monetizze 1-click processing
-    // The overlay was potentially blocking the Monetizze iframe/popup
-    
     const ctaButtons = document.querySelectorAll('.btn-primary[data-upsell]');
     
     ctaButtons.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
-            // Just mark as processing for beforeunload warning
+            // Mark as processing so beforeunload allows Monetizze redirect
             isProcessingPayment = true;
-            // Don't show overlay - let Monetizze handle the UI
         });
     });
 
