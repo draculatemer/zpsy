@@ -4372,8 +4372,23 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
             
             // Check venda.status text for the REAL status
             const vendaStatus = (vendaData.status || '').toLowerCase();
+            // Also check tipoEvento.descricao for additional status info
+            const eventoDesc = (tipoEvento.descricao || '').toLowerCase();
+            const combinedStatus = `${vendaStatus} ${eventoDesc}`;
             
-            if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+            // Debug: log refund/chargeback detection
+            if (statusCode === '4' || statusCode === '8' || statusCode === '9' || 
+                combinedStatus.includes('chargeback') || combinedStatus.includes('devolvida') || 
+                combinedStatus.includes('reembolso') || combinedStatus.includes('disputa')) {
+                console.log(`🔴 REFUND/CHARGEBACK DETECTED - ID: ${transactionId}, statusCode: ${statusCode}, vendaStatus: "${vendaData.status}", eventoDesc: "${tipoEvento.descricao}", mappedStatus (before text check): ${mappedStatus}`);
+            }
+            
+            // Priority: Check for refund/chargeback FIRST (they override everything else)
+            if (combinedStatus.includes('chargeback') || combinedStatus.includes('disputa') || combinedStatus.includes('contestação') || combinedStatus.includes('contestacao')) {
+                mappedStatus = 'chargeback';
+            } else if (combinedStatus.includes('devolvida') || combinedStatus.includes('reembolso') || combinedStatus.includes('reembolsada') || combinedStatus.includes('refund')) {
+                mappedStatus = 'refunded';
+            } else if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
                 mappedStatus = 'cancelled';
             } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
                 mappedStatus = 'pending_payment';
@@ -4556,13 +4571,35 @@ async function runRefundBackfill() {
     }
 }
 
+async function runDeepSync() {
+    // Deep sync: fetch last 30 days to catch all refunds/chargebacks that may have been missed
+    try {
+        const consumerKey = process.env.MONETIZZE_CONSUMER_KEY;
+        if (!consumerKey) return;
+        
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+        const endDate = today.toISOString().split('T')[0];
+        
+        console.log(`🔍 Deep sync starting (last 30 days: ${startDate} to ${endDate})...`);
+        const result = await syncMonetizzeSalesCore(startDate, endDate);
+        console.log(`✅ Deep sync complete: ${result.synced} new/updated, ${result.skipped} skipped, ${result.total} total`);
+    } catch (error) {
+        console.error('❌ Deep sync error:', error.message);
+    }
+}
+
 function startAutoSync() {
-    // Run first sync 30 seconds after server start (let DB initialize first)
+    // Run first deep sync 30 seconds after server start (fetch last 30 days)
     setTimeout(async () => {
-        await runAutoSync();
-        // Backfill any missing refund_requests after sync
+        // First: deep sync last 30 days to catch all refunds/chargebacks
+        await runDeepSync();
+        // Then: backfill any missing refund_requests from transactions table
         await runRefundBackfill();
-        // Then run every 30 minutes
+        // Regular sync every 30 minutes (just yesterday + today)
         autoSyncInterval = setInterval(runAutoSync, 30 * 60 * 1000);
         console.log('🔄 Auto-sync scheduled: every 30 minutes');
     }, 30000);
@@ -4808,8 +4845,16 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
                 
                 // Check venda.status text for the REAL status
                 const vendaStatus = (vendaData.status || '').toLowerCase();
+                // Also check tipoEvento.descricao for additional status info
+                const eventoDesc = (tipoEvento.descricao || '').toLowerCase();
+                const combinedStatus = `${vendaStatus} ${eventoDesc}`;
                 
-                if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
+                // Priority: Check for refund/chargeback FIRST (they override everything else)
+                if (combinedStatus.includes('chargeback') || combinedStatus.includes('disputa') || combinedStatus.includes('contestação') || combinedStatus.includes('contestacao')) {
+                    mappedStatus = 'chargeback';
+                } else if (combinedStatus.includes('devolvida') || combinedStatus.includes('reembolso') || combinedStatus.includes('reembolsada') || combinedStatus.includes('refund')) {
+                    mappedStatus = 'refunded';
+                } else if (vendaStatus.includes('cancelada') || vendaStatus.includes('cancel')) {
                     mappedStatus = 'cancelled';
                 } else if (vendaStatus.includes('aguardando') || vendaStatus.includes('pending')) {
                     mappedStatus = 'pending_payment';
