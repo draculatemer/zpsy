@@ -8458,7 +8458,10 @@ Obrigado pela compreensão.`
                 const usd = s.total_value_usd_approx != null ? parseFloat(s.total_value_usd_approx) : 0;
                 document.getElementById('pixelSalesPeriod').textContent = brl > 0 ? `R$ ${brl.toFixed(0)} · ≈ $${usd.toFixed(0)} USD` : 'R$ 0';
                 
-                const txRes = await fetch(`${API_URL}/api/admin/transactions?limit=20`, { headers });
+                // Fetch CAPI events filtered by language (same filter as quality data)
+                let txUrl = `${API_URL}/api/admin/transactions?limit=20`;
+                if (langParam) txUrl += `&language=${langParam}`;
+                const txRes = await fetch(txUrl, { headers });
                 const txData = await txRes.json();
                 const transactions = txData.transactions || [];
                 document.getElementById('capiEventsCount').textContent = `${transactions.length} eventos`;
