@@ -5233,11 +5233,11 @@ function startAutoSync() {
         await runRefundBackfill();
         // Step 5: Run diagnostic to see what's in the DB
         await runDiagnosticLog();
-        // Regular sync every 30 minutes (just yesterday + today)
-        autoSyncInterval = setInterval(runAutoSync, 30 * 60 * 1000);
+        // Regular sync every 5 minutes (just yesterday + today) - near real-time
+        autoSyncInterval = setInterval(runAutoSync, 5 * 60 * 1000);
         // Re-check approved transactions every 6 hours for status changes
         setInterval(recheckApprovedTransactions, 6 * 60 * 60 * 1000);
-        console.log('🔄 Auto-sync scheduled: every 30 minutes | Re-check: every 6 hours');
+        console.log('🔄 Auto-sync scheduled: every 5 minutes | Re-check: every 6 hours');
     }, 30000);
 }
 
