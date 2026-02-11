@@ -4771,12 +4771,14 @@ app.all('/api/postback/monetizze', async (req, res) => {
         
         // IMPORTANT: Check if sale is actually finalized
         // Monetizze can send status='2' (Finalizada) but without valid dataFinalizada
-        // Check dataFinalizada - if it's "0000-00-00" or empty, it's not finalized
-        const dataFinalizada = venda.dataFinalizada || '';
+        // Use dataFinalizadaRaw (which has flat-format fallbacks) instead of venda.dataFinalizada
+        const dataFinalizada = dataFinalizadaRaw || '';
         const isFinalized = dataFinalizada && 
                            dataFinalizada !== '0000-00-00 00:00:00' && 
                            dataFinalizada !== '0000-00-00' &&
                            !dataFinalizada.startsWith('0000-00-00');
+        
+        console.log('🔍 Purchase check:', { statusStr, isFinalized, dataFinalizada: dataFinalizada || '(empty)', dataFinalizadaRaw: dataFinalizadaRaw || '(null)' });
         
         // Check venda.status text for the REAL status
         const vendaStatus = (venda.status || '').toLowerCase();
@@ -5143,16 +5145,15 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_pending`, capiOptions);
             }
             
-            // Status 2 or 6 = Aprovada/Completa -> Purchase event
-            // BUT ONLY if dataFinalizada is valid (not "0000-00-00")
-            if ((statusStr === '2' || statusStr === '6') && isFinalized) {
-                console.log(`📤 Sending Purchase to Facebook CAPI (${funnelLanguage}) - payment confirmed...`);
+            // Status 2 or 6 = Aprovada/Completa -> ALWAYS send Purchase event
+            // Status 2 = Finalizada (approved), Status 6 = Completa (complete)
+            // These statuses already mean payment was confirmed by Monetizze
+            if (statusStr === '2' || statusStr === '6') {
+                if (!isFinalized) {
+                    console.log(`⚠️ Status ${statusStr} but dataFinalizada invalid (${dataFinalizada || 'empty'}) - sending Purchase anyway (status confirms payment)`);
+                }
+                console.log(`📤 Sending Purchase to Facebook CAPI (${funnelLanguage}) - payment confirmed (status ${statusStr})...`);
                 await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_purchase`, capiOptions);
-            } else if (statusStr === '2' && !isFinalized) {
-                // Status 2 but no valid dataFinalizada = still pending payment
-                console.log('⏸️ Skipping Purchase event - payment not yet confirmed (invalid dataFinalizada)');
-                console.log(`📤 Sending InitiateCheckout instead (${funnelLanguage})...`);
-                await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_awaiting`, capiOptions);
             }
             
             // Status 3 = Cancelled -> Send custom Cancel event
