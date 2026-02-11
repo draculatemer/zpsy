@@ -4606,6 +4606,69 @@ async function runDeepSync() {
     }
 }
 
+async function runDiagnosticLog() {
+    try {
+        console.log('\n========== 🔍 REFUND DIAGNOSTIC LOG ==========');
+        
+        const txStatus = await pool.query('SELECT status, COUNT(*) as count FROM transactions GROUP BY status ORDER BY count DESC');
+        console.log('📊 Transactions by status:', JSON.stringify(txStatus.rows));
+        
+        const refReq = await pool.query('SELECT refund_type, source, status, COUNT(*) as count FROM refund_requests GROUP BY refund_type, source, status ORDER BY count DESC');
+        console.log('📊 Refund requests:', JSON.stringify(refReq.rows));
+        
+        // Check all unique status combos from Monetizze raw data
+        const distinctStatuses = await pool.query(`
+            SELECT raw_data->'venda'->>'status' as venda_status, 
+                   raw_data->'tipoEvento'->>'codigo' as evento_codigo,
+                   raw_data->'tipoEvento'->>'descricao' as evento_descricao,
+                   COUNT(*) as count
+            FROM transactions WHERE raw_data IS NOT NULL
+            GROUP BY raw_data->'venda'->>'status', raw_data->'tipoEvento'->>'codigo', raw_data->'tipoEvento'->>'descricao'
+            ORDER BY count DESC
+        `);
+        console.log('📊 Distinct API statuses:', JSON.stringify(distinctStatuses.rows));
+        
+        // Broad search for refund keywords in ALL raw_data (cast to text)
+        const broadSearch = await pool.query(`
+            SELECT transaction_id, email, status, monetizze_status,
+                   raw_data->'venda'->>'status' as venda_status_text,
+                   raw_data->'tipoEvento'->>'codigo' as evento_codigo,
+                   raw_data->'tipoEvento'->>'descricao' as evento_descricao
+            FROM transactions 
+            WHERE LOWER(CAST(raw_data AS text)) LIKE '%devolv%'
+               OR LOWER(CAST(raw_data AS text)) LIKE '%chargeback%'
+               OR LOWER(CAST(raw_data AS text)) LIKE '%reembolso%'
+               OR monetizze_status IN ('4', '8', '9')
+            LIMIT 20
+        `);
+        console.log('📊 Broad refund search results:', broadSearch.rows.length, 'found');
+        if (broadSearch.rows.length > 0) {
+            broadSearch.rows.forEach(r => console.log(`  🔴 ${r.transaction_id} | status: ${r.status} | monetizze: ${r.monetizze_status} | venda: ${r.venda_status_text} | evento: ${r.evento_codigo}/${r.evento_descricao}`));
+        }
+        
+        // Check specific Monetizze IDs from the screenshot (5580, 5579, 5578, 5577, 5576)
+        const specific = await pool.query(`
+            SELECT transaction_id, email, status, monetizze_status
+            FROM transactions
+            WHERE transaction_id IN ('55803165', '55799093', '55785981', '55781116', '55781107', '55780560', '55779651', '55778218', '55777545', '55777542', '55777539', '55777537', '55764031')
+        `);
+        console.log('📊 Specific Monetizze IDs check:', specific.rows.length > 0 ? JSON.stringify(specific.rows) : 'NONE FOUND - these transactions are NOT in our DB');
+        
+        // Sample of cancelled transactions
+        const cancelled = await pool.query(`
+            SELECT transaction_id, email, monetizze_status,
+                   raw_data->'venda'->>'status' as venda_status_text,
+                   raw_data->'tipoEvento'->>'descricao' as evento_descricao
+            FROM transactions WHERE status = 'cancelled' ORDER BY created_at DESC LIMIT 5
+        `);
+        console.log('📊 Recent cancelled sample:', JSON.stringify(cancelled.rows));
+        
+        console.log('========== END DIAGNOSTIC ==========\n');
+    } catch (error) {
+        console.error('Diagnostic error:', error.message);
+    }
+}
+
 function startAutoSync() {
     // Run first deep sync 30 seconds after server start (fetch last 30 days)
     setTimeout(async () => {
@@ -4613,6 +4676,8 @@ function startAutoSync() {
         await runDeepSync();
         // Then: backfill any missing refund_requests from transactions table
         await runRefundBackfill();
+        // Run diagnostic to see what's in the DB
+        await runDiagnosticLog();
         // Regular sync every 30 minutes (just yesterday + today)
         autoSyncInterval = setInterval(runAutoSync, 30 * 60 * 1000);
         console.log('🔄 Auto-sync scheduled: every 30 minutes');
