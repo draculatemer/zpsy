@@ -271,5 +271,12 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="../js/facebook-capi.js"></script>
+    <script>
+        if (typeof FacebookCAPI !== 'undefined') {
+            FacebookCAPI.init('Refund Page');
+            FacebookCAPI.trackViewContent('Refund Page', 'Funnel - Refund', 49);
+        }
+    </script>
 </body>
 </html>

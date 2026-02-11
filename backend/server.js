@@ -4760,6 +4760,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                            dataFinalizada !== '0000-00-00' &&
                            !dataFinalizada.startsWith('0000-00-00');
         
+        const statusStr = String(statusCode);
         console.log('🔍 Purchase check:', { statusStr, isFinalized, dataFinalizada: dataFinalizada || '(empty)', dataFinalizadaRaw: dataFinalizadaRaw || '(null)' });
         
         // Check venda.status text for the REAL status
@@ -5110,7 +5111,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
         const eventId = `monetizze_${chave_unica}_${statusCode}`;
         
         try {
-            const statusStr = String(statusCode);
+            // statusStr already defined above (before isFinalized check)
             
             // Options with language for correct pixel selection
             const capiOptions = { language: funnelLanguage };
