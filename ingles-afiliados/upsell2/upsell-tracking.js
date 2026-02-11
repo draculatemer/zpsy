@@ -53,6 +53,14 @@ const UpsellTracker = {
         return utms;
     },
     
+    // Get Facebook IDs for CAPI attribution (fbc/fbp)
+    getFacebookIds: function() {
+        if (typeof FacebookCAPI !== 'undefined') {
+            return { fbc: FacebookCAPI.getFbc(), fbp: FacebookCAPI.getFbp() };
+        }
+        return { fbc: localStorage.getItem('_fbc') || null, fbp: localStorage.getItem('_fbp') || null };
+    },
+    
     // Track an event
     track: function(event, metadata = {}) {
         const visitorId = this.getVisitorId();
@@ -61,6 +69,7 @@ const UpsellTracker = {
         const page = window.location.pathname;
         const timeOnPage = Math.round((Date.now() - this.pageLoadTime) / 1000);
         const utms = this.getUTMs();
+        const fbIds = this.getFacebookIds();
         
         const data = {
             visitorId,
@@ -70,6 +79,8 @@ const UpsellTracker = {
             targetGender,
             funnelLanguage: 'en',
             funnelSource: 'affiliate',
+            fbc: fbIds.fbc,
+            fbp: fbIds.fbp,
             metadata: {
                 ...metadata,
                 ...utms, // Include UTMs in metadata
@@ -189,12 +200,15 @@ const UpsellTracker = {
         if (!event) return;
         
         // Build data payload
+        const fbIds = this.getFacebookIds();
         const data = {
             visitorId: this.getVisitorId(),
             event: event,
             page: window.location.pathname,
             targetPhone: localStorage.getItem('targetPhone') || null,
             targetGender: localStorage.getItem('targetGender') || null,
+            fbc: fbIds.fbc,
+            fbp: fbIds.fbp,
             metadata: {
                 action: 'buy_clicked',
                 url: window.location.href,

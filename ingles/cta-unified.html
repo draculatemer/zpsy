@@ -2456,6 +2456,19 @@
                 checkoutUrl += '&vid=' + encodeURIComponent(visitorId);
             }
             
+            // Pass Facebook IDs for CAPI attribution (fallback if lead matching fails)
+            const checkoutFbc = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbc() : localStorage.getItem('_fbc');
+            const checkoutFbp = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbp() : localStorage.getItem('_fbp');
+            if (checkoutFbc) {
+                checkoutUrl += '&zs_fbc=' + encodeURIComponent(checkoutFbc);
+                // Also pass raw fbclid for maximum compatibility
+                const fbclidMatch = checkoutFbc.match(/\.([^.]+)$/);
+                if (fbclidMatch && fbclidMatch[1]) {
+                    checkoutUrl += '&fbclid=' + encodeURIComponent(fbclidMatch[1]);
+                }
+            }
+            if (checkoutFbp) checkoutUrl += '&zs_fbp=' + encodeURIComponent(checkoutFbp);
+            
             // Add user data from localStorage to pre-fill Monetizze checkout
             const userName = localStorage.getItem('userName');
             const userEmail = localStorage.getItem('userEmail');

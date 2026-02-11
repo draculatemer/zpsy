@@ -36,6 +36,14 @@ const FunnelTracker = {
         return utms;
     },
     
+    // Get Facebook IDs for CAPI attribution (fbc/fbp)
+    getFacebookIds: function() {
+        if (typeof FacebookCAPI !== 'undefined') {
+            return { fbc: FacebookCAPI.getFbc(), fbp: FacebookCAPI.getFbp() };
+        }
+        return { fbc: localStorage.getItem('_fbc') || null, fbp: localStorage.getItem('_fbp') || null };
+    },
+    
     // Track an event
     track: function(event, metadata = {}) {
         const visitorId = this.getVisitorId();
@@ -43,6 +51,7 @@ const FunnelTracker = {
         const targetGender = localStorage.getItem('targetGender') || null;
         const page = window.location.pathname.split('/').pop() || 'index';
         const utms = this.getUTMs();
+        const fbIds = this.getFacebookIds();
         
         const data = {
             visitorId,
@@ -52,6 +61,8 @@ const FunnelTracker = {
             targetGender,
             funnelLanguage: 'en',
             funnelSource: 'main',
+            fbc: fbIds.fbc,
+            fbp: fbIds.fbp,
             metadata: {
                 ...metadata,
                 ...utms, // Include UTMs in metadata

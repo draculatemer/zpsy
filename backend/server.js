@@ -3276,6 +3276,8 @@ app.post('/api/track', async (req, res) => {
             targetGender,
             funnelLanguage,  // 'en' or 'es'
             funnelSource,    // 'main' or 'affiliate'
+            fbc,             // Facebook Click ID (for CAPI attribution)
+            fbp,             // Facebook Browser ID (for CAPI attribution)
             metadata
         } = req.body;
         
@@ -3296,9 +3298,9 @@ app.post('/api/track', async (req, res) => {
         };
         
         await pool.query(
-            `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, metadata, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-            [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, JSON.stringify(enrichedMetadata)]
+            `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, metadata, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+            [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, JSON.stringify(enrichedMetadata)]
         );
         
         res.json({ success: true, language });
@@ -6349,44 +6351,180 @@ app.all('/api/postback/monetizze', async (req, res) => {
         
         // ==================== FACEBOOK CONVERSIONS API EVENTS ====================
         
+        // Extract custom tracking params from postback (passed via checkout URL)
+        // Monetizze may return these as venda.src, body.vid, UTM params, or flat fields
+        const postbackVid = body.vid || venda.vid || body['venda.vid'] || body['venda[vid]'] || 
+                           body.zs_vid || venda.zs_vid || null;
+        const postbackFbc = body.zs_fbc || venda.zs_fbc || body['venda.zs_fbc'] || body['venda[zs_fbc]'] || null;
+        const postbackFbp = body.zs_fbp || venda.zs_fbp || body['venda.zs_fbp'] || body['venda[zs_fbp]'] || null;
+        
+        // Also try to extract vid from UTM fields (Monetizze sometimes maps custom params to UTM fields)
+        const utmSource = body.utm_source || venda.utm_source || body['venda.utm_source'] || null;
+        const utmContent = body.utm_content || venda.utm_content || body['venda.utm_content'] || null;
+        // vid might be passed inside src field as a composite
+        const srcField = venda.src || body.src || body['venda.src'] || body['venda[src]'] || '';
+        const vidFromSrc = srcField.includes('vid=') ? new URLSearchParams(srcField.split('?').pop()).get('vid') : null;
+        
+        const resolvedVid = postbackVid || vidFromSrc || null;
+        
+        if (resolvedVid || postbackFbc || postbackFbp) {
+            console.log(`📊 CAPI: Custom tracking params from postback: vid=${resolvedVid || 'none'}, fbc=${postbackFbc ? 'Yes' : 'No'}, fbp=${postbackFbp ? 'Yes' : 'No'}`);
+        }
+        
         // Try to get enriched data from the lead record (IP, userAgent, fbc, fbp, country, city)
         // Quality score depends heavily on fbc, fbp, ip, user_agent - we need the lead to have them
+        // ENHANCED: 5-level fallback matching for maximum attribution coverage
         let leadData = null;
+        let matchMethod = 'none';
         const emailForCAPI = finalEmail || buyerEmail;
-        if (emailForCAPI) {
-            try {
-                let leadResult = await pool.query(
+        
+        try {
+            // ===== LEVEL 1: Match by email in leads table =====
+            if (emailForCAPI) {
+                const leadResult = await pool.query(
                     `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                      FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                     [emailForCAPI]
                 );
-                // Fallback: if no lead by email, try by phone (buyer may have used different email at checkout)
-                if (leadResult.rows.length === 0 && buyerPhone) {
-                    const digitsOnly = (s) => (s || '').replace(/\D/g, '');
-                    const buyerDigits = digitsOnly(buyerPhone);
-                    if (buyerDigits.length >= 10) {
-                        leadResult = await pool.query(
-                            `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
-                             FROM leads 
-                             WHERE REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') = $1 
-                                OR REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') LIKE $2 
-                             ORDER BY created_at DESC LIMIT 1`,
-                            [buyerDigits, '%' + buyerDigits.slice(-10)]
-                        );
-                        if (leadResult.rows.length > 0) {
-                            console.log(`📊 CAPI: Lead found by phone fallback (email had no match)`);
-                        }
-                    }
-                }
                 if (leadResult.rows.length > 0) {
                     leadData = leadResult.rows[0];
-                    console.log(`📊 Found lead data for CAPI enrichment: IP=${leadData.ip_address ? 'Yes' : 'No'}, UA=${leadData.user_agent ? 'Yes' : 'No'}, fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, Country=${leadData.country_code || 'No'}, Gender=${leadData.target_gender || 'No'}, VisitorID=${leadData.visitor_id || 'No'}`);
-                } else {
-                    console.log(`📊 No lead found for CAPI (email/phone). Purchase/Checkout will be sent with fewer parameters - quality score may be lower.`);
+                    matchMethod = 'email';
                 }
-            } catch (leadErr) {
-                console.error('⚠️ Error fetching lead data for CAPI:', leadErr.message);
             }
+            
+            // ===== LEVEL 2: Match by phone in leads table =====
+            if (!leadData && buyerPhone) {
+                const digitsOnly = (s) => (s || '').replace(/\D/g, '');
+                const buyerDigits = digitsOnly(buyerPhone);
+                if (buyerDigits.length >= 10) {
+                    const phoneResult = await pool.query(
+                        `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                         FROM leads 
+                         WHERE REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') = $1 
+                            OR REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') LIKE $2 
+                         ORDER BY created_at DESC LIMIT 1`,
+                        [buyerDigits, '%' + buyerDigits.slice(-10)]
+                    );
+                    if (phoneResult.rows.length > 0) {
+                        leadData = phoneResult.rows[0];
+                        matchMethod = 'phone';
+                    }
+                }
+            }
+            
+            // ===== LEVEL 3: Match by visitor_id in leads table =====
+            if (!leadData && resolvedVid) {
+                const vidLeadResult = await pool.query(
+                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                     FROM leads WHERE visitor_id = $1 ORDER BY created_at DESC LIMIT 1`,
+                    [resolvedVid]
+                );
+                if (vidLeadResult.rows.length > 0) {
+                    leadData = vidLeadResult.rows[0];
+                    matchMethod = 'visitor_id_lead';
+                }
+            }
+            
+            // ===== LEVEL 4: Match by visitor_id in funnel_events (get fbc/fbp from page visits) =====
+            if (!leadData && resolvedVid) {
+                const vidEventResult = await pool.query(
+                    `SELECT ip_address, user_agent, fbc, fbp 
+                     FROM funnel_events 
+                     WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                     ORDER BY created_at DESC LIMIT 1`,
+                    [resolvedVid]
+                );
+                if (vidEventResult.rows.length > 0) {
+                    const eventRow = vidEventResult.rows[0];
+                    leadData = {
+                        ip_address: eventRow.ip_address,
+                        user_agent: eventRow.user_agent,
+                        fbc: eventRow.fbc,
+                        fbp: eventRow.fbp,
+                        country_code: null, city: null, state: null,
+                        name: buyerName, target_gender: null,
+                        whatsapp: buyerPhone, visitor_id: resolvedVid,
+                        funnel_language: funnelLanguage, referrer: null
+                    };
+                    matchMethod = 'visitor_id_events';
+                }
+            }
+            
+            // ===== LEVEL 5: Match by IP address in funnel_events (last 48h) =====
+            if (!leadData) {
+                const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+                // Only try IP matching if we have a real IP (not localhost)
+                if (clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+                    // Try to find a recent funnel event from the same IP
+                    const ipEventResult = await pool.query(
+                        `SELECT ip_address, user_agent, fbc, fbp, visitor_id 
+                         FROM funnel_events 
+                         WHERE ip_address = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                         AND created_at > NOW() - INTERVAL '48 hours'
+                         ORDER BY created_at DESC LIMIT 1`,
+                        [clientIp]
+                    );
+                    if (ipEventResult.rows.length > 0) {
+                        const eventRow = ipEventResult.rows[0];
+                        leadData = {
+                            ip_address: eventRow.ip_address,
+                            user_agent: eventRow.user_agent,
+                            fbc: eventRow.fbc,
+                            fbp: eventRow.fbp,
+                            country_code: null, city: null, state: null,
+                            name: buyerName, target_gender: null,
+                            whatsapp: buyerPhone, visitor_id: eventRow.visitor_id,
+                            funnel_language: funnelLanguage, referrer: null
+                        };
+                        matchMethod = 'ip_events';
+                    }
+                }
+            }
+            
+            // ===== LEVEL 6: Use fbc/fbp from checkout URL params (passed via Monetizze) =====
+            if (!leadData && (postbackFbc || postbackFbp)) {
+                leadData = {
+                    ip_address: null,
+                    user_agent: null,
+                    fbc: postbackFbc,
+                    fbp: postbackFbp,
+                    country_code: null, city: null, state: null,
+                    name: buyerName, target_gender: null,
+                    whatsapp: buyerPhone, visitor_id: resolvedVid,
+                    funnel_language: funnelLanguage, referrer: null
+                };
+                matchMethod = 'postback_params';
+            }
+            
+            // ===== ENRICHMENT: If lead found but missing fbc/fbp, try to fill from other sources =====
+            if (leadData && (!leadData.fbc || !leadData.fbp)) {
+                // Try postback params first
+                if (!leadData.fbc && postbackFbc) leadData.fbc = postbackFbc;
+                if (!leadData.fbp && postbackFbp) leadData.fbp = postbackFbp;
+                
+                // Try funnel_events by visitor_id
+                if ((!leadData.fbc || !leadData.fbp) && leadData.visitor_id) {
+                    const enrichResult = await pool.query(
+                        `SELECT fbc, fbp FROM funnel_events 
+                         WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                         ORDER BY created_at DESC LIMIT 1`,
+                        [leadData.visitor_id]
+                    );
+                    if (enrichResult.rows.length > 0) {
+                        if (!leadData.fbc && enrichResult.rows[0].fbc) leadData.fbc = enrichResult.rows[0].fbc;
+                        if (!leadData.fbp && enrichResult.rows[0].fbp) leadData.fbp = enrichResult.rows[0].fbp;
+                        console.log(`📊 CAPI: Enriched lead with fbc/fbp from funnel_events (visitor_id: ${leadData.visitor_id})`);
+                    }
+                }
+            }
+            
+            if (leadData) {
+                console.log(`📊 CAPI: Lead matched via [${matchMethod}] - IP=${leadData.ip_address ? 'Yes' : 'No'}, UA=${leadData.user_agent ? 'Yes' : 'No'}, fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, Country=${leadData.country_code || 'No'}, Gender=${leadData.target_gender || 'No'}, VisitorID=${leadData.visitor_id || 'No'}`);
+            } else {
+                console.log(`📊 CAPI: No lead found after all 6 fallback levels. Purchase will be sent with minimal parameters.`);
+            }
+        } catch (leadErr) {
+            console.error('⚠️ Error fetching lead data for CAPI:', leadErr.message);
         }
         
         // User data for Facebook CAPI - enriched with lead data (more params = better match quality)
@@ -6500,6 +6638,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 
                 console.log(`📤 PURCHASE CAPI DEBUG:`, {
                     ...purchaseAttrData,
+                    matchMethod,
                     eventSourceUrl,
                     value: fbCustomData.value,
                     currency: fbCustomData.currency,
@@ -6529,8 +6668,8 @@ app.all('/api/postback/monetizze', async (req, res) => {
                             pixel_id, pixel_name,
                             has_email, has_fbc, has_fbp, has_ip, has_user_agent,
                             has_external_id, has_country, has_phone, lead_found,
-                            capi_success, capi_response, fb_events_received
-                        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+                            capi_success, capi_response, fb_events_received, match_method
+                        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
                     `, [
                         chave_unica, emailForCAPI, productName,
                         fbCustomData.value, fbCustomData.currency,
@@ -6540,7 +6679,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                         purchaseAttrData.hasIp, purchaseAttrData.hasUa,
                         purchaseAttrData.hasExternalId, purchaseAttrData.hasCountry,
                         purchaseAttrData.hasPhone, purchaseAttrData.leadFound,
-                        capiSuccess, JSON.stringify(purchaseResults), fbEventsReceived
+                        capiSuccess, JSON.stringify(purchaseResults), fbEventsReceived, matchMethod
                     ]);
                 } catch (logErr) {
                     console.error('Error saving purchase CAPI log:', logErr.message);
@@ -6609,7 +6748,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
         }
         
         // Summary log for easy tracking in Railway
-        console.log(`📋 POSTBACK SUMMARY: tx=${chave_unica} | email=${finalEmail || 'none'} | status=${statusStr} (${mappedStatus}) | product=${productName} | value=R$${transactionValue} | lang=${funnelLanguage} | source=${funnelSource} | CAPI_Purchase=${statusStr === '2' || statusStr === '6' ? 'YES' : 'NO'} | CAPI_IC=${statusStr === '1' || statusStr === '7' ? 'YES' : 'NO'}`);
+        console.log(`📋 POSTBACK SUMMARY: tx=${chave_unica} | email=${finalEmail || 'none'} | status=${statusStr} (${mappedStatus}) | product=${productName} | value=R$${transactionValue} | lang=${funnelLanguage} | source=${funnelSource} | match=${matchMethod} | CAPI_Purchase=${statusStr === '2' || statusStr === '6' ? 'YES' : 'NO'} | CAPI_IC=${statusStr === '1' || statusStr === '7' ? 'YES' : 'NO'}`);
         
         // Return success (Monetizze expects 200 OK)
         res.status(200).send('OK');
@@ -8901,10 +9040,18 @@ async function initDatabase() {
             );
         `);
         
+        // Add fbc/fbp columns to funnel_events for CAPI attribution matching
+        await pool.query(`ALTER TABLE funnel_events ADD COLUMN IF NOT EXISTS fbc VARCHAR(255);`);
+        await pool.query(`ALTER TABLE funnel_events ADD COLUMN IF NOT EXISTS fbp VARCHAR(255);`);
+        
+        // Add match_method column to capi_purchase_logs for attribution monitoring
+        await pool.query(`ALTER TABLE capi_purchase_logs ADD COLUMN IF NOT EXISTS match_method VARCHAR(50);`);
+        
         // Create indexes for funnel_events
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_visitor ON funnel_events(visitor_id);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_event ON funnel_events(event);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_created ON funnel_events(created_at DESC);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_ip ON funnel_events(ip_address);`);
         
         // Create indexes for leads
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);`);

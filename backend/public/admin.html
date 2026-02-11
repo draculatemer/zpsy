@@ -8710,6 +8710,11 @@ Obrigado pela compreensão.`
                     if (log.has_user_agent) attrs.push('<span style="background: #22c55e20; color: #22c55e; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600;">UA</span>');
                     if (log.has_email) attrs.push('<span style="background: #22c55e20; color: #22c55e; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600;">EM</span>');
                     if (log.lead_found) attrs.push('<span style="background: #3b82f620; color: #3b82f6; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600;">LEAD</span>');
+                    if (log.match_method) {
+                        const methodColors = { email: '#22c55e', phone: '#f59e0b', visitor_id_lead: '#8b5cf6', visitor_id_events: '#6366f1', ip_events: '#f97316', postback_params: '#06b6d4', none: '#ef4444' };
+                        const mColor = methodColors[log.match_method] || '#94a3b8';
+                        attrs.push(`<span style="background: ${mColor}20; color: ${mColor}; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600;" title="Match: ${log.match_method}">${log.match_method.replace('_', ' ').toUpperCase().slice(0, 8)}</span>`);
+                    }
                     
                     // CAPI status
                     let capiStatus;
