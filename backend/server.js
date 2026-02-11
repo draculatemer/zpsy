@@ -6915,6 +6915,31 @@ app.all('/api/postback/monetizze', async (req, res) => {
             }
         }
         
+        // ==================== EXTRACT TRACKING PARAMS (before transaction save) ====================
+        // Extract custom tracking params from postback (passed via checkout URL)
+        // Monetizze may return these as venda.src, body.vid, UTM params, or flat fields
+        const postbackVid = body.vid || venda.vid || body['venda.vid'] || body['venda[vid]'] || 
+                           body.zs_vid || venda.zs_vid || null;
+        let postbackFbc = body.zs_fbc || venda.zs_fbc || body['venda.zs_fbc'] || body['venda[zs_fbc]'] || null;
+        const postbackFbp = body.zs_fbp || venda.zs_fbp || body['venda.zs_fbp'] || body['venda[zs_fbp]'] || null;
+        
+        // Build fbc from fbclid if zs_fbc not available
+        if (!postbackFbc) {
+            const postbackFbclid = body.fbclid || venda.fbclid || body['venda.fbclid'] || body['venda[fbclid]'] || null;
+            if (postbackFbclid) {
+                postbackFbc = `fb.1.${Date.now()}.${postbackFbclid}`;
+            }
+        }
+        
+        // Also try to extract vid from UTM fields (Monetizze sometimes maps custom params to UTM fields)
+        const utmSource = body.utm_source || venda.utm_source || body['venda.utm_source'] || null;
+        const utmContent = body.utm_content || venda.utm_content || body['venda.utm_content'] || null;
+        // vid might be passed inside src field as a composite
+        const srcField = venda.src || body.src || body['venda.src'] || body['venda[src]'] || '';
+        const vidFromSrc = srcField.includes('vid=') ? new URLSearchParams(srcField.split('?').pop()).get('vid') : null;
+        
+        const resolvedVid = postbackVid || vidFromSrc || null;
+        
         // Store transaction in database with funnel_language and funnel_source
         try {
             await pool.query(`
@@ -7015,30 +7040,6 @@ app.all('/api/postback/monetizze', async (req, res) => {
         }
         
         // ==================== FACEBOOK CONVERSIONS API EVENTS ====================
-        
-        // Extract custom tracking params from postback (passed via checkout URL)
-        // Monetizze may return these as venda.src, body.vid, UTM params, or flat fields
-        const postbackVid = body.vid || venda.vid || body['venda.vid'] || body['venda[vid]'] || 
-                           body.zs_vid || venda.zs_vid || null;
-        let postbackFbc = body.zs_fbc || venda.zs_fbc || body['venda.zs_fbc'] || body['venda[zs_fbc]'] || null;
-        const postbackFbp = body.zs_fbp || venda.zs_fbp || body['venda.zs_fbp'] || body['venda[zs_fbp]'] || null;
-        
-        // Build fbc from fbclid if zs_fbc not available
-        if (!postbackFbc) {
-            const postbackFbclid = body.fbclid || venda.fbclid || body['venda.fbclid'] || body['venda[fbclid]'] || null;
-            if (postbackFbclid) {
-                postbackFbc = `fb.1.${Date.now()}.${postbackFbclid}`;
-            }
-        }
-        
-        // Also try to extract vid from UTM fields (Monetizze sometimes maps custom params to UTM fields)
-        const utmSource = body.utm_source || venda.utm_source || body['venda.utm_source'] || null;
-        const utmContent = body.utm_content || venda.utm_content || body['venda.utm_content'] || null;
-        // vid might be passed inside src field as a composite
-        const srcField = venda.src || body.src || body['venda.src'] || body['venda[src]'] || '';
-        const vidFromSrc = srcField.includes('vid=') ? new URLSearchParams(srcField.split('?').pop()).get('vid') : null;
-        
-        const resolvedVid = postbackVid || vidFromSrc || null;
         
         if (resolvedVid || postbackFbc || postbackFbp) {
             console.log(`📊 CAPI: Custom tracking params from postback: vid=${resolvedVid || 'none'}, fbc=${postbackFbc ? 'Yes' : 'No'}, fbp=${postbackFbp ? 'Yes' : 'No'}`);
