@@ -2488,25 +2488,19 @@
         startCountdown();
         localStorage.setItem('funnelProgress', 'cta');
 
-        // Geolocation API
+        // Geolocation API (ipwho.is - free, no key needed, HTTPS)
         async function loadGeoLocation() {
             try {
-                const response = await fetch('https://ip-geo-location.p.rapidapi.com/ip/check?format=json&language=es', {
-                    method: 'GET',
-                    headers: {
-                        'x-rapidapi-host': 'ip-geo-location.p.rapidapi.com',
-                        'x-rapidapi-key': 'd03f07c7c6mshb0e213b53734dcbp1c2ccfjsnc7937b7aa611'
-                    }
-                });
+                const response = await fetch('https://ipwho.is/');
                 
                 const data = await response.json();
                 
-                if (data.status === 'success') {
-                    const lat = data.location.latitude;
-                    const lng = data.location.longitude;
-                    const city = data.city?.name || 'Desconocido';
-                    const country = data.country?.name || 'Desconocido';
-                    const area = data.area?.name || '';
+                if (data.success) {
+                    const lat = data.latitude;
+                    const lng = data.longitude;
+                    const city = data.city || 'Desconocido';
+                    const country = data.country || 'Desconocido';
+                    const area = data.region || '';
                     
                     const mapFrame = document.getElementById('mapFrame');
                     mapFrame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.02},${lat-0.015},${lng+0.02},${lat+0.015}&layer=mapnik&marker=${lat},${lng}`;
