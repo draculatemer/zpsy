@@ -114,7 +114,8 @@ function normalizeGender(gender) {
 // options.pixelIds: array of custom pixel IDs (from frontend)
 // options.accessToken: custom access token (from frontend)
 async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSourceUrl = null, eventId = null, options = {}) {
-    const timestamp = Math.floor(Date.now() / 1000);
+    // Use provided event_time (actual purchase time) or fallback to current time
+    const timestamp = options.eventTime ? Math.floor(new Date(options.eventTime).getTime() / 1000) : Math.floor(Date.now() / 1000);
     // Use provided eventId or generate one
     const finalEventId = eventId || `${eventName}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -6598,14 +6599,17 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 : 'https://ingles.zappdetect.com/';
         }
         
-        // Generate unique event_id for deduplication (transaction-based)
+        // Generate event_id for deduplication (transaction-based)
+        // For Purchase: use SAME event_id for status 2 and 6 to prevent Facebook counting twice
         const eventId = `monetizze_${chave_unica}_${statusCode}`;
+        const purchaseEventIdFixed = `monetizze_${chave_unica}_purchase`; // Status-agnostic for dedup
         
         try {
             // statusStr already defined above (before isFinalized check)
             
             // Options with language for correct pixel selection
-            const capiOptions = { language: funnelLanguage };
+            // Include actual sale time so Facebook gets the correct event_time
+            const capiOptions = { language: funnelLanguage, eventTime: saleDate || null };
             
             // Status 7 = Abandono de Checkout -> InitiateCheckout event
             if (statusStr === '7') {
@@ -6619,15 +6623,32 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_pending`, capiOptions);
             }
             
-            // Status 2 or 6 = Aprovada/Completa -> ALWAYS send Purchase event
+            // Status 2 or 6 = Aprovada/Completa -> Send Purchase event (with dedup check)
             // Status 2 = Finalizada (approved), Status 6 = Completa (complete)
             // These statuses already mean payment was confirmed by Monetizze
             if (statusStr === '2' || statusStr === '6') {
+                
+                // DEDUP CHECK: Skip if we already sent a Purchase for this transaction
+                let alreadySent = false;
+                try {
+                    const dupCheck = await pool.query(
+                        `SELECT id FROM capi_purchase_logs WHERE transaction_id = $1 AND capi_success = true LIMIT 1`,
+                        [chave_unica]
+                    );
+                    alreadySent = dupCheck.rows.length > 0;
+                } catch (dupErr) {
+                    // Non-blocking - if check fails, send anyway
+                }
+                
+                if (alreadySent) {
+                    console.log(`⚠️ CAPI: Purchase already sent for transaction ${chave_unica} (status ${statusStr}) - SKIPPING to avoid duplicate`);
+                } else {
+                
                 if (!isFinalized) {
                     console.log(`⚠️ Status ${statusStr} but dataFinalizada invalid (${dataFinalizada || 'empty'}) - sending Purchase anyway (status confirms payment)`);
                 }
                 
-                const purchaseEventId = `${eventId}_purchase`;
+                const purchaseEventId = purchaseEventIdFixed;
                 const purchaseAttrData = {
                     hasEmail: !!emailForCAPI,
                     hasFbc: !!(leadData?.fbc),
@@ -6688,6 +6709,7 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 } catch (logErr) {
                     console.error('Error saving purchase CAPI log:', logErr.message);
                 }
+            } // end else (alreadySent dedup check)
             }
             
             // Status 3 = Cancelled -> Send custom Cancel event
