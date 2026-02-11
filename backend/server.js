@@ -1152,7 +1152,10 @@ app.get('/api/admin/pixel-stats', authenticateToken, async (req, res) => {
 });
 
 // Database diagnostic endpoint (admin only)
-app.get('/api/health/db', authenticateToken, requireAdmin, async (req, res) => {
+app.get('/api/health/db', authenticateToken, (req, res, next) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied. Admin only.' });
+    next();
+}, async (req, res) => {
     try {
         const leadsCount = await pool.query('SELECT COUNT(*) FROM leads');
         const transactionsCount = await pool.query('SELECT COUNT(*) FROM transactions');
