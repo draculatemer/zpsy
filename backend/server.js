@@ -6066,6 +6066,15 @@ app.all('/api/postback/monetizze', async (req, res) => {
         
         const statusStr = String(statusCode);
         console.log('🔍 Purchase check:', { statusStr, isFinalized, dataFinalizada: dataFinalizada || '(empty)', dataFinalizadaRaw: dataFinalizadaRaw || '(null)' });
+        console.log('🔍 CAPI Decision:', { 
+            willSendPurchase: statusStr === '2' || statusStr === '6',
+            willSendInitiateCheckout: statusStr === '1' || statusStr === '7',
+            statusCode, statusStr, 
+            tipoEventoCodigo: tipoEvento.codigo || 'MISSING',
+            tipoEventoDesc: tipoEvento.descricao || 'MISSING',
+            bodyStatus: body.status || 'MISSING',
+            vendaStatus: venda.status || 'MISSING'
+        });
         
         // Check venda.status text for additional status info
         // IMPORTANT: NEVER override refunded/chargeback status with approved!
@@ -6583,6 +6592,9 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 console.error('Error registering refund:', refundError.message);
             }
         }
+        
+        // Summary log for easy tracking in Railway
+        console.log(`📋 POSTBACK SUMMARY: tx=${chave_unica} | email=${finalEmail || 'none'} | status=${statusStr} (${mappedStatus}) | product=${productName} | value=R$${transactionValue} | lang=${funnelLanguage} | source=${funnelSource} | CAPI_Purchase=${statusStr === '2' || statusStr === '6' ? 'YES' : 'NO'} | CAPI_IC=${statusStr === '1' || statusStr === '7' ? 'YES' : 'NO'}`);
         
         // Return success (Monetizze expects 200 OK)
         res.status(200).send('OK');
