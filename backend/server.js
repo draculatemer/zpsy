@@ -61,7 +61,7 @@ function getPixelsForLanguage(language, customPixelIds = null, customAccessToken
     return FB_PIXELS_BY_LANGUAGE[language] || FB_PIXELS_BY_LANGUAGE.en;
 }
 
-const FB_API_VERSION = 'v18.0';
+const FB_API_VERSION = 'v21.0';
 
 // Hash function for user data (required by Facebook)
 function hashData(data) {
@@ -204,7 +204,8 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
     };
     
     // Always include event_source_url (required for best match quality)
-    eventPayload.event_source_url = eventSourceUrl || 'https://zapspy-funnel-production.up.railway.app';
+    // Default to English funnel domain (must match domain where pixel fires for attribution)
+    eventPayload.event_source_url = eventSourceUrl || 'https://ingles.zappdetect.com/';
     
     // Add referrer URL if available (helps with attribution)
     if (userData.referrer) {
@@ -6365,9 +6366,11 @@ app.all('/api/postback/monetizze', async (req, res) => {
         };
         
         // Build event_source_url based on funnel language
+        // MUST match the domain where the pixel fires (frontend uses window.location.href on zappdetect.com)
+        // Using zappdetect.com ensures Facebook can connect Purchase to the same user journey as IC/Lead events
         const eventSourceUrl = funnelLanguage === 'es' 
-            ? 'https://spy-espanhol.zapspy.shop/' 
-            : 'https://spy-ingles.zapspy.shop/';
+            ? 'https://espanhol.zappdetect.com/' 
+            : 'https://ingles.zappdetect.com/';
         
         // Generate unique event_id for deduplication (transaction-based)
         const eventId = `monetizze_${chave_unica}_${statusCode}`;
@@ -6397,8 +6400,24 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 if (!isFinalized) {
                     console.log(`⚠️ Status ${statusStr} but dataFinalizada invalid (${dataFinalizada || 'empty'}) - sending Purchase anyway (status confirms payment)`);
                 }
+                // Log detailed attribution data for debugging
+                console.log(`📤 PURCHASE CAPI DEBUG:`, {
+                    language: funnelLanguage,
+                    email: emailForCAPI ? 'YES' : 'NO',
+                    fbc: leadData?.fbc ? 'YES' : 'NO',
+                    fbp: leadData?.fbp ? 'YES' : 'NO',
+                    ip: leadData?.ip_address ? 'YES' : 'NO',
+                    ua: leadData?.user_agent ? 'YES (length: ' + (leadData?.user_agent || '').length + ')' : 'NO',
+                    externalId: leadData?.visitor_id ? 'YES' : 'NO',
+                    eventSourceUrl: eventSourceUrl,
+                    value: fbCustomData.value,
+                    currency: fbCustomData.currency,
+                    eventId: `${eventId}_purchase`,
+                    leadFound: leadData ? 'YES' : 'NO'
+                });
                 console.log(`📤 Sending Purchase to Facebook CAPI (${funnelLanguage}) - payment confirmed (status ${statusStr})...`);
-                await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_purchase`, capiOptions);
+                const purchaseResults = await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_purchase`, capiOptions);
+                console.log(`📤 Purchase CAPI results:`, JSON.stringify(purchaseResults));
             }
             
             // Status 3 = Cancelled -> Send custom Cancel event
@@ -6542,7 +6561,7 @@ app.post('/api/admin/test-postback', authenticateToken, requireAdmin, async (req
             num_items: 1,
             customer_segmentation: 'new_customer_to_business'
         };
-        const eventSourceUrl = funnelLanguage === 'es' ? 'https://spy-espanhol.zapspy.shop/' : 'https://spy-ingles.zapspy.shop/';
+        const eventSourceUrl = funnelLanguage === 'es' ? 'https://espanhol.zappdetect.com/' : 'https://ingles.zappdetect.com/';
         const eventId = `test_${chave_unica}`;
         const testCode = funnelLanguage === 'es' ? (process.env.FB_TEST_CODE_ES || 'TEST96875') : (process.env.FB_TEST_CODE_EN || 'TEST23104');
         const capiOptions = { language: funnelLanguage, testEventCode: testCode };
