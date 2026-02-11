@@ -4996,6 +4996,77 @@ app.post('/api/admin/sync-monetizze', authenticateToken, requireAdmin, async (re
     }
 });
 
+// Diagnostic endpoint: show status of refunds/chargebacks in the database
+app.get('/api/admin/refund-diagnostic', authenticateToken, async (req, res) => {
+    try {
+        // 1. Count transactions by status
+        const txStatusCounts = await pool.query(`
+            SELECT status, COUNT(*) as count FROM transactions GROUP BY status ORDER BY count DESC
+        `);
+        
+        // 2. Count refund_requests by type and source
+        const refundCounts = await pool.query(`
+            SELECT refund_type, source, status, COUNT(*) as count 
+            FROM refund_requests GROUP BY refund_type, source, status ORDER BY count DESC
+        `);
+        
+        // 3. Get sample of refunded/chargeback transactions (raw_data included)
+        const refundedTx = await pool.query(`
+            SELECT transaction_id, email, name, product, value, status, monetizze_status, 
+                   funnel_language, created_at,
+                   raw_data->>'venda' as venda_json,
+                   raw_data->'tipoEvento' as tipo_evento,
+                   raw_data->'venda'->>'status' as venda_status_text
+            FROM transactions 
+            WHERE status IN ('refunded', 'chargeback')
+            ORDER BY created_at DESC LIMIT 20
+        `);
+        
+        // 4. Find orphaned refunds (in transactions but not in refund_requests)
+        const orphans = await pool.query(`
+            SELECT t.transaction_id, t.email, t.status, t.product, t.value, t.created_at
+            FROM transactions t
+            LEFT JOIN refund_requests rr ON rr.transaction_id = t.transaction_id
+            WHERE t.status IN ('refunded', 'chargeback') AND rr.id IS NULL
+        `);
+        
+        // 5. Check if there are transactions with "devolvida" in raw_data that are NOT marked as refunded
+        const missedRefunds = await pool.query(`
+            SELECT transaction_id, email, status, product, value,
+                   raw_data->'venda'->>'status' as venda_status_text,
+                   raw_data->'tipoEvento'->>'codigo' as evento_codigo,
+                   raw_data->'tipoEvento'->>'descricao' as evento_descricao
+            FROM transactions 
+            WHERE status NOT IN ('refunded', 'chargeback')
+              AND (
+                  LOWER(raw_data->'venda'->>'status') LIKE '%devolv%'
+                  OR LOWER(raw_data->'venda'->>'status') LIKE '%chargeback%'
+                  OR LOWER(raw_data->'venda'->>'status') LIKE '%reembolso%'
+                  OR LOWER(raw_data->'tipoEvento'->>'descricao') LIKE '%devolv%'
+                  OR LOWER(raw_data->'tipoEvento'->>'descricao') LIKE '%chargeback%'
+                  OR raw_data->'tipoEvento'->>'codigo' IN ('4', '8', '9')
+              )
+            LIMIT 20
+        `);
+        
+        // 6. Get total refund_requests
+        const totalRefundRequests = await pool.query('SELECT COUNT(*) FROM refund_requests');
+        
+        res.json({
+            transactions_by_status: txStatusCounts.rows,
+            refund_requests_summary: refundCounts.rows,
+            total_refund_requests: parseInt(totalRefundRequests.rows[0].count),
+            refunded_transactions: refundedTx.rows,
+            orphaned_refunds: orphans.rows,
+            missed_refunds_in_transactions: missedRefunds.rows,
+            diagnostic_note: 'If missed_refunds_in_transactions has entries, these are transactions the API returned as refunded/chargeback but our code mapped to wrong status'
+        });
+    } catch (error) {
+        console.error('Diagnostic error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Backfill: sync existing transactions with refunded/chargeback status to refund_requests table
 // This is a one-time operation to catch transactions that were synced before the refund_requests fix
 app.post('/api/admin/backfill-refunds', authenticateToken, requireAdmin, async (req, res) => {
