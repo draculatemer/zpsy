@@ -6365,12 +6365,19 @@ app.all('/api/postback/monetizze', async (req, res) => {
             customer_segmentation: customerSegmentation  // New vs returning customer
         };
         
-        // Build event_source_url based on funnel language
-        // MUST match the domain where the pixel fires (frontend uses window.location.href on zappdetect.com)
-        // Using zappdetect.com ensures Facebook can connect Purchase to the same user journey as IC/Lead events
-        const eventSourceUrl = funnelLanguage === 'es' 
-            ? 'https://espanhol.zappdetect.com/' 
-            : 'https://ingles.zappdetect.com/';
+        // Build event_source_url based on funnel language AND source (main vs affiliate)
+        // MUST match the domain where the pixel fires (frontend uses window.location.href)
+        // Main funnels: zappdetect.com | Affiliate funnels: afiliado.whatstalker.com
+        let eventSourceUrl;
+        if (funnelSource === 'affiliate') {
+            eventSourceUrl = funnelLanguage === 'es' 
+                ? 'https://afiliado.whatstalker.com/espanhol/' 
+                : 'https://afiliado.whatstalker.com/ingles/';
+        } else {
+            eventSourceUrl = funnelLanguage === 'es' 
+                ? 'https://espanhol.zappdetect.com/' 
+                : 'https://ingles.zappdetect.com/';
+        }
         
         // Generate unique event_id for deduplication (transaction-based)
         const eventId = `monetizze_${chave_unica}_${statusCode}`;
