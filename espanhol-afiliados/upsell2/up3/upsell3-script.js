@@ -234,9 +234,7 @@
     
     window.addEventListener('beforeunload', function (e) {
         if (isProcessingPayment) {
-            e.preventDefault();
-            e.returnValue = '¡Tu pago está siendo procesado! Por favor no abandones esta página.';
-            return e.returnValue;
+            return undefined;
         }
         e.preventDefault();
         e.returnValue = '¿Estás seguro de que quieres salir? ¡Podrías perder tu acceso prioritario VIP para siempre!';

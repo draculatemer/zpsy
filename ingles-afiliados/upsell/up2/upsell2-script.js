@@ -150,9 +150,7 @@
     
     window.addEventListener('beforeunload', function (e) {
         if (isProcessingPayment) {
-            e.preventDefault();
-            e.returnValue = 'Your payment is being processed! Please do not leave this page.';
-            return e.returnValue;
+            return undefined;
         }
         e.preventDefault();
         e.returnValue = 'Are you sure you want to leave? You may lose your special upgrade offer!';
