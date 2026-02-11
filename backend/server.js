@@ -371,6 +371,15 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// No-cache for admin panel files (JS/CSS), cache ok for funnel assets
+app.use((req, res, next) => {
+    if (req.path.includes('admin') || req.path.startsWith('/js/admin') || req.path.startsWith('/css/admin')) {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        res.set('Pragma', 'no-cache');
+    }
+    next();
+});
 app.use(express.static('public'));
 
 // Serve funnel static files
@@ -2943,8 +2952,17 @@ app.get('/api/admin/leads/export', authenticateToken, async (req, res) => {
     }
 });
 
-// Serve admin panel
+// Serve admin panel (no-cache to always get latest version)
 app.get('/admin', (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.sendFile(__dirname + '/public/admin.html');
+});
+app.get('/admin.html', (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     res.sendFile(__dirname + '/public/admin.html');
 });
 
