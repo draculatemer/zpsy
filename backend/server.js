@@ -4675,7 +4675,56 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
                         }
                     }
                     
-                    console.log(`📊 SYNC CAPI: Lead ${syncLeadData ? `matched [${syncMatchMethod}] fbc=${syncLeadData.fbc ? 'Yes' : 'No'} fbp=${syncLeadData.fbp ? 'Yes' : 'No'}` : 'NOT found'} for ${email}`);
+                    // Extract fbc/fbp/vid from raw_data (checkout URL params stored by Monetizze)
+                    let syncRawFbc = null, syncRawFbp = null, syncRawVid = null;
+                    try {
+                        const venda = (item?.venda && typeof item.venda === 'object') ? item.venda : {};
+                        syncRawFbc = item?.zs_fbc || venda.zs_fbc || null;
+                        syncRawFbp = item?.zs_fbp || venda.zs_fbp || null;
+                        syncRawVid = item?.vid || venda.vid || null;
+                        if (!syncRawFbc) {
+                            const fbclid = item?.fbclid || venda.fbclid || null;
+                            if (fbclid) syncRawFbc = `fb.1.${Date.now()}.${fbclid}`;
+                        }
+                    } catch (e) { /* ignore */ }
+                    
+                    // If no lead found but we have raw_data params, create minimal lead
+                    if (!syncLeadData && (syncRawFbc || syncRawFbp)) {
+                        syncLeadData = {
+                            ip_address: null, user_agent: null,
+                            fbc: syncRawFbc, fbp: syncRawFbp,
+                            country_code: null, city: null, state: null, target_gender: null,
+                            name: name, whatsapp: finalPhone, visitor_id: syncRawVid, referrer: null
+                        };
+                        syncMatchMethod = 'raw_data_params';
+                    }
+                    
+                    // ENRICHMENT: fill missing fbc/fbp from raw_data and funnel_events
+                    if (syncLeadData && (!syncLeadData.fbc || !syncLeadData.fbp)) {
+                        if (!syncLeadData.fbc && syncRawFbc) syncLeadData.fbc = syncRawFbc;
+                        if (!syncLeadData.fbp && syncRawFbp) syncLeadData.fbp = syncRawFbp;
+                        
+                        const vid = syncLeadData.visitor_id || syncRawVid;
+                        if ((!syncLeadData.fbc || !syncLeadData.fbp) && vid) {
+                            try {
+                                const enrichResult2 = await pool.query(
+                                    `SELECT fbc, fbp, ip_address, user_agent FROM funnel_events 
+                                     WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                                     ORDER BY created_at DESC LIMIT 1`,
+                                    [vid]
+                                );
+                                if (enrichResult2.rows.length > 0) {
+                                    const e2 = enrichResult2.rows[0];
+                                    if (!syncLeadData.fbc && e2.fbc) syncLeadData.fbc = e2.fbc;
+                                    if (!syncLeadData.fbp && e2.fbp) syncLeadData.fbp = e2.fbp;
+                                    if (!syncLeadData.ip_address && e2.ip_address) syncLeadData.ip_address = e2.ip_address;
+                                    if (!syncLeadData.user_agent && e2.user_agent) syncLeadData.user_agent = e2.user_agent;
+                                }
+                            } catch (enrichErr2) { /* non-blocking */ }
+                        }
+                    }
+                    
+                    console.log(`📊 SYNC CAPI: Lead ${syncLeadData ? `matched [${syncMatchMethod}] fbc=${syncLeadData.fbc ? 'Yes' : 'No'} fbp=${syncLeadData.fbp ? 'Yes' : 'No'}` : 'NOT found'} for ${email} (rawFbc=${syncRawFbc ? 'Yes' : 'No'})`);
                     
                     // Build CAPI data
                     const brlToUsdRate = parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
@@ -5531,29 +5580,69 @@ async function sendMissingCAPIPurchases() {
                     }
                 }
                 
-                // ENRICHMENT: If lead found but missing fbc/fbp, try to fill from funnel_events
-                if (leadData && (!leadData.fbc || !leadData.fbp) && leadData.visitor_id) {
-                    try {
-                        const enrichResult = await pool.query(
-                            `SELECT fbc, fbp, ip_address, user_agent 
-                             FROM funnel_events WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
-                             ORDER BY created_at DESC LIMIT 1`,
-                            [leadData.visitor_id]
-                        );
-                        if (enrichResult.rows.length > 0) {
-                            const enrichRow = enrichResult.rows[0];
-                            if (!leadData.fbc && enrichRow.fbc) leadData.fbc = enrichRow.fbc;
-                            if (!leadData.fbp && enrichRow.fbp) leadData.fbp = enrichRow.fbp;
-                            if (!leadData.ip_address && enrichRow.ip_address) leadData.ip_address = enrichRow.ip_address;
-                            if (!leadData.user_agent && enrichRow.user_agent) leadData.user_agent = enrichRow.user_agent;
+                // Level 4: Extract fbc/fbp/vid from raw_data (checkout URL params stored by Monetizze)
+                let rawFbc = null, rawFbp = null, rawVid = null;
+                try {
+                    const rawData = typeof tx.raw_data === 'string' ? JSON.parse(tx.raw_data) : tx.raw_data;
+                    if (rawData) {
+                        const venda = (rawData.venda && typeof rawData.venda === 'object') ? rawData.venda : {};
+                        rawFbc = rawData.zs_fbc || venda.zs_fbc || rawData['zs_fbc'] || null;
+                        rawFbp = rawData.zs_fbp || venda.zs_fbp || rawData['zs_fbp'] || null;
+                        rawVid = rawData.vid || venda.vid || rawData['vid'] || null;
+                        
+                        // Build fbc from fbclid if zs_fbc not available
+                        if (!rawFbc) {
+                            const fbclid = rawData.fbclid || venda.fbclid || null;
+                            if (fbclid) {
+                                rawFbc = `fb.1.${Date.now()}.${fbclid}`;
+                            }
                         }
-                    } catch (enrichErr) { /* non-blocking */ }
+                    }
+                } catch (e) { /* ignore parse errors */ }
+                
+                // If no lead found but we have raw_data params, create minimal lead
+                if (!leadData && (rawFbc || rawFbp)) {
+                    leadData = {
+                        ip_address: null, user_agent: null,
+                        fbc: rawFbc, fbp: rawFbp,
+                        country_code: null, city: null, state: null, target_gender: null,
+                        name: tx.name, whatsapp: tx.phone, visitor_id: rawVid,
+                        funnel_language: funnelLanguage, referrer: null
+                    };
+                    matchMethod = 'raw_data_params';
+                }
+                
+                // ENRICHMENT: If lead found but missing fbc/fbp, try multiple sources
+                if (leadData && (!leadData.fbc || !leadData.fbp)) {
+                    // Try raw_data params first (most reliable for this transaction)
+                    if (!leadData.fbc && rawFbc) leadData.fbc = rawFbc;
+                    if (!leadData.fbp && rawFbp) leadData.fbp = rawFbp;
+                    
+                    // Try funnel_events by visitor_id
+                    const visitorId = leadData.visitor_id || rawVid;
+                    if ((!leadData.fbc || !leadData.fbp) && visitorId) {
+                        try {
+                            const enrichResult = await pool.query(
+                                `SELECT fbc, fbp, ip_address, user_agent 
+                                 FROM funnel_events WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                                 ORDER BY created_at DESC LIMIT 1`,
+                                [visitorId]
+                            );
+                            if (enrichResult.rows.length > 0) {
+                                const enrichRow = enrichResult.rows[0];
+                                if (!leadData.fbc && enrichRow.fbc) leadData.fbc = enrichRow.fbc;
+                                if (!leadData.fbp && enrichRow.fbp) leadData.fbp = enrichRow.fbp;
+                                if (!leadData.ip_address && enrichRow.ip_address) leadData.ip_address = enrichRow.ip_address;
+                                if (!leadData.user_agent && enrichRow.user_agent) leadData.user_agent = enrichRow.user_agent;
+                            }
+                        } catch (enrichErr) { /* non-blocking */ }
+                    }
                 }
                 
                 if (leadData) {
-                    console.log(`📊 CAPI CATCH-UP: Lead matched [${matchMethod}] for ${email} (tx: ${transactionId}) - fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, IP=${leadData.ip_address ? 'Yes' : 'No'}`);
+                    console.log(`📊 CAPI CATCH-UP: Lead matched [${matchMethod}] for ${email} (tx: ${transactionId}) - fbc=${leadData.fbc ? 'Yes' : 'No'}, fbp=${leadData.fbp ? 'Yes' : 'No'}, IP=${leadData.ip_address ? 'Yes' : 'No'}, rawFbc=${rawFbc ? 'Yes' : 'No'}`);
                 } else {
-                    console.log(`📊 CAPI CATCH-UP: No lead found for ${email} (tx: ${transactionId}) - sending with minimal params`);
+                    console.log(`📊 CAPI CATCH-UP: No lead found for ${email} (tx: ${transactionId}) - rawFbc=${rawFbc ? 'Yes' : 'No'}, rawFbp=${rawFbp ? 'Yes' : 'No'}`);
                 }
                 
                 // Build Facebook user data
