@@ -1954,6 +1954,155 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
         }
 
+/* ==================== CARD ENTRANCE ANIMATIONS ==================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes numberPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+/* Staggered card animations */
+#tab-overview .stat-card {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(1) { animation-delay: 0.05s; }
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(2) { animation-delay: 0.10s; }
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(3) { animation-delay: 0.15s; }
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(4) { animation-delay: 0.20s; }
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(5) { animation-delay: 0.25s; }
+#tab-overview .stats-grid:first-of-type .stat-card:nth-child(6) { animation-delay: 0.30s; }
+
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(1) { animation-delay: 0.35s; }
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(2) { animation-delay: 0.40s; }
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(3) { animation-delay: 0.45s; }
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(4) { animation-delay: 0.50s; }
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(5) { animation-delay: 0.55s; }
+#tab-overview .stats-grid:nth-of-type(2) .stat-card:nth-child(6) { animation-delay: 0.60s; }
+
+#tab-overview .chart-card {
+    opacity: 0;
+    animation: fadeInScale 0.6s ease forwards;
+    animation-delay: 0.4s;
+}
+
+/* Stat card hover lift effect */
+#tab-overview .stat-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#tab-overview .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Trend badge styles */
+.trend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+}
+
+.trend-badge.up {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.trend-badge.down {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.trend-badge.neutral {
+    background: rgba(161, 161, 170, 0.15);
+    color: #a1a1aa;
+}
+
+/* Sparkline container */
+.sparkline-container {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    opacity: 0.35;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+#tab-overview .stat-card:hover .sparkline-container {
+    opacity: 0.65;
+}
+
+/* Enhanced stat card for sparkline support */
+#tab-overview .stat-card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Chart tooltip custom styling */
+.chart-tooltip {
+    background: rgba(15, 15, 23, 0.95) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* World map widget */
+.country-map-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.country-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.4); opacity: 1; }
+}
+
 /* ==================== ACTIVE USERS WIDGET ==================== */
 @keyframes activePulse {
     0% { transform: scale(1); opacity: 0.7; }
