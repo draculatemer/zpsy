@@ -1836,7 +1836,7 @@
                             loading="lazy" 
                             allowfullscreen 
                             referrerpolicy="no-referrer-when-downgrade"
-                            src="about:blank">
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=-74.02,40.73,-73.95,40.78&layer=mapnik">
                         </iframe>
                     </div>
                     <div class="map-pin" id="mapPin">
@@ -2289,6 +2289,7 @@
             let minutes = 8;
             let seconds = 0;
             const countdownEl = document.getElementById('countdown');
+            if (!countdownEl) return; // Element removed - skip countdown
 
             setInterval(() => {
                 if (seconds === 0) {
@@ -2305,6 +2306,7 @@
         // Live viewers counter
         function updateLiveViewers() {
             const el = document.getElementById('liveViewers');
+            if (!el) return;
             const current = parseInt(el.textContent);
             const change = Math.floor(Math.random() * 7) - 3;
             const newValue = Math.max(180, Math.min(350, current + change));
@@ -2317,8 +2319,10 @@
         function updateSlots() {
             if (slots > 1 && Math.random() > 0.7) {
                 slots--;
-                document.getElementById('slotsLeft').textContent = slots;
-                document.getElementById('slotsLeftFixed').textContent = slots;
+                const slotsEl = document.getElementById('slotsLeft');
+                const slotsFixedEl = document.getElementById('slotsLeftFixed');
+                if (slotsEl) slotsEl.textContent = slots;
+                if (slotsFixedEl) slotsFixedEl.textContent = slots;
             }
         }
         setInterval(updateSlots, 45000);
@@ -2340,11 +2344,16 @@
             const activity = activities[Math.floor(Math.random() * activities.length)];
             const time = times[Math.floor(Math.random() * times.length)];
             
-            document.getElementById('activityEmoji').textContent = activity.emoji;
-            document.getElementById('activityText').innerHTML = `<strong>${activity.name}</strong> de ${activity.location} acaba de desbloquear acceso`;
-            document.getElementById('activityTime').textContent = time;
-            
+            const emojiEl = document.getElementById('activityEmoji');
+            const textEl = document.getElementById('activityText');
+            const timeEl = document.getElementById('activityTime');
             const notification = document.getElementById('activityNotification');
+            if (!emojiEl || !textEl || !timeEl || !notification) return;
+            
+            emojiEl.textContent = activity.emoji;
+            textEl.innerHTML = `<strong>${activity.name}</strong> de ${activity.location} acaba de desbloquear acceso`;
+            timeEl.textContent = time;
+            
             notification.classList.add('show');
             
             VibrationSystem.notification();
