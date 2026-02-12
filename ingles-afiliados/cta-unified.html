@@ -69,7 +69,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             // Initialize A/B Testing and apply config
             if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('ingles-afiliados');
+                await ABTesting.init('ingles');
                 
                 // Apply A/B config to CTA page (updates prices, headlines, etc.)
                 ABTesting.applyConfig('cta');
@@ -2117,7 +2117,6 @@
         <!-- Guarantee - Removido -->
     </div>
 
-    <!-- Fixed CTA -->
     <!-- Fixed CTA removido -->
 
     <!-- Activity Notification - Removido -->
@@ -2398,7 +2397,7 @@
         function proceedToCheckout() {
             // Get current product value (may be modified by A/B testing)
             const currentValue = window.productValue || 49;
-            const currentCheckoutCode = window.checkoutCode || 'KFS429964';
+            const currentCheckoutCode = window.checkoutCode || 'PBM476086';
             
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.trackAddToCart(currentValue, 'ZapSpy.ai VIP Access');
@@ -2434,7 +2433,7 @@
             
             // Get preserved UTMs from Meta Ads (if they exist)
             const utm_source = localStorage.getItem('utm_source') || 'zapspy';
-            const utm_medium = localStorage.getItem('utm_medium') || 'funnel_en_aff';
+            const utm_medium = localStorage.getItem('utm_medium') || 'funnel';
             const utm_campaign = localStorage.getItem('utm_campaign') || utmCampaign;
             const utm_content = localStorage.getItem('utm_content');
             const utm_term = localStorage.getItem('utm_term');
@@ -2448,8 +2447,7 @@
             
             // Add custom zs_* params for internal tracking (won't interfere with Utmify)
             checkoutUrl += '&zs_source=zapspy';
-            checkoutUrl += '&zs_funnel=funnel_en_aff';
-            checkoutUrl += '&zs_campaign=' + encodeURIComponent(utmCampaign);
+            checkoutUrl += '&zs_funnel=' + encodeURIComponent(utmCampaign);
             
             // IMPORTANT: Pass visitor_id for upsell tracking continuity
             // This allows upsell pages to maintain tracking with the same visitor
@@ -2589,7 +2587,7 @@
             
             // Add custom zs_* params for internal tracking
             checkoutUrl += '&zs_source=zapspy';
-            checkoutUrl += '&zs_funnel=50off_en_aff';
+            checkoutUrl += '&zs_funnel=50off';
             
             // IMPORTANT: Pass visitor_id for upsell tracking continuity
             const visitorId_50 = typeof TrackingUtils !== 'undefined' ? TrackingUtils.getVisitorId() : localStorage.getItem('funnelVisitorId');
@@ -2602,6 +2600,7 @@
             const checkoutFbp50 = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbp() : localStorage.getItem('_fbp');
             if (checkoutFbc50) {
                 checkoutUrl += '&zs_fbc=' + encodeURIComponent(checkoutFbc50);
+                // Also pass raw fbclid for maximum compatibility
                 const fbclidMatch50 = checkoutFbc50.match(/\.([^.]+)$/);
                 if (fbclidMatch50 && fbclidMatch50[1]) {
                     checkoutUrl += '&fbclid=' + encodeURIComponent(fbclidMatch50[1]);

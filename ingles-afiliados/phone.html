@@ -132,7 +132,7 @@
             
             // Initialize A/B Testing
             if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('ingles-afiliados');
+                await ABTesting.init('ingles');
             }
         });
     </script>
@@ -2730,7 +2730,6 @@
             localStorage.setItem('userCountryCode', country);
             localStorage.setItem('userPhoneNumber', whatsapp); // Phone number without country code for Monetizze
             
-            // Send to backend
             // Ensure visitorId exists
             let visitorId = localStorage.getItem('funnelVisitorId');
             if (!visitorId) {
@@ -2739,6 +2738,7 @@
                 console.log('📊 Created visitorId in phone.html:', visitorId);
             }
             
+            // Send to backend
             sendLeadToBackend({
                 name: name,
                 email: email,
@@ -2750,7 +2750,7 @@
                 state: localStorage.getItem('userState') || '',
                 pageUrl: window.location.href,
                 funnelLanguage: 'en',
-                funnelSource: 'affiliate',
+                funnelSource: 'main',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
@@ -2899,20 +2899,6 @@
             { percent: 100, text: 'Access complete!' }
         ];
         
-        // Flag to track if VTurb player is loaded
-        let vturbLoaded = false;
-        
-        function loadVTurbPlayer() {
-            if (vturbLoaded) return;
-            vturbLoaded = true;
-            
-            // Load VTurb player script only when needed
-            var s = document.createElement("script");
-            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/players/68fb78cdbdf9abb2347d414b/v4/player.js";
-            s.async = true;
-            document.head.appendChild(s);
-        }
-        
         function startHacking() {
             showScreen('screen3');
             
@@ -2954,6 +2940,20 @@
             if (typeof ABTesting !== 'undefined' && localStorage.getItem('ab_test_id')) {
                 ABTesting.trackConversion('phone_verify', 0);
             }
+        }
+        
+        // Flag to track if VTurb player is loaded
+        let vturbLoaded = false;
+        
+        function loadVTurbPlayer() {
+            if (vturbLoaded) return;
+            vturbLoaded = true;
+            
+            // Load VTurb player script only when needed
+            var s = document.createElement("script");
+            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/players/68fb78cdbdf9abb2347d414b/v4/player.js";
+            s.async = true;
+            document.head.appendChild(s);
         }
         
         function startVSLPhase() {

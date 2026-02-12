@@ -11,7 +11,7 @@
  */
 
 const FacebookCAPI = {
-    // Sempre usar o backend Railway para CAPI (funis podem estar em outro domínio)
+    // Sempre usar o backend Railway para CAPI (os funis podem estar em zappdetect.com, afiliado.whatstalker.com, etc.)
     API_URL: 'https://zapspy-funnel-production.up.railway.app',
 
     // Generate unique event ID for deduplication
@@ -159,12 +159,14 @@ const FacebookCAPI = {
 
     // ==================== STANDARD EVENTS ====================
 
+    // PageView - call on every page load
     trackPageView: function(pageName) {
         return this.trackEvent('PageView', {
             content_name: pageName || document.title
         });
     },
 
+    // ViewContent - when user views important content
     trackViewContent: function(contentName, contentCategory, value = 49) {
         return this.trackEvent('ViewContent', {
             content_name: contentName,
@@ -174,6 +176,7 @@ const FacebookCAPI = {
         });
     },
 
+    // Lead - when user submits contact info
     trackLead: function(email, userData = {}) {
         const fbc = this.getFbc();
         const fbp = this.getFbp();
@@ -192,6 +195,7 @@ const FacebookCAPI = {
         });
     },
 
+    // InitiateCheckout - when user clicks to buy
     trackInitiateCheckout: function(value, productName) {
         return this.trackEvent('InitiateCheckout', {
             value: value,
@@ -202,6 +206,7 @@ const FacebookCAPI = {
         });
     },
 
+    // AddToCart - for granular tracking
     trackAddToCart: function(value, productName) {
         return this.trackEvent('AddToCart', {
             value: value,
@@ -211,6 +216,7 @@ const FacebookCAPI = {
         });
     },
 
+    // Purchase - if needed from frontend
     trackPurchase: function(value, productName, transactionId) {
         return this.trackEvent('Purchase', {
             value: value,
@@ -220,6 +226,8 @@ const FacebookCAPI = {
             content_ids: [transactionId]
         });
     },
+
+    // ==================== INITIALIZATION ====================
 
     init: function(pageName) {
         this.getFbc();

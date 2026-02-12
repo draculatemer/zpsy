@@ -68,7 +68,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             // Inicializar A/B Testing y aplicar config
             if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('espanhol-afiliados');
+                await ABTesting.init('espanhol');
                 
                 // Aplicar config A/B a la página CTA (actualiza precios, headlines, etc.)
                 ABTesting.applyConfig('cta');
@@ -1615,7 +1615,6 @@
         <span id="liveViewers">247</span> personas viendo esta página ahora mismo
     </div>
 
-    <!-- Timer Bar -->
     <!-- Timer bar removido -->
 
     <div class="container">
@@ -1945,7 +1944,7 @@
 
         <!-- Pricing -->
         <div class="pricing-section" id="pricing">
-            <div class="discount-badge">81% DESCUENTO - TIEMPO LIMITADO</div>
+            <div class="discount-badge" data-ab-discount>81% DESCUENTO - TIEMPO LIMITADO</div>
             <div class="price-original" data-ab-original-price>$197</div>
             <div class="price-current" data-ab-price>$39</div>
             <div class="price-savings" data-ab-savings>¡Ahorras $170 hoy!</div>
@@ -2116,16 +2115,7 @@
         <!-- Guarantee - Removido -->
     </div>
 
-    <!-- Fixed CTA -->
-    <div class="fixed-cta">
-        <div class="fixed-cta-content">
-            <div class="fixed-cta-info">
-                <div class="fixed-cta-price">$39 <span>$197</span></div>
-                <div class="fixed-cta-slots">¡Solo quedan <span id="slotsLeftFixed">3</span> espacios!</div>
-            </div>
-            <button onclick="handlePurchase()">Desbloquear Ahora</button>
-        </div>
-    </div>
+    <!-- Fixed CTA removido -->
 
     <!-- Activity Notification - Removido -->
 
@@ -2348,6 +2338,7 @@
             const textEl = document.getElementById('activityText');
             const timeEl = document.getElementById('activityTime');
             const notification = document.getElementById('activityNotification');
+            
             if (!emojiEl || !textEl || !timeEl || !notification) return;
             
             emojiEl.textContent = activity.emoji;
@@ -2441,7 +2432,7 @@
             
             // Get preserved UTMs from Meta Ads (if they exist)
             const utm_source = localStorage.getItem('utm_source') || 'zapspy';
-            const utm_medium = localStorage.getItem('utm_medium') || 'funnel_es_aff';
+            const utm_medium = localStorage.getItem('utm_medium') || 'funnel_es';
             const utm_campaign = localStorage.getItem('utm_campaign') || utmCampaign;
             const utm_content = localStorage.getItem('utm_content');
             const utm_term = localStorage.getItem('utm_term');
@@ -2455,7 +2446,7 @@
             
             // Add custom zs_* params for internal tracking (won't interfere with Utmify)
             checkoutUrl += '&zs_source=zapspy';
-            checkoutUrl += '&zs_funnel=funnel_es_aff';
+            checkoutUrl += '&zs_funnel=funnel_es';
             checkoutUrl += '&zs_campaign=' + encodeURIComponent(utmCampaign);
             
             // IMPORTANT: Pass visitor_id for upsell tracking continuity
@@ -2597,7 +2588,7 @@
             
             // Add custom zs_* params for internal tracking
             checkoutUrl += '&zs_source=zapspy';
-            checkoutUrl += '&zs_funnel=50off_es_aff';
+            checkoutUrl += '&zs_funnel=50off_es';
             
             // IMPORTANT: Pass visitor_id for upsell tracking continuity
             const visitorId_50 = typeof TrackingUtils !== 'undefined' ? TrackingUtils.getVisitorId() : localStorage.getItem('funnelVisitorId');

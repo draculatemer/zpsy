@@ -122,9 +122,9 @@ const ZapSpyTracking = {
     generateEventId: function(eventName) {
         return eventName + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     },
-    
+
     /**
-     * Track AddToCart event (used before checkout)
+     * Track AddToCart event (used before checkout) - Standard event
      */
     trackAddToCart: function(value = 39.00, currency = 'USD') {
         this.trackStandardEvent('AddToCart', {
@@ -136,7 +136,7 @@ const ZapSpyTracking = {
     },
     
     /**
-     * Track custom event
+     * Track custom event with eventID for deduplication
      * @param {string} eventName - The event name
      * @param {Object} params - Event parameters
      */
@@ -147,14 +147,13 @@ const ZapSpyTracking = {
             fbq('trackCustom', eventName, params, { eventID: eventId });
         }
         
-        // Console log for debugging
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             console.log('Track Event:', eventName, params, 'eventID:', eventId);
         }
     },
     
     /**
-     * Track standard Meta Pixel events
+     * Track standard Meta Pixel events with eventID for deduplication
      * @param {string} eventName - Standard event name (PageView, Lead, InitiateCheckout, etc.)
      * @param {Object} params - Event parameters
      */

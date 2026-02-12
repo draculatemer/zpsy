@@ -60,7 +60,7 @@ const FunnelTracker = {
             targetPhone,
             targetGender,
             funnelLanguage: 'en',
-            funnelSource: 'affiliate',
+            funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
             metadata: {

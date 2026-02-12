@@ -374,7 +374,7 @@ const EmailCapture = {
                 referrer: document.referrer,
                 visitorId: visitorId,
                 funnelLanguage: 'en',
-                funnelSource: 'affiliate',
+                funnelSource: 'main',
                 fbc: localStorage.getItem('_fbc') || '',
                 fbp: localStorage.getItem('_fbp') || '',
                 // UTM parameters for attribution

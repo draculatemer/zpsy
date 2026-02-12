@@ -265,7 +265,7 @@ const EmailCapture = {
             if (!visitorId) {
                 visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('funnelVisitorId', visitorId);
-                console.log('📊 Created visitorId in email-capture (ES-AFF):', visitorId);
+                console.log('📊 Created visitorId in email-capture (ES):', visitorId);
             }
             
             this.sendToBackend({
@@ -275,7 +275,7 @@ const EmailCapture = {
                 targetPhone: localStorage.getItem('targetPhone') || '',
                 targetGender: localStorage.getItem('targetGender') || '',
                 funnelLanguage: 'es',
-                funnelSource: 'affiliate',
+                funnelSource: 'main',
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
