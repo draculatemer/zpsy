@@ -2407,6 +2407,10 @@ app.get('/api/admin/stats/period-comparison', authenticateToken, async (req, res
         // Define intervals based on period type
         let currentInterval, previousInterval;
         switch (type) {
+            case 'day':
+                currentInterval = '1 day';
+                previousInterval = '2 days';
+                break;
             case 'month':
                 currentInterval = '30 days';
                 previousInterval = '60 days';
