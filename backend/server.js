@@ -4613,199 +4613,11 @@ async function syncMonetizzeSalesCore(startDate, endDate) {
                     updated_at = NOW()
             `, [transactionId, email, finalPhone, name, productName, value, String(statusCode), mappedStatus, JSON.stringify(item), funnelLanguage, funnelSource, saleDate]);
             
-            // REAL-TIME CAPI: Send Purchase event immediately when sync detects newly approved sale
+            // SYNC CAPI: Don't send Purchase immediately - let the catch-up handle it
+            // The catch-up (sendMissingCAPIPurchases) runs right after sync finishes
+            // and has the LATEST fbc/fbp data (from enrichPurchase on upsell pages)
             if (wasNewlyApproved && email) {
-                try {
-                    console.log(`🔥 SYNC CAPI REAL-TIME: Transaction ${transactionId} (${email}) just became approved! Sending Purchase CAPI now...`);
-                    
-                    // Lead matching (simplified)
-                    let syncLeadData = null;
-                    let syncMatchMethod = 'none';
-                    
-                    // Match by email
-                    const syncLeadResult = await pool.query(
-                        `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, referrer
-                         FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
-                        [email]
-                    );
-                    if (syncLeadResult.rows.length > 0) {
-                        syncLeadData = syncLeadResult.rows[0];
-                        syncMatchMethod = 'email';
-                    }
-                    
-                    // Enrichment from funnel_events if missing fbc/fbp
-                    if (syncLeadData && (!syncLeadData.fbc || !syncLeadData.fbp) && syncLeadData.visitor_id) {
-                        try {
-                            const enrichResult = await pool.query(
-                                `SELECT fbc, fbp, ip_address, user_agent FROM funnel_events 
-                                 WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
-                                 ORDER BY created_at DESC LIMIT 1`,
-                                [syncLeadData.visitor_id]
-                            );
-                            if (enrichResult.rows.length > 0) {
-                                const e = enrichResult.rows[0];
-                                if (!syncLeadData.fbc && e.fbc) syncLeadData.fbc = e.fbc;
-                                if (!syncLeadData.fbp && e.fbp) syncLeadData.fbp = e.fbp;
-                                if (!syncLeadData.ip_address && e.ip_address) syncLeadData.ip_address = e.ip_address;
-                                if (!syncLeadData.user_agent && e.user_agent) syncLeadData.user_agent = e.user_agent;
-                            }
-                        } catch (enrichErr) { /* non-blocking */ }
-                    }
-                    
-                    // If no lead by email, try IP from raw_data
-                    if (!syncLeadData) {
-                        let buyerIp = null;
-                        try {
-                            buyerIp = item?.comprador?.ip || null;
-                        } catch (e) { /* ignore */ }
-                        if (buyerIp) {
-                            const ipResult = await pool.query(
-                                `SELECT visitor_id, ip_address, user_agent, fbc, fbp FROM funnel_events 
-                                 WHERE ip_address = $1 ORDER BY created_at DESC LIMIT 1`,
-                                [buyerIp]
-                            );
-                            if (ipResult.rows.length > 0) {
-                                const r = ipResult.rows[0];
-                                syncLeadData = {
-                                    ip_address: r.ip_address, user_agent: r.user_agent,
-                                    fbc: r.fbc, fbp: r.fbp,
-                                    country_code: null, city: null, state: null, target_gender: null,
-                                    name: name, whatsapp: finalPhone, visitor_id: r.visitor_id, referrer: null
-                                };
-                                syncMatchMethod = 'ip_events';
-                            }
-                        }
-                    }
-                    
-                    // Extract fbc/fbp/vid from transactions table first (saved by postback handler), then fallback to raw_data
-                    let syncRawFbc = null, syncRawFbp = null, syncRawVid = null;
-                    
-                    // Try transactions table columns first (most reliable - from real-time postback)
-                    try {
-                        const txDataResult = await pool.query(
-                            `SELECT fbc, fbp, visitor_id FROM transactions WHERE transaction_id = $1`,
-                            [transactionId]
-                        );
-                        if (txDataResult.rows.length > 0) {
-                            syncRawFbc = txDataResult.rows[0].fbc || null;
-                            syncRawFbp = txDataResult.rows[0].fbp || null;
-                            syncRawVid = txDataResult.rows[0].visitor_id || null;
-                        }
-                    } catch (e) { /* ignore */ }
-                    
-                    // Fallback: extract from Monetizze API raw item data
-                    if (!syncRawFbc || !syncRawFbp) {
-                        try {
-                            const venda = (item?.venda && typeof item.venda === 'object') ? item.venda : {};
-                            if (!syncRawFbc) syncRawFbc = item?.zs_fbc || venda.zs_fbc || null;
-                            if (!syncRawFbp) syncRawFbp = item?.zs_fbp || venda.zs_fbp || null;
-                            if (!syncRawVid) syncRawVid = item?.vid || venda.vid || null;
-                            if (!syncRawFbc) {
-                                const fbclid = item?.fbclid || venda.fbclid || null;
-                                if (fbclid) syncRawFbc = `fb.1.${Date.now()}.${fbclid}`;
-                            }
-                        } catch (e) { /* ignore */ }
-                    }
-                    
-                    // If no lead found but we have raw_data params, create minimal lead
-                    if (!syncLeadData && (syncRawFbc || syncRawFbp)) {
-                        syncLeadData = {
-                            ip_address: null, user_agent: null,
-                            fbc: syncRawFbc, fbp: syncRawFbp,
-                            country_code: null, city: null, state: null, target_gender: null,
-                            name: name, whatsapp: finalPhone, visitor_id: syncRawVid, referrer: null
-                        };
-                        syncMatchMethod = 'raw_data_params';
-                    }
-                    
-                    // ENRICHMENT: fill missing fbc/fbp from raw_data and funnel_events
-                    if (syncLeadData && (!syncLeadData.fbc || !syncLeadData.fbp)) {
-                        if (!syncLeadData.fbc && syncRawFbc) syncLeadData.fbc = syncRawFbc;
-                        if (!syncLeadData.fbp && syncRawFbp) syncLeadData.fbp = syncRawFbp;
-                        
-                        const vid = syncLeadData.visitor_id || syncRawVid;
-                        if ((!syncLeadData.fbc || !syncLeadData.fbp) && vid) {
-                            try {
-                                const enrichResult2 = await pool.query(
-                                    `SELECT fbc, fbp, ip_address, user_agent FROM funnel_events 
-                                     WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
-                                     ORDER BY created_at DESC LIMIT 1`,
-                                    [vid]
-                                );
-                                if (enrichResult2.rows.length > 0) {
-                                    const e2 = enrichResult2.rows[0];
-                                    if (!syncLeadData.fbc && e2.fbc) syncLeadData.fbc = e2.fbc;
-                                    if (!syncLeadData.fbp && e2.fbp) syncLeadData.fbp = e2.fbp;
-                                    if (!syncLeadData.ip_address && e2.ip_address) syncLeadData.ip_address = e2.ip_address;
-                                    if (!syncLeadData.user_agent && e2.user_agent) syncLeadData.user_agent = e2.user_agent;
-                                }
-                            } catch (enrichErr2) { /* non-blocking */ }
-                        }
-                    }
-                    
-                    console.log(`📊 SYNC CAPI: Lead ${syncLeadData ? `matched [${syncMatchMethod}] fbc=${syncLeadData.fbc ? 'Yes' : 'No'} fbp=${syncLeadData.fbp ? 'Yes' : 'No'}` : 'NOT found'} for ${email} (rawFbc=${syncRawFbc ? 'Yes' : 'No'})`);
-                    
-                    // Build CAPI data
-                    const brlToUsdRate = parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
-                    const valueBRL = parseFloat(value) || 0;
-                    const valueUSD = Math.round((valueBRL * brlToUsdRate) * 100) / 100;
-                    
-                    const syncFbUserData = {
-                        email, phone: syncLeadData?.whatsapp || finalPhone,
-                        firstName: syncLeadData?.name || name,
-                        ip: syncLeadData?.ip_address || null, userAgent: syncLeadData?.user_agent || null,
-                        fbc: syncLeadData?.fbc || null, fbp: syncLeadData?.fbp || null,
-                        country: syncLeadData?.country_code || null, city: syncLeadData?.city || null,
-                        state: syncLeadData?.state || null, gender: syncLeadData?.target_gender || null,
-                        externalId: syncLeadData?.visitor_id || null, referrer: syncLeadData?.referrer || null
-                    };
-                    const syncFbCustomData = {
-                        content_name: productName, content_ids: [String(statusCode) || transactionId],
-                        content_type: 'product', value: valueUSD, currency: 'USD',
-                        order_id: transactionId, num_items: 1, customer_segmentation: 'new_customer_to_business'
-                    };
-                    
-                    let syncEventSourceUrl;
-                    if (funnelSource === 'affiliate') {
-                        syncEventSourceUrl = funnelLanguage === 'es' ? 'https://afiliado.whatstalker.com/espanhol/' : 'https://afiliado.whatstalker.com/ingles/';
-                    } else {
-                        syncEventSourceUrl = funnelLanguage === 'es' ? 'https://espanhol.zappdetect.com/' : 'https://ingles.zappdetect.com/';
-                    }
-                    
-                    const syncPurchaseEventId = `monetizze_${transactionId}_purchase`;
-                    const syncCapiOptions = { language: funnelLanguage, eventTime: saleDate || null };
-                    
-                    const syncResults = await sendToFacebookCAPI('Purchase', syncFbUserData, syncFbCustomData, syncEventSourceUrl, syncPurchaseEventId, syncCapiOptions);
-                    const syncFirstResult = syncResults[0] || {};
-                    const syncCapiSuccess = syncFirstResult.success === true;
-                    const syncFbEventsReceived = syncFirstResult.result?.events_received || 0;
-                    
-                    console.log(`🔥 SYNC CAPI RESULT: ${email} → ${syncCapiSuccess ? '✅ SUCCESS' : '❌ FAILED'} (events_received: ${syncFbEventsReceived})`);
-                    
-                    // Log to capi_purchase_logs
-                    await pool.query(`
-                        INSERT INTO capi_purchase_logs (
-                            transaction_id, email, product, value, currency,
-                            funnel_language, funnel_source, event_source_url, event_id,
-                            pixel_id, pixel_name,
-                            has_email, has_fbc, has_fbp, has_ip, has_user_agent,
-                            has_external_id, has_country, has_phone, lead_found,
-                            capi_success, capi_response, fb_events_received, match_method
-                        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-                    `, [
-                        transactionId, email, productName, syncFbCustomData.value, 'USD',
-                        funnelLanguage, funnelSource, syncEventSourceUrl, syncPurchaseEventId,
-                        syncFirstResult.pixel || '', funnelLanguage === 'es' ? 'PIXEL SPY ESPANHOL' : '[PABLO NOVO] - [SPY INGLES]',
-                        true, !!(syncLeadData?.fbc), !!(syncLeadData?.fbp),
-                        !!(syncLeadData?.ip_address), !!(syncLeadData?.user_agent),
-                        !!(syncLeadData?.visitor_id), !!(syncLeadData?.country_code),
-                        !!(syncLeadData?.whatsapp || finalPhone), !!syncLeadData,
-                        syncCapiSuccess, JSON.stringify(syncResults), syncFbEventsReceived, syncMatchMethod
-                    ]);
-                    
-                } catch (capiErr) {
-                    console.error(`⚠️ SYNC CAPI error for ${transactionId}: ${capiErr.message}`);
-                }
+                console.log(`🔥 SYNC: Transaction ${transactionId} (${email}) just became approved! CAPI Purchase will be sent via catch-up after sync completes.`);
             }
             
             // Also create refund_requests entry for refunds/chargebacks so they appear in admin panel
@@ -5941,8 +5753,12 @@ app.post('/api/enrich-purchase', async (req, res) => {
             } catch (leadErr) { /* non-blocking */ }
         }
         
-        // If we enriched approved transactions that were missing CAPI logs, trigger catch-up
-        if (updated > 0 && (fbc || fbp)) {
+        // TRIGGER CAPI: Check for transactions that need CAPI Purchase events
+        if (fbc || fbp) {
+            let triggerCatchup = false;
+            
+            // Case 1: Approved transactions without ANY capi_purchase_logs
+            // (Postback used delayed send, and we arrived before it fired - this is the common/happy path)
             const missingCapi = await pool.query(`
                 SELECT t.transaction_id FROM transactions t
                 LEFT JOIN capi_purchase_logs c ON t.transaction_id = c.transaction_id
@@ -5951,7 +5767,33 @@ app.post('/api/enrich-purchase', async (req, res) => {
             `, [email]);
             
             if (missingCapi.rows.length > 0) {
-                console.log(`🔥 ENRICH-PURCHASE: Found ${missingCapi.rows.length} approved transactions for ${email} missing CAPI - triggering catch-up...`);
+                console.log(`🔥 ENRICH-PURCHASE: Found ${missingCapi.rows.length} approved transactions for ${email} missing CAPI - triggering immediate catch-up...`);
+                triggerCatchup = true;
+            }
+            
+            // Case 2: CAPI was already sent but WITHOUT fbc (edge case: enrichPurchase arrived after the 30s delay)
+            // Delete those incomplete logs so catch-up can re-send with fbc/fbp
+            if (fbc) {
+                try {
+                    const staleCapiLogs = await pool.query(`
+                        SELECT c.id, c.transaction_id FROM capi_purchase_logs c
+                        JOIN transactions t ON c.transaction_id = t.transaction_id
+                        WHERE LOWER(t.email) = LOWER($1) AND c.has_fbc = false
+                          AND t.created_at >= NOW() - INTERVAL '7 days'
+                    `, [email]);
+                    
+                    if (staleCapiLogs.rows.length > 0) {
+                        const staleIds = staleCapiLogs.rows.map(r => r.id);
+                        await pool.query(`DELETE FROM capi_purchase_logs WHERE id = ANY($1)`, [staleIds]);
+                        console.log(`🔥 ENRICH-PURCHASE: Deleted ${staleIds.length} CAPI logs WITHOUT fbc for ${email} - will re-send with fbc/fbp!`);
+                        triggerCatchup = true;
+                    }
+                } catch (staleErr) {
+                    console.error('ENRICH-PURCHASE stale logs error:', staleErr.message);
+                }
+            }
+            
+            if (triggerCatchup) {
                 // Trigger catch-up asynchronously (don't block the response)
                 sendMissingCAPIPurchases().catch(err => console.error('CAPI catch-up error:', err.message));
             }
@@ -7373,9 +7215,13 @@ app.all('/api/postback/monetizze', async (req, res) => {
                 await sendToFacebookCAPI('InitiateCheckout', fbUserData, fbCustomData, eventSourceUrl, `${eventId}_pending`, capiOptions);
             }
             
-            // Status 2 or 6 = Aprovada/Completa -> Send Purchase event (with dedup check)
-            // Status 2 = Finalizada (approved), Status 6 = Completa (complete)
-            // These statuses already mean payment was confirmed by Monetizze
+            // Status 2 or 6 = Aprovada/Completa -> DELAYED Purchase event
+            // IMPORTANT: We delay sending CAPI Purchase by 30 seconds to give the enrichPurchase
+            // mechanism (from upsell page) time to provide fbc/fbp data.
+            // Flow: Postback arrives → transaction saved → buyer redirected to upsell → 
+            //       enrichPurchase captures _fbc/_fbp from browser → sends to backend →
+            //       backend updates transaction/lead → THEN the delayed catch-up sends CAPI with fbc/fbp
+            // If enrichPurchase arrives within 30s, it triggers an IMMEDIATE catch-up (faster than the delay)
             if (statusStr === '2' || statusStr === '6') {
                 
                 // DEDUP CHECK: Skip if we already sent a Purchase for this transaction
@@ -7387,79 +7233,30 @@ app.all('/api/postback/monetizze', async (req, res) => {
                     );
                     alreadySent = dupCheck.rows.length > 0;
                 } catch (dupErr) {
-                    // Non-blocking - if check fails, send anyway
+                    // Non-blocking - if check fails, proceed with delayed send
                 }
                 
                 if (alreadySent) {
                     console.log(`⚠️ CAPI: Purchase already sent for transaction ${chave_unica} (status ${statusStr}) - SKIPPING to avoid duplicate`);
                 } else {
-                
-                if (!isFinalized) {
-                    console.log(`⚠️ Status ${statusStr} but dataFinalizada invalid (${dataFinalizada || 'empty'}) - sending Purchase anyway (status confirms payment)`);
+                    if (!isFinalized) {
+                        console.log(`⚠️ Status ${statusStr} but dataFinalizada invalid (${dataFinalizada || 'empty'}) - will send Purchase via delayed catch-up`);
+                    }
+                    
+                    // DON'T send CAPI immediately! Schedule a delayed catch-up instead.
+                    // This gives enrichPurchase (from upsell page) time to provide fbc/fbp
+                    // The enrichPurchase endpoint triggers an immediate catch-up when it enriches,
+                    // so if enrichPurchase arrives within 30s, CAPI is sent even faster.
+                    const delayedTxId = chave_unica;
+                    const delayedEmail = emailForCAPI;
+                    console.log(`⏳ CAPI: Scheduling delayed Purchase for ${delayedTxId} (${delayedEmail}) in 30s - waiting for enrichPurchase from upsell page...`);
+                    console.log(`⏳ CAPI: Current lead data: fbc=${leadData?.fbc ? 'Yes' : 'No'}, fbp=${leadData?.fbp ? 'Yes' : 'No'}, match=${matchMethod}`);
+                    
+                    setTimeout(() => {
+                        console.log(`⏰ CAPI: Delayed trigger for ${delayedTxId} (${delayedEmail}) - running catch-up now...`);
+                        sendMissingCAPIPurchases().catch(err => console.error('Delayed CAPI catch-up error:', err.message));
+                    }, 30000);
                 }
-                
-                const purchaseEventId = purchaseEventIdFixed;
-                const purchaseAttrData = {
-                    hasEmail: !!emailForCAPI,
-                    hasFbc: !!(leadData?.fbc),
-                    hasFbp: !!(leadData?.fbp),
-                    hasIp: !!(leadData?.ip_address),
-                    hasUa: !!(leadData?.user_agent),
-                    hasExternalId: !!(leadData?.visitor_id),
-                    hasCountry: !!(leadData?.country_code),
-                    hasPhone: !!(leadData?.whatsapp || finalPhone || buyerPhone),
-                    leadFound: !!leadData
-                };
-                
-                console.log(`📤 PURCHASE CAPI DEBUG:`, {
-                    ...purchaseAttrData,
-                    matchMethod,
-                    eventSourceUrl,
-                    value: fbCustomData.value,
-                    currency: fbCustomData.currency,
-                    eventId: purchaseEventId,
-                    language: funnelLanguage,
-                    source: funnelSource
-                });
-                
-                console.log(`📤 Sending Purchase to Facebook CAPI (${funnelLanguage}/${funnelSource}) - payment confirmed (status ${statusStr})...`);
-                const purchaseResults = await sendToFacebookCAPI('Purchase', fbUserData, fbCustomData, eventSourceUrl, purchaseEventId, capiOptions);
-                
-                // Determine success and pixel info from results
-                const firstResult = purchaseResults[0] || {};
-                const capiSuccess = firstResult.success === true;
-                const fbEventsReceived = firstResult.result?.events_received || 0;
-                const pixelId = firstResult.pixel || '';
-                const pixelName = capiOptions.language === 'es' ? 'PIXEL SPY ESPANHOL' : '[PABLO NOVO] - [SPY INGLES]';
-                
-                console.log(`📤 Purchase CAPI result: ${capiSuccess ? '✅ SUCCESS' : '❌ FAILED'} (events_received: ${fbEventsReceived})`);
-                
-                // Save to capi_purchase_logs for admin panel tracking
-                try {
-                    await pool.query(`
-                        INSERT INTO capi_purchase_logs (
-                            transaction_id, email, product, value, currency,
-                            funnel_language, funnel_source, event_source_url, event_id,
-                            pixel_id, pixel_name,
-                            has_email, has_fbc, has_fbp, has_ip, has_user_agent,
-                            has_external_id, has_country, has_phone, lead_found,
-                            capi_success, capi_response, fb_events_received, match_method
-                        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-                    `, [
-                        chave_unica, emailForCAPI, productName,
-                        fbCustomData.value, fbCustomData.currency,
-                        funnelLanguage, funnelSource, eventSourceUrl, purchaseEventId,
-                        pixelId, pixelName,
-                        purchaseAttrData.hasEmail, purchaseAttrData.hasFbc, purchaseAttrData.hasFbp,
-                        purchaseAttrData.hasIp, purchaseAttrData.hasUa,
-                        purchaseAttrData.hasExternalId, purchaseAttrData.hasCountry,
-                        purchaseAttrData.hasPhone, purchaseAttrData.leadFound,
-                        capiSuccess, JSON.stringify(purchaseResults), fbEventsReceived, matchMethod
-                    ]);
-                } catch (logErr) {
-                    console.error('Error saving purchase CAPI log:', logErr.message);
-                }
-            } // end else (alreadySent dedup check)
             }
             
             // Status 3 = Cancelled -> Send custom Cancel event
