@@ -1606,6 +1606,54 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
         invalidateCache('trends');
         invalidateCache('traffic-sources');
         
+        // Auto-verify WhatsApp for new leads (async - does not block response)
+        if (isNewLead && whatsapp && result.rows[0]?.id) {
+            const leadId = result.rows[0].id;
+            const cleanPhone = whatsapp.replace(/\D/g, '');
+            if (cleanPhone.length >= 10) {
+                setImmediate(async () => {
+                    try {
+                        const zapiHeaders = { 'Content-Type': 'application/json' };
+                        if (ZAPI_CLIENT_TOKEN) zapiHeaders['client-token'] = ZAPI_CLIENT_TOKEN;
+                        
+                        const verifyResponse = await fetch(`${ZAPI_BASE_URL}/phone-exists/${cleanPhone}`, {
+                            headers: zapiHeaders
+                        });
+                        const verifyData = await verifyResponse.json();
+                        const isRegistered = verifyData.exists === true;
+                        
+                        // Try to get profile picture if registered
+                        let profilePicture = null;
+                        if (isRegistered) {
+                            try {
+                                const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${cleanPhone}`, {
+                                    headers: zapiHeaders
+                                });
+                                const picData = await picResponse.json();
+                                if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
+                                    profilePicture = picData.link;
+                                }
+                            } catch (e) { /* ignore pic errors */ }
+                        }
+                        
+                        // Update lead with verification result
+                        await pool.query(`
+                            UPDATE leads SET 
+                                whatsapp_verified = $1,
+                                whatsapp_verified_at = NOW(),
+                                whatsapp_profile_pic = $2,
+                                updated_at = NOW()
+                            WHERE id = $3
+                        `, [isRegistered, profilePicture, leadId]);
+                        
+                        console.log(`📱 Auto-verified WhatsApp for lead #${leadId}: ${cleanPhone} → ${isRegistered ? '✓ Valid' : '✕ Invalid'}${profilePicture ? ' (with pic)' : ''}`);
+                    } catch (verifyError) {
+                        console.log(`📱 Auto-verify WhatsApp failed for lead #${leadId}:`, verifyError.message);
+                    }
+                });
+            }
+        }
+        
         res.status(201).json({
             success: true,
             message: 'Lead captured successfully',
