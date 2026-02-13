@@ -2964,7 +2964,7 @@ app.post('/api/admin/leads/:id/verify-whatsapp', authenticateToken, async (req, 
         }
         
         const lead = leadResult.rows[0];
-        let phone = lead.whatsapp || lead.phone || '';
+        let phone = lead.whatsapp || '';
         
         if (!phone) {
             return res.status(400).json({ error: 'No phone number available', verified: false });
@@ -3072,14 +3072,14 @@ app.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (req,
         
         // Get leads
         const leadsResult = await pool.query(
-            'SELECT id, whatsapp, phone FROM leads WHERE id = ANY($1)',
+            'SELECT id, whatsapp FROM leads WHERE id = ANY($1)',
             [limitedIds]
         );
         
         const results = [];
         
         for (const lead of leadsResult.rows) {
-            let phone = lead.whatsapp || lead.phone || '';
+            let phone = lead.whatsapp || '';
             if (!phone) {
                 results.push({ id: lead.id, verified: false, error: 'No phone' });
                 continue;
@@ -3145,8 +3145,8 @@ app.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (req, 
 
         // Get all leads with phone numbers
         const leadsResult = await pool.query(
-            `SELECT id, whatsapp, phone FROM leads 
-             WHERE (whatsapp IS NOT NULL AND whatsapp != '') OR (phone IS NOT NULL AND phone != '')
+            `SELECT id, whatsapp FROM leads 
+             WHERE whatsapp IS NOT NULL AND whatsapp != ''
              ORDER BY id ASC`
         );
 
@@ -3160,7 +3160,7 @@ app.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (req, 
         let processed = 0;
 
         for (const lead of leadsResult.rows) {
-            let phone = lead.whatsapp || lead.phone || '';
+            let phone = lead.whatsapp || '';
             if (!phone) {
                 skipped++;
                 processed++;
