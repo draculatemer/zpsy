@@ -2724,7 +2724,7 @@ app.get('/api/admin/stats/weekly-performance', authenticateToken, async (req, re
 // Z-API credentials - use env vars or fallback to defaults
 const ZAPI_INSTANCE = process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B318FC5924A7638EE86FD';
 const ZAPI_TOKEN = process.env.ZAPI_TOKEN || '448359F89C302BCE9D09F8D0';
-const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN || '';
+const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN || 'F221fdbff74cc4d998046c12b9e0a65ddS';
 const ZAPI_BASE_URL = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
 
 // Log Z-API config on startup (masked for security)
