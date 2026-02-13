@@ -2359,9 +2359,9 @@ app.get('/api/admin/clients', authenticateToken, async (req, res) => {
         const search = req.query.search || '';
         const language = req.query.language || '';
         const source = req.query.source || '';
+        const { startDate, endDate } = req.query;
         
         // Clients = leads with status 'converted' OR leads that have transactions with status 'approved'
-        // We JOIN with transactions to get purchase data
         let conditions = [`(l.status = 'converted' OR l.total_spent > 0 OR l.first_purchase_at IS NOT NULL)`];
         let params = [];
         
@@ -2386,6 +2386,13 @@ app.get('/api/admin/clients', authenticateToken, async (req, res) => {
                 conditions.push(`l.funnel_source = $${params.length + 1}`);
             }
             params.push(source);
+        }
+        
+        // Date range filter on first_purchase_at
+        if (startDate && endDate) {
+            conditions.push(`(l.first_purchase_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${params.length + 1}::date`);
+            conditions.push(`(l.first_purchase_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${params.length + 2}::date`);
+            params.push(startDate, endDate);
         }
         
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -2446,6 +2453,371 @@ app.get('/api/admin/clients', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching clients:', error);
         res.status(500).json({ error: 'Failed to fetch clients' });
+    }
+});
+
+// ==================== FINANCIAL ENDPOINTS ====================
+
+// Get financial summary (revenue from transactions + costs)
+app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
+    try {
+        const days = parseInt(req.query.days) || 30;
+        const language = req.query.language || '';
+        const source = req.query.source || '';
+        
+        // Build transaction filters
+        let txConditions = [`t.status = 'approved'`];
+        let txParams = [];
+        
+        if (language) {
+            if (language === 'en') {
+                txConditions.push(`(t.funnel_language = $${txParams.length + 1} OR t.funnel_language IS NULL)`);
+            } else {
+                txConditions.push(`t.funnel_language = $${txParams.length + 1}`);
+            }
+            txParams.push(language);
+        }
+        
+        if (source) {
+            if (source === 'main') {
+                txConditions.push(`(t.funnel_source = $${txParams.length + 1} OR t.funnel_source IS NULL)`);
+            } else {
+                txConditions.push(`t.funnel_source = $${txParams.length + 1}`);
+            }
+            txParams.push(source);
+        }
+        
+        const txWhere = txConditions.join(' AND ');
+        
+        // Today's revenue and sales
+        const todayQuery = `
+            SELECT 
+                COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue,
+                COUNT(*) as sales
+            FROM transactions t
+            WHERE ${txWhere}
+            AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date = CURRENT_DATE
+        `;
+        
+        // This month's revenue and sales
+        const monthQuery = `
+            SELECT 
+                COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue,
+                COUNT(*) as sales
+            FROM transactions t
+            WHERE ${txWhere}
+            AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= date_trunc('month', CURRENT_DATE)
+        `;
+        
+        // Today's costs
+        const todayCostsQuery = `
+            SELECT COALESCE(SUM(amount_usd), 0) as total_usd
+            FROM financial_costs
+            WHERE cost_date = CURRENT_DATE
+        `;
+        
+        // This month's costs
+        const monthCostsQuery = `
+            SELECT COALESCE(SUM(amount_usd), 0) as total_usd
+            FROM financial_costs
+            WHERE cost_date >= date_trunc('month', CURRENT_DATE)::date
+        `;
+        
+        // Daily breakdown for the period
+        const dailyQuery = `
+            WITH daily_revenue AS (
+                SELECT 
+                    (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date as day,
+                    COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue,
+                    COUNT(*) as sales
+                FROM transactions t
+                WHERE ${txWhere}
+                AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= CURRENT_DATE - $${txParams.length + 1}::integer
+                GROUP BY (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date
+            ),
+            daily_costs AS (
+                SELECT 
+                    cost_date as day,
+                    COALESCE(SUM(amount_usd), 0) as costs
+                FROM financial_costs
+                WHERE cost_date >= CURRENT_DATE - $${txParams.length + 1}::integer
+                GROUP BY cost_date
+            ),
+            date_series AS (
+                SELECT generate_series(
+                    CURRENT_DATE - $${txParams.length + 1}::integer,
+                    CURRENT_DATE,
+                    '1 day'::interval
+                )::date as day
+            )
+            SELECT 
+                ds.day,
+                COALESCE(dr.revenue, 0) as revenue,
+                COALESCE(dr.sales, 0) as sales,
+                COALESCE(dc.costs, 0) as costs,
+                COALESCE(dr.revenue, 0) - COALESCE(dc.costs, 0) as profit
+            FROM date_series ds
+            LEFT JOIN daily_revenue dr ON ds.day = dr.day
+            LEFT JOIN daily_costs dc ON ds.day = dc.day
+            ORDER BY ds.day DESC
+        `;
+        
+        // Monthly breakdown (last 12 months)
+        const monthlyQuery = `
+            WITH monthly_revenue AS (
+                SELECT 
+                    date_trunc('month', (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date)::date as month,
+                    COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue,
+                    COUNT(*) as sales
+                FROM transactions t
+                WHERE ${txWhere}
+                AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= CURRENT_DATE - INTERVAL '12 months'
+                GROUP BY date_trunc('month', (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date)::date
+            ),
+            monthly_costs AS (
+                SELECT 
+                    date_trunc('month', cost_date)::date as month,
+                    COALESCE(SUM(amount_usd), 0) as costs
+                FROM financial_costs
+                WHERE cost_date >= CURRENT_DATE - INTERVAL '12 months'
+                GROUP BY date_trunc('month', cost_date)::date
+            )
+            SELECT 
+                COALESCE(mr.month, mc.month) as month,
+                COALESCE(mr.revenue, 0) as revenue,
+                COALESCE(mr.sales, 0) as sales,
+                COALESCE(mc.costs, 0) as costs,
+                COALESCE(mr.revenue, 0) - COALESCE(mc.costs, 0) as profit
+            FROM monthly_revenue mr
+            FULL OUTER JOIN monthly_costs mc ON mr.month = mc.month
+            ORDER BY month DESC
+            LIMIT 12
+        `;
+        
+        const dailyParams = [...txParams, days];
+        
+        const [todayResult, monthResult, todayCosts, monthCosts, dailyResult, monthlyResult] = await Promise.all([
+            pool.query(todayQuery, txParams),
+            pool.query(monthQuery, txParams),
+            pool.query(todayCostsQuery),
+            pool.query(monthCostsQuery),
+            pool.query(dailyQuery, dailyParams),
+            pool.query(monthlyQuery, txParams)
+        ]);
+        
+        const todayData = todayResult.rows[0] || {};
+        const monthData = monthResult.rows[0] || {};
+        const todayCostData = todayCosts.rows[0] || {};
+        const monthCostData = monthCosts.rows[0] || {};
+        
+        const todayRevenue = parseFloat(todayData.revenue || 0);
+        const todaySales = parseInt(todayData.sales || 0);
+        const todayCost = parseFloat(todayCostData.total_usd || 0);
+        const todayProfit = todayRevenue - todayCost;
+        
+        const monthRevenue = parseFloat(monthData.revenue || 0);
+        const monthSales = parseInt(monthData.sales || 0);
+        const monthCost = parseFloat(monthCostData.total_usd || 0);
+        const monthProfit = monthRevenue - monthCost;
+        
+        const monthROI = monthCost > 0 ? ((monthRevenue - monthCost) / monthCost * 100) : 0;
+        const monthMargin = monthRevenue > 0 ? ((monthRevenue - monthCost) / monthRevenue * 100) : 0;
+        const monthCPA = monthSales > 0 ? monthCost / monthSales : 0;
+        
+        res.json({
+            today: {
+                revenue: todayRevenue,
+                sales: todaySales,
+                costs: todayCost,
+                profit: todayProfit
+            },
+            month: {
+                revenue: monthRevenue,
+                sales: monthSales,
+                costs: monthCost,
+                profit: monthProfit,
+                roi: Math.round(monthROI * 100) / 100,
+                margin: Math.round(monthMargin * 100) / 100,
+                cpa: Math.round(monthCPA * 100) / 100
+            },
+            daily: dailyResult.rows,
+            monthly: monthlyResult.rows
+        });
+        
+    } catch (error) {
+        console.error('Error fetching financial summary:', error);
+        res.status(500).json({ error: 'Failed to fetch financial summary' });
+    }
+});
+
+// Get financial costs list
+app.get('/api/admin/financial/costs', authenticateToken, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const offset = (page - 1) * limit;
+        const category = req.query.category || '';
+        const startDate = req.query.startDate || '';
+        const endDate = req.query.endDate || '';
+        
+        let conditions = [];
+        let params = [];
+        
+        if (category) {
+            conditions.push(`category = $${params.length + 1}`);
+            params.push(category);
+        }
+        
+        if (startDate) {
+            conditions.push(`cost_date >= $${params.length + 1}::date`);
+            params.push(startDate);
+        }
+        
+        if (endDate) {
+            conditions.push(`cost_date <= $${params.length + 1}::date`);
+            params.push(endDate);
+        }
+        
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        
+        const query = `
+            SELECT * FROM financial_costs
+            ${whereClause}
+            ORDER BY cost_date DESC, created_at DESC
+            LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `;
+        
+        const countQuery = `SELECT COUNT(*) FROM financial_costs ${whereClause}`;
+        
+        const sumQuery = `
+            SELECT 
+                COALESCE(SUM(amount_usd), 0) as total_usd,
+                COALESCE(SUM(CASE WHEN currency = 'BRL' THEN amount ELSE 0 END), 0) as total_brl,
+                COUNT(*) as count
+            FROM financial_costs ${whereClause}
+        `;
+        
+        const queryParams = [...params, limit, offset];
+        
+        const [costsResult, countResult, sumResult] = await Promise.all([
+            pool.query(query, queryParams),
+            pool.query(countQuery, params),
+            pool.query(sumQuery, params)
+        ]);
+        
+        const stats = sumResult.rows[0] || {};
+        
+        res.json({
+            costs: costsResult.rows,
+            stats: {
+                totalUsd: parseFloat(stats.total_usd || 0),
+                totalBrl: parseFloat(stats.total_brl || 0),
+                count: parseInt(stats.count || 0)
+            },
+            pagination: {
+                page,
+                limit,
+                total: parseInt(countResult.rows[0].count),
+                totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit)
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching costs:', error);
+        res.status(500).json({ error: 'Failed to fetch costs' });
+    }
+});
+
+// Add a new cost
+app.post('/api/admin/financial/costs', authenticateToken, async (req, res) => {
+    try {
+        const { cost_date, category, description, amount, currency, exchange_rate, notes } = req.body;
+        
+        if (!cost_date || !description || !amount) {
+            return res.status(400).json({ error: 'Data, descrição e valor são obrigatórios' });
+        }
+        
+        // Convert to USD if BRL
+        let amountUsd = parseFloat(amount);
+        let xRate = parseFloat(exchange_rate) || null;
+        
+        if (currency === 'BRL' && xRate) {
+            amountUsd = parseFloat(amount) / xRate;
+        } else if (currency === 'BRL') {
+            // Use a default rate if none provided
+            amountUsd = parseFloat(amount) / 5.80;
+            xRate = 5.80;
+        }
+        
+        const result = await pool.query(`
+            INSERT INTO financial_costs (cost_date, category, description, amount, currency, amount_usd, exchange_rate, notes, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING *
+        `, [cost_date, category || 'other', description, parseFloat(amount), currency || 'BRL', Math.round(amountUsd * 100) / 100, xRate, notes || null, req.user?.id || null]);
+        
+        console.log(`💰 New cost added: ${description} - ${currency} ${amount} (USD ${amountUsd.toFixed(2)}) on ${cost_date}`);
+        
+        res.json({ success: true, cost: result.rows[0] });
+        
+    } catch (error) {
+        console.error('Error adding cost:', error);
+        res.status(500).json({ error: 'Failed to add cost' });
+    }
+});
+
+// Update a cost
+app.put('/api/admin/financial/costs/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { cost_date, category, description, amount, currency, exchange_rate, notes } = req.body;
+        
+        let amountUsd = parseFloat(amount);
+        let xRate = parseFloat(exchange_rate) || null;
+        
+        if (currency === 'BRL' && xRate) {
+            amountUsd = parseFloat(amount) / xRate;
+        } else if (currency === 'BRL') {
+            amountUsd = parseFloat(amount) / 5.80;
+            xRate = 5.80;
+        }
+        
+        const result = await pool.query(`
+            UPDATE financial_costs 
+            SET cost_date = $1, category = $2, description = $3, amount = $4, currency = $5, 
+                amount_usd = $6, exchange_rate = $7, notes = $8, updated_at = NOW()
+            WHERE id = $9
+            RETURNING *
+        `, [cost_date, category, description, parseFloat(amount), currency, Math.round(amountUsd * 100) / 100, xRate, notes || null, id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Cost not found' });
+        }
+        
+        res.json({ success: true, cost: result.rows[0] });
+        
+    } catch (error) {
+        console.error('Error updating cost:', error);
+        res.status(500).json({ error: 'Failed to update cost' });
+    }
+});
+
+// Delete a cost
+app.delete('/api/admin/financial/costs/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const result = await pool.query('DELETE FROM financial_costs WHERE id = $1 RETURNING *', [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Cost not found' });
+        }
+        
+        console.log(`🗑️ Cost deleted: ID ${id}`);
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Error deleting cost:', error);
+        res.status(500).json({ error: 'Failed to delete cost' });
     }
 });
 
@@ -10949,6 +11321,26 @@ async function initDatabase() {
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_ab_conversions_test ON ab_test_conversions(test_id);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_ab_conversions_event ON ab_test_conversions(event_type);`);
+        
+        // Create financial_costs table for expense tracking
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS financial_costs (
+                id SERIAL PRIMARY KEY,
+                cost_date DATE NOT NULL,
+                category VARCHAR(50) NOT NULL DEFAULT 'other',
+                description TEXT NOT NULL,
+                amount DECIMAL(12,2) NOT NULL,
+                currency VARCHAR(3) NOT NULL DEFAULT 'BRL',
+                amount_usd DECIMAL(12,2),
+                exchange_rate DECIMAL(10,4),
+                notes TEXT,
+                created_by INTEGER,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_date ON financial_costs(cost_date);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_category ON financial_costs(category);`);
         
         // Add missing columns to admin_users if they don't exist (for existing tables)
         // Support both 'name' and 'full_name' columns for compatibility
