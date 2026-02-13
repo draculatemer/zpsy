@@ -11417,7 +11417,10 @@ Posso ajudar em algo mais? 😊`
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (!response.ok) throw new Error('Falha ao carregar dados financeiros');
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.details || errData.error || 'Falha ao carregar dados financeiros');
+                }
                 const data = await response.json();
                 
                 // Update exchange rate display

@@ -2524,6 +2524,10 @@ app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
         `;
         
         // Daily breakdown for the period
+        // Use string interpolation for the days interval since pg parameterized queries 
+        // don't work well with interval arithmetic on CURRENT_DATE
+        const safeDays = Math.min(Math.max(parseInt(days) || 30, 1), 365);
+        
         const dailyQuery = `
             WITH daily_revenue AS (
                 SELECT 
@@ -2532,7 +2536,7 @@ app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
                     COUNT(*) as sales
                 FROM transactions t
                 WHERE ${txWhere}
-                AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= CURRENT_DATE - $${txParams.length + 1}::integer
+                AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= CURRENT_DATE - INTERVAL '${safeDays} days'
                 GROUP BY (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date
             ),
             daily_costs AS (
@@ -2540,12 +2544,12 @@ app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
                     cost_date as day,
                     COALESCE(SUM(amount_usd), 0) as costs
                 FROM financial_costs
-                WHERE cost_date >= CURRENT_DATE - $${txParams.length + 1}::integer
+                WHERE cost_date >= CURRENT_DATE - INTERVAL '${safeDays} days'
                 GROUP BY cost_date
             ),
             date_series AS (
                 SELECT generate_series(
-                    CURRENT_DATE - $${txParams.length + 1}::integer,
+                    (CURRENT_DATE - INTERVAL '${safeDays} days')::date,
                     CURRENT_DATE,
                     '1 day'::interval
                 )::date as day
@@ -2594,14 +2598,12 @@ app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
             LIMIT 12
         `;
         
-        const dailyParams = [...txParams, days];
-        
         const [todayResult, monthResult, todayCosts, monthCosts, dailyResult, monthlyResult] = await Promise.all([
             pool.query(todayQuery, txParams),
             pool.query(monthQuery, txParams),
             pool.query(todayCostsQuery),
             pool.query(monthCostsQuery),
-            pool.query(dailyQuery, dailyParams),
+            pool.query(dailyQuery, txParams),
             pool.query(monthlyQuery, txParams)
         ]);
         
@@ -2645,8 +2647,8 @@ app.get('/api/admin/financial/summary', authenticateToken, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error fetching financial summary:', error);
-        res.status(500).json({ error: 'Failed to fetch financial summary' });
+        console.error('❌ Error fetching financial summary:', error.message, error.stack?.split('\n').slice(0, 3).join('\n'));
+        res.status(500).json({ error: 'Failed to fetch financial summary', details: error.message });
     }
 });
 
