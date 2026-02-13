@@ -4926,7 +4926,7 @@ Estou aqui para esclarecer tudo! 😊`
                 <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;">
                     <div style="background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:32px;max-width:500px;width:90%;color:#e0e0e0;text-align:center;">
                         <h2 style="margin:0 0 8px;color:#8b5cf6;">🔄 Verificação em Massa</h2>
-                        <p id="valStatus" style="color:#888;margin:0 0 20px;font-size:14px;">Conectando ao servidor...</p>
+                        <p id="valStatus" style="color:#888;margin:0 0 20px;font-size:14px;">Iniciando...</p>
                         
                         <div style="background:#0d1117;border-radius:8px;padding:4px;margin-bottom:16px;">
                             <div id="valProgressBar" style="height:24px;background:linear-gradient(90deg,#8b5cf6,#6366f1);border-radius:6px;width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;color:#fff;min-width:40px;">0%</div>
@@ -4960,75 +4960,69 @@ Estou aqui para esclarecer tudo! 😊`
             document.body.appendChild(modal);
 
             const startTime = Date.now();
+            const authHeaders = { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` };
 
             try {
-                const response = await fetch('/api/admin/leads/verify-all-whatsapp', {
+                // Start the job
+                const startResponse = await fetch('/api/admin/leads/verify-all-whatsapp', {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { ...authHeaders, 'Content-Type': 'application/json' }
                 });
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.substring(6));
-                                
-                                if (data.type === 'start') {
-                                    document.getElementById('valStatus').textContent = data.message;
-                                }
-                                
-                                if (data.type === 'progress' || data.type === 'complete') {
-                                    document.getElementById('valProgressBar').style.width = data.percent + '%';
-                                    document.getElementById('valProgressBar').textContent = data.percent + '%';
-                                    document.getElementById('valVerified').textContent = data.verified;
-                                    document.getElementById('valInvalid').textContent = data.invalid;
-                                    document.getElementById('valErrors').textContent = data.errors;
-                                    document.getElementById('valProcessed').textContent = data.processed + '/' + data.total;
-                                    document.getElementById('valStatus').textContent = `Processando... ${data.processed} de ${data.total}`;
-                                    
-                                    // Calculate ETA
-                                    const elapsed = (Date.now() - startTime) / 1000;
-                                    const rate = data.processed / elapsed;
-                                    const remaining = (data.total - data.processed) / rate;
-                                    if (remaining > 60) {
-                                        document.getElementById('valEta').textContent = `⏱ Tempo restante: ~${Math.ceil(remaining/60)} min`;
-                                    } else {
-                                        document.getElementById('valEta').textContent = `⏱ Tempo restante: ~${Math.ceil(remaining)} seg`;
-                                    }
-                                }
-                                
-                                if (data.type === 'complete') {
-                                    const elapsed = Math.round((Date.now() - startTime) / 1000);
-                                    document.getElementById('valStatus').innerHTML = `<span style="color:#10b981;">✅ Concluído!</span>`;
-                                    document.getElementById('valEta').textContent = `Tempo total: ${elapsed > 60 ? Math.floor(elapsed/60) + 'min ' + (elapsed%60) + 's' : elapsed + 's'}`;
-                                    document.getElementById('valCloseBtn').style.display = 'inline-block';
-                                    document.getElementById('valProgressBar').style.background = 'linear-gradient(90deg,#10b981,#059669)';
-                                }
-                                
-                                if (data.type === 'error') {
-                                    document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro: ${data.message}</span>`;
-                                    document.getElementById('valCloseBtn').style.display = 'inline-block';
-                                }
-                            } catch (e) { /* ignore parse errors */ }
-                        }
-                    }
+                const startData = await startResponse.json();
+                
+                if (startData.error) {
+                    document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ ${startData.error}</span>`;
+                    document.getElementById('valCloseBtn').style.display = 'inline-block';
+                    return;
                 }
+
+                document.getElementById('valStatus').textContent = startData.job?.message || 'Processando...';
+
+                // Poll for progress
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusResp = await fetch('/api/admin/leads/verify-all-status', { headers: authHeaders });
+                        const data = await statusResp.json();
+
+                        if (data.percent !== undefined) {
+                            document.getElementById('valProgressBar').style.width = data.percent + '%';
+                            document.getElementById('valProgressBar').textContent = data.percent + '%';
+                        }
+                        document.getElementById('valVerified').textContent = data.verified || 0;
+                        document.getElementById('valInvalid').textContent = data.invalid || 0;
+                        document.getElementById('valErrors').textContent = data.errors || 0;
+                        document.getElementById('valProcessed').textContent = (data.processed || 0) + '/' + (data.total || 0);
+                        document.getElementById('valStatus').textContent = `Processando... ${data.processed || 0} de ${data.total || 0}`;
+
+                        // ETA
+                        const elapsed = (Date.now() - startTime) / 1000;
+                        if (data.processed > 0) {
+                            const rate = data.processed / elapsed;
+                            const remaining = (data.total - data.processed) / rate;
+                            document.getElementById('valEta').textContent = remaining > 60 
+                                ? `⏱ Tempo restante: ~${Math.ceil(remaining/60)} min` 
+                                : `⏱ Tempo restante: ~${Math.ceil(remaining)} seg`;
+                        }
+
+                        if (data.status === 'complete') {
+                            clearInterval(pollInterval);
+                            const totalElapsed = Math.round((Date.now() - startTime) / 1000);
+                            document.getElementById('valStatus').innerHTML = `<span style="color:#10b981;">✅ ${data.message}</span>`;
+                            document.getElementById('valEta').textContent = `Tempo total: ${totalElapsed > 60 ? Math.floor(totalElapsed/60) + 'min ' + (totalElapsed%60) + 's' : totalElapsed + 's'}`;
+                            document.getElementById('valCloseBtn').style.display = 'inline-block';
+                            document.getElementById('valProgressBar').style.background = 'linear-gradient(90deg,#10b981,#059669)';
+                        }
+
+                        if (data.status === 'error') {
+                            clearInterval(pollInterval);
+                            document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro: ${data.message}</span>`;
+                            document.getElementById('valCloseBtn').style.display = 'inline-block';
+                        }
+                    } catch (e) { /* ignore poll errors */ }
+                }, 2000); // Poll every 2 seconds
+
             } catch (error) {
-                document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro de conexão: ${error.message}</span>`;
+                document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro: ${error.message}</span>`;
                 document.getElementById('valCloseBtn').style.display = 'inline-block';
             }
         }

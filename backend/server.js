@@ -3129,21 +3129,16 @@ app.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (req,
     }
 });
 
-// Verify ALL leads WhatsApp numbers (full reprocess)
+// In-memory job tracker for verify-all
+let verifyAllJob = null;
+
+// Start verify ALL leads WhatsApp numbers
 app.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (req, res) => {
+    if (verifyAllJob && verifyAllJob.status === 'running') {
+        return res.status(409).json({ error: 'Job already running', job: verifyAllJob });
+    }
+
     try {
-        // Set headers for SSE (Server-Sent Events) for real-time progress
-        res.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive'
-        });
-
-        const sendProgress = (data) => {
-            res.write(`data: ${JSON.stringify(data)}\n\n`);
-        };
-
-        // Get all leads with phone numbers
         const leadsResult = await pool.query(
             `SELECT id, whatsapp FROM leads 
              WHERE whatsapp IS NOT NULL AND whatsapp != ''
@@ -3151,116 +3146,110 @@ app.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (req, 
         );
 
         const totalLeads = leadsResult.rows.length;
-        sendProgress({ type: 'start', total: totalLeads, message: `Iniciando verificação de ${totalLeads} leads...` });
 
-        let verified = 0;
-        let invalid = 0;
-        let errors = 0;
-        let skipped = 0;
-        let processed = 0;
+        verifyAllJob = {
+            status: 'running',
+            total: totalLeads,
+            processed: 0,
+            verified: 0,
+            invalid: 0,
+            errors: 0,
+            skipped: 0,
+            percent: 0,
+            startedAt: Date.now(),
+            message: `Verificando ${totalLeads} leads...`
+        };
 
-        for (const lead of leadsResult.rows) {
-            let phone = lead.whatsapp || '';
-            if (!phone) {
-                skipped++;
-                processed++;
-                continue;
-            }
+        res.json({ success: true, job: verifyAllJob });
 
-            phone = phone.replace(/\D/g, '');
-            if (phone.length < 10) {
-                skipped++;
-                processed++;
-                continue;
-            }
+        // Run in background
+        (async () => {
+            const zapiHeaders = {};
+            if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
 
-            try {
-                const headers = {};
-                if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
-
-                const response = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
-                    method: 'GET',
-                    headers
-                });
-
-                const data = await response.json();
-                const isRegistered = data.exists === true;
-
-                // Try to get profile picture if registered
-                let profilePicture = null;
-                if (isRegistered) {
-                    try {
-                        const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
-                            method: 'GET',
-                            headers
-                        });
-                        const picData = await picResponse.json();
-                        if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
-                            profilePicture = picData.link;
-                        }
-                    } catch (e) { /* ignore pic errors */ }
+            for (const lead of leadsResult.rows) {
+                let phone = lead.whatsapp || '';
+                if (!phone || phone.replace(/\D/g, '').length < 10) {
+                    verifyAllJob.skipped++;
+                    verifyAllJob.processed++;
+                    verifyAllJob.percent = Math.round((verifyAllJob.processed / totalLeads) * 100);
+                    continue;
                 }
 
-                // Update lead
-                await pool.query(`
-                    UPDATE leads SET 
-                        whatsapp_verified = $1,
-                        whatsapp_verified_at = NOW(),
-                        whatsapp_profile_pic = COALESCE($2, whatsapp_profile_pic),
-                        updated_at = NOW()
-                    WHERE id = $3
-                `, [isRegistered, profilePicture, lead.id]);
+                phone = phone.replace(/\D/g, '');
 
-                if (isRegistered) verified++;
-                else invalid++;
+                try {
+                    const response = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
+                        method: 'GET',
+                        headers: zapiHeaders
+                    });
 
-            } catch (e) {
-                errors++;
-                console.log(`📱 Verify-all error for lead #${lead.id}: ${e.message}`);
+                    const data = await response.json();
+                    const isRegistered = data.exists === true;
+
+                    let profilePicture = null;
+                    if (isRegistered) {
+                        try {
+                            const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
+                                method: 'GET',
+                                headers: zapiHeaders
+                            });
+                            const picData = await picResponse.json();
+                            if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
+                                profilePicture = picData.link;
+                            }
+                        } catch (e) { /* ignore */ }
+                    }
+
+                    await pool.query(`
+                        UPDATE leads SET 
+                            whatsapp_verified = $1,
+                            whatsapp_verified_at = NOW(),
+                            whatsapp_profile_pic = COALESCE($2, whatsapp_profile_pic),
+                            updated_at = NOW()
+                        WHERE id = $3
+                    `, [isRegistered, profilePicture, lead.id]);
+
+                    if (isRegistered) verifyAllJob.verified++;
+                    else verifyAllJob.invalid++;
+
+                } catch (e) {
+                    verifyAllJob.errors++;
+                    console.log(`📱 Verify-all error for lead #${lead.id}: ${e.message}`);
+                }
+
+                verifyAllJob.processed++;
+                verifyAllJob.percent = Math.round((verifyAllJob.processed / totalLeads) * 100);
+
+                if (verifyAllJob.processed % 10 === 0) {
+                    console.log(`📱 Verify-all progress: ${verifyAllJob.processed}/${totalLeads} (${verifyAllJob.percent}%) - ✓${verifyAllJob.verified} ✕${verifyAllJob.invalid} ⚠${verifyAllJob.errors}`);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 600));
             }
 
-            processed++;
-
-            // Send progress every lead
-            if (processed % 5 === 0 || processed === totalLeads) {
-                sendProgress({
-                    type: 'progress',
-                    processed,
-                    total: totalLeads,
-                    verified,
-                    invalid,
-                    errors,
-                    skipped,
-                    percent: Math.round((processed / totalLeads) * 100)
-                });
-            }
-
-            // Rate limit: 600ms between requests to avoid Z-API throttling
-            await new Promise(resolve => setTimeout(resolve, 600));
-        }
-
-        sendProgress({
-            type: 'complete',
-            processed,
-            total: totalLeads,
-            verified,
-            invalid,
-            errors,
-            skipped,
-            message: `Verificação concluída! ${verified} válidos, ${invalid} inválidos, ${errors} erros, ${skipped} ignorados`
+            verifyAllJob.status = 'complete';
+            verifyAllJob.message = `Concluído! ${verifyAllJob.verified} válidos, ${verifyAllJob.invalid} inválidos, ${verifyAllJob.errors} erros, ${verifyAllJob.skipped} ignorados`;
+            verifyAllJob.completedAt = Date.now();
+            console.log(`📱 Verify-all COMPLETE: ${verifyAllJob.message}`);
+        })().catch(err => {
+            verifyAllJob.status = 'error';
+            verifyAllJob.message = err.message;
+            console.error('📱 Verify-all FAILED:', err);
         });
 
-        res.end();
-
     } catch (error) {
-        console.error('Error verifying all WhatsApp:', error);
-        try {
-            res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
-            res.end();
-        } catch (e) {
-            res.status(500).json({ error: 'Failed to verify all WhatsApp numbers' });
-        }
+        console.error('Error starting verify-all:', error);
+        res.status(500).json({ error: error.message });
     }
+});
+
+// Poll verify-all job status
+app.get('/api/admin/leads/verify-all-status', authenticateToken, (req, res) => {
+    if (!verifyAllJob) {
+        return res.json({ status: 'idle', message: 'Nenhum job em andamento' });
+    }
+    res.json(verifyAllJob);
 });
 
 // Update lead status (protected)
