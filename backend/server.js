@@ -2730,6 +2730,68 @@ const ZAPI_BASE_URL = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${Z
 // Log Z-API config on startup (masked for security)
 console.log(`📱 Z-API Config: Instance=${ZAPI_INSTANCE.substring(0,8)}..., Token=${ZAPI_TOKEN.substring(0,8)}..., ClientToken=${ZAPI_CLIENT_TOKEN ? ZAPI_CLIENT_TOKEN.substring(0,8) + '...' : 'NOT SET'}, URL=${ZAPI_BASE_URL}`);
 
+// ---- Z-API Diagnostic endpoint ----
+app.get('/api/admin/whatsapp/diagnostics', authenticateToken, async (req, res) => {
+    const results = {
+        config: {
+            instanceId: ZAPI_INSTANCE,
+            instanceIdLength: ZAPI_INSTANCE.length,
+            instanceIdSource: process.env.ZAPI_INSTANCE_ID ? 'ENV_VAR' : 'FALLBACK_DEFAULT',
+            token: ZAPI_TOKEN.substring(0, 6) + '***' + ZAPI_TOKEN.slice(-4),
+            tokenLength: ZAPI_TOKEN.length,
+            tokenSource: process.env.ZAPI_TOKEN ? 'ENV_VAR' : 'FALLBACK_DEFAULT',
+            clientToken: ZAPI_CLIENT_TOKEN ? ZAPI_CLIENT_TOKEN.substring(0, 6) + '***' + ZAPI_CLIENT_TOKEN.slice(-4) : 'NOT SET',
+            clientTokenLength: ZAPI_CLIENT_TOKEN.length,
+            clientTokenSource: process.env.ZAPI_CLIENT_TOKEN ? 'ENV_VAR' : 'FALLBACK_DEFAULT',
+            baseUrl: ZAPI_BASE_URL
+        },
+        tests: {}
+    };
+
+    // Test 1: Status without Client-Token
+    try {
+        const resp1 = await fetch(`${ZAPI_BASE_URL}/status`, { method: 'GET' });
+        const text1 = await resp1.text();
+        results.tests.statusWithoutClientToken = {
+            httpStatus: resp1.status,
+            response: text1.substring(0, 500)
+        };
+    } catch (e) {
+        results.tests.statusWithoutClientToken = { error: e.message };
+    }
+
+    // Test 2: Status with Client-Token
+    try {
+        const headers2 = {};
+        if (ZAPI_CLIENT_TOKEN) headers2['Client-Token'] = ZAPI_CLIENT_TOKEN;
+        const resp2 = await fetch(`${ZAPI_BASE_URL}/status`, { method: 'GET', headers: headers2 });
+        const text2 = await resp2.text();
+        results.tests.statusWithClientToken = {
+            httpStatus: resp2.status,
+            headers: Object.fromEntries(Object.entries(headers2).map(([k,v]) => [k, k === 'Client-Token' ? v.substring(0,6) + '***' : v])),
+            response: text2.substring(0, 500)
+        };
+    } catch (e) {
+        results.tests.statusWithClientToken = { error: e.message };
+    }
+
+    // Test 3: Try phone-exists with a known number
+    try {
+        const headers3 = {};
+        if (ZAPI_CLIENT_TOKEN) headers3['Client-Token'] = ZAPI_CLIENT_TOKEN;
+        const resp3 = await fetch(`${ZAPI_BASE_URL}/phone-exists/5511999999999`, { method: 'GET', headers: headers3 });
+        const text3 = await resp3.text();
+        results.tests.phoneExistsTest = {
+            httpStatus: resp3.status,
+            response: text3.substring(0, 500)
+        };
+    } catch (e) {
+        results.tests.phoneExistsTest = { error: e.message };
+    }
+
+    res.json(results);
+});
+
 // ---- Send WhatsApp message via Z-API ----
 app.post('/api/admin/whatsapp/send', authenticateToken, async (req, res) => {
     try {
