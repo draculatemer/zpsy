@@ -638,6 +638,9 @@
                                 <button class="btn-secondary" onclick="runZapiDiagnostics()" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1)); border-color: #f59e0b; margin-left: 8px;" title="Testar conexão Z-API">
                                     🔧 Diagnóstico Z-API
                                 </button>
+                                <button class="btn-secondary" onclick="verifyAllWhatsApp()" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); border-color: #8b5cf6; margin-left: 8px;" title="Verificar WhatsApp de TODOS os leads">
+                                    🔄 Verificar Todos
+                                </button>
                             </div>
                         </div>
                         
@@ -4907,6 +4910,126 @@ Estou aqui para esclarecer tudo! 😊`
                 showToast('Diagnóstico concluído', 'success');
             } catch (error) {
                 showToast('Erro ao executar diagnóstico: ' + error.message, 'error');
+            }
+        }
+
+        // Verify ALL WhatsApp numbers
+        async function verifyAllWhatsApp() {
+            if (!confirm('⚠️ Verificar WhatsApp de TODOS os leads?\n\nIsso pode levar vários minutos dependendo da quantidade de leads.\nO processo roda em segundo plano com progresso em tempo real.\n\nDeseja continuar?')) {
+                return;
+            }
+
+            // Create progress modal
+            const modal = document.createElement('div');
+            modal.id = 'verifyAllModal';
+            modal.innerHTML = `
+                <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                    <div style="background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:32px;max-width:500px;width:90%;color:#e0e0e0;text-align:center;">
+                        <h2 style="margin:0 0 8px;color:#8b5cf6;">🔄 Verificação em Massa</h2>
+                        <p id="valStatus" style="color:#888;margin:0 0 20px;font-size:14px;">Conectando ao servidor...</p>
+                        
+                        <div style="background:#0d1117;border-radius:8px;padding:4px;margin-bottom:16px;">
+                            <div id="valProgressBar" style="height:24px;background:linear-gradient(90deg,#8b5cf6,#6366f1);border-radius:6px;width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;color:#fff;min-width:40px;">0%</div>
+                        </div>
+                        
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                            <div style="background:#0d1117;border-radius:8px;padding:12px;">
+                                <div id="valVerified" style="font-size:24px;font-weight:bold;color:#10b981;">0</div>
+                                <div style="font-size:11px;color:#888;">Válidos</div>
+                            </div>
+                            <div style="background:#0d1117;border-radius:8px;padding:12px;">
+                                <div id="valInvalid" style="font-size:24px;font-weight:bold;color:#ef4444;">0</div>
+                                <div style="font-size:11px;color:#888;">Inválidos</div>
+                            </div>
+                            <div style="background:#0d1117;border-radius:8px;padding:12px;">
+                                <div id="valErrors" style="font-size:24px;font-weight:bold;color:#f59e0b;">0</div>
+                                <div style="font-size:11px;color:#888;">Erros</div>
+                            </div>
+                            <div style="background:#0d1117;border-radius:8px;padding:12px;">
+                                <div id="valProcessed" style="font-size:24px;font-weight:bold;color:#60a5fa;">0</div>
+                                <div style="font-size:11px;color:#888;">Processados</div>
+                            </div>
+                        </div>
+                        
+                        <p id="valEta" style="color:#666;font-size:12px;margin:0 0 16px;">Calculando tempo estimado...</p>
+                        
+                        <button id="valCloseBtn" onclick="document.getElementById('verifyAllModal').remove(); loadLeads();" style="padding:8px 24px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;display:none;">Fechar e Atualizar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch('/api/admin/leads/verify-all-whatsapp', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                
+                                if (data.type === 'start') {
+                                    document.getElementById('valStatus').textContent = data.message;
+                                }
+                                
+                                if (data.type === 'progress' || data.type === 'complete') {
+                                    document.getElementById('valProgressBar').style.width = data.percent + '%';
+                                    document.getElementById('valProgressBar').textContent = data.percent + '%';
+                                    document.getElementById('valVerified').textContent = data.verified;
+                                    document.getElementById('valInvalid').textContent = data.invalid;
+                                    document.getElementById('valErrors').textContent = data.errors;
+                                    document.getElementById('valProcessed').textContent = data.processed + '/' + data.total;
+                                    document.getElementById('valStatus').textContent = `Processando... ${data.processed} de ${data.total}`;
+                                    
+                                    // Calculate ETA
+                                    const elapsed = (Date.now() - startTime) / 1000;
+                                    const rate = data.processed / elapsed;
+                                    const remaining = (data.total - data.processed) / rate;
+                                    if (remaining > 60) {
+                                        document.getElementById('valEta').textContent = `⏱ Tempo restante: ~${Math.ceil(remaining/60)} min`;
+                                    } else {
+                                        document.getElementById('valEta').textContent = `⏱ Tempo restante: ~${Math.ceil(remaining)} seg`;
+                                    }
+                                }
+                                
+                                if (data.type === 'complete') {
+                                    const elapsed = Math.round((Date.now() - startTime) / 1000);
+                                    document.getElementById('valStatus').innerHTML = `<span style="color:#10b981;">✅ Concluído!</span>`;
+                                    document.getElementById('valEta').textContent = `Tempo total: ${elapsed > 60 ? Math.floor(elapsed/60) + 'min ' + (elapsed%60) + 's' : elapsed + 's'}`;
+                                    document.getElementById('valCloseBtn').style.display = 'inline-block';
+                                    document.getElementById('valProgressBar').style.background = 'linear-gradient(90deg,#10b981,#059669)';
+                                }
+                                
+                                if (data.type === 'error') {
+                                    document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro: ${data.message}</span>`;
+                                    document.getElementById('valCloseBtn').style.display = 'inline-block';
+                                }
+                            } catch (e) { /* ignore parse errors */ }
+                        }
+                    }
+                }
+            } catch (error) {
+                document.getElementById('valStatus').innerHTML = `<span style="color:#ef4444;">❌ Erro de conexão: ${error.message}</span>`;
+                document.getElementById('valCloseBtn').style.display = 'inline-block';
             }
         }
 

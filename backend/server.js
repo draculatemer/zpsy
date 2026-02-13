@@ -3129,6 +3129,140 @@ app.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (req,
     }
 });
 
+// Verify ALL leads WhatsApp numbers (full reprocess)
+app.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (req, res) => {
+    try {
+        // Set headers for SSE (Server-Sent Events) for real-time progress
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+        });
+
+        const sendProgress = (data) => {
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        };
+
+        // Get all leads with phone numbers
+        const leadsResult = await pool.query(
+            `SELECT id, whatsapp, phone FROM leads 
+             WHERE (whatsapp IS NOT NULL AND whatsapp != '') OR (phone IS NOT NULL AND phone != '')
+             ORDER BY id ASC`
+        );
+
+        const totalLeads = leadsResult.rows.length;
+        sendProgress({ type: 'start', total: totalLeads, message: `Iniciando verificação de ${totalLeads} leads...` });
+
+        let verified = 0;
+        let invalid = 0;
+        let errors = 0;
+        let skipped = 0;
+        let processed = 0;
+
+        for (const lead of leadsResult.rows) {
+            let phone = lead.whatsapp || lead.phone || '';
+            if (!phone) {
+                skipped++;
+                processed++;
+                continue;
+            }
+
+            phone = phone.replace(/\D/g, '');
+            if (phone.length < 10) {
+                skipped++;
+                processed++;
+                continue;
+            }
+
+            try {
+                const headers = {};
+                if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
+
+                const response = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
+                    method: 'GET',
+                    headers
+                });
+
+                const data = await response.json();
+                const isRegistered = data.exists === true;
+
+                // Try to get profile picture if registered
+                let profilePicture = null;
+                if (isRegistered) {
+                    try {
+                        const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
+                            method: 'GET',
+                            headers
+                        });
+                        const picData = await picResponse.json();
+                        if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
+                            profilePicture = picData.link;
+                        }
+                    } catch (e) { /* ignore pic errors */ }
+                }
+
+                // Update lead
+                await pool.query(`
+                    UPDATE leads SET 
+                        whatsapp_verified = $1,
+                        whatsapp_verified_at = NOW(),
+                        whatsapp_profile_pic = COALESCE($2, whatsapp_profile_pic),
+                        updated_at = NOW()
+                    WHERE id = $3
+                `, [isRegistered, profilePicture, lead.id]);
+
+                if (isRegistered) verified++;
+                else invalid++;
+
+            } catch (e) {
+                errors++;
+                console.log(`📱 Verify-all error for lead #${lead.id}: ${e.message}`);
+            }
+
+            processed++;
+
+            // Send progress every lead
+            if (processed % 5 === 0 || processed === totalLeads) {
+                sendProgress({
+                    type: 'progress',
+                    processed,
+                    total: totalLeads,
+                    verified,
+                    invalid,
+                    errors,
+                    skipped,
+                    percent: Math.round((processed / totalLeads) * 100)
+                });
+            }
+
+            // Rate limit: 600ms between requests to avoid Z-API throttling
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
+        sendProgress({
+            type: 'complete',
+            processed,
+            total: totalLeads,
+            verified,
+            invalid,
+            errors,
+            skipped,
+            message: `Verificação concluída! ${verified} válidos, ${invalid} inválidos, ${errors} erros, ${skipped} ignorados`
+        });
+
+        res.end();
+
+    } catch (error) {
+        console.error('Error verifying all WhatsApp:', error);
+        try {
+            res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
+            res.end();
+        } catch (e) {
+            res.status(500).json({ error: 'Failed to verify all WhatsApp numbers' });
+        }
+    }
+});
+
 // Update lead status (protected)
 app.put('/api/admin/leads/:id', authenticateToken, async (req, res) => {
     try {
