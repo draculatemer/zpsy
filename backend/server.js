@@ -8617,12 +8617,14 @@ app.all('/api/postback/perfectpay', async (req, res) => {
         }
         
         // Identify product type (front/upsell1/upsell2/upsell3)
+        // PerfectPay English: PPPBE8FE=Front, PPPBE8FH=UP1, PPPBE8FI=UP2, PPPBE8FJ=UP3
         let productType = 'front';
-        if (productNameLower.includes('message vault') || productNameLower.includes('recover')) {
+        const ppCodeStr = String(productCode || '').toUpperCase();
+        if (ppCodeStr === 'PPPBE8FH' || productNameLower.includes('message vault') || productNameLower.includes('recover')) {
             productType = 'upsell1';
-        } else if (productNameLower.includes('360') || productNameLower.includes('tracker') || productNameLower.includes('social')) {
+        } else if (ppCodeStr === 'PPPBE8FI' || productNameLower.includes('360') || productNameLower.includes('tracker') || productNameLower.includes('social')) {
             productType = 'upsell2';
-        } else if (productNameLower.includes('instant') || productNameLower.includes('vip') || productNameLower.includes('priority')) {
+        } else if (ppCodeStr === 'PPPBE8FJ' || productNameLower.includes('instant') || productNameLower.includes('vip') || productNameLower.includes('priority')) {
             productType = 'upsell3';
         }
         
