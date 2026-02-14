@@ -864,35 +864,3 @@ body {
         font-size: 20px;
     }
 }
-
-/* ============================================
-   PERFECTPAY UPSELL STYLES
-   ============================================ */
-.upsell-iframe-container {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 24px;
-    margin: 20px auto;
-    max-width: 400px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.upsell-iframe-container .iframeUpsell {
-    width: 100%;
-    min-height: 280px;
-    border: none;
-    border-radius: 12px;
-    background: #ffffff;
-}
-
-@media (max-width: 720px) {
-    .upsell-iframe-container {
-        padding: 16px;
-        margin: 16px auto;
-        border-radius: 12px;
-    }
-    
-    .upsell-iframe-container .iframeUpsell {
-        min-height: 260px;
-    }
-}
