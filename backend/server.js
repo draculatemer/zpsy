@@ -6532,9 +6532,39 @@ async function sendMissingCAPIPurchases() {
                     referrer: leadData?.referrer || null
                 };
                 
-                // Convert BRL to USD
-                const valueBRL = parseFloat(tx.value) || 0;
-                const valueUSD = Math.round((valueBRL * brlToUsdRate) * 100) / 100;
+                // Convert value to USD
+                const rawValue = parseFloat(tx.value) || 0;
+                let valueUSD;
+                
+                if (funnelSource === 'perfectpay') {
+                    // PerfectPay may store values in USD (international) or BRL
+                    // Check raw_data for currency info
+                    let isPerfectPayBRL = true; // default to BRL
+                    try {
+                        const rawData = typeof tx.raw_data === 'string' ? JSON.parse(tx.raw_data) : tx.raw_data;
+                        if (rawData) {
+                            const currencyEnum = rawData.currency_enum || rawData.sale_currency_enum;
+                            // currency_enum 1 = BRL, others may be USD
+                            if (currencyEnum && currencyEnum !== 1 && currencyEnum !== '1') {
+                                isPerfectPayBRL = false;
+                            }
+                        }
+                    } catch (e) {}
+                    
+                    valueUSD = isPerfectPayBRL 
+                        ? Math.round((rawValue * brlToUsdRate) * 100) / 100 
+                        : rawValue;
+                    console.log(`💱 CAPI CATCH-UP: PerfectPay value: ${rawValue} -> USD: ${valueUSD} (isBRL: ${isPerfectPayBRL})`);
+                } else {
+                    // Monetizze values are always in BRL
+                    valueUSD = Math.round((rawValue * brlToUsdRate) * 100) / 100;
+                }
+                
+                // Skip $0 purchases (invalid/test transactions)
+                if (valueUSD <= 0) {
+                    console.log(`⏭️ CAPI CATCH-UP: Skipping ${transactionId} - value is $0 or negative`);
+                    continue;
+                }
                 
                 // Build Facebook custom data
                 const fbCustomData = {
@@ -6548,9 +6578,13 @@ async function sendMissingCAPIPurchases() {
                     customer_segmentation: 'new_customer_to_business'
                 };
                 
-                // Build event source URL
+                // Build event source URL (MUST match the domain where the pixel fires)
                 let eventSourceUrl;
-                if (funnelSource === 'affiliate') {
+                if (funnelSource === 'perfectpay') {
+                    eventSourceUrl = funnelLanguage === 'es' 
+                        ? 'https://perfect.zappdetect.com/espanhol/' 
+                        : 'https://perfect.zappdetect.com/ingles/';
+                } else if (funnelSource === 'affiliate') {
                     eventSourceUrl = funnelLanguage === 'es' 
                         ? 'https://afiliado.whatstalker.com/espanhol/' 
                         : 'https://afiliado.whatstalker.com/ingles/';
@@ -7605,8 +7639,9 @@ app.all('/api/postback/monetizze', async (req, res) => {
         const valorRecebido = venda.valorRecebido || body['venda.valorRecebido'] || body['venda[valorRecebido]'] || null;
         const valorBruto = venda.valor || body.valor || body['venda.valor'] || body['venda[valor]'] || '0';
         
-        // Use commission value if available, otherwise fall back to other values
-        const valor = comissao || valorLiquido || valorRecebido || valorBruto;
+        // Use GROSS sale value (valorBruto) for CAPI reporting (Facebook needs the total product price for ROAS)
+        // Previously used commission, which underreported revenue to Facebook
+        const valor = valorBruto || valorRecebido || valorLiquido || comissao;
         
         console.log('💰 Value breakdown:', { 
             comissao: comissao || 'N/A', 
@@ -8227,11 +8262,14 @@ app.all('/api/postback/monetizze', async (req, res) => {
             customer_segmentation: customerSegmentation  // New vs returning customer
         };
         
-        // Build event_source_url based on funnel language AND source (main vs affiliate)
+        // Build event_source_url based on funnel language AND source
         // MUST match the domain where the pixel fires (frontend uses window.location.href)
-        // Main funnels: zappdetect.com | Affiliate funnels: afiliado.whatstalker.com
         let eventSourceUrl;
-        if (funnelSource === 'affiliate') {
+        if (funnelSource === 'perfectpay') {
+            eventSourceUrl = funnelLanguage === 'es' 
+                ? 'https://perfect.zappdetect.com/espanhol/' 
+                : 'https://perfect.zappdetect.com/ingles/';
+        } else if (funnelSource === 'affiliate') {
             eventSourceUrl = funnelLanguage === 'es' 
                 ? 'https://afiliado.whatstalker.com/espanhol/' 
                 : 'https://afiliado.whatstalker.com/ingles/';
