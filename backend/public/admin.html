@@ -685,43 +685,10 @@
                     <div class="funnel-page-header">
                         <h2>💎 Clientes</h2>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <button onclick="toggleClientsCurrency()" id="currencyToggleBtn" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;">
-                                💱 <span id="currencyToggleLabel">USD → BRL</span>
-                            </button>
-                            <span id="exchangeRateDisplay" style="font-size: 11px; color: var(--text-muted); padding: 4px 10px; background: rgba(255,255,255,0.03); border-radius: 6px;">$1 = R$ 5,80</span>
                             <div id="clientsLangIndicator"><span class="lang-badge all">🌍 Todos</span></div>
                         </div>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Total de Clientes</span>
-                                <div class="stat-icon green">💎</div>
-                            </div>
-                            <div class="stat-value green" id="clientsTotal">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Novos Hoje</span>
-                                <div class="stat-icon blue">📈</div>
-                            </div>
-                            <div class="stat-value blue" id="clientsToday">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Receita Total</span>
-                                <div class="stat-icon purple">💰</div>
-                            </div>
-                            <div class="stat-value" id="clientsTotalRevenue" style="line-height: 1.2;">$0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Ticket Médio</span>
-                                <div class="stat-icon orange">🎯</div>
-                            </div>
-                            <div class="stat-value" id="clientsAvgTicket" style="line-height: 1.2;">$0</div>
-                        </div>
-                    </div>
+                    <!-- Stats cards removed -->
                     
                     <div class="data-panel">
                         <div class="panel-header">
@@ -11057,7 +11024,7 @@ Posso ajudar em algo mais? 😊`
         
         // ==================== CLIENTS TAB ====================
         let clientsCurrentPage = 1;
-        let clientsPrimaryCurrency = 'USD'; // 'USD' or 'BRL'
+        let clientsPrimaryCurrency = 'BRL'; // 'USD' or 'BRL' - default BRL (R$ grande, $ pequeno)
         let financialPrimaryCurrency = 'USD'; // 'USD' or 'BRL' - for financial tab
         
         // Exchange rate USD -> BRL (updated periodically)
@@ -11146,10 +11113,7 @@ Posso ajudar em algo mais? 😊`
                 // Update stats
                 const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
                 const setElHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-                setEl('clientsTotal', (data.stats?.total || 0).toLocaleString('pt-BR'));
-                setEl('clientsToday', (data.stats?.today || 0).toLocaleString('pt-BR'));
-                setElHtml('clientsTotalRevenue', formatDualCurrency(data.stats?.totalRevenue || 0));
-                setElHtml('clientsAvgTicket', formatDualCurrency(data.stats?.avgTicket || 0));
+                // Stats cards removed - only update client count
                 setEl('panelClientCount', `${data.pagination?.total || 0} clientes`);
                 
                 // Sync local filters with global if needed
