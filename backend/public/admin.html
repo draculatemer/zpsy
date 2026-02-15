@@ -11154,9 +11154,13 @@ Posso ajudar em algo mais? 😊`
                         }).join(' ')
                         : '<span style="color: var(--text-muted); font-size: 12px;">-</span>';
                     
-                    // Total spent
-                    const totalSpent = parseFloat(client.total_spent || client.tx_total || 0);
-                    const totalStr = '$' + totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // Total spent (values from Monetizze are in BRL, PerfectPay in USD)
+                    const totalSpentRaw = parseFloat(client.total_spent || client.tx_total || 0);
+                    // Determine if value is in USD (PerfectPay) or BRL (Monetizze/default)
+                    const isPerfectPay = client.funnel_source === 'perfectpay';
+                    const totalBRL = isPerfectPay ? totalSpentRaw * exchangeRate : totalSpentRaw;
+                    const totalUSD = isPerfectPay ? totalSpentRaw : (exchangeRate > 0 ? totalSpentRaw / exchangeRate : 0);
+                    const totalStr = 'R$ ' + totalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     
                     // Source
                     const sourceLabels = { 'main': '🏠', 'affiliate': '🤝', 'perfectpay': '💳' };
@@ -11182,8 +11186,8 @@ Posso ajudar em algo mais? 😊`
                     // WhatsApp icon
                     const whatsappIcon = client.whatsapp_verified === true ? '✅' : client.whatsapp_verified === false ? '❌' : '⏳';
                     
-                    // Dual currency for total in table
-                    const brlTotal = (totalSpent * exchangeRate).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // USD conversion for display below BRL
+                    const usdConversion = '$' + totalUSD.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     
                     return `<tr>
                         <td><strong>${name}</strong></td>
@@ -11192,7 +11196,7 @@ Posso ajudar em algo mais? 😊`
                         <td>${productBadges}</td>
                         <td>
                             <span style="font-weight: 600; color: #10b981;">${totalStr}</span>
-                            <span style="display: block; font-size: 10px; color: var(--text-muted);">≈ R$ ${brlTotal}</span>
+                            <span style="display: block; font-size: 10px; color: var(--text-muted);">≈ ${usdConversion}</span>
                         </td>
                         <td>${langFlag} ${sourceIcon}</td>
                         <td>${countryFlag}</td>
@@ -11299,8 +11303,8 @@ Posso ajudar em algo mais? 😊`
                             <p><strong>Cidade:</strong> ${lead.city || 'N/A'}</p>
                         </div>
                         <div>
-                            <p><strong>Total Gasto:</strong> <span style="color: #10b981; font-weight: 700;">$${(lead.total_spent || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                            <span style="color: var(--text-muted); font-size: 12px;"> ≈ R$ ${((lead.total_spent || 0) * exchangeRate).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></p>
+                            <p><strong>Total Gasto:</strong> <span style="color: #10b981; font-weight: 700;">R$ ${(lead.total_spent || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            <span style="color: var(--text-muted); font-size: 12px;"> ≈ $${(exchangeRate > 0 ? (lead.total_spent || 0) / exchangeRate : 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></p>
                             <p><strong>Produtos:</strong> ${products}</p>
                             <p><strong>1ª Compra:</strong> ${lead.first_purchase_at ? new Date(lead.first_purchase_at).toLocaleDateString('pt-BR') : 'N/A'}</p>
                             <p><strong>Última Compra:</strong> ${lead.last_purchase_at ? new Date(lead.last_purchase_at).toLocaleDateString('pt-BR') : 'N/A'}</p>
