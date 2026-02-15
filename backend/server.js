@@ -1149,6 +1149,61 @@ app.get('/api/admin/active-users', authenticateToken, async (req, res) => {
     }
 });
 
+// Diagnostic endpoint: check funnel_events table health (protected)
+app.get('/api/admin/debug/funnel-events', authenticateToken, async (req, res) => {
+    try {
+        // Check table exists and count recent events
+        const tableCheck = await pool.query(`
+            SELECT 
+                COUNT(*) AS total_rows,
+                COUNT(CASE WHEN created_at >= NOW() - INTERVAL '5 minutes' THEN 1 END) AS last_5min,
+                COUNT(CASE WHEN created_at >= NOW() - INTERVAL '1 hour' THEN 1 END) AS last_1h,
+                COUNT(CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 1 END) AS last_24h,
+                MIN(created_at) AS oldest_event,
+                MAX(created_at) AS newest_event,
+                NOW() AS server_time
+            FROM funnel_events
+        `);
+        
+        // Check table columns
+        const columns = await pool.query(`
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'funnel_events'
+            ORDER BY ordinal_position
+        `);
+        
+        // Recent events sample
+        const recentEvents = await pool.query(`
+            SELECT visitor_id, event, page, ip_address, metadata->>'funnelLanguage' as lang, created_at
+            FROM funnel_events
+            ORDER BY created_at DESC
+            LIMIT 10
+        `);
+        
+        const row = tableCheck.rows[0] || {};
+        res.json({
+            table_exists: true,
+            columns: columns.rows.map(c => c.column_name),
+            total_rows: parseInt(row.total_rows) || 0,
+            last_5min: parseInt(row.last_5min) || 0,
+            last_1h: parseInt(row.last_1h) || 0,
+            last_24h: parseInt(row.last_24h) || 0,
+            oldest_event: row.oldest_event,
+            newest_event: row.newest_event,
+            server_time: row.server_time,
+            recent_events: recentEvents.rows
+        });
+    } catch (error) {
+        console.error('Debug funnel-events error:', error);
+        res.json({ 
+            table_exists: false, 
+            error: error.message,
+            hint: 'funnel_events table may not exist or has schema issues'
+        });
+    }
+});
+
 // Trends comparison endpoint - current vs previous period (protected)
 app.get('/api/admin/stats/trends', authenticateToken, async (req, res) => {
     try {
@@ -4329,11 +4384,26 @@ app.post('/api/track', async (req, res) => {
             funnelSource: source
         };
         
-        await pool.query(
-            `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, metadata, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
-            [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, JSON.stringify(enrichedMetadata)]
-        );
+        // Try INSERT with fbc/fbp columns first; fallback without them if columns don't exist
+        try {
+            await pool.query(
+                `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, metadata, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+                [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, JSON.stringify(enrichedMetadata)]
+            );
+        } catch (insertError) {
+            // If fbc/fbp columns don't exist yet, retry without them
+            if (insertError.message && insertError.message.includes('column')) {
+                console.warn('⚠️ funnel_events INSERT failed (column issue), retrying without fbc/fbp:', insertError.message);
+                await pool.query(
+                    `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, metadata, created_at)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+                    [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, JSON.stringify(enrichedMetadata)]
+                );
+            } else {
+                throw insertError;
+            }
+        }
         
         res.json({ success: true, language });
         

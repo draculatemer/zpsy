@@ -249,6 +249,7 @@
                                     <div style="text-align: right;">
                                         <div style="font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px;">Atualizado</div>
                                         <div id="activeUsersTime" style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px;">--:--:--</div>
+                                        <div id="activeUsersDebugInfo" style="font-size: 9px; color: rgba(255,255,255,0.25); margin-top: 4px; cursor: pointer;" onclick="window.__debugActiveUsers && window.__debugActiveUsers()" title="Clique para diagnosticar">🔧 Debug</div>
                                     </div>
                                 </div>
                             </div>
@@ -14191,6 +14192,251 @@ Posso ajudar em algo mais? 😊`
         document.getElementById('shortcutsModal')?.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) toggleShortcutsModal();
         });
+    </script>
+    
+    <!-- ISOLATED Active Users Script - runs independently of main script -->
+    <script>
+    (function() {
+        'use strict';
+        
+        var ACTIVE_USERS_RETRY_DELAY = 3000; // 3s initial retry
+        var ACTIVE_USERS_REFRESH_INTERVAL = 30000; // 30s refresh
+        var _auInterval = null;
+        var _auLastCount = null;
+        var _auInitAttempts = 0;
+        
+        function getApiUrl() {
+            return window.location.origin;
+        }
+        
+        function getAuthToken() {
+            // Try getting from main script's variable first, then localStorage
+            try { if (typeof authToken !== 'undefined' && authToken) return authToken; } catch(e) {}
+            return localStorage.getItem('adminToken');
+        }
+        
+        function updateElement(id, value) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+        
+        function isDashboardVisible() {
+            var dash = document.getElementById('dashboard');
+            return dash && dash.classList.contains('active');
+        }
+        
+        function loadActiveUsersIsolated() {
+            var token = getAuthToken();
+            if (!token) {
+                console.log('🔵 [AU-Isolated] No auth token, skipping');
+                return;
+            }
+            if (!isDashboardVisible()) {
+                console.log('🔵 [AU-Isolated] Dashboard not visible, skipping');
+                return;
+            }
+            
+            console.log('🔵 [AU-Isolated] Fetching active users...');
+            
+            fetch(getApiUrl() + '/api/admin/active-users?minutes=5', {
+                headers: { 'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache' }
+            })
+            .then(function(res) {
+                console.log('🔵 [AU-Isolated] Response status:', res.status);
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                console.log('🔵 [AU-Isolated] Data received:', JSON.stringify(data));
+                
+                var count = data.active_users || 0;
+                var enCount = data.active_en || 0;
+                var esCount = data.active_es || 0;
+                var events = data.total_events || 0;
+                
+                // Animate count if changed
+                var countEl = document.getElementById('activeUsersCount');
+                if (countEl) {
+                    if (_auLastCount !== null && count !== _auLastCount) {
+                        countEl.style.transform = 'translateY(-8px)';
+                        countEl.style.opacity = '0.3';
+                        setTimeout(function() {
+                            countEl.textContent = count;
+                            countEl.style.transform = 'translateY(0)';
+                            countEl.style.opacity = '1';
+                        }, 200);
+                    } else {
+                        countEl.textContent = count;
+                    }
+                    _auLastCount = count;
+                }
+                
+                updateElement('activeUsersEN', enCount);
+                updateElement('activeUsersES', esCount);
+                updateElement('activeUsersEvents', events);
+                updateElement('activeUsersInterval', data.interval_minutes || 5);
+                updateElement('activeUsersTime', new Date().toLocaleTimeString('pt-BR'));
+                
+                // Page breakdown
+                var pagesEl = document.getElementById('activeUsersPages');
+                if (pagesEl && data.pages && data.pages.length > 0) {
+                    var pageLabels = {
+                        'page_view_landing': 'Landing',
+                        'page_view_phone': 'Phone',
+                        'page_view_conversation': 'Chat',
+                        'page_view_cta': 'CTA',
+                        'landing.html': 'Landing',
+                        'phone.html': 'Phone',
+                        'conversas.html': 'Chat',
+                        'chat.html': 'Chat',
+                        'cta-unified.html': 'CTA'
+                    };
+                    pagesEl.innerHTML = data.pages.slice(0, 5).map(function(p) {
+                        var label = pageLabels[p.page] || p.page;
+                        return '<span class="active-page-badge">' + label + ' <span class="page-count">' + p.visitors + '</span></span>';
+                    }).join('');
+                }
+                
+                // Pulse color
+                var pulseEl = document.getElementById('activeUsersPulse');
+                if (pulseEl) {
+                    if (count === 0) {
+                        pulseEl.style.background = '#6b7280';
+                        pulseEl.style.boxShadow = '0 0 12px rgba(107, 114, 128, 0.4)';
+                    } else if (count < 10) {
+                        pulseEl.style.background = '#f59e0b';
+                        pulseEl.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.6)';
+                    } else {
+                        pulseEl.style.background = '#10b981';
+                        pulseEl.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.6)';
+                    }
+                }
+                
+                // Update debug info
+                updateElement('activeUsersDebugInfo', 'OK ' + new Date().toLocaleTimeString('pt-BR'));
+            })
+            .catch(function(err) {
+                console.error('🔵 [AU-Isolated] Error:', err);
+                // Show 0 instead of dashes
+                updateElement('activeUsersCount', '0');
+                updateElement('activeUsersEN', '0');
+                updateElement('activeUsersES', '0');
+                updateElement('activeUsersEvents', '0');
+                updateElement('activeUsersDebugInfo', 'Err: ' + (err.message || err));
+            });
+        }
+        
+        function startActiveUsersIsolated() {
+            console.log('🔵 [AU-Isolated] Starting active users refresh...');
+            loadActiveUsersIsolated();
+            if (_auInterval) clearInterval(_auInterval);
+            _auInterval = setInterval(function() {
+                if (!document.hidden && isDashboardVisible()) {
+                    loadActiveUsersIsolated();
+                }
+            }, ACTIVE_USERS_REFRESH_INTERVAL);
+        }
+        
+        // Debug function accessible from UI
+        window.__debugActiveUsers = function() {
+            var token = getAuthToken();
+            if (!token) {
+                alert('Sem token de autenticação');
+                return;
+            }
+            
+            console.log('🔵 [AU-Debug] Running diagnostics...');
+            updateElement('activeUsersDebugInfo', 'Diagnosticando...');
+            
+            fetch(getApiUrl() + '/api/admin/debug/funnel-events', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                console.log('🔵 [AU-Debug] Funnel events diagnostic:', data);
+                var msg = 'DIAGNÓSTICO FUNNEL EVENTS:\n\n';
+                msg += 'Tabela existe: ' + (data.table_exists ? 'SIM' : 'NÃO') + '\n';
+                msg += 'Colunas: ' + (data.columns || []).join(', ') + '\n\n';
+                msg += 'Total registros: ' + (data.total_rows || 0) + '\n';
+                msg += 'Últimos 5 min: ' + (data.last_5min || 0) + '\n';
+                msg += 'Última 1 hora: ' + (data.last_1h || 0) + '\n';
+                msg += 'Últimas 24h: ' + (data.last_24h || 0) + '\n\n';
+                msg += 'Evento mais antigo: ' + (data.oldest_event || 'NENHUM') + '\n';
+                msg += 'Evento mais recente: ' + (data.newest_event || 'NENHUM') + '\n';
+                msg += 'Hora do servidor: ' + (data.server_time || '?') + '\n';
+                
+                if (data.recent_events && data.recent_events.length > 0) {
+                    msg += '\n--- ÚLTIMOS EVENTOS ---\n';
+                    data.recent_events.forEach(function(ev) {
+                        msg += ev.event + ' | ' + ev.page + ' | ' + ev.lang + ' | ' + ev.created_at + '\n';
+                    });
+                } else {
+                    msg += '\nNENHUM evento encontrado na tabela!';
+                }
+                
+                if (data.error) {
+                    msg += '\nERRO: ' + data.error;
+                    if (data.hint) msg += '\nDica: ' + data.hint;
+                }
+                
+                alert(msg);
+                updateElement('activeUsersDebugInfo', 'Debug: ' + (data.last_5min || 0) + ' eventos (5min)');
+            })
+            .catch(function(err) {
+                console.error('🔵 [AU-Debug] Error:', err);
+                alert('Erro ao diagnosticar: ' + err.message);
+                updateElement('activeUsersDebugInfo', 'Debug err: ' + err.message);
+            });
+        };
+        
+        // Wait for dashboard to be visible, then start
+        function tryInit() {
+            _auInitAttempts++;
+            console.log('🔵 [AU-Isolated] Init attempt ' + _auInitAttempts);
+            
+            if (isDashboardVisible() && getAuthToken()) {
+                startActiveUsersIsolated();
+                return;
+            }
+            
+            // Retry up to 20 times (60 seconds total)
+            if (_auInitAttempts < 20) {
+                setTimeout(tryInit, ACTIVE_USERS_RETRY_DELAY);
+            } else {
+                console.log('🔵 [AU-Isolated] Gave up after 20 attempts');
+            }
+        }
+        
+        // Start trying when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(tryInit, 1000); // Give main script time to initialize
+            });
+        } else {
+            setTimeout(tryInit, 1000);
+        }
+        
+        // Also listen for login events (in case user logs in after page load)
+        // Override showDashboard to trigger our refresh
+        var _origShowDashboard = null;
+        var _interceptInterval = setInterval(function() {
+            if (typeof window.showDashboard === 'function' && !_origShowDashboard) {
+                // Can't override easily, just poll for dashboard visibility
+                clearInterval(_interceptInterval);
+            }
+            // Check if dashboard just became visible
+            if (isDashboardVisible() && getAuthToken() && !_auInterval) {
+                startActiveUsersIsolated();
+                clearInterval(_interceptInterval);
+            }
+        }, 2000);
+        
+        // Clean up after 2 minutes if still polling
+        setTimeout(function() { clearInterval(_interceptInterval); }, 120000);
+        
+    })();
     </script>
 </body>
 </html>
