@@ -78,7 +78,7 @@ const UpsellTracker = {
             targetPhone,
             targetGender,
             funnelLanguage: 'en',
-            funnelSource: 'affiliate',
+            funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
             metadata: {
@@ -121,32 +121,38 @@ const UpsellTracker = {
         VIEW_UPSELL_1: 'upsell_1_view',
         VIEW_UPSELL_2: 'upsell_2_view',
         VIEW_UPSELL_3: 'upsell_3_view',
+        VIEW_UPSELL_4: 'upsell_4_view',
         VIEW_THANKYOU: 'thankyou_view',
         
         // Page ready (after any overlays/loading)
         READY_UPSELL_1: 'upsell_1_ready',
         READY_UPSELL_2: 'upsell_2_ready',
         READY_UPSELL_3: 'upsell_3_ready',
+        READY_UPSELL_4: 'upsell_4_ready',
         
         // Accepts
         ACCEPT_UPSELL_1: 'upsell_1_accepted',
         ACCEPT_UPSELL_2: 'upsell_2_accepted',
         ACCEPT_UPSELL_3: 'upsell_3_accepted',
+        ACCEPT_UPSELL_4: 'upsell_4_accepted',
         
         // Declines
         DECLINE_UPSELL_1: 'upsell_1_declined',
         DECLINE_UPSELL_2: 'upsell_2_declined',
         DECLINE_UPSELL_3: 'upsell_3_declined',
+        DECLINE_UPSELL_4: 'upsell_4_declined',
         
         // CTA Visibility (user scrolled to CTA)
         CTA_VISIBLE_UPSELL_1: 'upsell_1_cta_visible',
         CTA_VISIBLE_UPSELL_2: 'upsell_2_cta_visible',
         CTA_VISIBLE_UPSELL_3: 'upsell_3_cta_visible',
+        CTA_VISIBLE_UPSELL_4: 'upsell_4_cta_visible',
         
         // Page exit (before leaving)
         EXIT_UPSELL_1: 'upsell_1_exit',
         EXIT_UPSELL_2: 'upsell_2_exit',
         EXIT_UPSELL_3: 'upsell_3_exit',
+        EXIT_UPSELL_4: 'upsell_4_exit',
         
         // Engagement milestones
         ENGAGED_10S: 'engaged_10s',
@@ -162,6 +168,7 @@ const UpsellTracker = {
         if (path.includes('/up1/')) return 1;
         if (path.includes('/up2/')) return 2;
         if (path.includes('/up3/')) return 3;
+        if (path.includes('/up4/')) return 4;
         if (path.includes('/thankyou/')) return 'thankyou';
         return null;
     },
@@ -176,6 +183,8 @@ const UpsellTracker = {
             this.track(this.events.VIEW_UPSELL_2);
         } else if (upsell === 3) {
             this.track(this.events.VIEW_UPSELL_3);
+        } else if (upsell === 4) {
+            this.track(this.events.VIEW_UPSELL_4);
         } else if (upsell === 'thankyou') {
             this.track(this.events.VIEW_THANKYOU);
         }
@@ -195,6 +204,8 @@ const UpsellTracker = {
             event = this.events.ACCEPT_UPSELL_2;
         } else if (upsell === 3) {
             event = this.events.ACCEPT_UPSELL_3;
+        } else if (upsell === 4) {
+            event = this.events.ACCEPT_UPSELL_4;
         }
         
         if (!event) return;
@@ -242,6 +253,8 @@ const UpsellTracker = {
             this.track(this.events.DECLINE_UPSELL_2, { action: 'declined' });
         } else if (upsell === 3) {
             this.track(this.events.DECLINE_UPSELL_3, { action: 'declined' });
+        } else if (upsell === 4) {
+            this.track(this.events.DECLINE_UPSELL_4, { action: 'declined' });
         }
     },
     
@@ -257,7 +270,7 @@ const UpsellTracker = {
         });
         
         // Track decline link clicks
-        document.querySelectorAll('.decline-link, a[href*="up2"], a[href*="up3"], a[href*="thankyou"]').forEach(link => {
+        document.querySelectorAll('.decline-link, a[href*="up2"], a[href*="up3"], a[href*="up4"], a[href*="thankyou"]').forEach(link => {
             // Only track if it's a decline action (not a buy button)
             if (!link.hasAttribute('data-upsell') && !link.href.includes('#monetizzeCompra')) {
                 link.addEventListener('click', () => {
@@ -277,6 +290,8 @@ const UpsellTracker = {
             this.track(this.events.READY_UPSELL_2);
         } else if (upsell === 3) {
             this.track(this.events.READY_UPSELL_3);
+        } else if (upsell === 4) {
+            this.track(this.events.READY_UPSELL_4);
         }
     },
     
@@ -343,6 +358,7 @@ const UpsellTracker = {
                         if (upsell === 1) self.track(self.events.CTA_VISIBLE_UPSELL_1);
                         else if (upsell === 2) self.track(self.events.CTA_VISIBLE_UPSELL_2);
                         else if (upsell === 3) self.track(self.events.CTA_VISIBLE_UPSELL_3);
+                        else if (upsell === 4) self.track(self.events.CTA_VISIBLE_UPSELL_4);
                     }
                 }
             }
@@ -410,7 +426,7 @@ const UpsellTracker = {
                 self.setupEngagementTracking();
                 
                 // Track page ready immediately for UP2 and UP3 (no overlay)
-                // For UP1, it will be tracked when overlay completes
+                // For UP1 and UP4, it will be tracked when overlay completes
                 const upsell = self.getCurrentUpsell();
                 if (upsell === 2 || upsell === 3) {
                     self.trackPageReady();
