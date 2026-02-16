@@ -1404,7 +1404,7 @@
                     <!-- ==================== SECTION 1: RECOVERY (Form Requests) ==================== -->
                     <div id="refund-section-recovery" class="refund-section">
                         <!-- Recovery Stats -->
-                        <div class="stats-grid cols-5" style="margin-bottom: 24px;">
+                        <div class="stats-grid cols-3" style="margin-bottom: 24px;">
                             <div class="stat-card" style="border-left: 4px solid #f59e0b;">
                                 <div class="stat-header">
                                     <span class="stat-label">Pendentes</span>
@@ -1412,22 +1412,6 @@
                                 </div>
                                 <div class="stat-value yellow" id="recoveryPending">0</div>
                                 <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Aguardando contato</div>
-                            </div>
-                            <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
-                                <div class="stat-header">
-                                    <span class="stat-label">Em Tratamento</span>
-                                    <div class="stat-icon purple">🎯</div>
-                                </div>
-                                <div class="stat-value purple" id="recoveryHandling">0</div>
-                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Suporte em contato</div>
-                            </div>
-                            <div class="stat-card" style="border-left: 4px solid #22c55e;">
-                                <div class="stat-header">
-                                    <span class="stat-label">Convencidos</span>
-                                    <div class="stat-icon green">🏆</div>
-                                </div>
-                                <div class="stat-value green" id="recoveryConvinced">0</div>
-                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Cliente manteve compra</div>
                             </div>
                             <div class="stat-card" style="border-left: 4px solid #3b82f6;">
                                 <div class="stat-header">
@@ -1437,13 +1421,13 @@
                                 <div class="stat-value blue" id="recoveryRefunded">0</div>
                                 <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Reembolso concedido</div>
                             </div>
-                            <div class="stat-card" style="border-left: 4px solid #71717a;">
+                            <div class="stat-card" style="border-left: 4px solid #ef4444;">
                                 <div class="stat-header">
-                                    <span class="stat-label">Taxa Recuperação</span>
-                                    <div class="stat-icon" style="color: #22c55e;">📈</div>
+                                    <span class="stat-label">Valor Reembolsados</span>
+                                    <div class="stat-icon" style="color: #ef4444;">💰</div>
                                 </div>
-                                <div class="stat-value" style="color: #22c55e;" id="recoveryRate">0%</div>
-                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Convencidos / Total</div>
+                                <div class="stat-value" style="color: #ef4444;" id="recoveryTotalValue">R$ 0,00</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Total reembolsado manualmente</div>
                             </div>
                         </div>
                         
@@ -7517,18 +7501,17 @@ Estou aqui para esclarecer tudo! 😊`
             
             // Update recovery stats
             const pending = formRefunds.filter(r => r.status === 'pending').length;
-            const handling = formRefunds.filter(r => r.status === 'handling').length;
-            const convinced = formRefunds.filter(r => r.status === 'convinced').length;
             const refunded = formRefunds.filter(r => r.status === 'refunded' || r.status === 'approved').length;
-            const total = formRefunds.length;
-            const recoveryRate = total > 0 ? Math.round((convinced / total) * 100) : 0;
+            
+            // Calculate total refunded value (manual refunds only)
+            const refundedItems = formRefunds.filter(r => r.status === 'refunded' || r.status === 'approved');
+            const totalRefundedValue = refundedItems.reduce((sum, r) => sum + (parseFloat(r.value) || 0), 0);
+            const formattedValue = totalRefundedValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             
             const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
             el('recoveryPending', pending);
-            el('recoveryHandling', handling);
-            el('recoveryConvinced', convinced);
             el('recoveryRefunded', refunded);
-            el('recoveryRate', recoveryRate + '%');
+            el('recoveryTotalValue', formattedValue);
             el('recoveryTotalCount', formRefunds.length + ' solicitações');
             
             // Update monetizze stats
