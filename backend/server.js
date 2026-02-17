@@ -500,14 +500,20 @@ app.get('/go/:slug', async (req, res) => {
         const activeTest = test.rows[0];
         const testId = activeTest.id;
         
+        // Allow forced variant for testing: /go/slug?force=A or ?force=B
+        const forceVariant = req.query.force?.toUpperCase();
+        
         // Check cookie for returning visitors (consistency)
         const cookieName = `ab_${testId}`;
-        let variant = req.cookies?.[cookieName];
+        let variant = forceVariant && ['A', 'B'].includes(forceVariant) 
+            ? forceVariant 
+            : req.cookies?.[cookieName];
         
         if (!variant || !['A', 'B'].includes(variant)) {
             // Assign new variant based on traffic split
             const random = Math.random() * 100;
-            variant = random < activeTest.traffic_split ? 'A' : 'B';
+            variant = random < Number(activeTest.traffic_split) ? 'A' : 'B';
+            console.log(`🎲 AB Random: ${random.toFixed(2)} < ${activeTest.traffic_split} → ${variant}`);
         }
         
         // Set cookie for 30 days
