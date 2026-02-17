@@ -1548,22 +1548,27 @@
                 
                 <!-- Tab: Refunds -->
                 <div class="tab-content" id="tab-refunds">
-                    <!-- Sub-tabs for 3 sections -->
+                    <!-- Sub-tabs for 4 sections -->
                     <div class="refund-subtabs" style="display: flex; gap: 0; margin-bottom: 24px; border-radius: 12px; overflow: hidden; background: var(--bg-card); border: 1px solid var(--border);">
-                        <button class="refund-subtab active" onclick="switchRefundSection('recovery')" id="subtab-recovery" style="flex: 1; padding: 16px 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
-                            <span style="font-size: 20px;">🎯</span>
-                            <span>Recuperação de Clientes</span>
-                            <span class="subtab-badge" id="recoveryBadge" style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 12px;">0</span>
+                        <button class="refund-subtab active" onclick="switchRefundSection('recovery')" id="subtab-recovery" style="flex: 1; padding: 14px 16px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s;">
+                            <span style="font-size: 18px;">🎯</span>
+                            <span>Pendentes</span>
+                            <span class="subtab-badge" id="recoveryBadge" style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px;">0</span>
                         </button>
-                        <button class="refund-subtab" onclick="switchRefundSection('monetizze')" id="subtab-monetizze" style="flex: 1; padding: 16px 24px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
-                            <span style="font-size: 20px;">💸</span>
-                            <span>Reembolsos Monetizze</span>
-                            <span class="subtab-badge" id="monetizzeBadge" style="background: rgba(245, 158, 11, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 12px; color: #f59e0b;">0</span>
+                        <button class="refund-subtab" onclick="switchRefundSection('processed')" id="subtab-processed" style="flex: 1; padding: 14px 16px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s;">
+                            <span style="font-size: 18px;">✅</span>
+                            <span>Processados</span>
+                            <span class="subtab-badge" id="processedBadge" style="background: rgba(34,197,94,0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #22c55e;">0</span>
                         </button>
-                        <button class="refund-subtab" onclick="switchRefundSection('chargeback')" id="subtab-chargeback" style="flex: 1; padding: 16px 24px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
-                            <span style="font-size: 20px;">⚠️</span>
+                        <button class="refund-subtab" onclick="switchRefundSection('monetizze')" id="subtab-monetizze" style="flex: 1; padding: 14px 16px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s;">
+                            <span style="font-size: 18px;">💸</span>
+                            <span>Monetizze</span>
+                            <span class="subtab-badge" id="monetizzeBadge" style="background: rgba(245, 158, 11, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #f59e0b;">0</span>
+                        </button>
+                        <button class="refund-subtab" onclick="switchRefundSection('chargeback')" id="subtab-chargeback" style="flex: 1; padding: 14px 16px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s;">
+                            <span style="font-size: 18px;">⚠️</span>
                             <span>Chargebacks</span>
-                            <span class="subtab-badge" id="chargebackBadge" style="background: rgba(239, 68, 68, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 12px; color: #ef4444;">0</span>
+                            <span class="subtab-badge" id="chargebackBadge" style="background: rgba(239, 68, 68, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #ef4444;">0</span>
                         </button>
                     </div>
                     
@@ -1579,21 +1584,21 @@
                                 <div class="stat-value yellow" id="recoveryPending">0</div>
                                 <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Aguardando contato</div>
                             </div>
-                            <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+                            <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
                                 <div class="stat-header">
-                                    <span class="stat-label">Reembolsados</span>
-                                    <div class="stat-icon blue">💸</div>
+                                    <span class="stat-label">Em Tratamento</span>
+                                    <div class="stat-icon" style="color: #8b5cf6;">🎯</div>
                                 </div>
-                                <div class="stat-value blue" id="recoveryRefunded">0</div>
-                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Reembolso concedido</div>
+                                <div class="stat-value" style="color: #8b5cf6;" id="recoveryRefunded">0</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Suporte em contato</div>
                             </div>
                             <div class="stat-card" style="border-left: 4px solid #ef4444;">
                                 <div class="stat-header">
-                                    <span class="stat-label">Valor Reembolsados</span>
+                                    <span class="stat-label">Valor em Risco</span>
                                     <div class="stat-icon" style="color: #ef4444;">💰</div>
                                 </div>
                                 <div class="stat-value" style="color: #ef4444;" id="recoveryTotalValue">R$ 0,00</div>
-                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Total reembolsado manualmente</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Total reembolsado</div>
                             </div>
                         </div>
                         
@@ -1649,6 +1654,63 @@
                                 
                                 <!-- Pagination for Refunds Recovery Section -->
                                 <div id="refundsRecoveryPaginationContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ==================== SECTION 1B: PROCESSED REFUNDS ==================== -->
+                    <div id="refund-section-processed" class="refund-section" style="display: none;">
+                        <div class="stats-grid cols-3" style="margin-bottom: 24px;">
+                            <div class="stat-card" style="border-left: 4px solid #22c55e;">
+                                <div class="stat-header">
+                                    <span class="stat-label">Convencidos</span>
+                                    <div class="stat-icon" style="color: #22c55e;">🏆</div>
+                                </div>
+                                <div class="stat-value" style="color: #22c55e;" id="processedConvinced">0</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Cliente manteve a compra</div>
+                            </div>
+                            <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+                                <div class="stat-header">
+                                    <span class="stat-label">Reembolsados</span>
+                                    <div class="stat-icon blue">💸</div>
+                                </div>
+                                <div class="stat-value blue" id="processedRefunded">0</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Reembolso concedido</div>
+                            </div>
+                            <div class="stat-card" style="border-left: 4px solid #71717a;">
+                                <div class="stat-header">
+                                    <span class="stat-label">Rejeitados</span>
+                                    <div class="stat-icon" style="color: #71717a;">❌</div>
+                                </div>
+                                <div class="stat-value" style="color: #71717a;" id="processedRejected">0</div>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Reembolso negado</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>✅ Reembolsos Processados</h3>
+                                <span class="text-muted" id="processedTotalCount">0 processados</span>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Protocolo</th>
+                                            <th>Cliente</th>
+                                            <th>Contato</th>
+                                            <th>Valor</th>
+                                            <th>Resultado</th>
+                                            <th>Comunicações</th>
+                                            <th>Data</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="processedTable">
+                                        <tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando...</td></tr>
+                                    </tbody>
+                                </table>
+                                <div id="processedPaginationContainer"></div>
                             </div>
                         </div>
                     </div>
@@ -3461,6 +3523,7 @@ Posso ajudar com alguma dúvida?</textarea>
             recovery: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             monetizze: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             chargeback: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
+            processed: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             transactions: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] },
             journeys: { currentPage: 1, perPage: 10, totalPages: 1, allData: [], filteredData: [] }
         };
@@ -8017,16 +8080,14 @@ Estou aqui para esclarecer tudo! 😊`
             const activeTab = document.getElementById(`subtab-${section}`);
             if (activeTab) {
                 activeTab.classList.add('active');
-                if (section === 'recovery') {
-                    activeTab.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
-                    activeTab.style.color = 'white';
-                } else if (section === 'monetizze') {
-                    activeTab.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                    activeTab.style.color = 'white';
-                } else if (section === 'chargeback') {
-                    activeTab.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-                    activeTab.style.color = 'white';
-                }
+                const sectionColors = {
+                    recovery: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    processed: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                    monetizze: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    chargeback: 'linear-gradient(135deg, #ef4444, #dc2626)'
+                };
+                activeTab.style.background = sectionColors[section] || sectionColors.recovery;
+                activeTab.style.color = 'white';
             }
             
             // Show/hide sections
@@ -8080,40 +8141,53 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         function renderAllRefundSections() {
-            // Separate data
             const formRefunds = allRefunds.filter(r => !r.source || r.source === 'form');
             const monetizzeRefunds = allRefunds.filter(r => r.source === 'monetizze' && r.refund_type !== 'chargeback');
             const chargebacks = allRefunds.filter(r => r.source === 'monetizze' && r.refund_type === 'chargeback');
             
-            // Update recovery stats
-            const pending = formRefunds.filter(r => r.status === 'pending').length;
-            const refunded = formRefunds.filter(r => r.status === 'refunded' || r.status === 'approved').length;
+            // Split form refunds: pending (active) vs processed
+            const processedStatuses = ['refunded', 'approved', 'rejected', 'convinced'];
+            const activeRefunds = formRefunds.filter(r => !processedStatuses.includes(r.status));
+            const processedRefunds = formRefunds.filter(r => processedStatuses.includes(r.status));
             
-            // Calculate total refunded value (manual refunds only)
-            const refundedItems = formRefunds.filter(r => r.status === 'refunded' || r.status === 'approved');
+            const pending = activeRefunds.filter(r => r.status === 'pending').length;
+            const handling = activeRefunds.filter(r => r.status === 'handling' || r.status === 'processing').length;
+            
+            const refundedItems = processedRefunds.filter(r => r.status === 'refunded' || r.status === 'approved');
             const totalRefundedValue = refundedItems.reduce((sum, r) => sum + (parseFloat(r.value) || 0), 0);
             const formattedValue = totalRefundedValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             
             const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
             el('recoveryPending', pending);
-            el('recoveryRefunded', refunded);
+            el('recoveryRefunded', handling);
             el('recoveryTotalValue', formattedValue);
-            el('recoveryTotalCount', formRefunds.length + ' solicitações');
+            el('recoveryTotalCount', activeRefunds.length + ' solicitações');
+            el('recoveryBadge', activeRefunds.length);
+            
+            // Update processed stats
+            el('processedConvinced', processedRefunds.filter(r => r.status === 'convinced').length);
+            el('processedRefunded', processedRefunds.filter(r => r.status === 'refunded' || r.status === 'approved').length);
+            el('processedRejected', processedRefunds.filter(r => r.status === 'rejected').length);
+            el('processedTotalCount', processedRefunds.length + ' processados');
+            el('processedBadge', processedRefunds.length);
             
             // Update monetizze stats
             el('monetizzeTotal', monetizzeRefunds.length);
             el('monetizzeEN', monetizzeRefunds.filter(r => r.funnel_language === 'en').length);
             el('monetizzeES', monetizzeRefunds.filter(r => r.funnel_language === 'es').length);
             el('monetizzeTotalCount', monetizzeRefunds.length + ' reembolsos');
+            el('monetizzeBadge', monetizzeRefunds.length);
             
             // Update chargeback stats
             el('chargebackTotal', chargebacks.length);
             el('chargebackEN', chargebacks.filter(r => r.funnel_language === 'en').length);
             el('chargebackES', chargebacks.filter(r => r.funnel_language === 'es').length);
             el('chargebackTotalCount', chargebacks.length + ' chargebacks');
+            el('chargebackBadge', chargebacks.length);
             
-            // Render tables
-            renderRecoveryTable(formRefunds);
+            // Render tables - pass only ACTIVE refunds to recovery table
+            renderRecoveryTable(activeRefunds);
+            renderProcessedTable(processedRefunds);
             renderMonetizzeTable(monetizzeRefunds);
             renderChargebackTable(chargebacks);
         }
@@ -8215,13 +8289,13 @@ Estou aqui para esclarecer tudo! 😊`
                         </button>
                     </td>
                     <td>
-                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                            <button onclick="openRefundModal(${r.id})" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;" title="Ver detalhes">👁️</button>
-                            <button onclick="openTemplateModal(${r.id})" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;" title="Enviar mensagem">💬</button>
-                            ${r.status === 'pending' ? `<button onclick="updateRefundStatus(${r.id}, 'handling')" style="background:#8b5cf622;border:1px solid #8b5cf644;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;color:#8b5cf6;" title="Iniciar tratamento">🎯</button>` : ''}
-                            ${r.status === 'handling' ? `
-                                <button onclick="updateRefundStatus(${r.id}, 'convinced')" style="background:#22c55e22;border:1px solid #22c55e44;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;color:#22c55e;" title="Cliente convencido">🏆</button>
-                                <button onclick="updateRefundStatus(${r.id}, 'refunded')" style="background:#3b82f622;border:1px solid #3b82f644;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;color:#3b82f6;" title="Conceder reembolso">💸</button>
+                        <div style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;">
+                            <button onclick="openRefundModal(${r.id})" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;white-space:nowrap;" title="Ver detalhes">👁️</button>
+                            <button onclick="openTemplateModal(${r.id})" style="background:#25d36622;border:1px solid #25d36644;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:#25d366;white-space:nowrap;" title="Enviar via Z-API">💬 Z-API</button>
+                            ${r.status === 'pending' ? `<button onclick="updateRefundStatus(${r.id}, 'handling')" style="background:#8b5cf622;border:1px solid #8b5cf644;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:#8b5cf6;white-space:nowrap;" title="Iniciar tratamento">🎯 Tratar</button>` : ''}
+                            ${r.status === 'handling' || r.status === 'processing' ? `
+                                <button onclick="updateRefundStatus(${r.id}, 'convinced')" style="background:#22c55e22;border:1px solid #22c55e44;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:#22c55e;white-space:nowrap;" title="Cliente convencido">🏆 Convencido</button>
+                                <button onclick="updateRefundStatus(${r.id}, 'refunded')" style="background:#3b82f622;border:1px solid #3b82f644;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;color:#3b82f6;white-space:nowrap;" title="Conceder reembolso">💸 Reembolsar</button>
                             ` : ''}
                         </div>
                     </td>
@@ -8236,8 +8310,121 @@ Estou aqui para esclarecer tudo! 😊`
         
         // Function to re-render refunds recovery page (called by pagination)
         function renderRefundsRecoveryPage() {
-            const formRefunds = allRefunds.filter(r => !r.source || r.source === 'form');
-            renderRecoveryTable(formRefunds);
+            const processedStatuses = ['refunded', 'approved', 'rejected', 'convinced'];
+            const activeRefunds = allRefunds.filter(r => (!r.source || r.source === 'form') && !processedStatuses.includes(r.status));
+            renderRecoveryTable(activeRefunds);
+        }
+        
+        // Render Processed refunds table
+        function renderProcessedTable(refunds) {
+            const table = document.getElementById('processedTable');
+            if (!table) return;
+            
+            if (!paginationState.processed) {
+                paginationState.processed = { currentPage: 1, perPage: 10, allData: [], filteredData: [] };
+            }
+            paginationState.processed.allData = refunds;
+            paginationState.processed.filteredData = refunds;
+            
+            if (refunds.length === 0) {
+                table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhum reembolso processado</td></tr>';
+                return;
+            }
+            
+            const pageData = getPageData('processed');
+            const displayData = pageData.length > 0 ? pageData : refunds.slice(0, 10);
+            
+            const resultLabels = {
+                'convinced': { text: 'Convencido', color: '#22c55e', icon: '🏆' },
+                'refunded': { text: 'Reembolsado', color: '#3b82f6', icon: '💸' },
+                'approved': { text: 'Reembolsado', color: '#3b82f6', icon: '💸' },
+                'rejected': { text: 'Rejeitado', color: '#71717a', icon: '❌' }
+            };
+            
+            let html = '';
+            displayData.forEach(r => {
+                const result = resultLabels[r.status] || resultLabels['refunded'];
+                const value = r.value ? `R$ ${parseFloat(r.value).toFixed(2)}` : '-';
+                const notes = r.notes ? (Array.isArray(r.notes) ? r.notes : []) : [];
+                const comms = notes.filter(n => ['whatsapp', 'email', 'call'].includes(n.action));
+                const date = r.updated_at ? new Date(r.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '-';
+                
+                html += `<tr>
+                    <td><code style="background:var(--bg-tertiary);padding:4px 8px;border-radius:6px;font-size:11px;">${r.protocol || '-'}</code></td>
+                    <td><div style="font-weight:600;">${r.full_name || '-'}</div></td>
+                    <td>
+                        <div style="font-size:12px;">${r.email || '-'}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${r.phone || '-'}</div>
+                    </td>
+                    <td style="font-weight:600;color:var(--danger);white-space:nowrap;">${value}</td>
+                    <td>
+                        <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:${result.color}22;color:${result.color};border:1px solid ${result.color}44;">
+                            ${result.icon} ${result.text}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size:12px;color:var(--text-muted);">${comms.length} msg${comms.length !== 1 ? 's' : ''}</span>
+                    </td>
+                    <td style="font-size:12px;color:var(--text-muted);">${date}</td>
+                    <td>
+                        <div style="display:flex;gap:4px;">
+                            <button onclick="openRefundModal(${r.id})" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;" title="Ver detalhes">👁️</button>
+                            ${r.status !== 'convinced' ? `<button onclick="updateRefundStatus(${r.id}, 'pending')" style="background:#f59e0b22;border:1px solid #f59e0b44;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12px;color:#f59e0b;" title="Reabrir">🔄</button>` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            table.innerHTML = html;
+            renderUnifiedPagination('processed', 'processedPaginationContainer');
+        }
+        
+        function renderProcessedPage() {
+            const processedStatuses = ['refunded', 'approved', 'rejected', 'convinced'];
+            const processedRefunds = allRefunds.filter(r => (!r.source || r.source === 'form') && processedStatuses.includes(r.status));
+            renderProcessedTable(processedRefunds);
+        }
+        
+        // Send refund communication via Z-API (auto)
+        async function sendRefundZAPI(refundId, templateKey) {
+            const refund = allRefunds.find(r => r.id === refundId);
+            if (!refund) return;
+            
+            const template = communicationTemplates.whatsapp[templateKey];
+            if (!template) return;
+            
+            const data = {
+                name: refund.full_name || 'Cliente',
+                protocol: refund.protocol || 'N/A',
+                email: refund.email || '',
+                phone: refund.phone || refund.whatsapp || '',
+                product: refund.product || 'Produto',
+                reason: refund.reason || 'Não especificado'
+            };
+            const message = fillTemplate(template, data);
+            const phone = data.phone;
+            
+            if (!phone) { showToast('Erro', 'Telefone não disponível', 'error'); return; }
+            
+            showToast('Enviando...', 'Enviando via Z-API automaticamente', 'info');
+            
+            try {
+                const resp = await fetch(`${API_URL}/api/admin/refunds/${refundId}/send-message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ channel: 'whatsapp', template_key: templateKey, message, phone })
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    showToast('Enviado!', `Mensagem enviada via Z-API para ${phone}`, 'success');
+                    closeRefundModal();
+                    loadRefunds();
+                } else {
+                    showToast('Erro', result.error || 'Falha no envio', 'error');
+                }
+            } catch (err) {
+                showToast('Erro', 'Falha na conexão', 'error');
+            }
         }
         
         function renderMonetizzeTable(refunds) {
@@ -8732,31 +8919,34 @@ Estou aqui para esclarecer tudo! 😊`
                         Solicitado em: ${date}
                     </div>
                     
-                    <!-- Quick Communication -->
+                    <!-- Quick Communication via Z-API -->
                     ${refund.email || refund.phone || refund.whatsapp ? `
-                    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(37, 211, 102, 0.08)); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">⚡ Comunicação Rápida</h4>
+                    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(59, 130, 246, 0.05)); border-radius: 12px; border: 1px solid rgba(37, 211, 102, 0.2);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">⚡ Comunicação Rápida via Z-API</h4>
+                            <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(37,211,102,0.15); color: #25d366; font-weight: 600;">AUTOMÁTICO</span>
+                        </div>
                         
-                        ${refund.email ? `
+                        ${refund.phone || refund.whatsapp ? `
                         <div style="margin-bottom: 12px;">
-                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">📧 EMAIL</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">💬 WHATSAPP (envio automático)</div>
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                <button onclick="quickEmail(${refund.id})" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); color: #3b82f6; cursor: pointer; font-size: 13px; font-weight: 500;">📝 Solicitar Info</button>
-                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'approved')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #22c55e; cursor: pointer; font-size: 13px; font-weight: 500;">✅ Aprovação</button>
-                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'rejected')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: #ef4444; cursor: pointer; font-size: 13px; font-weight: 500;">❌ Rejeição</button>
-                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'followUp')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); color: #3b82f6; cursor: pointer; font-size: 13px; font-weight: 500;">👋 Acompanhamento</button>
+                                <button onclick="sendRefundZAPI(${refund.id}, 'requestInfo')" class="refund-comm-btn refund-comm-info">📝 Solicitar Info</button>
+                                <button onclick="sendRefundZAPI(${refund.id}, 'approved')" class="refund-comm-btn refund-comm-approve">✅ Aprovação</button>
+                                <button onclick="sendRefundZAPI(${refund.id}, 'rejected')" class="refund-comm-btn refund-comm-reject">❌ Rejeição</button>
+                                <button onclick="sendRefundZAPI(${refund.id}, 'followUp')" class="refund-comm-btn refund-comm-follow">👋 Acompanhamento</button>
                             </div>
                         </div>
                         ` : ''}
                         
-                        ${refund.phone || refund.whatsapp ? `
+                        ${refund.email ? `
                         <div>
-                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">💬 WHATSAPP</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">📧 EMAIL (abre Gmail)</div>
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                <button onclick="quickWhatsApp(${refund.id})" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">📝 Solicitar Info</button>
-                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'approved')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">✅ Aprovação</button>
-                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'rejected')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">❌ Rejeição</button>
-                                <button onclick="sendWhatsAppTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',phone:'${refund.phone||refund.whatsapp||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'followUp')" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; cursor: pointer; font-size: 13px; font-weight: 500;">👋 Acompanhamento</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'requestInfo')" class="refund-comm-btn refund-comm-email">📝 Solicitar Info</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'approved')" class="refund-comm-btn refund-comm-email">✅ Aprovação</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'rejected')" class="refund-comm-btn refund-comm-email">❌ Rejeição</button>
+                                <button onclick="sendEmailTo({name:'${(refund.full_name||'').replace(/'/g,"\\'")}',protocol:'${refund.protocol||''}',email:'${refund.email||''}',product:'${(refund.product||'').replace(/'/g,"\\'")}',reason:'${(refund.reason||'').replace(/'/g,"\\'")}'},'followUp')" class="refund-comm-btn refund-comm-email">👋 Acompanhamento</button>
                             </div>
                         </div>
                         ` : ''}
@@ -8856,89 +9046,74 @@ Estou aqui para esclarecer tudo! 😊`
             }
         }
         
-        function selectTemplate(templateId) {
+        async function selectTemplate(templateId) {
             if (!currentTemplateRefund) return;
             
             const name = currentTemplateRefund.full_name || 'Cliente';
             const protocol = currentTemplateRefund.protocol || '';
             const phone = currentTemplateRefund.phone || currentTemplateRefund.whatsapp || '';
             const email = currentTemplateRefund.email || '';
+            const refundId = currentTemplateRefund.id;
             
             const templates = {
                 'first_contact': {
                     subject: `Sobre sua solicitação #${protocol}`,
-                    message: `Olá ${name}! 👋
-
-Vi que você solicitou um reembolso do nosso produto (Protocolo: ${protocol}).
-
-Antes de prosseguir, gostaria muito de entender melhor o que aconteceu. Muitas vezes conseguimos resolver problemas técnicos ou esclarecer dúvidas que podem mudar sua experiência.
-
-Poderia me contar o que te levou a essa decisão?
-
-Estou aqui para ajudar! 🤝`
+                    message: `Olá ${name}! 👋\n\nVi que você solicitou um reembolso do nosso produto (Protocolo: ${protocol}).\n\nAntes de prosseguir, gostaria muito de entender melhor o que aconteceu. Muitas vezes conseguimos resolver problemas técnicos ou esclarecer dúvidas que podem mudar sua experiência.\n\nPoderia me contar o que te levou a essa decisão?\n\nEstou aqui para ajudar! 🤝`
                 },
                 'technical_support': {
                     subject: `Suporte técnico - Solicitação #${protocol}`,
-                    message: `Olá ${name}!
-
-Recebi sua solicitação de reembolso e notei que pode ter havido algum problema técnico.
-
-Gostaria de oferecer suporte personalizado para resolver qualquer dificuldade de acesso ou uso do produto.
-
-Posso te ajudar com:
-✅ Acesso à plataforma
-✅ Dúvidas sobre funcionalidades  
-✅ Configurações necessárias
-
-Podemos agendar uma chamada rápida para resolver isso juntos?`
+                    message: `Olá ${name}!\n\nRecebi sua solicitação de reembolso e notei que pode ter havido algum problema técnico.\n\nGostaria de oferecer suporte personalizado para resolver qualquer dificuldade de acesso ou uso do produto.\n\nPosso te ajudar com:\n✅ Acesso à plataforma\n✅ Dúvidas sobre funcionalidades\n✅ Configurações necessárias\n\nPodemos agendar uma chamada rápida para resolver isso juntos?`
                 },
                 'offer_bonus': {
                     subject: `Proposta especial - Solicitação #${protocol}`,
-                    message: `Olá ${name}!
-
-Antes de processar seu reembolso, gostaria de fazer uma proposta especial.
-
-Como forma de retribuir sua confiança, estou oferecendo:
-
-🎁 [Descrever bônus/desconto]
-⭐ Suporte prioritário
-📚 Material exclusivo adicional
-
-O que acha? Isso faria você reconsiderar?
-
-Fico no aguardo! 😊`
+                    message: `Olá ${name}!\n\nAntes de processar seu reembolso, gostaria de fazer uma proposta especial.\n\nComo forma de retribuir sua confiança, estou oferecendo:\n\n🎁 [Descrever bônus/desconto]\n⭐ Suporte prioritário\n📚 Material exclusivo adicional\n\nO que acha? Isso faria você reconsiderar?\n\nFico no aguardo! 😊`
                 },
                 'confirm_refund': {
                     subject: `Confirmação de reembolso - #${protocol}`,
-                    message: `Olá ${name},
-
-Informo que sua solicitação de reembolso (Protocolo: ${protocol}) foi processada com sucesso.
-
-O valor será estornado em sua forma de pagamento em até 7 dias úteis.
-
-Lamentamos que não tenha tido a experiência esperada. Se mudar de ideia no futuro, estaremos aqui.
-
-Obrigado pela compreensão.`
+                    message: `Olá ${name},\n\nInformo que sua solicitação de reembolso (Protocolo: ${protocol}) foi processada com sucesso.\n\nO valor será estornado em sua forma de pagamento em até 7 dias úteis.\n\nLamentamos que não tenha tido a experiência esperada. Se mudar de ideia no futuro, estaremos aqui.\n\nObrigado pela compreensão.`
                 }
             };
             
             const template = templates[templateId];
             if (!template) return;
             
-            if (selectedTemplateChannel === 'whatsapp' && phone) {
-                const cleanPhone = phone.replace(/\D/g, '');
-                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(template.message)}`;
-                window.open(whatsappUrl, '_blank');
-            } else if (selectedTemplateChannel === 'email' && email) {
-                const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(template.subject)}&body=${encodeURIComponent(template.message)}`;
-                window.open(mailtoUrl, '_blank');
-            } else {
-                showToast('Erro', `${selectedTemplateChannel === 'whatsapp' ? 'Telefone' : 'Email'} não disponível para este cliente`, 'error');
-                return;
-            }
-            
             closeTemplateModal();
-            showToast('Sucesso!', 'Mensagem aberta no ' + (selectedTemplateChannel === 'whatsapp' ? 'WhatsApp' : 'Email'), 'success');
+            
+            if (selectedTemplateChannel === 'whatsapp') {
+                if (!phone) { showToast('Erro', 'Telefone não disponível', 'error'); return; }
+                showToast('Enviando...', 'Enviando via WhatsApp Z-API', 'info');
+                try {
+                    const resp = await fetch(`${API_URL}/api/admin/refunds/${refundId}/send-message`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                        body: JSON.stringify({ channel: 'whatsapp', template_key: templateId, message: template.message, phone })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        showToast('Enviado!', 'Mensagem enviada automaticamente via Z-API', 'success');
+                        loadRefunds();
+                    } else {
+                        showToast('Erro', data.error || 'Falha no envio', 'error');
+                    }
+                } catch (err) {
+                    showToast('Erro', 'Falha na conexão', 'error');
+                }
+            } else if (selectedTemplateChannel === 'email' && email) {
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(template.subject)}&body=${encodeURIComponent(template.message)}`;
+                window.open(gmailUrl, '_blank');
+                // Log the email send
+                try {
+                    await fetch(`${API_URL}/api/admin/refunds/${refundId}/send-message`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                        body: JSON.stringify({ channel: 'email', template_key: templateId, message: template.message, email })
+                    });
+                } catch (e) { /* ignore log error */ }
+                showToast('Email', 'Gmail aberto com a mensagem', 'success');
+                loadRefunds();
+            } else {
+                showToast('Erro', 'Email não disponível', 'error');
+            }
         }
         
         // ==================== NOTES SYSTEM ====================

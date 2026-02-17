@@ -1254,6 +1254,18 @@
         .refund-description-box::after { content: '"'; position: absolute; bottom: 4px; right: 14px; font-size: 32px; color: var(--accent); opacity: 0.3; font-family: Georgia, serif; line-height: 1; }
         .refund-timestamp { font-size: 12px; color: var(--text-muted); text-align: right; padding-top: 8px; }
         
+        /* Refund Communication Buttons */
+        .refund-comm-btn {
+            padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+            font-weight: 500; border: 1px solid; transition: all 0.2s; text-align: center;
+        }
+        .refund-comm-btn:hover { transform: translateY(-1px); filter: brightness(1.2); }
+        .refund-comm-info { border-color: rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.1); color: #25d366; }
+        .refund-comm-approve { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .refund-comm-reject { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .refund-comm-follow { border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .refund-comm-email { border-color: rgba(113, 113, 122, 0.3); background: rgba(113, 113, 122, 0.08); color: var(--text-secondary); }
+        
         /* Refund Modal Action Buttons */
         .refund-modal-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
         .modal-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }

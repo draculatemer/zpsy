@@ -11014,6 +11014,112 @@ app.put('/api/admin/refunds/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Send refund communication via Z-API and log it
+app.post('/api/admin/refunds/:id/send-message', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { channel, template_key, message, phone, email } = req.body;
+        
+        if (!message) return res.status(400).json({ error: 'Mensagem é obrigatória' });
+        
+        const refundResult = await pool.query('SELECT * FROM refund_requests WHERE id = $1', [id]);
+        if (refundResult.rows.length === 0) return res.status(404).json({ error: 'Reembolso não encontrado' });
+        const refund = refundResult.rows[0];
+        
+        let sent = false;
+        let messageId = null;
+        let sendError = null;
+        
+        if (channel === 'whatsapp') {
+            const cleanPhone = (phone || refund.phone || '').replace(/\D/g, '');
+            if (!cleanPhone || cleanPhone.length < 10) {
+                return res.status(400).json({ error: 'Número de telefone inválido' });
+            }
+            
+            const zapiHeaders = { 'Content-Type': 'application/json' };
+            if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+            
+            try {
+                const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
+                    method: 'POST',
+                    headers: zapiHeaders,
+                    body: JSON.stringify({ phone: cleanPhone, message, delayMessage: 3 })
+                });
+                const zapiData = await zapiResponse.json();
+                sent = zapiResponse.ok && !!zapiData.messageId;
+                messageId = zapiData.messageId;
+                if (!sent) sendError = zapiData.error || zapiData.message || 'Falha Z-API';
+                
+                if (sent) {
+                    try {
+                        await pool.query(`
+                            INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
+                            VALUES ($1, $2, $3, $4, 'sent', 'refund_comm', NOW())
+                        `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                    } catch (dbErr) { /* ignore */ }
+                }
+            } catch (fetchErr) {
+                sendError = fetchErr.message;
+            }
+        } else {
+            sent = true;
+        }
+        
+        // Log as note
+        let notes = [];
+        if (refund.notes && typeof refund.notes === 'object') {
+            notes = Array.isArray(refund.notes) ? refund.notes : [];
+        }
+        notes.push({
+            id: Date.now(),
+            date: new Date().toISOString(),
+            action: channel === 'whatsapp' ? 'whatsapp' : 'email',
+            note: `[${template_key || 'custom'}] ${message.substring(0, 100)}...`,
+            user: 'Admin',
+            sent: sent,
+            messageId
+        });
+        
+        await pool.query(`UPDATE refund_requests SET notes = $1, updated_at = NOW() WHERE id = $2`, [JSON.stringify(notes), id]);
+        
+        // Auto-update status to 'handling' if pending
+        if (refund.status === 'pending') {
+            await pool.query(`UPDATE refund_requests SET status = 'handling' WHERE id = $1`, [id]);
+        }
+        
+        if (sent) {
+            console.log(`📨 Refund ${id} - ${channel} sent (${template_key})`);
+            res.json({ success: true, messageId, channel });
+        } else {
+            console.error(`❌ Refund ${id} - ${channel} failed:`, sendError);
+            res.status(500).json({ error: sendError || 'Falha no envio' });
+        }
+    } catch (error) {
+        console.error('Error sending refund message:', error);
+        res.status(500).json({ error: 'Falha ao enviar: ' + error.message });
+    }
+});
+
+// Get refund communication history
+app.get('/api/admin/refunds/:id/history', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query('SELECT notes, full_name, email, phone, protocol, status FROM refund_requests WHERE id = $1', [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Reembolso não encontrado' });
+        
+        const refund = result.rows[0];
+        let notes = [];
+        if (refund.notes && typeof refund.notes === 'object') {
+            notes = Array.isArray(refund.notes) ? refund.notes : [];
+        }
+        
+        const communications = notes.filter(n => ['whatsapp', 'email', 'call'].includes(n.action));
+        res.json({ success: true, communications, total: communications.length, refund: { name: refund.full_name, email: refund.email, phone: refund.phone, protocol: refund.protocol, status: refund.status } });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Add note to refund request (protected) - for recovery workflow
 app.post('/api/admin/refunds/:id/notes', authenticateToken, async (req, res) => {
     try {
