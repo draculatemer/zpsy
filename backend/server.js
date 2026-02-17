@@ -9967,6 +9967,27 @@ app.put('/api/admin/recovery/contact/:id', authenticateToken, async (req, res) =
 // Seed default recovery funnels if none exist
 async function seedRecoveryFunnels() {
     try {
+        // Ensure tables exist before seeding
+        await pool.query(`CREATE TABLE IF NOT EXISTS recovery_funnels (
+            id SERIAL PRIMARY KEY, segment VARCHAR(50) NOT NULL, name VARCHAR(100) NOT NULL,
+            is_active BOOLEAN DEFAULT true, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS recovery_funnel_steps (
+            id SERIAL PRIMARY KEY, funnel_id INTEGER REFERENCES recovery_funnels(id) ON DELETE CASCADE,
+            step_number INTEGER NOT NULL, delay_hours INTEGER DEFAULT 24,
+            template_en TEXT NOT NULL, template_es TEXT NOT NULL,
+            channel VARCHAR(20) DEFAULT 'whatsapp', created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS recovery_lead_progress (
+            id SERIAL PRIMARY KEY, lead_email VARCHAR(255) NOT NULL,
+            funnel_id INTEGER REFERENCES recovery_funnels(id) ON DELETE CASCADE,
+            current_step INTEGER DEFAULT 0, status VARCHAR(20) DEFAULT 'active',
+            next_contact_at TIMESTAMP WITH TIME ZONE,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(lead_email, funnel_id)
+        )`);
+        
         const existing = await pool.query('SELECT COUNT(*) as count FROM recovery_funnels');
         if (parseInt(existing.rows[0].count) > 0) return;
         
@@ -10105,8 +10126,11 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
         const { email, segment, name, phone, product, language } = req.body;
         
         if (!email || !segment) {
-            return res.status(400).json({ error: 'Email and segment are required' });
+            return res.status(400).json({ error: 'Email e segmento são obrigatórios' });
         }
+        
+        // Ensure funnels are seeded
+        await seedRecoveryFunnels();
         
         // Get the funnel for this segment
         const funnelResult = await pool.query(
@@ -10115,7 +10139,7 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
         );
         
         if (funnelResult.rows.length === 0) {
-            return res.status(404).json({ error: 'No active funnel for this segment' });
+            return res.status(404).json({ error: 'Nenhum funil ativo para este segmento' });
         }
         
         const funnel = funnelResult.rows[0];
@@ -10140,7 +10164,7 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
         );
         
         if (stepResult.rows.length === 0) {
-            return res.status(400).json({ error: 'Lead has completed all funnel steps', completed: true });
+            return res.status(400).json({ error: 'Lead já completou todos os passos do funil', completed: true });
         }
         
         const step = stepResult.rows[0];
@@ -10153,15 +10177,16 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
         message = message.replace(/\{product\}/g, product || 'X AI Monitor');
         
         // Update or insert progress
+        const delayHours = parseInt(step.delay_hours) || 24;
         if (progressResult.rows.length > 0) {
             await pool.query(
-                'UPDATE recovery_lead_progress SET current_step = $1, updated_at = NOW(), next_contact_at = NOW() + ($2 || \' hours\')::interval WHERE lead_email = $3 AND funnel_id = $4',
-                [nextStep, step.delay_hours, email, funnel.id]
+                `UPDATE recovery_lead_progress SET current_step = $1, updated_at = NOW(), next_contact_at = NOW() + interval '1 hour' * $2 WHERE lead_email = $3 AND funnel_id = $4`,
+                [nextStep, delayHours, email, funnel.id]
             );
         } else {
             await pool.query(
-                'INSERT INTO recovery_lead_progress (lead_email, funnel_id, current_step, status, next_contact_at) VALUES ($1, $2, $3, \'active\', NOW() + ($4 || \' hours\')::interval)',
-                [email, funnel.id, nextStep, step.delay_hours]
+                `INSERT INTO recovery_lead_progress (lead_email, funnel_id, current_step, status, next_contact_at) VALUES ($1, $2, $3, 'active', NOW() + interval '1 hour' * $4)`,
+                [email, funnel.id, nextStep, delayHours]
             );
         }
         
@@ -10186,7 +10211,7 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
         
     } catch (error) {
         console.error('Error advancing funnel step:', error);
-        res.status(500).json({ error: 'Failed to advance funnel step' });
+        res.status(500).json({ error: 'Falha ao avançar passo do funil: ' + error.message });
     }
 });
 
@@ -10196,8 +10221,10 @@ app.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async (re
         const { leads, segment } = req.body;
         
         if (!leads || !Array.isArray(leads) || leads.length === 0) {
-            return res.status(400).json({ error: 'Leads array is required' });
+            return res.status(400).json({ error: 'Lista de leads é obrigatória' });
         }
+        
+        await seedRecoveryFunnels();
         
         const results = [];
         for (const lead of leads) {
