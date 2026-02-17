@@ -951,7 +951,7 @@
                             <div class="recovery-kpi-card kpi-value">
                                 <div class="kpi-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                                 <div class="kpi-data">
-                                    <span class="kpi-value" id="recoveryPotentialValue">$0</span>
+                                    <span class="kpi-value" id="recoveryPotentialValue">R$ 0</span>
                                     <span class="kpi-label">Valor Potencial</span>
                                 </div>
                             </div>
@@ -992,7 +992,7 @@
                             <div class="segment-info">
                                 <span class="segment-name">Visitantes Perdidos</span>
                                 <span class="segment-count" id="segmentCount_lost_visitors">0</span>
-                                <span class="segment-value" id="segmentValue_lost_visitors">$0</span>
+                                <span class="segment-value" id="segmentValue_lost_visitors">R$ 0</span>
                             </div>
                         </button>
                         <button class="recovery-segment-tab" data-segment="checkout_abandoned" onclick="selectRecoverySegment('checkout_abandoned')">
@@ -1001,7 +1001,7 @@
                             <div class="segment-info">
                                 <span class="segment-name">Checkout Abandonado</span>
                                 <span class="segment-count" id="segmentCount_checkout_abandoned">0</span>
-                                <span class="segment-value" id="segmentValue_checkout_abandoned">$0</span>
+                                <span class="segment-value" id="segmentValue_checkout_abandoned">R$ 0</span>
                             </div>
                         </button>
                         <button class="recovery-segment-tab" data-segment="payment_failed" onclick="selectRecoverySegment('payment_failed')">
@@ -1010,7 +1010,7 @@
                             <div class="segment-info">
                                 <span class="segment-name">Pagamentos Recusados</span>
                                 <span class="segment-count" id="segmentCount_payment_failed">0</span>
-                                <span class="segment-value" id="segmentValue_payment_failed">$0</span>
+                                <span class="segment-value" id="segmentValue_payment_failed">R$ 0</span>
                             </div>
                         </button>
                     </div>
@@ -5792,14 +5792,14 @@ Estou aqui para esclarecer tudo! 😊`
                     const countEl = document.getElementById(`segmentCount_${segmentKey}`);
                     const valueEl = document.getElementById(`segmentValue_${segmentKey}`);
                     if (countEl) countEl.textContent = data.segments[segmentKey].count.toLocaleString();
-                    if (valueEl) valueEl.textContent = '$' + Math.round(data.segments[segmentKey].potential_value).toLocaleString();
+                    if (valueEl) valueEl.textContent = 'R$ ' + Math.round(data.segments[segmentKey].potential_value).toLocaleString('pt-BR');
                 });
                 
                 // Update KPI totals
                 const totalLeadsEl = document.getElementById('recoveryTotalLeads');
                 const potentialValueEl = document.getElementById('recoveryPotentialValue');
                 if (totalLeadsEl) totalLeadsEl.textContent = data.totals.count.toLocaleString();
-                if (potentialValueEl) potentialValueEl.textContent = '$' + Math.round(data.totals.potential_value).toLocaleString();
+                if (potentialValueEl) potentialValueEl.textContent = 'R$ ' + Math.round(data.totals.potential_value).toLocaleString('pt-BR');
                 
                 // Update nav badge
                 const navBadge = document.getElementById('navRecoveryCount');
@@ -5965,7 +5965,7 @@ Estou aqui para esclarecer tudo! 😊`
                         </div>
                     </td>
                     <td>
-                        <span class="recovery-value">$${parseFloat(lead.potential_value || 0).toFixed(2)}</span>
+                        <span class="recovery-value">R$ ${parseFloat(lead.potential_value || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                     </td>
                     <td>
                         <span class="recovery-time ${timeClass}">${lead.time_ago || '-'}</span>
