@@ -9423,7 +9423,7 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
             plainDateFilter = `AND created_at >= $1 AND created_at <= $2`;
         }
         
-        // 1. Lost Visitors - Entered funnel but never reached checkout
+        // 1. Lost Visitors - Entered funnel but never reached checkout (exclude already contacted)
         const lostVisitors = await pool.query(`
             SELECT COUNT(DISTINCT fe.visitor_id) as count
             FROM funnel_events fe
@@ -9440,10 +9440,15 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
                 WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                 AND t.status = 'approved'
             )
+            AND NOT EXISTS (
+                SELECT 1 FROM recovery_contacts rc
+                WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                AND rc.lead_email != ''
+            )
             ${feDateFilter}
         `, dateParams);
         
-        // 2. Checkout Abandoned - Clicked checkout but didn't buy
+        // 2. Checkout Abandoned - Clicked checkout but didn't buy (exclude already contacted)
         const checkoutAbandoned = await pool.query(`
             SELECT COUNT(DISTINCT fe.visitor_id) as count
             FROM funnel_events fe
@@ -9455,15 +9460,25 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
                 WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                 AND t.status = 'approved'
             )
+            AND NOT EXISTS (
+                SELECT 1 FROM recovery_contacts rc
+                WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                AND rc.lead_email != ''
+            )
             ${feDateFilter}
         `, dateParams);
         
-        // 3. Payment Failed - Cancelled/refused/pending transactions
+        // 3. Payment Failed - Cancelled/refused/pending transactions (exclude already contacted)
         const paymentFailed = await pool.query(`
             SELECT COUNT(*) as count, COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total_value
-            FROM transactions
-            WHERE status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
-            ${language ? `AND funnel_language = '${language}'` : ''}
+            FROM transactions t
+            WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+            ${language ? `AND t.funnel_language = '${language}'` : ''}
+            AND NOT EXISTS (
+                SELECT 1 FROM recovery_contacts rc
+                WHERE LOWER(rc.lead_email) = LOWER(t.email)
+                AND t.email != ''
+            )
             ${plainDateFilter}
         `, dateParams);
         
@@ -9633,6 +9648,11 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                     AND t.status = 'approved'
                 )
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                    AND rc.lead_email != ''
+                )
                 ${feDateFilter}
                 ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
                 LIMIT $1 OFFSET $2
@@ -9655,6 +9675,11 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     SELECT 1 FROM transactions t
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                     AND t.status = 'approved'
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                    AND rc.lead_email != ''
                 )
                 ${feDateFilter}
             `);
@@ -9688,6 +9713,11 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                     AND t.status = 'approved'
                 )
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                    AND rc.lead_email != ''
+                )
                 ${feDateFilter}
                 ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
                 LIMIT $1 OFFSET $2
@@ -9706,6 +9736,11 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     SELECT 1 FROM transactions t 
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
                     AND t.status = 'approved'
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
+                    AND rc.lead_email != ''
                 )
                 ${feDateFilter}
             `);
@@ -9734,6 +9769,11 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                 LEFT JOIN leads l ON LOWER(t.email) = LOWER(l.email)
                 WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
                 ${language ? `AND t.funnel_language = '${language}'` : ''}
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(t.email)
+                    AND t.email != ''
+                )
                 ${tDateFilter}
                 ORDER BY t.created_at DESC
                 LIMIT $1 OFFSET $2
@@ -9742,9 +9782,14 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
             leads = result.rows;
             
             const countResult = await pool.query(`
-                SELECT COUNT(*) as count FROM transactions
-                WHERE status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
-                ${language ? `AND funnel_language = '${language}'` : ''}
+                SELECT COUNT(*) as count FROM transactions t
+                WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+                ${language ? `AND t.funnel_language = '${language}'` : ''}
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(t.email)
+                    AND t.email != ''
+                )
                 ${plainDateFilter}
             `);
             totalCount = parseInt(countResult.rows[0]?.count || 0);
