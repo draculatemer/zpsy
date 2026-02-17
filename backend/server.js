@@ -9468,18 +9468,22 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
             ${feDateFilter}
         `, dateParams);
         
-        // 3. Payment Failed - Cancelled/refused/pending transactions (exclude already contacted)
+        // 3. Payment Failed - Cancelled/refused/pending transactions (DISTINCT by email, exclude already contacted)
         const paymentFailed = await pool.query(`
-            SELECT COUNT(*) as count, COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total_value
-            FROM transactions t
-            WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
-            ${language ? `AND t.funnel_language = '${language}'` : ''}
-            AND NOT EXISTS (
-                SELECT 1 FROM recovery_contacts rc
-                WHERE LOWER(rc.lead_email) = LOWER(t.email)
-                AND t.email != ''
-            )
-            ${plainDateFilter}
+            SELECT COUNT(*) as count, COALESCE(SUM(max_value), 0) as total_value
+            FROM (
+                SELECT DISTINCT ON (LOWER(t.email)) t.email, CAST(t.value AS DECIMAL) as max_value
+                FROM transactions t
+                WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+                AND t.email IS NOT NULL AND t.email != ''
+                ${language ? `AND t.funnel_language = '${language}'` : ''}
+                AND NOT EXISTS (
+                    SELECT 1 FROM recovery_contacts rc
+                    WHERE LOWER(rc.lead_email) = LOWER(t.email)
+                )
+                ${plainDateFilter}
+                ORDER BY LOWER(t.email), t.created_at DESC
+            ) sub
         `, dateParams);
         
         // 4. Refund Requests - Pending refund requests
@@ -9747,9 +9751,9 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'payment_failed') {
-            // Payment failed leads - simplified query
+            // Payment failed leads - DISTINCT by email, most recent transaction per person
             const result = await pool.query(`
-                SELECT 
+                SELECT DISTINCT ON (LOWER(t.email))
                     t.id,
                     t.email,
                     t.name,
@@ -9761,38 +9765,26 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     t.status as event,
                     CAST(t.value AS DECIMAL) as potential_value,
                     t.product,
-                    1 as event_count,
+                    (SELECT COUNT(*) FROM transactions t2 WHERE LOWER(t2.email) = LOWER(t.email) AND t2.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')) as event_count,
                     false as has_purchase,
                     0 as contact_attempts,
                     NULL as last_contact
                 FROM transactions t
                 LEFT JOIN leads l ON LOWER(t.email) = LOWER(l.email)
                 WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
+                AND t.email IS NOT NULL AND t.email != ''
                 ${language ? `AND t.funnel_language = '${language}'` : ''}
                 AND NOT EXISTS (
                     SELECT 1 FROM recovery_contacts rc
                     WHERE LOWER(rc.lead_email) = LOWER(t.email)
-                    AND t.email != ''
                 )
                 ${tDateFilter}
-                ORDER BY t.created_at DESC
-                LIMIT $1 OFFSET $2
-            `, [parseInt(limit), offset]);
+                ORDER BY LOWER(t.email), t.created_at DESC
+            `, []);
             
-            leads = result.rows;
-            
-            const countResult = await pool.query(`
-                SELECT COUNT(*) as count FROM transactions t
-                WHERE t.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')
-                ${language ? `AND t.funnel_language = '${language}'` : ''}
-                AND NOT EXISTS (
-                    SELECT 1 FROM recovery_contacts rc
-                    WHERE LOWER(rc.lead_email) = LOWER(t.email)
-                    AND t.email != ''
-                )
-                ${plainDateFilter}
-            `);
-            totalCount = parseInt(countResult.rows[0]?.count || 0);
+            // Apply pagination in JS since DISTINCT ON + ORDER BY + LIMIT is tricky
+            totalCount = result.rows.length;
+            leads = result.rows.slice(offset, offset + parseInt(limit));
             
         } else if (segment === 'refund_requests') {
             // Refund requests - simplified query
