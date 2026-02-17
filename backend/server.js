@@ -14,6 +14,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -330,6 +331,19 @@ if (process.env.RAILWAY_STATIC_URL) {
 // Cache para o domínio do próprio servidor (detectado dinamicamente via Host header)
 const selfOrigins = new Set();
 
+// Dynamic CORS origins from A/B test URLs (loaded from DB on startup + when tests are created)
+const abTestAllowedOrigins = new Set();
+async function loadABTestOrigins() {
+    try {
+        const result = await pool.query(`SELECT url_a, url_b FROM ab_tests WHERE url_a IS NOT NULL OR url_b IS NOT NULL`);
+        for (const row of result.rows) {
+            try { if (row.url_a) abTestAllowedOrigins.add(new URL(row.url_a).origin); } catch(e) {}
+            try { if (row.url_b) abTestAllowedOrigins.add(new URL(row.url_b).origin); } catch(e) {}
+        }
+        if (abTestAllowedOrigins.size > 0) console.log(`🔒 AB Test CORS origins loaded: ${[...abTestAllowedOrigins].join(', ')}`);
+    } catch(e) { /* DB not ready yet, will be loaded after init */ }
+}
+
 // Auto-detectar host do servidor ANTES do CORS (para admin panel funcionar em qualquer deploy)
 app.use((req, res, next) => {
     const host = req.headers.host;
@@ -368,6 +382,18 @@ app.use(cors({
         }
 
         if (allowed.includes('*') || allowed.includes(origin)) return callback(null, true);
+        
+        // Dynamic CORS: allow any *.zappdetect.com subdomain (for A/B test variants)
+        try {
+            const originHost = new URL(origin).hostname;
+            if (originHost.endsWith('.zappdetect.com') || originHost.endsWith('.whatstalker.com')) {
+                return callback(null, true);
+            }
+        } catch(e) {}
+        
+        // Check dynamically added AB test domains
+        if (abTestAllowedOrigins.has(origin)) return callback(null, true);
+        
         console.error(`CORS blocked origin: ${origin} (allowed: ${allowed.join(', ')})`);
         callback(new Error('CORS not allowed'), false);
     },
@@ -377,6 +403,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // No-cache for admin panel files (JS/CSS), cache ok for funnel assets
 app.use((req, res, next) => {
@@ -454,6 +481,81 @@ async function getCountryFromIP(ip) {
         }
     });
 }
+
+// ==================== A/B TEST TRAFFIC SPLITTER ====================
+// Must be BEFORE static file serving so /go/:slug is handled by Express
+app.get('/go/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        
+        const test = await pool.query(
+            `SELECT id, url_a, url_b, traffic_split, status FROM ab_tests WHERE slug = $1 AND status = 'running' LIMIT 1`,
+            [slug]
+        );
+        
+        if (test.rows.length === 0) {
+            return res.status(404).send('Test not found or not running');
+        }
+        
+        const activeTest = test.rows[0];
+        const testId = activeTest.id;
+        
+        // Check cookie for returning visitors (consistency)
+        const cookieName = `ab_${testId}`;
+        let variant = req.cookies?.[cookieName];
+        
+        if (!variant || !['A', 'B'].includes(variant)) {
+            // Assign new variant based on traffic split
+            const random = Math.random() * 100;
+            variant = random < activeTest.traffic_split ? 'A' : 'B';
+        }
+        
+        // Set cookie for 30 days
+        res.cookie(cookieName, variant, { 
+            maxAge: 30 * 24 * 60 * 60 * 1000, 
+            httpOnly: false, 
+            sameSite: 'lax',
+            secure: true 
+        });
+        
+        // Record visitor assignment (non-blocking)
+        const visitorIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const visitorUa = req.headers['user-agent'] || '';
+        const visitorId = `split_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+        
+        pool.query(`
+            INSERT INTO ab_test_visitors (test_id, visitor_id, variant, ip_address, user_agent)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (test_id, visitor_id) DO NOTHING
+        `, [testId, visitorId, variant, visitorIp, visitorUa]).catch(err => {
+            console.error('AB split visitor log error:', err.message);
+        });
+        
+        // Build redirect URL
+        const targetUrl = variant === 'A' ? activeTest.url_a : activeTest.url_b;
+        const url = new URL(targetUrl);
+        
+        // Append AB test params
+        url.searchParams.set('ab', String(testId));
+        url.searchParams.set('abv', variant);
+        
+        // Preserve original UTM params from the incoming request
+        const originalParams = req.query;
+        for (const [key, value] of Object.entries(originalParams)) {
+            if (key.startsWith('utm_') || key === 'fbclid' || key === 'gclid' || key === 'src') {
+                url.searchParams.set(key, String(value));
+            }
+        }
+        
+        console.log(`🔀 AB Split: test=${testId} slug=${slug} variant=${variant} → ${url.toString()}`);
+        
+        res.redirect(302, url.toString());
+        
+    } catch (error) {
+        console.error('AB split error:', error);
+        res.status(500).send('Split error');
+    }
+});
 
 app.use('/ingles', express.static(path.join(__dirname, 'public', 'ingles')));
 app.use('/espanhol', express.static(path.join(__dirname, 'public', 'espanhol')));
@@ -616,118 +718,9 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ==================== A/B TESTING API ====================
+// ==================== A/B TESTING API (URL SPLITTER) ====================
 
-// Public endpoint: Get variant for a visitor
-app.get('/api/ab/variant', async (req, res) => {
-    try {
-        const { funnel, visitor_id } = req.query;
-        
-        if (!funnel || !visitor_id) {
-            return res.json({ variant: null, test_id: null, config: null });
-        }
-        
-        // Check if visitor already has a variant assigned
-        const existing = await pool.query(`
-            SELECT atv.variant, atv.test_id, at.variant_a_param, at.variant_b_param,
-                   at.test_type, at.config_a, at.config_b
-            FROM ab_test_visitors atv
-            JOIN ab_tests at ON at.id = atv.test_id
-            WHERE atv.visitor_id = $1 AND at.funnel = $2 AND at.status = 'running'
-            LIMIT 1
-        `, [visitor_id, funnel]);
-        
-        if (existing.rows.length > 0) {
-            const row = existing.rows[0];
-            const param = row.variant === 'A' ? row.variant_a_param : row.variant_b_param;
-            const config = row.variant === 'A' ? row.config_a : row.config_b;
-            return res.json({ 
-                variant: row.variant, 
-                test_id: row.test_id,
-                param: param,
-                test_type: row.test_type,
-                config: config || {}
-            });
-        }
-        
-        // Get active test for this funnel
-        const test = await pool.query(`
-            SELECT id, traffic_split, variant_a_param, variant_b_param,
-                   test_type, config_a, config_b
-            FROM ab_tests 
-            WHERE funnel = $1 AND status = 'running'
-            LIMIT 1
-        `, [funnel]);
-        
-        if (test.rows.length === 0) {
-            return res.json({ variant: null, test_id: null, config: null });
-        }
-        
-        const activeTest = test.rows[0];
-        
-        // Assign variant based on traffic split
-        const random = Math.random() * 100;
-        const variant = random < activeTest.traffic_split ? 'A' : 'B';
-        const param = variant === 'A' ? activeTest.variant_a_param : activeTest.variant_b_param;
-        const config = variant === 'A' ? activeTest.config_a : activeTest.config_b;
-        
-        // Save assignment
-        await pool.query(`
-            INSERT INTO ab_test_visitors (test_id, visitor_id, variant, ip_address, user_agent)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (test_id, visitor_id) DO NOTHING
-        `, [activeTest.id, visitor_id, variant, req.ip, req.headers['user-agent']]);
-        
-        res.json({ 
-            variant, 
-            test_id: activeTest.id,
-            param: param,
-            test_type: activeTest.test_type,
-            config: config || {}
-        });
-        
-    } catch (error) {
-        console.error('A/B variant error:', error);
-        res.json({ variant: null, test_id: null });
-    }
-});
-
-// Public endpoint: Track conversion
-app.post('/api/ab/convert', async (req, res) => {
-    try {
-        const { test_id, visitor_id, event_type, value, metadata } = req.body;
-        
-        if (!test_id || !visitor_id || !event_type) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-        
-        // Get visitor's variant
-        const visitor = await pool.query(`
-            SELECT variant FROM ab_test_visitors
-            WHERE test_id = $1 AND visitor_id = $2
-        `, [test_id, visitor_id]);
-        
-        if (visitor.rows.length === 0) {
-            return res.status(404).json({ error: 'Visitor not found in test' });
-        }
-        
-        const variant = visitor.rows[0].variant;
-        
-        // Record conversion
-        await pool.query(`
-            INSERT INTO ab_test_conversions (test_id, visitor_id, variant, event_type, value, metadata)
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `, [test_id, visitor_id, variant, event_type, value || 0, metadata || {}]);
-        
-        res.json({ success: true, variant });
-        
-    } catch (error) {
-        console.error('A/B conversion error:', error);
-        res.status(500).json({ error: 'Failed to record conversion' });
-    }
-});
-
-// Admin: List all A/B tests
+// Admin: List all A/B tests with REAL stats from leads + transactions
 app.get('/api/admin/ab-tests', authenticateToken, async (req, res) => {
     try {
         const tests = await pool.query(`
@@ -735,36 +728,50 @@ app.get('/api/admin/ab-tests', authenticateToken, async (req, res) => {
                 at.*,
                 (SELECT COUNT(*) FROM ab_test_visitors WHERE test_id = at.id AND variant = 'A') as visitors_a,
                 (SELECT COUNT(*) FROM ab_test_visitors WHERE test_id = at.id AND variant = 'B') as visitors_b,
-                (SELECT COUNT(*) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'A' AND event_type = 'lead') as leads_a,
-                (SELECT COUNT(*) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'B' AND event_type = 'lead') as leads_b,
-                (SELECT COUNT(*) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'A' AND event_type = 'purchase') as purchases_a,
-                (SELECT COUNT(*) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'B' AND event_type = 'purchase') as purchases_b,
-                (SELECT COALESCE(SUM(value), 0) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'A' AND event_type = 'purchase') as revenue_a,
-                (SELECT COALESCE(SUM(value), 0) FROM ab_test_conversions WHERE test_id = at.id AND variant = 'B' AND event_type = 'purchase') as revenue_b
+                (SELECT COUNT(*) FROM leads WHERE ab_test_id = at.id AND ab_variant = 'A') as leads_a,
+                (SELECT COUNT(*) FROM leads WHERE ab_test_id = at.id AND ab_variant = 'B') as leads_b,
+                (SELECT COUNT(DISTINCT t.email) FROM transactions t 
+                    INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email) 
+                    WHERE l.ab_test_id = at.id AND l.ab_variant = 'A' AND t.status = 'approved') as purchases_a,
+                (SELECT COUNT(DISTINCT t.email) FROM transactions t 
+                    INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email) 
+                    WHERE l.ab_test_id = at.id AND l.ab_variant = 'B' AND t.status = 'approved') as purchases_b,
+                (SELECT COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) FROM transactions t 
+                    INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email) 
+                    WHERE l.ab_test_id = at.id AND l.ab_variant = 'A' AND t.status = 'approved') as revenue_a,
+                (SELECT COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) FROM transactions t 
+                    INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email) 
+                    WHERE l.ab_test_id = at.id AND l.ab_variant = 'B' AND t.status = 'approved') as revenue_b
             FROM ab_tests at
             ORDER BY at.created_at DESC
         `);
         
-        // Calculate conversion rates
         const testsWithStats = tests.rows.map(test => {
-            const visitorsA = parseInt(test.visitors_a) || 0;
-            const visitorsB = parseInt(test.visitors_b) || 0;
-            const leadsA = parseInt(test.leads_a) || 0;
-            const leadsB = parseInt(test.leads_b) || 0;
-            const purchasesA = parseInt(test.purchases_a) || 0;
-            const purchasesB = parseInt(test.purchases_b) || 0;
+            const vA = parseInt(test.visitors_a) || 0;
+            const vB = parseInt(test.visitors_b) || 0;
+            const lA = parseInt(test.leads_a) || 0;
+            const lB = parseInt(test.leads_b) || 0;
+            const pA = parseInt(test.purchases_a) || 0;
+            const pB = parseInt(test.purchases_b) || 0;
+            const rA = parseFloat(test.revenue_a) || 0;
+            const rB = parseFloat(test.revenue_b) || 0;
             
             return {
                 ...test,
-                conversion_rate_a: visitorsA > 0 ? ((leadsA / visitorsA) * 100).toFixed(2) : 0,
-                conversion_rate_b: visitorsB > 0 ? ((leadsB / visitorsB) * 100).toFixed(2) : 0,
-                purchase_rate_a: visitorsA > 0 ? ((purchasesA / visitorsA) * 100).toFixed(2) : 0,
-                purchase_rate_b: visitorsB > 0 ? ((purchasesB / visitorsB) * 100).toFixed(2) : 0
+                visitors_a: vA, visitors_b: vB,
+                leads_a: lA, leads_b: lB,
+                purchases_a: pA, purchases_b: pB,
+                revenue_a: rA, revenue_b: rB,
+                lead_rate_a: vA > 0 ? ((lA / vA) * 100).toFixed(2) : '0.00',
+                lead_rate_b: vB > 0 ? ((lB / vB) * 100).toFixed(2) : '0.00',
+                purchase_rate_a: vA > 0 ? ((pA / vA) * 100).toFixed(2) : '0.00',
+                purchase_rate_b: vB > 0 ? ((pB / vB) * 100).toFixed(2) : '0.00',
+                rpv_a: vA > 0 ? (rA / vA).toFixed(2) : '0.00',
+                rpv_b: vB > 0 ? (rB / vB).toFixed(2) : '0.00'
             };
         });
         
         res.json(testsWithStats);
-        
     } catch (error) {
         console.error('List A/B tests error:', error);
         res.status(500).json({ error: 'Failed to fetch A/B tests' });
@@ -775,121 +782,94 @@ app.get('/api/admin/ab-tests', authenticateToken, async (req, res) => {
 app.get('/api/admin/ab-tests/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        
         const test = await pool.query(`SELECT * FROM ab_tests WHERE id = $1`, [id]);
+        if (test.rows.length === 0) return res.status(404).json({ error: 'Test not found' });
         
-        if (test.rows.length === 0) {
-            return res.status(404).json({ error: 'Test not found' });
-        }
-        
-        // Get daily stats
-        const dailyStats = await pool.query(`
-            SELECT 
-                DATE(created_at) as date,
-                variant,
-                COUNT(*) as visitors
-            FROM ab_test_visitors
-            WHERE test_id = $1
-            GROUP BY DATE(created_at), variant
-            ORDER BY date
+        // Visitors by day
+        const dailyVisitors = await pool.query(`
+            SELECT DATE(created_at) as date, variant, COUNT(*) as count
+            FROM ab_test_visitors WHERE test_id = $1
+            GROUP BY DATE(created_at), variant ORDER BY date
         `, [id]);
         
-        const dailyConversions = await pool.query(`
-            SELECT 
-                DATE(created_at) as date,
-                variant,
-                event_type,
-                COUNT(*) as count,
-                COALESCE(SUM(value), 0) as value
-            FROM ab_test_conversions
-            WHERE test_id = $1
-            GROUP BY DATE(created_at), variant, event_type
-            ORDER BY date
+        // Leads by day
+        const dailyLeads = await pool.query(`
+            SELECT DATE(created_at) as date, ab_variant as variant, COUNT(*) as count
+            FROM leads WHERE ab_test_id = $1
+            GROUP BY DATE(created_at), ab_variant ORDER BY date
         `, [id]);
         
-        // Get totals
-        const totals = await pool.query(`
-            SELECT 
-                variant,
-                COUNT(*) as visitors
-            FROM ab_test_visitors
-            WHERE test_id = $1
-            GROUP BY variant
+        // Sales by day (via lead email match)
+        const dailySales = await pool.query(`
+            SELECT DATE(t.created_at) as date, l.ab_variant as variant, 
+                   COUNT(DISTINCT t.email) as count, COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue
+            FROM transactions t
+            INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email)
+            WHERE l.ab_test_id = $1 AND t.status = 'approved'
+            GROUP BY DATE(t.created_at), l.ab_variant ORDER BY date
         `, [id]);
         
-        const conversionTotals = await pool.query(`
-            SELECT 
-                variant,
-                event_type,
-                COUNT(*) as count,
-                COALESCE(SUM(value), 0) as value
-            FROM ab_test_conversions
-            WHERE test_id = $1
-            GROUP BY variant, event_type
+        // Totals
+        const visitors = await pool.query(`
+            SELECT variant, COUNT(*) as count FROM ab_test_visitors WHERE test_id = $1 GROUP BY variant
+        `, [id]);
+        const leads = await pool.query(`
+            SELECT ab_variant as variant, COUNT(*) as count FROM leads WHERE ab_test_id = $1 GROUP BY ab_variant
+        `, [id]);
+        const sales = await pool.query(`
+            SELECT l.ab_variant as variant, COUNT(DISTINCT t.email) as count, 
+                   COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue
+            FROM transactions t
+            INNER JOIN leads l ON LOWER(t.email) = LOWER(l.email)
+            WHERE l.ab_test_id = $1 AND t.status = 'approved'
+            GROUP BY l.ab_variant
         `, [id]);
         
         res.json({
             test: test.rows[0],
-            daily_visitors: dailyStats.rows,
-            daily_conversions: dailyConversions.rows,
-            totals: totals.rows,
-            conversion_totals: conversionTotals.rows
+            daily: { visitors: dailyVisitors.rows, leads: dailyLeads.rows, sales: dailySales.rows },
+            totals: { visitors: visitors.rows, leads: leads.rows, sales: sales.rows }
         });
-        
     } catch (error) {
         console.error('Get A/B test error:', error);
         res.status(500).json({ error: 'Failed to fetch test details' });
     }
 });
 
-// Admin: Create A/B test
+// Admin: Create A/B test (URL splitter)
 app.post('/api/admin/ab-tests', authenticateToken, async (req, res) => {
     try {
-        const { 
-            name, 
-            description, 
-            funnel, 
-            variant_a_name, 
-            variant_a_param,
-            variant_b_name, 
-            variant_b_param,
-            traffic_split,
-            test_type,
-            config_a,
-            config_b
-        } = req.body;
+        const { name, description, url_a, url_b, variant_a_name, variant_b_name, traffic_split } = req.body;
         
-        if (!name || !funnel) {
-            return res.status(400).json({ error: 'Name and funnel are required' });
+        if (!name || !url_a || !url_b) {
+            return res.status(400).json({ error: 'Name, URL A and URL B are required' });
         }
         
+        // Generate slug from name
+        const slug = name.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+            .substring(0, 80);
+        
+        // Check slug uniqueness
+        const existingSlug = await pool.query(`SELECT id FROM ab_tests WHERE slug = $1`, [slug]);
+        const finalSlug = existingSlug.rows.length > 0 ? `${slug}-${Date.now().toString(36)}` : slug;
+        
         const result = await pool.query(`
-            INSERT INTO ab_tests (
-                name, description, funnel, 
-                variant_a_name, variant_a_param,
-                variant_b_name, variant_b_param,
-                traffic_split, status, created_by,
-                test_type, config_a, config_b
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft', $9, $10, $11, $12)
+            INSERT INTO ab_tests (name, description, funnel, variant_a_name, variant_b_name, 
+                traffic_split, status, created_by, url_a, url_b, slug, test_type)
+            VALUES ($1, $2, 'url_split', $3, $4, $5, 'draft', $6, $7, $8, $9, 'url_split')
             RETURNING *
         `, [
-            name, 
-            description || '', 
-            funnel,
-            variant_a_name || 'Controle',
-            variant_a_param || 'control',
-            variant_b_name || 'Teste',
-            variant_b_param || 'test',
-            traffic_split || 50,
-            req.user.id,
-            test_type || 'vsl',
-            JSON.stringify(config_a || {}),
-            JSON.stringify(config_b || {})
+            name, description || '', variant_a_name || 'Controle', variant_b_name || 'Teste',
+            traffic_split || 50, req.user.id, url_a, url_b, finalSlug
         ]);
         
-        res.json(result.rows[0]);
+        // Update dynamic CORS origins
+        try { abTestAllowedOrigins.add(new URL(url_a).origin); } catch(e) {}
+        try { abTestAllowedOrigins.add(new URL(url_b).origin); } catch(e) {}
         
+        res.json(result.rows[0]);
     } catch (error) {
         console.error('Create A/B test error:', error);
         res.status(500).json({ error: 'Failed to create A/B test' });
@@ -900,135 +880,76 @@ app.post('/api/admin/ab-tests', authenticateToken, async (req, res) => {
 app.put('/api/admin/ab-tests/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const { 
-            name, 
-            description, 
-            variant_a_name, 
-            variant_a_param,
-            variant_b_name, 
-            variant_b_param,
-            traffic_split,
-            test_type,
-            config_a,
-            config_b
-        } = req.body;
+        const { name, description, url_a, url_b, variant_a_name, variant_b_name, traffic_split } = req.body;
         
         const result = await pool.query(`
             UPDATE ab_tests SET
-                name = COALESCE($1, name),
-                description = COALESCE($2, description),
-                variant_a_name = COALESCE($3, variant_a_name),
-                variant_a_param = COALESCE($4, variant_a_param),
-                variant_b_name = COALESCE($5, variant_b_name),
-                variant_b_param = COALESCE($6, variant_b_param),
-                traffic_split = COALESCE($7, traffic_split),
-                test_type = COALESCE($8, test_type),
-                config_a = COALESCE($9, config_a),
-                config_b = COALESCE($10, config_b)
-            WHERE id = $11
-            RETURNING *
-        `, [
-            name, 
-            description, 
-            variant_a_name, 
-            variant_a_param, 
-            variant_b_name, 
-            variant_b_param, 
-            traffic_split,
-            test_type,
-            config_a ? JSON.stringify(config_a) : null,
-            config_b ? JSON.stringify(config_b) : null,
-            id
-        ]);
+                name = COALESCE($1, name), description = COALESCE($2, description),
+                url_a = COALESCE($3, url_a), url_b = COALESCE($4, url_b),
+                variant_a_name = COALESCE($5, variant_a_name), variant_b_name = COALESCE($6, variant_b_name),
+                traffic_split = COALESCE($7, traffic_split)
+            WHERE id = $8 RETURNING *
+        `, [name, description, url_a, url_b, variant_a_name, variant_b_name, traffic_split, id]);
         
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Test not found' });
-        }
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Test not found' });
+        
+        // Update dynamic CORS origins
+        if (url_a) try { abTestAllowedOrigins.add(new URL(url_a).origin); } catch(e) {}
+        if (url_b) try { abTestAllowedOrigins.add(new URL(url_b).origin); } catch(e) {}
         
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Update A/B test error:', error);
         res.status(500).json({ error: 'Failed to update A/B test' });
     }
 });
 
-// Admin: Start/Stop A/B test
+// Admin: Start/Stop/Reset A/B test
 app.post('/api/admin/ab-tests/:id/status', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const { action } = req.body; // 'start', 'stop', 'reset'
-        
-        let query, params;
+        const { action } = req.body;
+        let result;
         
         if (action === 'start') {
-            // Check if there's already a running test for this funnel
-            const existing = await pool.query(`
-                SELECT id, name FROM ab_tests 
-                WHERE id != $1 AND status = 'running' 
-                AND funnel = (SELECT funnel FROM ab_tests WHERE id = $1)
-            `, [id]);
-            
-            if (existing.rows.length > 0) {
-                return res.status(400).json({ 
-                    error: `Another test "${existing.rows[0].name}" is already running for this funnel` 
-                });
-            }
-            
-            query = `UPDATE ab_tests SET status = 'running', started_at = NOW() WHERE id = $1 RETURNING *`;
-            params = [id];
+            result = await pool.query(
+                `UPDATE ab_tests SET status = 'running', started_at = NOW() WHERE id = $1 RETURNING *`, [id]
+            );
         } else if (action === 'stop') {
-            query = `UPDATE ab_tests SET status = 'stopped', ended_at = NOW() WHERE id = $1 RETURNING *`;
-            params = [id];
+            result = await pool.query(
+                `UPDATE ab_tests SET status = 'stopped', ended_at = NOW() WHERE id = $1 RETURNING *`, [id]
+            );
         } else if (action === 'reset') {
-            // Delete all visitors and conversions for this test
-            await pool.query(`DELETE FROM ab_test_conversions WHERE test_id = $1`, [id]);
             await pool.query(`DELETE FROM ab_test_visitors WHERE test_id = $1`, [id]);
-            query = `UPDATE ab_tests SET status = 'draft', started_at = NULL, ended_at = NULL, winner = NULL WHERE id = $1 RETURNING *`;
-            params = [id];
+            await pool.query(`UPDATE leads SET ab_test_id = NULL, ab_variant = NULL WHERE ab_test_id = $1`, [id]);
+            result = await pool.query(
+                `UPDATE ab_tests SET status = 'draft', started_at = NULL, ended_at = NULL, winner = NULL WHERE id = $1 RETURNING *`, [id]
+            );
         } else {
             return res.status(400).json({ error: 'Invalid action' });
         }
         
-        const result = await pool.query(query, params);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Test not found' });
-        }
-        
+        if (!result || result.rows.length === 0) return res.status(404).json({ error: 'Test not found' });
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Update A/B test status error:', error);
         res.status(500).json({ error: 'Failed to update test status' });
     }
 });
 
-// Admin: Set winner and end test
+// Admin: Set winner
 app.post('/api/admin/ab-tests/:id/winner', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const { winner } = req.body; // 'A' or 'B'
+        const { winner } = req.body;
+        if (!['A', 'B'].includes(winner)) return res.status(400).json({ error: 'Winner must be A or B' });
         
-        if (!['A', 'B'].includes(winner)) {
-            return res.status(400).json({ error: 'Winner must be A or B' });
-        }
-        
-        const result = await pool.query(`
-            UPDATE ab_tests SET 
-                status = 'completed',
-                winner = $1,
-                ended_at = NOW()
-            WHERE id = $2
-            RETURNING *
-        `, [winner, id]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Test not found' });
-        }
-        
+        const result = await pool.query(
+            `UPDATE ab_tests SET status = 'completed', winner = $1, ended_at = NOW() WHERE id = $2 RETURNING *`,
+            [winner, id]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Test not found' });
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Set A/B winner error:', error);
         res.status(500).json({ error: 'Failed to set winner' });
@@ -1585,7 +1506,10 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
             utm_medium,
             utm_campaign,
             utm_content,
-            utm_term
+            utm_term,
+            // A/B test tracking
+            ab_test_id,
+            ab_variant
         } = req.body;
         
         // Validation
@@ -1646,20 +1570,22 @@ app.post('/api/leads', leadLimiter, async (req, res) => {
                     fbc = COALESCE($19, fbc),
                     fbp = COALESCE($20, fbp),
                     state = COALESCE($21, state),
+                    ab_test_id = COALESCE($22, ab_test_id),
+                    ab_variant = COALESCE($23, ab_variant),
                     last_visit_at = NOW(),
                     updated_at = NOW()
                 WHERE id = $13
                 RETURNING id, created_at`,
-                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, geoData.state || null]
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, geoData.state || null, ab_test_id || null, ab_variant || null]
             );
             console.log(`Returning lead [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
             result = await pool.query(
-                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, ab_test_id, ab_variant, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
                  RETURNING id, created_at`,
-                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, geoData.state || null, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null]
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, geoData.state || null, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, ab_test_id || null, ab_variant || null]
             );
             isNewLead = true;
             console.log(`New lead captured [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}${utm_source ? ` [UTM: ${utm_source}]` : ''}`);
@@ -4451,6 +4377,8 @@ app.post('/api/track', async (req, res) => {
             funnelSource,    // 'main' or 'affiliate'
             fbc,             // Facebook Click ID (for CAPI attribution)
             fbp,             // Facebook Browser ID (for CAPI attribution)
+            ab_test_id,      // A/B test ID (from URL splitter)
+            ab_variant,      // A/B variant (A or B)
             metadata
         } = req.body;
         
@@ -4470,26 +4398,11 @@ app.post('/api/track', async (req, res) => {
             funnelSource: source
         };
         
-        // Try INSERT with fbc/fbp columns first; fallback without them if columns don't exist
-        try {
-            await pool.query(
-                `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, metadata, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
-                [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, JSON.stringify(enrichedMetadata)]
-            );
-        } catch (insertError) {
-            // If fbc/fbp columns don't exist yet, retry without them
-            if (insertError.message && insertError.message.includes('column')) {
-                console.warn('⚠️ funnel_events INSERT failed (column issue), retrying without fbc/fbp:', insertError.message);
-                await pool.query(
-                    `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, metadata, created_at)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-                    [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, JSON.stringify(enrichedMetadata)]
-                );
-            } else {
-                throw insertError;
-            }
-        }
+        await pool.query(
+            `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, ab_test_id, ab_variant, metadata, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
+            [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, ab_test_id || null, ab_variant || null, JSON.stringify(enrichedMetadata)]
+        );
         
         res.json({ success: true, language });
         
@@ -12627,8 +12540,25 @@ async function initDatabase() {
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='config_b') THEN
                     ALTER TABLE ab_tests ADD COLUMN config_b JSONB DEFAULT '{}';
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='url_a') THEN
+                    ALTER TABLE ab_tests ADD COLUMN url_a TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='url_b') THEN
+                    ALTER TABLE ab_tests ADD COLUMN url_b TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='slug') THEN
+                    ALTER TABLE ab_tests ADD COLUMN slug VARCHAR(100) UNIQUE;
+                END IF;
             END $$;
         `);
+        
+        // Add AB test columns to leads and funnel_events
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ab_test_id INTEGER;`);
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ab_variant VARCHAR(10);`);
+        await pool.query(`ALTER TABLE funnel_events ADD COLUMN IF NOT EXISTS ab_test_id INTEGER;`);
+        await pool.query(`ALTER TABLE funnel_events ADD COLUMN IF NOT EXISTS ab_variant VARCHAR(10);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_leads_ab_test ON leads(ab_test_id) WHERE ab_test_id IS NOT NULL;`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_funnel_events_ab_test ON funnel_events(ab_test_id) WHERE ab_test_id IS NOT NULL;`);
         
         // Create A/B test visitors table
         await pool.query(`
@@ -13118,6 +13048,9 @@ app.listen(PORT, async () => {
     
     // Initialize database
     await initDatabase();
+    
+    // Load A/B test CORS origins from DB
+    await loadABTestOrigins();
     
     // Start auto-sync with Monetizze (every 30 minutes)
     startAutoSync();

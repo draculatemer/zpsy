@@ -2519,20 +2519,16 @@
                                 <span>🧪</span> Testes A/B
                             </h2>
                             <p style="color: var(--text-muted); margin: 8px 0 0 0;">
-                                Divida o tráfego e compare conversões entre diferentes versões do funil
+                                Divida o trafego entre duas URLs e compare resultados reais
                             </p>
                         </div>
                         <button class="btn-primary" onclick="showCreateABTestModal()" style="display: flex; align-items: center; gap: 8px;">
                             <span>+</span> Novo Teste
                         </button>
                     </div>
-                    
-                    <!-- Active Tests -->
                     <div id="abTestsContainer">
                         <div class="loading"><div class="spinner"></div>Carregando testes...</div>
                     </div>
-                    
-                    <!-- Help Section - Compact -->
                     <div style="margin-top: 24px; padding: 16px 20px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                             <span style="font-size: 16px;">💡</span>
@@ -2541,28 +2537,27 @@
                         <div style="display: flex; gap: 24px; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #3b82f6; font-weight: 600;">1.</span>
-                                <span style="font-size: 13px; color: #888;">Crie um teste com duas variantes</span>
+                                <span style="font-size: 13px; color: #888;">Duplique o funil e altere o que quiser (preco, headline, etc)</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #8b5cf6; font-weight: 600;">2.</span>
-                                <span style="font-size: 13px; color: #888;">Divida o tráfego entre elas</span>
+                                <span style="font-size: 13px; color: #888;">Coloque cada versao em um dominio diferente</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #10b981; font-weight: 600;">3.</span>
-                                <span style="font-size: 13px; color: #888;">Compare conversões</span>
+                                <span style="font-size: 13px; color: #888;">Crie o teste com as duas URLs e use o link gerado nos anuncios</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="color: #f59e0b; font-weight: 600;">4.</span>
-                                <span style="font-size: 13px; color: #888;">Aplique o vencedor</span>
+                                <span style="font-size: 13px; color: #888;">O sistema divide o trafego e compara leads, vendas e faturamento</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- A/B Test Modal - Complete System -->
+                <!-- A/B Test Modal - URL Splitter -->
                 <div id="abTestModal" class="modal" style="display: none;">
                     <div class="modal-content" style="max-width: 560px; border-radius: 16px; overflow: hidden; background: #1a1a1a;">
-                        <!-- Header -->
                         <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <h3 id="abTestModalTitle" style="margin: 0; font-size: 18px; font-weight: 600;">Novo Teste A/B</h3>
@@ -2570,224 +2565,56 @@
                             </div>
                         </div>
                         
-                        <!-- Body -->
                         <div style="padding: 24px; max-height: 70vh; overflow-y: auto;">
                             <form id="abTestForm">
                                 <input type="hidden" id="abTestId">
-                                <input type="hidden" id="abTestVariantAParam" value="control">
-                                <input type="hidden" id="abTestVariantBParam" value="test">
-                                
-                                <!-- Row 1: Nome e Funil -->
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                                    <div>
-                                        <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">NOME DO TESTE</label>
-                                        <input type="text" id="abTestName" placeholder="Ex: Teste Preço $29 vs $47" required 
-                                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
-                                    </div>
-                                    <div>
-                                        <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">FUNIL</label>
-                                        <select id="abTestFunnel" required 
-                                            style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px; cursor: pointer;">
-                                            <option value="">Selecione...</option>
-                                            <option value="ingles">Inglês</option>
-                                            <option value="ingles-afiliados">Inglês (Afiliados)</option>
-                                            <option value="espanhol">Espanhol</option>
-                                            <option value="espanhol-afiliados">Espanhol (Afiliados)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <!-- Descrição -->
-                                <div style="margin-bottom: 24px;">
-                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">DESCRIÇÃO (opcional)</label>
-                                    <input type="text" id="abTestDescription" placeholder="Breve descrição do objetivo do teste" 
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">NOME DO TESTE</label>
+                                    <input type="text" id="abTestName" placeholder="Ex: Teste Preco EN $47 vs $29" required 
                                         style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
                                 </div>
-                                
-                                <!-- Tipo de Teste -->
-                                <div style="margin-bottom: 24px;">
-                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 12px; color: #888;">TIPO DE TESTE</label>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px;">
-                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('vsl')">
-                                            <input type="radio" name="testType" value="vsl" checked style="display: none;">
-                                            <span style="font-size: 24px; margin-bottom: 6px;">🎬</span>
-                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">VSL</span>
-                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Com/Sem vídeo</span>
-                                        </label>
-                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('price')">
-                                            <input type="radio" name="testType" value="price" style="display: none;">
-                                            <span style="font-size: 24px; margin-bottom: 6px;">💰</span>
-                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Preço</span>
-                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Valores diferentes</span>
-                                        </label>
-                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('headline')">
-                                            <input type="radio" name="testType" value="headline" style="display: none;">
-                                            <span style="font-size: 24px; margin-bottom: 6px;">📝</span>
-                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Headline</span>
-                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">Textos diferentes</span>
-                                        </label>
-                                        <label class="test-type-option" style="display: flex; flex-direction: column; align-items: center; padding: 14px 8px; border-radius: 10px; border: 2px solid #333; background: #0d0d0d; cursor: pointer; transition: all 0.2s;" onclick="selectTestType('page')">
-                                            <input type="radio" name="testType" value="page" style="display: none;">
-                                            <span style="font-size: 24px; margin-bottom: 6px;">📄</span>
-                                            <span style="font-size: 12px; font-weight: 500; color: #ccc;">Página</span>
-                                            <span style="font-size: 10px; color: #666; margin-top: 2px;">URLs diferentes</span>
-                                        </label>
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: #888;">DESCRICAO (opcional)</label>
+                                    <input type="text" id="abTestDescription" placeholder="Breve descricao do objetivo" 
+                                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                    <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
+                                            <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
+                                        </div>
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Nome da Variante</label>
+                                            <input type="text" id="abTestVariantAName" value="Controle" placeholder="Ex: Preco $47" 
+                                                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL do Funil</label>
+                                            <input type="url" id="abTestUrlA" placeholder="https://ingles.zappdetect.com" required
+                                                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                        </div>
+                                    </div>
+                                    <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
+                                            <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
+                                        </div>
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Nome da Variante</label>
+                                            <input type="text" id="abTestVariantBName" value="Teste" placeholder="Ex: Preco $29"
+                                                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL do Funil</label>
+                                            <input type="url" id="abTestUrlB" placeholder="https://teste-29.zappdetect.com" required
+                                                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Configuração Dinâmica por Tipo -->
-                                <div id="testTypeConfig" style="margin-bottom: 24px;">
-                                    <!-- VSL Config (default) -->
-                                    <div id="configVsl" class="config-section">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
-                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
-                                                </div>
-                                                <div style="background: #0d0d0d; padding: 12px; border-radius: 8px; text-align: center;">
-                                                    <span style="font-size: 20px;">🚫</span>
-                                                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #ccc;">Sem VSL</p>
-                                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #666;">Pula direto para o CTA</p>
-                                                </div>
-                                                <input type="hidden" id="configVslA" value='{"show_vsl":false}'>
-                                            </div>
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
-                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
-                                                </div>
-                                                <div style="background: #0d0d0d; padding: 12px; border-radius: 8px; text-align: center;">
-                                                    <span style="font-size: 20px;">🎬</span>
-                                                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #ccc;">Com VSL</p>
-                                                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #666;">Mostra vídeo de vendas</p>
-                                                </div>
-                                                <input type="hidden" id="configVslB" value='{"show_vsl":true}'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Price Config -->
-                                    <div id="configPrice" class="config-section" style="display: none;">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
-                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço</label>
-                                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                                        <span style="color: #666;">$</span>
-                                                        <input type="number" id="priceA" value="47" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 16px; font-weight: 600;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço Original (riscado)</label>
-                                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                                        <span style="color: #666;">$</span>
-                                                        <input type="number" id="priceOriginalA" value="197" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Código Monetizze</label>
-                                                    <input type="text" id="checkoutCodeA" value="KKM446018" placeholder="Ex: KKM446018" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
-                                                </div>
-                                            </div>
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
-                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço</label>
-                                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                                        <span style="color: #666;">$</span>
-                                                        <input type="number" id="priceB" value="29" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 16px; font-weight: 600;">
-                                                    </div>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Preço Original (riscado)</label>
-                                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                                        <span style="color: #666;">$</span>
-                                                        <input type="number" id="priceOriginalB" value="97" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 14px;">
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Código Monetizze</label>
-                                                    <input type="text" id="checkoutCodeB" value="" placeholder="Ex: XXX123456" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p style="margin: 12px 0 0 0; font-size: 11px; color: #666; text-align: center;">💡 Crie produtos diferentes na Monetizze com preços diferentes e use os códigos aqui</p>
-                                    </div>
-                                    
-                                    <!-- Headline Config -->
-                                    <div id="configHeadline" class="config-section" style="display: none;">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
-                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Controle</span>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Título Principal</label>
-                                                    <textarea id="headlineA" rows="2" placeholder="Headline A..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px; resize: none;"></textarea>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Subtítulo (opcional)</label>
-                                                    <input type="text" id="subheadlineA" placeholder="Subtítulo A..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px;">
-                                                </div>
-                                            </div>
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
-                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Teste</span>
-                                                </div>
-                                                <div style="margin-bottom: 10px;">
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Título Principal</label>
-                                                    <textarea id="headlineB" rows="2" placeholder="Headline B..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 13px; resize: none;"></textarea>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">Subtítulo (opcional)</label>
-                                                    <input type="text" id="subheadlineB" placeholder="Subtítulo B..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Page Config -->
-                                    <div id="configPage" class="config-section" style="display: none;">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59,130,246,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #3b82f6; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">A</span>
-                                                    <span style="font-size: 14px; color: #3b82f6; font-weight: 600;">Página A</span>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL da Página</label>
-                                                    <input type="text" id="pageUrlA" placeholder="/ingles/phone.html" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
-                                                </div>
-                                            </div>
-                                            <div style="padding: 16px; border-radius: 10px; border: 2px solid #10b981; background: rgba(16,185,129,0.08);">
-                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                                    <span style="background: #10b981; color: #fff; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">B</span>
-                                                    <span style="font-size: 14px; color: #10b981; font-weight: 600;">Página B</span>
-                                                </div>
-                                                <div>
-                                                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 4px;">URL da Página</label>
-                                                    <input type="text" id="pageUrlB" placeholder="/ingles-v2/phone.html" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #333; background: #0d0d0d; color: #fff; font-size: 12px; font-family: monospace;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p style="margin: 12px 0 0 0; font-size: 11px; color: #666; text-align: center;">💡 Para testar páginas diferentes, você pode duplicar a pasta do funil e fazer alterações na cópia</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Divisão de Tráfego -->
                                 <div style="padding: 16px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                        <label style="font-size: 12px; font-weight: 500; color: #888;">DIVISÃO DE TRÁFEGO</label>
+                                        <label style="font-size: 12px; font-weight: 500; color: #888;">DIVISAO DE TRAFEGO</label>
                                         <span id="trafficSplitLabel" style="font-size: 14px; font-weight: 600; color: #25D366;">50% / 50%</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -2800,8 +2627,6 @@
                                 </div>
                             </form>
                         </div>
-                        
-                        <!-- Footer -->
                         <div style="padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 12px;">
                             <button type="button" onclick="closeABTestModal()" 
                                 style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: transparent; color: #ccc; font-size: 14px; cursor: pointer;">
@@ -9240,259 +9065,136 @@ Estou aqui para esclarecer tudo! 😊`
                 const response = await fetch('/api/admin/ab-tests', {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                
                 if (!response.ok) throw new Error('Failed to load tests');
-                
                 abTests = await response.json();
                 renderABTests();
-                
             } catch (error) {
                 console.error('Error loading A/B tests:', error);
                 document.getElementById('abTestsContainer').innerHTML = `
-                    <div class="empty-state">
-                        <span style="font-size: 48px;">🧪</span>
-                        <h3>Erro ao carregar testes</h3>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                    <div class="empty-state"><span style="font-size:48px">🧪</span><h3>Erro ao carregar testes</h3><p>${error.message}</p></div>`;
             }
         }
         
         function renderABTests() {
             const container = document.getElementById('abTestsContainer');
-            
             if (abTests.length === 0) {
                 container.innerHTML = `
-                    <div style="padding: 48px 20px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🧪</div>
-                        <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 500; color: #ccc;">Nenhum teste A/B criado</h3>
-                        <p style="color: #666; margin: 0 0 20px 0; font-size: 13px;">
-                            Crie seu primeiro teste para comparar versões do funil
-                        </p>
-                        <button class="btn-primary" onclick="showCreateABTestModal()" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">
-                            + Criar Primeiro Teste
-                        </button>
-                    </div>
-                `;
+                    <div style="padding:48px 20px; text-align:center; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size:48px; margin-bottom:16px; opacity:0.5;">🧪</div>
+                        <h3 style="margin:0 0 8px 0; font-size:16px; font-weight:500; color:#ccc;">Nenhum teste A/B criado</h3>
+                        <p style="color:#666; margin:0 0 20px 0; font-size:13px;">Crie seu primeiro teste para dividir trafego entre duas URLs</p>
+                        <button class="btn-primary" onclick="showCreateABTestModal()" style="padding:10px 20px; font-size:13px; border-radius:8px;">+ Criar Primeiro Teste</button>
+                    </div>`;
                 return;
             }
-            
-            const runningTests = abTests.filter(t => t.status === 'running');
-            const otherTests = abTests.filter(t => t.status !== 'running');
-            
+            const running = abTests.filter(t => t.status === 'running');
+            const others = abTests.filter(t => t.status !== 'running');
             let html = '';
-            
-            // Running tests first
-            if (runningTests.length > 0) {
-                html += `<h3 style="margin: 0 0 16px 0; color: #10b981;">🟢 Testes Ativos</h3>`;
-                html += runningTests.map(t => renderABTestCard(t)).join('');
+            if (running.length > 0) {
+                html += `<h3 style="margin:0 0 16px 0; color:#10b981;">🟢 Testes Ativos</h3>`;
+                html += running.map(t => renderABTestCard(t)).join('');
             }
-            
-            // Other tests
-            if (otherTests.length > 0) {
-                if (runningTests.length > 0) {
-                    html += `<h3 style="margin: 24px 0 16px 0; color: var(--text-muted);">📋 Outros Testes</h3>`;
-                }
-                html += otherTests.map(t => renderABTestCard(t)).join('');
+            if (others.length > 0) {
+                if (running.length > 0) html += `<h3 style="margin:24px 0 16px 0; color:var(--text-muted);">📋 Outros Testes</h3>`;
+                html += others.map(t => renderABTestCard(t)).join('');
             }
-            
             container.innerHTML = html;
         }
         
         function renderABTestCard(test) {
-            const statusColors = {
-                'draft': { bg: '#6b7280', text: 'Rascunho' },
-                'running': { bg: '#10b981', text: 'Ativo' },
-                'stopped': { bg: '#f59e0b', text: 'Pausado' },
-                'completed': { bg: '#3b82f6', text: 'Concluído' }
-            };
-            
-            const testTypeLabels = {
-                'vsl': { icon: '🎬', text: 'VSL' },
-                'price': { icon: '💰', text: 'Preço' },
-                'headline': { icon: '📝', text: 'Headline' },
-                'page': { icon: '📄', text: 'Página' }
-            };
-            
-            const status = statusColors[test.status] || statusColors.draft;
-            const testType = testTypeLabels[test.test_type] || testTypeLabels.vsl;
-            
-            const visitorsA = parseInt(test.visitors_a) || 0;
-            const visitorsB = parseInt(test.visitors_b) || 0;
-            const leadsA = parseInt(test.leads_a) || 0;
-            const leadsB = parseInt(test.leads_b) || 0;
-            const purchasesA = parseInt(test.purchases_a) || 0;
-            const purchasesB = parseInt(test.purchases_b) || 0;
-            const revenueA = parseFloat(test.revenue_a) || 0;
-            const revenueB = parseFloat(test.revenue_b) || 0;
-            
-            const convRateA = visitorsA > 0 ? ((leadsA / visitorsA) * 100).toFixed(1) : '0.0';
-            const convRateB = visitorsB > 0 ? ((leadsB / visitorsB) * 100).toFixed(1) : '0.0';
-            const purchRateA = visitorsA > 0 ? ((purchasesA / visitorsA) * 100).toFixed(1) : '0.0';
-            const purchRateB = visitorsB > 0 ? ((purchasesB / visitorsB) * 100).toFixed(1) : '0.0';
-            
-            // Determine which variant is winning
-            const aWinning = parseFloat(convRateA) > parseFloat(convRateB);
-            const bWinning = parseFloat(convRateB) > parseFloat(convRateA);
-            const totalVisitors = visitorsA + visitorsB;
-            
-            // Get config summary
-            let configSummaryA = test.variant_a_name || 'Controle';
-            let configSummaryB = test.variant_b_name || 'Teste';
-            
-            if (test.config_a && test.test_type === 'price') {
-                configSummaryA = `$${test.config_a.price || 47}`;
-            }
-            if (test.config_b && test.test_type === 'price') {
-                configSummaryB = `$${test.config_b.price || 29}`;
-            }
+            const statusMap = { 'draft':{bg:'#6b7280',text:'Rascunho'}, 'running':{bg:'#10b981',text:'Ativo'}, 'stopped':{bg:'#f59e0b',text:'Pausado'}, 'completed':{bg:'#3b82f6',text:'Concluido'} };
+            const st = statusMap[test.status] || statusMap.draft;
+            const vA = parseInt(test.visitors_a)||0, vB = parseInt(test.visitors_b)||0;
+            const lA = parseInt(test.leads_a)||0, lB = parseInt(test.leads_b)||0;
+            const pA = parseInt(test.purchases_a)||0, pB = parseInt(test.purchases_b)||0;
+            const rA = parseFloat(test.revenue_a)||0, rB = parseFloat(test.revenue_b)||0;
+            const lrA = vA>0?((lA/vA)*100).toFixed(1):'0.0', lrB = vB>0?((lB/vB)*100).toFixed(1):'0.0';
+            const prA = vA>0?((pA/vA)*100).toFixed(1):'0.0', prB = vB>0?((pB/vB)*100).toFixed(1):'0.0';
+            const rpvA = vA>0?(rA/vA).toFixed(2):'0.00', rpvB = vB>0?(rB/vB).toFixed(2):'0.00';
+            const total = vA+vB;
+            const aWin = parseFloat(prA)>parseFloat(prB), bWin = parseFloat(prB)>parseFloat(prA);
+            const splitUrl = test.slug ? `${window.location.origin}/go/${test.slug}` : '';
             
             return `
-                <div class="ab-test-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; ${test.status === 'running' ? 'border-left: 4px solid #10b981;' : ''}">
-                    <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; ${test.status==='running'?'border-left:4px solid #10b981;':''}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                         <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                                <h3 style="margin: 0; font-size: 18px;">${test.name}</h3>
-                                <span style="background: ${status.bg}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${status.text}</span>
-                                <span style="background: rgba(255,255,255,0.1); color: #ccc; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500;">${testType.icon} ${testType.text}</span>
-                                ${test.winner ? `<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">🏆 Vencedor: ${test.winner}</span>` : ''}
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                                <h3 style="margin:0; font-size:18px;">${test.name}</h3>
+                                <span style="background:${st.bg}; color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;">${st.text}</span>
+                                ${test.winner?`<span style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600;">🏆 Vencedor: ${test.winner}</span>`:''}
                             </div>
-                            <p style="margin: 0; color: var(--text-muted); font-size: 13px;">
-                                Funil: <strong>${test.funnel}</strong> • 
-                                Tráfego: ${test.traffic_split}% / ${100 - test.traffic_split}% •
-                                Total: ${totalVisitors.toLocaleString()} visitantes •
-                                <span style="color: #3b82f6;">A: ${configSummaryA}</span> vs <span style="color: #10b981;">B: ${configSummaryB}</span>
+                            <p style="margin:0; color:var(--text-muted); font-size:13px;">
+                                Split: ${test.traffic_split}%/${100-test.traffic_split}% · 
+                                Total: ${total.toLocaleString()} visitantes ·
+                                <span style="color:#3b82f6;">A: ${test.variant_a_name||'Controle'}</span> vs <span style="color:#10b981;">B: ${test.variant_b_name||'Teste'}</span>
                             </p>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            ${test.status === 'draft' ? `
-                                <button class="btn-sm btn-success" onclick="startABTest(${test.id})" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">▶ Iniciar</button>
-                                <button class="btn-sm" onclick="editABTest(${test.id})" style="background: var(--bg-tertiary); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">✏️ Editar</button>
-                            ` : ''}
-                            ${test.status === 'running' ? `
-                                <button class="btn-sm" onclick="stopABTest(${test.id})" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">⏸ Pausar</button>
-                                <button class="btn-sm" onclick="showSetWinnerModal(${test.id})" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">🏆 Definir Vencedor</button>
-                            ` : ''}
-                            ${test.status === 'stopped' ? `
-                                <button class="btn-sm btn-success" onclick="startABTest(${test.id})" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">▶ Retomar</button>
-                            ` : ''}
-                            <button class="btn-sm" onclick="resetABTest(${test.id})" style="background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;" title="Resetar dados">🔄</button>
-                            <button class="btn-sm" onclick="deleteABTest(${test.id})" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;" title="Excluir">🗑️</button>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            ${test.status==='draft'?`
+                                <button onclick="startABTest(${test.id})" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">▶ Iniciar</button>
+                                <button onclick="editABTest(${test.id})" style="background:var(--bg-tertiary); border:1px solid var(--border); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">✏️ Editar</button>
+                            `:''}
+                            ${test.status==='running'?`
+                                <button onclick="stopABTest(${test.id})" style="background:#f59e0b; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">⏸ Pausar</button>
+                                <button onclick="showSetWinnerModal(${test.id})" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">🏆 Vencedor</button>
+                            `:''}
+                            ${test.status==='stopped'?`<button onclick="startABTest(${test.id})" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">▶ Retomar</button>`:''}
+                            <button onclick="resetABTest(${test.id})" style="background:transparent; border:1px solid var(--border); padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;" title="Resetar">🔄</button>
+                            <button onclick="deleteABTest(${test.id})" style="background:transparent; border:1px solid #ef4444; color:#ef4444; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;" title="Excluir">🗑️</button>
                         </div>
                     </div>
                     
-                    <!-- Variants Comparison -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <!-- Variant A -->
-                        <div style="background: ${aWinning && totalVisitors > 50 ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))' : 'var(--bg-tertiary)'}; border-radius: 10px; padding: 16px; border: 1px solid ${aWinning && totalVisitors > 50 ? '#3b82f6' : 'var(--border)'};">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                <span style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">A</span>
-                                <strong>${test.variant_a_name || 'Controle'}</strong>
-                                ${aWinning && totalVisitors > 50 ? '<span style="color: #3b82f6; font-size: 12px;">📈 Liderando</span>' : ''}
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: var(--text-primary);">${visitorsA.toLocaleString()}</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Visitantes</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #10b981;">${convRateA}%</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Conv. Lead</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">${purchRateA}%</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Conv. Venda</div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px;">
-                                <span><strong>${leadsA}</strong> leads</span>
-                                <span><strong>${purchasesA}</strong> vendas</span>
-                                <span><strong>$${revenueA.toFixed(2)}</strong></span>
-                            </div>
-                        </div>
-                        
-                        <!-- Variant B -->
-                        <div style="background: ${bWinning && totalVisitors > 50 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))' : 'var(--bg-tertiary)'}; border-radius: 10px; padding: 16px; border: 1px solid ${bWinning && totalVisitors > 50 ? '#10b981' : 'var(--border)'};">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                <span style="background: #10b981; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">B</span>
-                                <strong>${test.variant_b_name || 'Teste'}</strong>
-                                ${bWinning && totalVisitors > 50 ? '<span style="color: #10b981; font-size: 12px;">📈 Liderando</span>' : ''}
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: var(--text-primary);">${visitorsB.toLocaleString()}</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Visitantes</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #10b981;">${convRateB}%</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Conv. Lead</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">${purchRateB}%</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Conv. Venda</div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px;">
-                                <span><strong>${leadsB}</strong> leads</span>
-                                <span><strong>${purchasesB}</strong> vendas</span>
-                                <span><strong>$${revenueB.toFixed(2)}</strong></span>
-                            </div>
-                        </div>
+                    ${splitUrl?`
+                    <div style="margin-bottom:16px; padding:12px 16px; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2); border-radius:8px; display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:14px;">🔗</span>
+                        <code style="flex:1; font-size:12px; color:#25D366; word-break:break-all;">${splitUrl}</code>
+                        <button onclick="navigator.clipboard.writeText('${splitUrl}');showNotification('Link copiado!','success')" 
+                            style="background:#25D366; color:#000; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; white-space:nowrap;">📋 Copiar</button>
                     </div>
+                    `:''}
                     
-                    <!-- Integration Code -->
-                    ${test.status === 'running' ? `
-                    <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px; font-family: monospace; font-size: 11px;">
-                        <strong style="font-family: inherit;">Código de integração:</strong>
-                        <code style="display: block; margin-top: 8px; color: #10b981; word-break: break-all;">
-                            ?ab_test=${test.id}&variant={A ou B}
-                        </code>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div style="background:${aWin&&total>50?'linear-gradient(135deg,rgba(59,130,246,0.15),rgba(59,130,246,0.05))':'var(--bg-tertiary)'}; border-radius:10px; padding:16px; border:1px solid ${aWin&&total>50?'#3b82f6':'var(--border)'};">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                <span style="background:#3b82f6; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">A</span>
+                                <strong>${test.variant_a_name||'Controle'}</strong>
+                                ${aWin&&total>50?'<span style="color:#3b82f6; font-size:12px;">📈 Liderando</span>':''}
+                            </div>
+                            ${test.url_a?`<div style="margin-bottom:10px; font-size:11px; color:#888; word-break:break-all;">${test.url_a}</div>`:''}
+                            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;">
+                                <div><div style="font-size:18px; font-weight:700;">${vA.toLocaleString()}</div><div style="font-size:10px; color:var(--text-muted);">Visitantes</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#10b981;">${lrA}%</div><div style="font-size:10px; color:var(--text-muted);">Conv. Lead</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#f59e0b;">${prA}%</div><div style="font-size:10px; color:var(--text-muted);">Conv. Venda</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#a78bfa;">$${rpvA}</div><div style="font-size:10px; color:var(--text-muted);">RPV</div></div>
+                            </div>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:12px;">
+                                <span><strong>${lA}</strong> leads</span>
+                                <span><strong>${pA}</strong> vendas</span>
+                                <span><strong>$${rA.toFixed(2)}</strong></span>
+                            </div>
+                        </div>
+                        <div style="background:${bWin&&total>50?'linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.05))':'var(--bg-tertiary)'}; border-radius:10px; padding:16px; border:1px solid ${bWin&&total>50?'#10b981':'var(--border)'};">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                <span style="background:#10b981; color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">B</span>
+                                <strong>${test.variant_b_name||'Teste'}</strong>
+                                ${bWin&&total>50?'<span style="color:#10b981; font-size:12px;">📈 Liderando</span>':''}
+                            </div>
+                            ${test.url_b?`<div style="margin-bottom:10px; font-size:11px; color:#888; word-break:break-all;">${test.url_b}</div>`:''}
+                            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;">
+                                <div><div style="font-size:18px; font-weight:700;">${vB.toLocaleString()}</div><div style="font-size:10px; color:var(--text-muted);">Visitantes</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#10b981;">${lrB}%</div><div style="font-size:10px; color:var(--text-muted);">Conv. Lead</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#f59e0b;">${prB}%</div><div style="font-size:10px; color:var(--text-muted);">Conv. Venda</div></div>
+                                <div><div style="font-size:18px; font-weight:700; color:#a78bfa;">$${rpvB}</div><div style="font-size:10px; color:var(--text-muted);">RPV</div></div>
+                            </div>
+                            <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:12px;">
+                                <span><strong>${lB}</strong> leads</span>
+                                <span><strong>${pB}</strong> vendas</span>
+                                <span><strong>$${rB.toFixed(2)}</strong></span>
+                            </div>
+                        </div>
                     </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-        
-        // Current selected test type
-        let currentTestType = 'vsl';
-        
-        function selectTestType(type) {
-            currentTestType = type;
-            
-            // Update radio buttons
-            document.querySelectorAll('input[name="testType"]').forEach(radio => {
-                radio.checked = radio.value === type;
-            });
-            
-            // Update visual selection
-            document.querySelectorAll('.test-type-option').forEach(option => {
-                const radio = option.querySelector('input[type="radio"]');
-                if (radio.value === type) {
-                    option.style.borderColor = '#25D366';
-                    option.style.background = 'rgba(37, 211, 102, 0.1)';
-                } else {
-                    option.style.borderColor = '#333';
-                    option.style.background = '#0d0d0d';
-                }
-            });
-            
-            // Show/hide config sections
-            document.querySelectorAll('.config-section').forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            const configMap = {
-                'vsl': 'configVsl',
-                'price': 'configPrice',
-                'headline': 'configHeadline',
-                'page': 'configPage'
-            };
-            
-            const configSection = document.getElementById(configMap[type]);
-            if (configSection) {
-                configSection.style.display = 'block';
-            }
+                </div>`;
         }
         
         function updateTrafficSplit(value) {
@@ -9501,130 +9203,30 @@ Estou aqui para esclarecer tudo! 😊`
             document.getElementById('trafficSplitLabel').textContent = value + '% / ' + (100 - value) + '%';
         }
         
-        function getConfigFromType(variant) {
-            switch (currentTestType) {
-                case 'vsl':
-                    return variant === 'A' 
-                        ? { show_vsl: false } 
-                        : { show_vsl: true };
-                        
-                case 'price':
-                    const priceEl = document.getElementById('price' + variant);
-                    const priceOrigEl = document.getElementById('priceOriginal' + variant);
-                    const checkoutEl = document.getElementById('checkoutCode' + variant);
-                    return {
-                        price: parseFloat(priceEl?.value || 47),
-                        original_price: parseFloat(priceOrigEl?.value || 197),
-                        checkout_code: checkoutEl?.value || ''
-                    };
-                    
-                case 'headline':
-                    const headlineEl = document.getElementById('headline' + variant);
-                    const subheadlineEl = document.getElementById('subheadline' + variant);
-                    return {
-                        headline: headlineEl?.value || '',
-                        subheadline: subheadlineEl?.value || ''
-                    };
-                    
-                case 'page':
-                    const pageUrlEl = document.getElementById('pageUrl' + variant);
-                    return {
-                        redirect_url: pageUrlEl?.value || ''
-                    };
-                    
-                default:
-                    return {};
-            }
-        }
-        
-        function setConfigToForm(configA, configB, testType) {
-            currentTestType = testType || 'vsl';
-            selectTestType(currentTestType);
-            
-            if (!configA && !configB) return;
-            
-            switch (currentTestType) {
-                case 'price':
-                    if (configA) {
-                        document.getElementById('priceA').value = configA.price || 47;
-                        document.getElementById('priceOriginalA').value = configA.original_price || 197;
-                        document.getElementById('checkoutCodeA').value = configA.checkout_code || '';
-                    }
-                    if (configB) {
-                        document.getElementById('priceB').value = configB.price || 29;
-                        document.getElementById('priceOriginalB').value = configB.original_price || 97;
-                        document.getElementById('checkoutCodeB').value = configB.checkout_code || '';
-                    }
-                    break;
-                    
-                case 'headline':
-                    if (configA) {
-                        document.getElementById('headlineA').value = configA.headline || '';
-                        document.getElementById('subheadlineA').value = configA.subheadline || '';
-                    }
-                    if (configB) {
-                        document.getElementById('headlineB').value = configB.headline || '';
-                        document.getElementById('subheadlineB').value = configB.subheadline || '';
-                    }
-                    break;
-                    
-                case 'page':
-                    if (configA) {
-                        document.getElementById('pageUrlA').value = configA.redirect_url || '';
-                    }
-                    if (configB) {
-                        document.getElementById('pageUrlB').value = configB.redirect_url || '';
-                    }
-                    break;
-            }
-        }
-        
-        function getVariantNameFromType() {
-            switch (currentTestType) {
-                case 'vsl':
-                    return { a: 'Sem VSL', b: 'Com VSL' };
-                case 'price':
-                    const priceA = document.getElementById('priceA')?.value || '47';
-                    const priceB = document.getElementById('priceB')?.value || '29';
-                    return { a: `Preço $${priceA}`, b: `Preço $${priceB}` };
-                case 'headline':
-                    return { a: 'Headline A', b: 'Headline B' };
-                case 'page':
-                    return { a: 'Página A', b: 'Página B' };
-                default:
-                    return { a: 'Controle', b: 'Teste' };
-            }
-        }
-        
         function showCreateABTestModal() {
             document.getElementById('abTestModalTitle').textContent = 'Novo Teste A/B';
             document.getElementById('abTestId').value = '';
             document.getElementById('abTestForm').reset();
-            document.getElementById('abTestVariantAParam').value = 'control';
-            document.getElementById('abTestVariantBParam').value = 'test';
+            document.getElementById('abTestVariantAName').value = 'Controle';
+            document.getElementById('abTestVariantBName').value = 'Teste';
             document.getElementById('abTestTrafficSplit').value = 50;
             updateTrafficSplit(50);
-            selectTestType('vsl');
             document.getElementById('abTestModal').style.display = 'flex';
         }
         
         function editABTest(id) {
             const test = abTests.find(t => t.id === id);
             if (!test) return;
-            
             document.getElementById('abTestModalTitle').textContent = 'Editar Teste A/B';
             document.getElementById('abTestId').value = test.id;
             document.getElementById('abTestName').value = test.name;
             document.getElementById('abTestDescription').value = test.description || '';
-            document.getElementById('abTestFunnel').value = test.funnel;
-            document.getElementById('abTestVariantAParam').value = test.variant_a_param || 'control';
-            document.getElementById('abTestVariantBParam').value = test.variant_b_param || 'test';
+            document.getElementById('abTestUrlA').value = test.url_a || '';
+            document.getElementById('abTestUrlB').value = test.url_b || '';
+            document.getElementById('abTestVariantAName').value = test.variant_a_name || 'Controle';
+            document.getElementById('abTestVariantBName').value = test.variant_b_name || 'Teste';
             document.getElementById('abTestTrafficSplit').value = test.traffic_split;
             updateTrafficSplit(test.traffic_split);
-            
-            // Set test type and config
-            setConfigToForm(test.config_a, test.config_b, test.test_type);
-            
             document.getElementById('abTestModal').style.display = 'flex';
         }
         
@@ -9634,175 +9236,84 @@ Estou aqui para esclarecer tudo! 😊`
         
         async function saveABTest() {
             const id = document.getElementById('abTestId').value;
-            const variantNames = getVariantNameFromType();
-            
             const data = {
                 name: document.getElementById('abTestName').value,
                 description: document.getElementById('abTestDescription').value,
-                funnel: document.getElementById('abTestFunnel').value,
-                variant_a_name: variantNames.a,
-                variant_a_param: document.getElementById('abTestVariantAParam').value,
-                variant_b_name: variantNames.b,
-                variant_b_param: document.getElementById('abTestVariantBParam').value,
-                traffic_split: parseInt(document.getElementById('abTestTrafficSplit').value),
-                test_type: currentTestType,
-                config_a: getConfigFromType('A'),
-                config_b: getConfigFromType('B')
+                url_a: document.getElementById('abTestUrlA').value,
+                url_b: document.getElementById('abTestUrlB').value,
+                variant_a_name: document.getElementById('abTestVariantAName').value,
+                variant_b_name: document.getElementById('abTestVariantBName').value,
+                traffic_split: parseInt(document.getElementById('abTestTrafficSplit').value)
             };
-            
-            if (!data.name || !data.funnel) {
-                alert('Preencha o nome e selecione o funil');
-                return;
+            if (!data.name || !data.url_a || !data.url_b) {
+                alert('Preencha o nome e as duas URLs'); return;
             }
-            
             try {
                 const url = id ? `/api/admin/ab-tests/${id}` : '/api/admin/ab-tests';
                 const method = id ? 'PUT' : 'POST';
-                
-                const response = await fetch(url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to save');
-                }
-                
+                const response = await fetch(url, { method, headers: {'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}, body: JSON.stringify(data) });
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error||'Failed'); }
+                const result = await response.json();
                 closeABTestModal();
                 loadABTests();
-                showNotification(id ? 'Teste atualizado!' : 'Teste criado!', 'success');
-                
-            } catch (error) {
-                alert('Erro: ' + error.message);
-            }
+                if (!id && result.slug) {
+                    const splitLink = `${window.location.origin}/go/${result.slug}`;
+                    showNotification('Teste criado! Link de split: ' + splitLink, 'success');
+                } else {
+                    showNotification(id ? 'Teste atualizado!' : 'Teste criado!', 'success');
+                }
+            } catch (error) { alert('Erro: ' + error.message); }
         }
         
         async function startABTest(id) {
-            if (!confirm('Iniciar este teste A/B? O tráfego será dividido conforme configurado.')) return;
-            
+            if (!confirm('Iniciar este teste? O trafego sera dividido via link de split.')) return;
             try {
-                const response = await fetch(`/api/admin/ab-tests/${id}/status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({ action: 'start' })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to start');
-                }
-                
-                loadABTests();
-                showNotification('Teste iniciado! O tráfego está sendo dividido.', 'success');
-                
-            } catch (error) {
-                alert('Erro: ' + error.message);
-            }
+                const response = await fetch(`/api/admin/ab-tests/${id}/status`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}, body: JSON.stringify({action:'start'}) });
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error||'Failed'); }
+                loadABTests(); showNotification('Teste iniciado! Use o link de split nos anuncios.', 'success');
+            } catch (error) { alert('Erro: ' + error.message); }
         }
         
         async function stopABTest(id) {
-            if (!confirm('Pausar este teste? O tráfego não será mais dividido.')) return;
-            
+            if (!confirm('Pausar este teste?')) return;
             try {
-                const response = await fetch(`/api/admin/ab-tests/${id}/status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({ action: 'stop' })
-                });
-                
-                if (!response.ok) throw new Error('Failed to stop');
-                
-                loadABTests();
-                showNotification('Teste pausado', 'info');
-                
-            } catch (error) {
-                alert('Erro ao pausar teste');
-            }
+                const response = await fetch(`/api/admin/ab-tests/${id}/status`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}, body: JSON.stringify({action:'stop'}) });
+                if (!response.ok) throw new Error('Failed');
+                loadABTests(); showNotification('Teste pausado', 'info');
+            } catch (error) { alert('Erro ao pausar teste'); }
         }
         
         async function resetABTest(id) {
-            if (!confirm('ATENÇÃO: Isso apagará todos os dados coletados (visitantes e conversões). Continuar?')) return;
-            
+            if (!confirm('ATENCAO: Isso apagara todos os dados coletados. Continuar?')) return;
             try {
-                const response = await fetch(`/api/admin/ab-tests/${id}/status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({ action: 'reset' })
-                });
-                
-                if (!response.ok) throw new Error('Failed to reset');
-                
-                loadABTests();
-                showNotification('Teste resetado - dados apagados', 'info');
-                
-            } catch (error) {
-                alert('Erro ao resetar teste');
-            }
+                const response = await fetch(`/api/admin/ab-tests/${id}/status`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}, body: JSON.stringify({action:'reset'}) });
+                if (!response.ok) throw new Error('Failed');
+                loadABTests(); showNotification('Teste resetado - dados apagados', 'info');
+            } catch (error) { alert('Erro ao resetar teste'); }
         }
         
         async function deleteABTest(id) {
             if (!confirm('Excluir este teste permanentemente?')) return;
-            
             try {
-                const response = await fetch(`/api/admin/ab-tests/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                
-                if (!response.ok) throw new Error('Failed to delete');
-                
-                loadABTests();
-                showNotification('Teste excluído', 'info');
-                
-            } catch (error) {
-                alert('Erro ao excluir teste');
-            }
+                const response = await fetch(`/api/admin/ab-tests/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${authToken}`} });
+                if (!response.ok) throw new Error('Failed');
+                loadABTests(); showNotification('Teste excluido', 'info');
+            } catch (error) { alert('Erro ao excluir teste'); }
         }
         
         function showSetWinnerModal(id) {
             const test = abTests.find(t => t.id === id);
             if (!test) return;
-            
-            const winner = prompt(`Qual variante venceu?\n\nA: ${test.variant_a_name} (${test.conversion_rate_a}% conv.)\nB: ${test.variant_b_name} (${test.conversion_rate_b}% conv.)\n\nDigite A ou B:`);
-            
-            if (winner && ['A', 'B', 'a', 'b'].includes(winner)) {
-                setABTestWinner(id, winner.toUpperCase());
-            }
+            const winner = prompt(`Qual variante venceu?\n\nA: ${test.variant_a_name||'Controle'} (${test.purchase_rate_a}% conv.)\nB: ${test.variant_b_name||'Teste'} (${test.purchase_rate_b}% conv.)\n\nDigite A ou B:`);
+            if (winner && ['A','B','a','b'].includes(winner)) setABTestWinner(id, winner.toUpperCase());
         }
         
         async function setABTestWinner(id, winner) {
             try {
-                const response = await fetch(`/api/admin/ab-tests/${id}/winner`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({ winner })
-                });
-                
-                if (!response.ok) throw new Error('Failed to set winner');
-                
-                loadABTests();
-                showNotification(`Variante ${winner} definida como vencedora!`, 'success');
-                
-            } catch (error) {
-                alert('Erro ao definir vencedor');
-            }
+                const response = await fetch(`/api/admin/ab-tests/${id}/winner`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`}, body: JSON.stringify({winner}) });
+                if (!response.ok) throw new Error('Failed');
+                loadABTests(); showNotification(`Variante ${winner} definida como vencedora!`, 'success');
+            } catch (error) { alert('Erro ao definir vencedor'); }
         }
         
         // ==================== PIXEL & CAPI MONITOR ====================

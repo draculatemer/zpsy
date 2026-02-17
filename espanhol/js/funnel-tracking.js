@@ -43,6 +43,30 @@ const FunnelTracker = {
         return { fbc: localStorage.getItem('_fbc') || null, fbp: localStorage.getItem('_fbp') || null };
     },
     
+    // Get A/B test params (from URL or localStorage)
+    getABTestParams: function() {
+        return {
+            ab_test_id: localStorage.getItem('ab_test_id') || null,
+            ab_variant: localStorage.getItem('ab_variant') || null
+        };
+    },
+    
+    // Detect and store A/B test params from URL
+    detectABParams: function() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const abTestId = params.get('ab');
+            const abVariant = params.get('abv');
+            if (abTestId) {
+                localStorage.setItem('ab_test_id', abTestId);
+                console.log('📊 AB Test detected: test=' + abTestId + ' variant=' + (abVariant || 'unknown'));
+            }
+            if (abVariant) {
+                localStorage.setItem('ab_variant', abVariant);
+            }
+        } catch (e) { /* ignore */ }
+    },
+    
     track: function(event, metadata = {}) {
         const visitorId = this.getVisitorId();
         const targetPhone = localStorage.getItem('targetPhone') || null;
@@ -50,6 +74,7 @@ const FunnelTracker = {
         const page = window.location.pathname.split('/').pop() || 'index';
         const utms = this.getUTMs();
         const fbIds = this.getFacebookIds();
+        const abParams = this.getABTestParams();
         
         const data = {
             visitorId,
@@ -61,6 +86,8 @@ const FunnelTracker = {
             funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
+            ab_test_id: abParams.ab_test_id ? parseInt(abParams.ab_test_id) : null,
+            ab_variant: abParams.ab_variant || null,
             metadata: {
                 ...metadata,
                 ...utms, // Include UTMs in metadata
@@ -155,6 +182,9 @@ const FunnelTracker = {
     
     // Initialize
     init: function() {
+        // Detect A/B test params from URL (must be before anything else)
+        this.detectABParams();
+        
         // CRITICAL: Create visitorId IMMEDIATELY on page load
         // This ensures visitorId exists before any email capture
         const visitorId = this.getVisitorId();
