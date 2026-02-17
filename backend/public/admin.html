@@ -1065,7 +1065,7 @@
                                         <th>Lead</th>
                                         <th>WhatsApp</th>
                                         <th>Produto/Etapa</th>
-                                        <th style="width: 90px;">Valor</th>
+                                        <th style="width: 120px;">Valor</th>
                                         <th style="width: 80px;">Tempo</th>
                                         <th style="width: 120px;">Passo Funil</th>
                                         <th style="width: 180px;">Ações</th>
@@ -1223,16 +1223,17 @@
                                 <table class="dispatch-log-table">
                                     <thead>
                                         <tr>
-                                            <th style="width: 50px;">Status</th>
+                                            <th style="width: 42px;">Status</th>
                                             <th>Lead</th>
                                             <th>Segmento</th>
-                                            <th>Passo</th>
+                                            <th style="width: 70px;">Passo</th>
                                             <th>Mensagem</th>
-                                            <th style="width: 140px;">Data/Hora</th>
+                                            <th style="width: 100px;">Data/Hora</th>
+                                            <th style="width: 130px;">Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody id="dispatchLogTableBody">
-                                        <tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                                        <tr><td colspan="7"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -6400,6 +6401,7 @@ Estou aqui para esclarecer tudo! 😊`
         // ==================== DISPATCH LOG (HISTÓRICO DE DISPAROS) ====================
         let dispatchLogPage = 1;
         let dispatchSearchTimeout = null;
+        let dispatchData = [];
         
         function debounceDispatchSearch() {
             clearTimeout(dispatchSearchTimeout);
@@ -6418,7 +6420,7 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadDispatchLog(page = 1) {
             dispatchLogPage = page;
             const tableBody = document.getElementById('dispatchLogTableBody');
-            tableBody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>';
             
             const segment = document.getElementById('dispatchFilterSegment').value;
             const status = document.getElementById('dispatchFilterStatus').value;
@@ -6436,8 +6438,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const data = await response.json();
                 
                 if (data.error) {
-                    console.error('Dispatch log API error:', data.error);
-                    tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="padding: 40px;"><h3>Erro ao carregar</h3><p>${data.error}</p></div></td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="7"><div class="empty-state" style="padding: 40px;"><h3>Erro ao carregar</h3><p>${data.error}</p></div></td></tr>`;
                     return;
                 }
                 
@@ -6451,48 +6452,48 @@ Estou aqui para esclarecer tudo! 😊`
                     document.getElementById('dispatchStat24h').textContent = parseInt(data.stats.last_24h || 0).toLocaleString();
                 }
                 
-                // Render table
-                if (!data.dispatches || data.dispatches.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state" style="padding: 40px;"><div class="empty-state-icon">📭</div><h3>Nenhum disparo encontrado</h3><p>As mensagens enviadas pelo funil aparecerão aqui</p></div></td></tr>';
+                dispatchData = data.dispatches || [];
+                
+                if (dispatchData.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state" style="padding: 40px;"><div class="empty-state-icon">📭</div><h3>Nenhum disparo encontrado</h3><p>As mensagens enviadas pelo funil aparecerão aqui</p></div></td></tr>';
                     document.getElementById('dispatchPagination').innerHTML = '';
                     return;
                 }
                 
-                const segmentLabels = {
-                    lost_visitors: 'Visitantes Perdidos',
-                    checkout_abandoned: 'Checkout Abandonado',
-                    payment_failed: 'Pgto Recusado',
-                    refund_requests: 'Reembolso',
-                    upsell_declined: 'Recusa Upsell'
-                };
-                
-                const segmentColors = {
-                    lost_visitors: '#a855f7',
-                    checkout_abandoned: '#f59e0b',
-                    payment_failed: '#ef4444',
-                    refund_requests: '#f97316',
-                    upsell_declined: '#3b82f6'
-                };
-                
+                const segLabels = { lost_visitors: 'Visitantes Perdidos', checkout_abandoned: 'Checkout Abandonado', payment_failed: 'Pgto Recusado', refund_requests: 'Reembolso', upsell_declined: 'Recusa Upsell' };
+                const segColors = { lost_visitors: '#a855f7', checkout_abandoned: '#f59e0b', payment_failed: '#ef4444', refund_requests: '#f97316', upsell_declined: '#3b82f6' };
                 const statusIcons = {
                     sent: '<span class="dispatch-status-icon dispatch-status-sent" title="Enviado">✓</span>',
                     failed: '<span class="dispatch-status-icon dispatch-status-failed" title="Falhou">✕</span>',
                     converted: '<span class="dispatch-status-icon dispatch-status-converted" title="Convertido">★</span>'
                 };
                 
-                tableBody.innerHTML = data.dispatches.map(d => {
+                tableBody.innerHTML = dispatchData.map((d, idx) => {
                     const name = d.lead_name || d.lead_email?.split('@')[0] || 'Desconhecido';
                     const initial = name[0].toUpperCase();
                     const date = new Date(d.created_at);
                     const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                     const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    const segColor = segmentColors[d.segment] || '#666';
-                    const msgPreview = (d.message || '').substring(0, 80) + ((d.message || '').length > 80 ? '...' : '');
-                    const step = d.template_used ? d.template_used.replace('step_', 'Passo ') : '-';
+                    const segColor = segColors[d.segment] || '#666';
+                    const msgPreview = (d.message || '').substring(0, 60) + ((d.message || '').length > 60 ? '...' : '');
+                    const step = d.template_used ? d.template_used.replace('step_', '').replace('_resend', ' ↻') : '-';
                     const phone = d.lead_phone || '';
-                    const verified = d.whatsapp_verified ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="#25D366" style="vertical-align: middle; margin-left: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>' : '';
+                    const verified = d.whatsapp_verified ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="#25D366" style="vertical-align: middle; margin-left: 3px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>' : '';
+                    const isConverted = d.status === 'converted' || d.funnel_status === 'converted';
+                    const curStep = parseInt(d.funnel_current_step) || 0;
+                    const totalSteps = parseInt(d.funnel_total_steps) || 4;
+                    const totalContacts = parseInt(d.total_contacts_for_lead) || 1;
+                    const escapedEmail = (d.lead_email || '').replace(/'/g, "\\'");
+                    const escapedMsg = (d.message || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
                     
-                    return `<tr class="dispatch-row">
+                    // Funnel dots for expand
+                    let funnelDots = '';
+                    for (let i = 1; i <= totalSteps; i++) {
+                        const cls = i <= curStep ? 'dot-done' : i === curStep + 1 ? 'dot-current' : 'dot-pending';
+                        funnelDots += `<div class="dispatch-dot ${cls}">${i}</div>`;
+                    }
+                    
+                    return `<tr class="dispatch-row" onclick="toggleDispatchExpand(${idx})" style="cursor: pointer;" id="dispatch-row-${idx}">
                         <td>${statusIcons[d.status] || statusIcons.sent}</td>
                         <td>
                             <div class="dispatch-lead-cell">
@@ -6504,44 +6505,147 @@ Estou aqui para esclarecer tudo! 😊`
                                 </div>
                             </div>
                         </td>
-                        <td><span class="dispatch-segment-badge" style="background: ${segColor}20; color: ${segColor}; border: 1px solid ${segColor}40;">${segmentLabels[d.segment] || d.segment}</span></td>
+                        <td><span class="dispatch-segment-badge" style="background: ${segColor}20; color: ${segColor}; border: 1px solid ${segColor}40;">${segLabels[d.segment] || d.segment}</span></td>
                         <td><span class="dispatch-step-badge">${step}</span></td>
-                        <td><span class="dispatch-message-preview" title="${(d.message || '').replace(/"/g, '&quot;')}">${msgPreview}</span></td>
+                        <td><span class="dispatch-message-preview">${msgPreview}</span></td>
                         <td><span class="dispatch-date">${dateStr}</span> <span class="dispatch-time">${timeStr}</span></td>
+                        <td>
+                            <div class="dispatch-actions" onclick="event.stopPropagation();">
+                                ${!isConverted ? `<button class="dispatch-act-btn dispatch-act-next" onclick="dispatchNextStep('${escapedEmail}', '${d.segment}', '${name.replace(/'/g, "\\'")}', '${phone}', '${d.lead_language || 'en'}')" title="Enviar próximo passo">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+                                </button>` : ''}
+                                <button class="dispatch-act-btn dispatch-act-resend" onclick="dispatchResend(${d.id})" title="Reenviar mensagem">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                </button>
+                                ${!isConverted ? `<button class="dispatch-act-btn dispatch-act-convert" onclick="dispatchMarkConverted('${escapedEmail}', '${d.segment}', ${idx})" title="Marcar convertido">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                </button>` : '<span class="dispatch-converted-badge">Convertido</span>'}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="dispatch-expand-row" id="dispatch-expand-${idx}" style="display: none;">
+                        <td colspan="7">
+                            <div class="dispatch-expand-content">
+                                <div class="dispatch-expand-left">
+                                    <div class="dispatch-expand-label">Mensagem completa:</div>
+                                    <div class="dispatch-expand-message">${d.message || 'Sem mensagem'}</div>
+                                </div>
+                                <div class="dispatch-expand-right">
+                                    <div class="dispatch-expand-label">Progresso do Funil:</div>
+                                    <div class="dispatch-funnel-dots">${funnelDots}</div>
+                                    <div class="dispatch-expand-meta">
+                                        <span>Passo ${curStep}/${totalSteps}</span>
+                                        <span>${totalContacts} contato${totalContacts > 1 ? 's' : ''}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>`;
                 }).join('');
                 
-                // Pagination
                 renderDispatchPagination(data.page, data.total_pages, data.total);
                 
             } catch (error) {
                 console.error('Error loading dispatch log:', error);
-                tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>Erro ao carregar</h3><p>Tente novamente</p></div></td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><h3>Erro ao carregar</h3><p>Tente novamente</p></div></td></tr>';
+            }
+        }
+        
+        function toggleDispatchExpand(idx) {
+            const expandRow = document.getElementById(`dispatch-expand-${idx}`);
+            const mainRow = document.getElementById(`dispatch-row-${idx}`);
+            if (!expandRow) return;
+            const isOpen = expandRow.style.display !== 'none';
+            // Close all others
+            document.querySelectorAll('.dispatch-expand-row').forEach(r => r.style.display = 'none');
+            document.querySelectorAll('.dispatch-row').forEach(r => r.classList.remove('dispatch-row-active'));
+            if (!isOpen) {
+                expandRow.style.display = 'table-row';
+                mainRow.classList.add('dispatch-row-active');
+            }
+        }
+        
+        // Dispatch action: Send next funnel step
+        async function dispatchNextStep(email, segment, name, phone, language) {
+            if (!confirm(`Enviar próximo passo do funil para ${name || email}?`)) return;
+            try {
+                const response = await fetch(`${API_URL}/api/admin/recovery/funnel/advance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ email, segment, name, phone, product: 'X AI Monitor', language })
+                });
+                const data = await response.json();
+                if (data.success && data.sent_via_zapi) {
+                    showToast('Enviado!', `Passo ${data.step}/${data.total_steps} enviado via Z-API`, 'success');
+                    loadDispatchLog(dispatchLogPage);
+                } else if (data.completed) {
+                    showToast('Funil Completo', 'Todos os passos já foram enviados', 'info');
+                } else {
+                    showToast('Aviso', data.send_error || data.error || 'Falha no envio', 'warning');
+                    loadDispatchLog(dispatchLogPage);
+                }
+            } catch (err) {
+                showToast('Erro', 'Falha na conexão', 'error');
+            }
+        }
+        
+        // Dispatch action: Resend same message
+        async function dispatchResend(dispatchId) {
+            if (!confirm('Reenviar esta mesma mensagem?')) return;
+            try {
+                const response = await fetch(`${API_URL}/api/admin/recovery/dispatch-resend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ dispatch_id: dispatchId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Reenviado!', 'Mensagem reenviada com sucesso via Z-API', 'success');
+                    loadDispatchLog(dispatchLogPage);
+                } else {
+                    showToast('Erro', data.error || 'Falha ao reenviar', 'error');
+                }
+            } catch (err) {
+                showToast('Erro', 'Falha na conexão', 'error');
+            }
+        }
+        
+        // Dispatch action: Mark as converted
+        async function dispatchMarkConverted(email, segment, idx) {
+            if (!confirm(`Marcar ${email} como convertido?`)) return;
+            try {
+                const response = await fetch(`${API_URL}/api/admin/recovery/funnel/mark-recovered`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ email, segment })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Convertido!', 'Lead marcado como convertido', 'success');
+                    loadDispatchLog(dispatchLogPage);
+                } else {
+                    showToast('Erro', data.error || 'Falha ao marcar', 'error');
+                }
+            } catch (err) {
+                showToast('Erro', 'Falha na conexão', 'error');
             }
         }
         
         function renderDispatchPagination(page, totalPages, total) {
             const container = document.getElementById('dispatchPagination');
             if (totalPages <= 1) { container.innerHTML = ''; return; }
-            
             let btns = `<button class="dispatch-page-btn" onclick="loadDispatchLog(${page - 1})" ${page <= 1 ? 'disabled' : ''}>‹</button>`;
-            
             const start = Math.max(1, page - 2);
             const end = Math.min(totalPages, page + 2);
-            
             if (start > 1) btns += `<button class="dispatch-page-btn" onclick="loadDispatchLog(1)">1</button>`;
             if (start > 2) btns += '<span class="dispatch-page-dots">...</span>';
-            
             for (let i = start; i <= end; i++) {
                 btns += `<button class="dispatch-page-btn ${i === page ? 'active' : ''}" onclick="loadDispatchLog(${i})">${i}</button>`;
             }
-            
             if (end < totalPages - 1) btns += '<span class="dispatch-page-dots">...</span>';
             if (end < totalPages) btns += `<button class="dispatch-page-btn" onclick="loadDispatchLog(${totalPages})">${totalPages}</button>`;
-            
             btns += `<button class="dispatch-page-btn" onclick="loadDispatchLog(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>›</button>`;
             btns += `<span class="dispatch-page-info">${total} disparos</span>`;
-            
             container.innerHTML = btns;
         }
         // ==================== END DISPATCH LOG ====================

@@ -9510,16 +9510,17 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
             ${feDateFilter}
         `, dateParams);
         
-        const frontPrice = 47;
-        const upsellPrice = 67;
+        const USD_TO_BRL = 5.50;
+        const frontPrice = 47 * USD_TO_BRL;
+        const upsellPrice = 67 * USD_TO_BRL;
         
         const lostCount = parseInt(lostVisitors.rows[0]?.count || 0);
         const checkoutCount = parseInt(checkoutAbandoned.rows[0]?.count || 0);
         const paymentCount = parseInt(paymentFailed.rows[0]?.count || 0);
         const refundCount = parseInt(refundRequests.rows[0]?.count || 0);
         const upsellCount = parseInt(upsellDeclined.rows[0]?.count || 0);
-        const paymentValue = parseFloat(paymentFailed.rows[0]?.total_value || 0);
-        const refundValue = parseFloat(refundRequests.rows[0]?.total_value || 0);
+        const paymentValue = parseFloat(paymentFailed.rows[0]?.total_value || 0) * USD_TO_BRL;
+        const refundValue = parseFloat(refundRequests.rows[0]?.total_value || 0) * USD_TO_BRL;
         
         res.json({
             segments: {
@@ -9579,7 +9580,7 @@ app.get('/api/admin/recovery/segments', authenticateToken, async (req, res) => {
 // Get leads for a specific recovery segment
 app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next) => {
     // Skip known named routes so they can be handled by their specific handlers
-    const reservedRoutes = ['segments', 'funnels', 'templates', 'stats', 'funnel', 'contact', 'dispatch-log'];
+    const reservedRoutes = ['segments', 'funnels', 'templates', 'stats', 'funnel', 'contact', 'dispatch-log', 'dispatch-resend'];
     if (reservedRoutes.includes(req.params.segment)) {
         return next();
     }
@@ -9632,7 +9633,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     l.funnel_language as language,
                     fe.created_at as last_event_at,
                     fe.event,
-                    (CASE WHEN l.funnel_language = 'es' THEN 27.00 ELSE 37.00 END) as potential_value,
+                    (CASE WHEN l.funnel_language = 'es' THEN 27.00 * 5.50 ELSE 37.00 * 5.50 END) as potential_value,
                     'X AI Monitor' as product,
                     (SELECT COUNT(*) FROM funnel_events fe3 WHERE fe3.visitor_id = fe.visitor_id) as event_count,
                     false as has_purchase,
@@ -9702,7 +9703,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     l.funnel_language as language,
                     fe.created_at as last_event_at,
                     'checkout_clicked' as event,
-                    (CASE WHEN l.funnel_language = 'es' THEN 27.00 ELSE 37.00 END) as potential_value,
+                    (CASE WHEN l.funnel_language = 'es' THEN 27.00 * 5.50 ELSE 37.00 * 5.50 END) as potential_value,
                     'X AI Monitor' as product,
                     1 as event_count,
                     false as has_purchase,
@@ -9763,7 +9764,7 @@ app.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, next
                     t.funnel_language as language,
                     t.created_at as last_event_at,
                     t.status as event,
-                    CAST(t.value AS DECIMAL) as potential_value,
+                    CAST(t.value AS DECIMAL) * 5.50 as potential_value,
                     t.product,
                     (SELECT COUNT(*) FROM transactions t2 WHERE LOWER(t2.email) = LOWER(t.email) AND t2.status IN ('cancelled', 'refused', 'pending', 'waiting_payment')) as event_count,
                     false as has_purchase,
@@ -10416,6 +10417,77 @@ app.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async (re
     }
 });
 
+// Resend a dispatch message via Z-API
+app.post('/api/admin/recovery/dispatch-resend', authenticateToken, async (req, res) => {
+    try {
+        const { dispatch_id } = req.body;
+        if (!dispatch_id) return res.status(400).json({ error: 'dispatch_id é obrigatório' });
+        
+        // Get original dispatch
+        const dispatchResult = await pool.query(
+            `SELECT rc.*, l.whatsapp as lead_phone, l.name as lead_name
+             FROM recovery_contacts rc
+             LEFT JOIN leads l ON LOWER(rc.lead_email) = LOWER(l.email)
+             WHERE rc.id = $1`,
+            [dispatch_id]
+        );
+        
+        if (dispatchResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Disparo não encontrado' });
+        }
+        
+        const dispatch = dispatchResult.rows[0];
+        const phone = (dispatch.lead_phone || '').replace(/\D/g, '');
+        
+        if (!phone || phone.length < 10) {
+            return res.status(400).json({ error: 'Número de telefone inválido' });
+        }
+        
+        if (!dispatch.message) {
+            return res.status(400).json({ error: 'Mensagem original não encontrada' });
+        }
+        
+        // Send via Z-API
+        const zapiHeaders = { 'Content-Type': 'application/json' };
+        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+        
+        const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
+            method: 'POST',
+            headers: zapiHeaders,
+            body: JSON.stringify({ phone, message: dispatch.message, delayMessage: 3 })
+        });
+        
+        const zapiData = await zapiResponse.json();
+        const sent = zapiResponse.ok && !!zapiData.messageId;
+        
+        if (sent) {
+            // Log new contact entry
+            await pool.query(
+                `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status)
+                 VALUES ($1, $2, $3, 'whatsapp', $4, 'sent')`,
+                [dispatch.lead_email, dispatch.segment, (dispatch.template_used || '') + '_resend', dispatch.message]
+            );
+            
+            // Log in whatsapp_messages
+            try {
+                await pool.query(`
+                    INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
+                    VALUES ($1, $2, $3, $4, 'sent', 'recovery_resend', NOW())
+                `, [phone, dispatch.message, zapiData.messageId, zapiData.zaapId]);
+            } catch (dbErr) { /* ignore */ }
+            
+            console.log(`🔄 Resend to ${phone} - ID: ${zapiData.messageId}`);
+            res.json({ success: true, messageId: zapiData.messageId });
+        } else {
+            console.error(`❌ Resend failed for ${phone}:`, zapiData);
+            res.status(500).json({ error: zapiData.error || zapiData.message || 'Falha ao reenviar via Z-API' });
+        }
+    } catch (error) {
+        console.error('Error resending dispatch:', error);
+        res.status(500).json({ error: 'Falha ao reenviar: ' + error.message });
+    }
+});
+
 // Mark lead as recovered
 app.post('/api/admin/recovery/funnel/mark-recovered', authenticateToken, async (req, res) => {
     try {
@@ -10498,16 +10570,25 @@ app.get('/api/admin/recovery/dispatch-log', authenticateToken, async (req, res) 
             FROM recovery_contacts
         `);
         
-        // Get dispatches with lead info (simplified - no LATERAL join)
+        // Get dispatches with lead info + funnel progress
         const dispatchParams = [...params, parseInt(limit), offset];
         const dispatches = await pool.query(`
             SELECT 
                 rc.id, rc.lead_email, rc.segment, rc.template_used, rc.channel, 
                 rc.message, rc.status, rc.created_at,
                 l.name as lead_name, l.whatsapp as lead_phone, l.funnel_language as lead_language,
-                l.whatsapp_verified, l.whatsapp_profile_pic
+                l.whatsapp_verified, l.whatsapp_profile_pic,
+                COALESCE(p.current_step, 0) as funnel_current_step,
+                COALESCE(p.status, 'active') as funnel_status,
+                (SELECT COUNT(*) FROM recovery_funnel_steps s 
+                 JOIN recovery_funnels f2 ON s.funnel_id = f2.id 
+                 WHERE f2.segment = rc.segment AND f2.is_active = true) as funnel_total_steps,
+                (SELECT COUNT(*) FROM recovery_contacts rc2 
+                 WHERE LOWER(rc2.lead_email) = LOWER(rc.lead_email)) as total_contacts_for_lead
             FROM recovery_contacts rc
             LEFT JOIN leads l ON LOWER(rc.lead_email) = LOWER(l.email)
+            LEFT JOIN recovery_funnels f ON f.segment = rc.segment AND f.is_active = true
+            LEFT JOIN recovery_lead_progress p ON LOWER(p.lead_email) = LOWER(rc.lead_email) AND p.funnel_id = f.id
             ${whereClause}
             ORDER BY rc.created_at DESC
             LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
