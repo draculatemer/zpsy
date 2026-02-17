@@ -1125,7 +1125,7 @@
                             <button class="btn-secondary" onclick="closeRecoveryFunnelModal()">Cancelar</button>
                             <button class="recovery-send-btn" id="recoveryFunnelSendBtn" onclick="sendRecoveryFunnelStep()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.049 20.942c-.106.527.42.956.94.808L23.17 12.86a.75.75 0 0 0 0-1.42L.99 2.25c-.52-.148-1.046.28-.94.808L2.1 12 .05 20.942zM4.513 13l-1.2 5.998L19.1 12 3.313 4.998 4.513 11H13v2H4.513z"/></svg>
-                                Enviar via WhatsApp
+                                Enviar Automático
                             </button>
                         </div>
                     </div>
@@ -6039,13 +6039,13 @@ Estou aqui para esclarecer tudo! 😊`
             currentFunnelModalLead = null;
         }
         
-        // Send funnel step via WhatsApp (1-click advance)
+        // Send funnel step via Z-API (automatic send)
         async function sendRecoveryFunnelStep() {
             if (!currentFunnelModalLead) return;
             
             const btn = document.getElementById('recoveryFunnelSendBtn');
             btn.disabled = true;
-            btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Enviando...';
+            btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Enviando automaticamente...';
             
             try {
                 const response = await fetch(`${API_URL}/api/admin/recovery/funnel/advance`, {
@@ -6063,9 +6063,12 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 const data = await response.json();
                 
-                if (data.success && data.whatsapp_url) {
-                    window.open(data.whatsapp_url, '_blank');
-                    showToast('Passo Avançado!', `Passo ${data.step}/${data.total_steps} enviado via WhatsApp`, 'success');
+                if (data.success && data.sent_via_zapi) {
+                    showToast('Mensagem Enviada!', `Passo ${data.step}/${data.total_steps} enviado automaticamente via Z-API`, 'success');
+                    closeRecoveryFunnelModal();
+                    setTimeout(() => { loadRecoverySegmentLeads(); loadRecoveryStats(); }, 500);
+                } else if (data.success && !data.sent_via_zapi) {
+                    showToast('Aviso', `Passo ${data.step} avançado, mas falha no envio: ${data.send_error || 'erro desconhecido'}`, 'warning');
                     closeRecoveryFunnelModal();
                     setTimeout(() => { loadRecoverySegmentLeads(); loadRecoveryStats(); }, 500);
                 } else if (data.completed) {
@@ -6078,11 +6081,11 @@ Estou aqui para esclarecer tudo! 😊`
                 showToast('Erro', 'Falha na conexão', 'error');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.049 20.942c-.106.527.42.956.94.808L23.17 12.86a.75.75 0 0 0 0-1.42L.99 2.25c-.52-.148-1.046.28-.94.808L2.1 12 .05 20.942zM4.513 13l-1.2 5.998L19.1 12 3.313 4.998 4.513 11H13v2H4.513z"/></svg> Enviar via WhatsApp';
+                btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.049 20.942c-.106.527.42.956.94.808L23.17 12.86a.75.75 0 0 0 0-1.42L.99 2.25c-.52-.148-1.046.28-.94.808L2.1 12 .05 20.942zM4.513 13l-1.2 5.998L19.1 12 3.313 4.998 4.513 11H13v2H4.513z"/></svg> Enviar Automático';
             }
         }
         
-        // Bulk advance all visible leads
+        // Bulk advance all visible leads (automatic send via Z-API)
         async function bulkAdvanceRecovery() {
             const leadsWithPhone = recoverySegmentLeads.filter(l => l.phone);
             if (leadsWithPhone.length === 0) {
@@ -6090,7 +6093,9 @@ Estou aqui para esclarecer tudo! 😊`
                 return;
             }
             
-            if (!confirm(`Avançar ${leadsWithPhone.length} leads para o próximo passo do funil?`)) return;
+            if (!confirm(`Disparar mensagem automática para ${leadsWithPhone.length} leads via Z-API?\n\nAs mensagens serão enviadas automaticamente pelo WhatsApp.`)) return;
+            
+            showToast('Enviando...', `Disparando mensagens para ${leadsWithPhone.length} leads via Z-API...`, 'info');
             
             try {
                 const response = await fetch(`${API_URL}/api/admin/recovery/funnel/bulk-advance`, {
@@ -6110,15 +6115,13 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 const data = await response.json();
                 if (data.success) {
-                    const advanced = data.results.filter(r => r.status === 'advanced');
-                    showToast('Disparo em Massa', `${advanced.length} leads avançados para o próximo passo`, 'success');
-                    
-                    // Open WhatsApp links for all advanced leads
-                    advanced.forEach((r, i) => {
-                        if (r.whatsapp_url) {
-                            setTimeout(() => window.open(r.whatsapp_url, '_blank'), i * 500);
-                        }
-                    });
+                    const sentCount = data.sent || 0;
+                    const failedCount = data.failed || 0;
+                    if (sentCount > 0) {
+                        showToast('Disparo Concluído!', `${sentCount} mensagens enviadas via Z-API${failedCount > 0 ? ` (${failedCount} falharam)` : ''}`, 'success');
+                    } else {
+                        showToast('Aviso', `Nenhuma mensagem enviada. ${failedCount} falhas.`, 'warning');
+                    }
                     
                     setTimeout(() => { loadRecoverySegmentLeads(); loadRecoveryStats(); }, 1000);
                 }
@@ -6130,7 +6133,7 @@ Estou aqui para esclarecer tudo! 😊`
         
         // View contact history for a lead
         async function openRecoveryHistory(email) {
-            document.getElementById('recoveryHistoryContent').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            document.getElementById('recoveryHistoryContent').innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
             document.getElementById('recoveryHistoryModal').classList.add('active');
             
             try {

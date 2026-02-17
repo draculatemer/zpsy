@@ -10190,22 +10190,67 @@ app.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, re
             );
         }
         
-        // Record the contact
+        // Send message automatically via Z-API
+        const cleanPhone = (phone || '').replace(/\D/g, '');
+        let sendResult = { sent: false, error: null };
+        
+        if (cleanPhone && cleanPhone.length >= 10) {
+            try {
+                const zapiHeaders = { 'Content-Type': 'application/json' };
+                if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+                
+                const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
+                    method: 'POST',
+                    headers: zapiHeaders,
+                    body: JSON.stringify({
+                        phone: cleanPhone,
+                        message: message,
+                        delayMessage: 3
+                    })
+                });
+                
+                const zapiData = await zapiResponse.json();
+                
+                if (zapiResponse.ok && zapiData.messageId) {
+                    sendResult = { sent: true, messageId: zapiData.messageId, zaapId: zapiData.zaapId };
+                    console.log(`✅ Recovery message sent to ${cleanPhone} (Step ${nextStep}) - ID: ${zapiData.messageId}`);
+                    
+                    // Log in whatsapp_messages table
+                    try {
+                        await pool.query(`
+                            INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
+                            VALUES ($1, $2, $3, $4, 'sent', 'recovery_funnel', NOW())
+                        `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                    } catch (dbErr) {
+                        console.log('WhatsApp message log skipped:', dbErr.message);
+                    }
+                } else {
+                    sendResult = { sent: false, error: zapiData.error || zapiData.message || 'Erro Z-API' };
+                    console.error(`❌ Z-API send error for ${cleanPhone}:`, zapiData);
+                }
+            } catch (zapiErr) {
+                sendResult = { sent: false, error: zapiErr.message };
+                console.error(`❌ Z-API connection error for ${cleanPhone}:`, zapiErr.message);
+            }
+        } else {
+            sendResult = { sent: false, error: 'Número de telefone inválido ou ausente' };
+        }
+        
+        // Record the contact with send status
+        const contactStatus = sendResult.sent ? 'sent' : 'failed';
         await pool.query(
-            'INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, $4, $5, \'sent\')',
+            `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, $4, $5, '${contactStatus}')`,
             [email, segment, `step_${nextStep}`, step.channel || 'whatsapp', message]
         );
         
-        // Build WhatsApp URL
-        const cleanPhone = (phone || '').replace(/\D/g, '');
-        const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}` : null;
-        
         res.json({
-            success: true,
+            success: sendResult.sent,
             step: nextStep,
             total_steps: parseInt(totalSteps.rows[0].count),
             message: message,
-            whatsapp_url: whatsappUrl,
+            sent_via_zapi: sendResult.sent,
+            messageId: sendResult.messageId || null,
+            send_error: sendResult.error || null,
             completed: nextStep >= parseInt(totalSteps.rows[0].count)
         });
         
@@ -10273,28 +10318,64 @@ app.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async (re
                     );
                 }
                 
+                // Send via Z-API automatically
+                const cleanPhone = (lead.phone || '').replace(/\D/g, '');
+                let sent = false;
+                
+                if (cleanPhone && cleanPhone.length >= 10) {
+                    try {
+                        const zapiHeaders = { 'Content-Type': 'application/json' };
+                        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+                        
+                        const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
+                            method: 'POST',
+                            headers: zapiHeaders,
+                            body: JSON.stringify({ phone: cleanPhone, message: message, delayMessage: 3 })
+                        });
+                        
+                        const zapiData = await zapiResponse.json();
+                        sent = zapiResponse.ok && !!zapiData.messageId;
+                        
+                        if (sent) {
+                            console.log(`✅ Bulk recovery sent to ${cleanPhone} (Step ${nextStep})`);
+                            try {
+                                await pool.query(`
+                                    INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
+                                    VALUES ($1, $2, $3, $4, 'sent', 'recovery_bulk', NOW())
+                                `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                            } catch (dbErr) { /* ignore */ }
+                        }
+                    } catch (zapiErr) {
+                        console.error(`❌ Bulk Z-API error for ${cleanPhone}:`, zapiErr.message);
+                    }
+                    
+                    // Rate limit: 1s between sends
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                const contactStatus = sent ? 'sent' : 'failed';
                 await pool.query(
-                    'INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, \'whatsapp\', $4, \'sent\')',
+                    `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, 'whatsapp', $4, '${contactStatus}')`,
                     [lead.email, segment, `step_${nextStep}`, message]
                 );
                 
-                const cleanPhone = (lead.phone || '').replace(/\D/g, '');
                 results.push({
                     email: lead.email,
-                    status: 'advanced',
+                    status: sent ? 'advanced' : 'send_failed',
                     step: nextStep,
-                    message: message,
-                    whatsapp_url: cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}` : null
+                    sent_via_zapi: sent
                 });
             } catch (err) {
                 results.push({ email: lead.email, status: 'error', error: err.message });
             }
         }
         
-        res.json({ success: true, results });
+        const sentCount = results.filter(r => r.sent_via_zapi).length;
+        const failedCount = results.filter(r => r.status === 'send_failed').length;
+        res.json({ success: true, results, sent: sentCount, failed: failedCount });
     } catch (error) {
         console.error('Error bulk advancing:', error);
-        res.status(500).json({ error: 'Failed to bulk advance' });
+        res.status(500).json({ error: 'Falha no disparo em massa' });
     }
 });
 
