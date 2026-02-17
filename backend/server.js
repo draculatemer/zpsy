@@ -3307,6 +3307,56 @@ app.get('/api/admin/stats/weekly-performance', authenticateToken, async (req, re
     }
 });
 
+// Funnel stats for conversion funnel chart
+app.get('/api/admin/funnel-stats', authenticateToken, async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        let dateFilter = '';
+        let dateFilterTx = '';
+        const params = [];
+        
+        if (startDate && endDate) {
+            dateFilter = ` AND created_at >= $1 AND created_at < $2 + INTERVAL '1 day'`;
+            dateFilterTx = ` AND created_at >= $1 AND created_at < $2 + INTERVAL '1 day'`;
+            params.push(startDate, endDate);
+        }
+        
+        // Total leads (visitors)
+        const leadsRes = await pool.query(`SELECT COUNT(*) as count FROM leads WHERE 1=1${dateFilter}`, params);
+        const totalLeads = parseInt(leadsRes.rows[0]?.count || 0);
+        
+        // Leads that reached checkout
+        const checkoutRes = await pool.query(`
+            SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events 
+            WHERE event = 'checkout_clicked'${dateFilter}
+        `, params);
+        const checkouts = parseInt(checkoutRes.rows[0]?.count || 0);
+        
+        // Total approved sales
+        const salesRes = await pool.query(`SELECT COUNT(*) as count FROM transactions WHERE status = 'approved'${dateFilterTx}`, params);
+        const totalSales = parseInt(salesRes.rows[0]?.count || 0);
+        
+        // Visitors (page views - people who entered the funnel)
+        const visitorsRes = await pool.query(`
+            SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events 
+            WHERE event IN ('page_view', 'landing_visit')${dateFilter}
+        `, params);
+        const visitors = parseInt(visitorsRes.rows[0]?.count || 0);
+        
+        res.json({
+            visitors: Math.max(visitors, totalLeads),
+            leads: totalLeads,
+            checkouts,
+            sales: totalSales,
+            totalLeads,
+            totalSales
+        });
+    } catch (error) {
+        console.error('Error fetching funnel stats:', error);
+        res.status(500).json({ error: 'Failed to fetch funnel stats' });
+    }
+});
+
 // ==================== WHATSAPP Z-API INTEGRATION ====================
 // Z-API credentials - use env vars or fallback to defaults
 const ZAPI_INSTANCE = process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B31BFC5924A7638EE86FD';

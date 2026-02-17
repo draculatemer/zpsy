@@ -3952,6 +3952,7 @@ Estou aqui para esclarecer tudo! 😊`
             loadSalesData();
             loadCountriesData();
             loadTrendsData();
+            loadTrafficSources();
             loadClients(1);
             // loadFinancialData is only called when user opens the Financial tab (via switchTab)
             
@@ -4893,6 +4894,24 @@ Estou aqui para esclarecer tudo! 😊`
                     const lostCount = stats.byStatus.find(s => s.status === 'lost')?.count || 0;
                     statusChart.data.datasets[0].data = [newCount, contactedCount, convertedCount, lostCount];
                     statusChart.update();
+                }
+                
+                // Revenue chart - load from sales sparkline
+                if (sales.sparkline && revenueChart) {
+                    updateRevenueChart(sales.sparkline);
+                } else if (revenueChart && stats.byDay) {
+                    // Fallback: estimate daily revenue from sales data
+                    try {
+                        const revRes = await fetch(`${API_URL}/api/admin/stats/trends?days=7`, {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        if (revRes.ok) {
+                            const revData = await revRes.json();
+                            if (revData.sparklines?.sales?.length > 0) {
+                                updateRevenueChart(revData.sparklines.sales);
+                            }
+                        }
+                    } catch (e) { /* ignore */ }
                 }
                 
             } catch (error) {
@@ -13466,10 +13485,32 @@ Posso ajudar em algo mais? 😊`
             }
         }
         
-        function setChartPeriod(days) {
+        async function setChartPeriod(days) {
             document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            showToast('Carregando...', `Mostrando últimos ${days} dias`, 'success');
+            
+            try {
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - days);
+                const params = `?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+                
+                const res = await fetch(`${API_URL}/api/admin/stats${params}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (!res.ok) return;
+                const stats = await res.json();
+                
+                if (stats.byDay && leadsChart) {
+                    const labels = stats.byDay.map(d => new Date(d.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })).reverse();
+                    const data = stats.byDay.map(d => parseInt(d.count)).reverse();
+                    leadsChart.data.labels = labels;
+                    leadsChart.data.datasets[0].data = data;
+                    leadsChart.update();
+                }
+            } catch (e) {
+                console.log('Chart period error:', e);
+            }
         }
         
         // ==================== REAL-TIME DASHBOARD ====================
@@ -13804,23 +13845,55 @@ Posso ajudar em algo mais? 😊`
         // ==================== PERIOD COMPARISON ====================
         async function loadPeriodComparison() {
             try {
-                const response = await fetch(`${API_URL}/api/admin/stats/comparison`, { 
+                const periodType = document.getElementById('periodCompareType')?.value || 'day';
+                
+                const response = await fetch(`${API_URL}/api/admin/stats/period-comparison?type=${periodType}`, { 
                     headers: { 'Authorization': `Bearer ${authToken}` } 
                 });
                 
                 if (!response.ok) return;
-                
                 const data = await response.json();
                 
-                if (data.currentWeek && data.previousWeek) {
-                    // Update comparison cards
-                    updateComparisonCard('leadsComparison', data.currentWeek.leads, data.previousWeek.leads, 'leads');
-                    updateComparisonCard('salesComparison', data.currentWeek.sales, data.previousWeek.sales, 'vendas');
-                    updateComparisonCard('revenueComparison', data.currentWeek.revenue, data.previousWeek.revenue, 'faturamento', true);
+                if (data.current && data.previous) {
+                    const cur = data.current;
+                    const prev = data.previous;
+                    
+                    // Update leads
+                    const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+                    el('compareLeadsCurrent', (cur.leads || 0).toLocaleString('pt-BR'));
+                    el('compareLeadsPrevious', (prev.leads || 0).toLocaleString('pt-BR'));
+                    updatePeriodChangeBadge('compareLeadsChange', cur.leads || 0, prev.leads || 0);
+                    
+                    // Update sales
+                    el('compareSalesCurrent', (cur.sales || 0).toLocaleString('pt-BR'));
+                    el('compareSalesPrevious', (prev.sales || 0).toLocaleString('pt-BR'));
+                    updatePeriodChangeBadge('compareSalesChange', cur.sales || 0, prev.sales || 0);
+                    
+                    // Update revenue
+                    el('compareRevenueCurrent', 'R$ ' + (cur.revenue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2}));
+                    el('compareRevenuePrevious', 'R$ ' + (prev.revenue || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2}));
+                    updatePeriodChangeBadge('compareRevenueChange', cur.revenue || 0, prev.revenue || 0);
+                    
+                    // Update conversion
+                    const curRate = cur.leads > 0 ? ((cur.sales / cur.leads) * 100).toFixed(1) : 0;
+                    const prevRate = prev.leads > 0 ? ((prev.sales / prev.leads) * 100).toFixed(1) : 0;
+                    el('compareConvCurrent', curRate + '%');
+                    el('compareConvPrevious', prevRate + '%');
+                    updatePeriodChangeBadge('compareConvChange', parseFloat(curRate), parseFloat(prevRate));
                 }
             } catch (e) {
-                console.log('Period comparison not available');
+                console.log('Period comparison error:', e);
             }
+        }
+        
+        function updatePeriodChangeBadge(elementId, current, previous) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const change = previous > 0 ? ((current - previous) / previous * 100) : (current > 0 ? 100 : 0);
+            const isPositive = change >= 0;
+            el.textContent = `${isPositive ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}%`;
+            el.style.color = isPositive ? '#10b981' : '#ef4444';
+            el.style.background = isPositive ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
         }
         
         function updateComparisonCard(elementId, current, previous, label, isCurrency = false) {
@@ -14332,8 +14405,7 @@ Posso ajudar em algo mais? 😊`
                     loadTopCountriesChart();
                     loadWeeklyPerformanceChart();
                     loadConversionFunnel();
-                    // loadHeatmapData and loadTrendsData already called in loadAllData()
-                }, 1500);
+                }, 800);
             }
         });
         
