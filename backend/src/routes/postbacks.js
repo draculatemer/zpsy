@@ -929,7 +929,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
     } catch (error) {
         console.error('❌ Postback CRITICAL error:', error.message);
         console.error('❌ Stack:', error.stack);
-        console.error('❌ Raw body was:', JSON.stringify(rawBody || req.body || {}).substring(0, 500));
+        console.error('❌ Raw body was:', JSON.stringify(req.body || {}).substring(0, 500));
         
         // Log error to DB for persistent debugging
         try {
@@ -937,8 +937,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 [JSON.stringify({ 
                     error: error.message, 
                     stack: error.stack?.substring(0, 500),
-                    bodyKeys: Object.keys(rawBody || req.body || {}),
-                    rawBody: rawBody || req.body || {},
+                    bodyKeys: Object.keys(req.body || {}),
+                    rawBody: req.body || {},
                     contentType: req.headers['content-type']
                 })]);
         } catch (logErr) {
