@@ -852,7 +852,7 @@ router.get('/api/admin/recovery/funnel/progress/:email', authenticateToken, asyn
 // Advance lead to next funnel step (1-click dispatch)
 router.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req, res) => {
     try {
-        const { email, segment, name, phone, product, language } = req.body;
+        const { email, segment, name, phone, product, language, customMessage } = req.body;
         
         if (!email || !segment) {
             return res.status(400).json({ error: 'Email e segmento são obrigatórios' });
@@ -899,11 +899,16 @@ router.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req,
         const step = stepResult.rows[0];
         const totalSteps = await pool.query('SELECT COUNT(*) as count FROM recovery_funnel_steps WHERE funnel_id = $1', [funnel.id]);
         
-        // Get message in correct language
+        // Use custom message if provided, otherwise get from template
         const lang = language || 'en';
-        let message = lang === 'es' ? step.template_es : step.template_en;
-        message = message.replace(/\{name\}/g, name || 'there');
-        message = message.replace(/\{product\}/g, product || 'X AI Monitor');
+        let message;
+        if (customMessage && customMessage.trim()) {
+            message = customMessage.trim();
+        } else {
+            message = lang === 'es' ? step.template_es : step.template_en;
+            message = message.replace(/\{name\}/g, name || 'there');
+            message = message.replace(/\{product\}/g, product || 'X AI Monitor');
+        }
         
         // Update or insert progress
         const delayHours = parseInt(step.delay_hours) || 24;

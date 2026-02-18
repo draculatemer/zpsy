@@ -5999,6 +5999,7 @@ Estou aqui para esclarecer tudo! 😊`
             btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Enviando automaticamente...';
             
             try {
+                const editedMessage = document.getElementById('recoveryFunnelMessagePreview').value.trim();
                 const response = await fetch(`${API_URL}/api/admin/recovery/funnel/advance`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
@@ -6008,7 +6009,8 @@ Estou aqui para esclarecer tudo! 😊`
                         name: currentFunnelModalLead.name,
                         phone: currentFunnelModalLead.phone,
                         product: currentFunnelModalLead.product,
-                        language: currentFunnelModalLead.language
+                        language: currentFunnelModalLead.language,
+                        customMessage: editedMessage || null
                     })
                 });
                 
