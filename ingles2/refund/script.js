@@ -403,7 +403,7 @@ function generateProtocol() {
 
 // Send refund request to backend
 async function sendRefundRequest(data, protocol) {
-    const API_URL = 'https://zapspy-funnel-production.up.railway.app';
+    const API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
     
     try {
         const response = await fetch(`${API_URL}/api/refund`, {

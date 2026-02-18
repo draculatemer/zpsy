@@ -17,7 +17,7 @@
  */
 
 const ABTesting = {
-    API_URL: 'https://zapspy-funnel-production.up.railway.app',
+    API_URL: window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app',
     
     // Current test config (set during init)
     _currentConfig: null,

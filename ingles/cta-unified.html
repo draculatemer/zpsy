@@ -2409,7 +2409,7 @@
                 fbq('track', 'AddToCart', { content_name: 'ZapSpy.ai VIP Access', currency: 'USD', value: currentValue }, { eventID: cartEventId });
                 fbq('track', 'InitiateCheckout', { content_name: 'ZapSpy.ai VIP Access', currency: 'USD', value: currentValue }, { eventID: checkoutEventId });
                 // Send to CAPI directly as fallback
-                const capiUrl = 'https://zapspy-funnel-production.up.railway.app/api/capi/event';
+                const capiUrl = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/capi/event';
                 const capiData = { eventSourceUrl: window.location.href, funnelLanguage: 'en', email: localStorage.getItem('userEmail'), phone: localStorage.getItem('userWhatsApp'), fbc: document.cookie.match(/_fbc=([^;]+)/)?.[1] || '', fbp: document.cookie.match(/_fbp=([^;]+)/)?.[1] || '' };
                 fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...capiData, eventName: 'AddToCart', eventId: cartEventId, value: currentValue, currency: 'USD', content_name: 'ZapSpy.ai VIP Access'}) }).catch(() => {});
                 fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...capiData, eventName: 'InitiateCheckout', eventId: checkoutEventId, value: currentValue, currency: 'USD', content_name: 'ZapSpy.ai VIP Access'}) }).catch(() => {});
@@ -2562,7 +2562,7 @@
                 fbq('track', 'AddToCart', { content_name: '50% OFF Offer', value: 24.50, currency: 'USD' }, { eventID: discountCartId });
                 fbq('track', 'InitiateCheckout', { content_name: '50% OFF Offer', value: 24.50, currency: 'USD' }, { eventID: discountEventId });
                 // CAPI fallback
-                const capiUrl = 'https://zapspy-funnel-production.up.railway.app/api/capi/event';
+                const capiUrl = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/capi/event';
                 const capiData = { eventSourceUrl: window.location.href, funnelLanguage: 'en', email: localStorage.getItem('userEmail'), phone: localStorage.getItem('userWhatsApp'), fbc: document.cookie.match(/_fbc=([^;]+)/)?.[1] || '', fbp: document.cookie.match(/_fbp=([^;]+)/)?.[1] || '' };
                 fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...capiData, eventName: 'AddToCart', eventId: discountCartId, value: 24.50, currency: 'USD', content_name: '50% OFF Offer'}) }).catch(() => {});
                 fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...capiData, eventName: 'InitiateCheckout', eventId: discountEventId, value: 24.50, currency: 'USD', content_name: '50% OFF Offer'}) }).catch(() => {});

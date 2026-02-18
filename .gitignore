@@ -30,3 +30,12 @@ build/
 
 # Zip files
 *.zip
+
+# Backup files
+server.original.js
+
+# Sensitive/diagnostic files
+login-payload.json
+diagnostic-output.json
+*.credentials
+*.secret

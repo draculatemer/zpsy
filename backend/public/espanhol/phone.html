@@ -2425,7 +2425,7 @@
         
         // Enviar lead al backend
         function sendLeadToBackend(data) {
-            const ZAPSPY_API_URL = 'https://zapspy-funnel-production.up.railway.app';
+            const ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
             
             // Agregar IDs de Facebook para CAPI
             const fbIds = getFacebookIds();

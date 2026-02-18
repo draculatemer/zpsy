@@ -12,7 +12,7 @@
 
 const FacebookCAPI = {
     // Sempre usar o backend Railway para CAPI (funis podem estar em outro domínio)
-    API_URL: 'https://zapspy-funnel-production.up.railway.app',
+    API_URL: window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app',
     
     // Generate unique event ID for deduplication
     generateEventId: function(eventName) {
