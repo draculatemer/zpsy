@@ -8618,19 +8618,23 @@ Estou aqui para esclarecer tudo! 😊`
             `;
             document.getElementById('refundModal').style.display = 'flex';
             
-            // Fetch enriched data from API
+            // Fetch enriched data from API (with 8s timeout)
             let crossRef = null;
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
                 const response = await fetch(`${API_URL}/api/admin/refunds/${id}/details`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
                 if (response.status === 401 || response.status === 403) { logout(); return; }
                 if (response.ok) {
                     const data = await response.json();
                     crossRef = data.crossReference || null;
                 }
             } catch (err) {
-                console.error('Error fetching cross-ref data:', err);
+                console.error('Error fetching cross-ref data:', err.name === 'AbortError' ? 'Timeout after 8s' : err);
             }
             
             // Build cross-reference section

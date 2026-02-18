@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, requireAdmin } = require('../middleware');
@@ -351,13 +351,18 @@ router.get('/api/admin/refunds/:id/details', authenticateToken, async (req, res)
         
         let funnelEvents = [];
         if (email) {
-            const eventsResult = await pool.query(`
-                SELECT event_type, page, metadata, created_at
-                FROM funnel_events 
-                WHERE LOWER(metadata->>'email') = LOWER($1)
-                ORDER BY created_at ASC
-            `, [email]);
-            funnelEvents = eventsResult.rows;
+            try {
+                const eventsResult = await pool.query(`
+                    SELECT event, page, metadata, created_at
+                    FROM funnel_events 
+                    WHERE LOWER(metadata->>'email') = LOWER($1)
+                    ORDER BY created_at ASC
+                    LIMIT 50
+                `, [email]);
+                funnelEvents = eventsResult.rows;
+            } catch (evErr) {
+                console.error('Funnel events query error (non-blocking):', evErr.message);
+            }
         }
         
         res.json({
