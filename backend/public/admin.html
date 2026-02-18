@@ -8621,8 +8621,8 @@ Estou aqui para esclarecer tudo! 😊`
             // Fetch enriched data from API
             let crossRef = null;
             try {
-                const response = await fetch(`/api/admin/refunds/${id}/details`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const response = await fetch(`${API_URL}/api/admin/refunds/${id}/details`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 if (response.status === 401 || response.status === 403) { logout(); return; }
                 if (response.ok) {
