@@ -1,7 +1,23 @@
 const pool = require('./database');
 const bcrypt = require('bcryptjs');
 
-async function initDatabase() {
+async function initDatabase(retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await _initDatabaseCore();
+        } catch (error) {
+            console.error(`❌ Database init error (attempt ${attempt}/${retries}):`, error.message);
+            if (attempt < retries) {
+                const delay = attempt * 3000;
+                console.log(`⏳ Retrying in ${delay / 1000}s...`);
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
+    }
+    console.error('❌ Database init failed after all retries. Server will continue but some features may not work.');
+}
+
+async function _initDatabaseCore() {
     try {
         console.log('🔄 Checking database...');
         
@@ -652,6 +668,7 @@ async function initDatabase() {
         
     } catch (error) {
         console.error('❌ Database init error:', error.message);
+        throw error;
     }
 }
 

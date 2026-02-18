@@ -168,7 +168,7 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
         };
         
         // Check if lead already exists (by email or whatsapp)
-        const existingLead = await pool.query(
+        const existingLead = await pool.queryRetry(
             `SELECT id, email, whatsapp, visit_count FROM leads WHERE LOWER(email) = LOWER($1) OR whatsapp = $2 LIMIT 1`,
             [email, whatsapp]
         );
@@ -179,7 +179,7 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
         if (existingLead.rows.length > 0) {
             // Update existing lead with new visit info
             const currentVisitCount = existingLead.rows[0].visit_count || 1;
-            result = await pool.query(
+            result = await pool.queryRetry(
                 `UPDATE leads SET 
                     name = COALESCE($1, name),
                     target_phone = COALESCE($2, target_phone),
@@ -212,7 +212,7 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
             console.log(`Returning lead [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
-            result = await pool.query(
+            result = await pool.queryRetry(
                 `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, ab_test_id, ab_variant, created_at)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
                  RETURNING id, created_at`,
@@ -491,7 +491,7 @@ router.post('/api/track', async (req, res) => {
             funnelSource: source
         };
         
-        await pool.query(
+        await pool.queryRetry(
             `INSERT INTO funnel_events (visitor_id, event, page, target_phone, target_gender, ip_address, user_agent, fbc, fbp, ab_test_id, ab_variant, metadata, created_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
             [visitorId, event, page || null, targetPhone || null, targetGender || null, ipAddress, userAgent, fbc || null, fbp || null, ab_test_id || null, ab_variant || null, JSON.stringify(enrichedMetadata)]
