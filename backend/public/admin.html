@@ -3745,17 +3745,6 @@ Estou aqui para esclarecer tudo! 😊`
             loadWeeklyPerformanceChart();
             loadConversionFunnel();
             loadClients(1);
-            // loadFinancialData is only called when user opens the Financial tab (via switchTab)
-            
-            // Start real-time active users refresh
-            try {
-                if (typeof startActiveUsersRefresh === 'function') {
-                    startActiveUsersRefresh();
-                } else {
-                    // Fallback: call loadActiveUsers directly if available
-                    if (typeof loadActiveUsers === 'function') loadActiveUsers();
-                }
-            } catch(e) { console.log('Active users init error:', e); }
         }
         
         // Global filter change handler (language + date + source)
