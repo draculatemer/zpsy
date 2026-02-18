@@ -8015,6 +8015,21 @@ Estou aqui para esclarecer tudo! 😊`
             renderChargebackTable(chargebacks);
         }
         
+        const reasonLabelsI18n = {
+            'not_expected': { en: 'Did not meet expectations', es: 'No cumplió expectativas', pt: 'Não atendeu expectativas' },
+            'technical': { en: 'Technical problem', es: 'Problema técnico', pt: 'Problema técnico' },
+            'duplicate': { en: 'Duplicate charge', es: 'Cobro duplicado', pt: 'Cobrança duplicada' },
+            'unauthorized': { en: 'Unauthorized', es: 'No autorizado', pt: 'Não autorizado' },
+            'changed_mind': { en: 'Changed mind', es: 'Cambió de opinión', pt: 'Desistiu da compra' },
+            'no_access': { en: 'No product access', es: 'Sin acceso al producto', pt: 'Sem acesso ao produto' },
+            'other': { en: 'Other reason', es: 'Otro motivo', pt: 'Outro motivo' }
+        };
+        function getReasonLabel(key, lang) {
+            const entry = reasonLabelsI18n[key];
+            if (!entry) return key || '-';
+            return entry[lang] || entry['en'] || key;
+        }
+
         function renderRecoveryTable(refunds) {
             const table = document.getElementById('recoveryTable');
             if (!table) return;
@@ -8055,21 +8070,6 @@ Estou aqui para esclarecer tudo! 😊`
                 'approved': { text: 'Reembolsado', color: '#3b82f6', icon: '💸' },
                 'rejected': { text: 'Rejeitado', color: '#71717a', icon: '❌' }
             };
-            
-            const reasonLabelsI18n = {
-                'not_expected': { en: 'Did not meet expectations', es: 'No cumplió expectativas', pt: 'Não atendeu expectativas' },
-                'technical': { en: 'Technical problem', es: 'Problema técnico', pt: 'Problema técnico' },
-                'duplicate': { en: 'Duplicate charge', es: 'Cobro duplicado', pt: 'Cobrança duplicada' },
-                'unauthorized': { en: 'Unauthorized', es: 'No autorizado', pt: 'Não autorizado' },
-                'changed_mind': { en: 'Changed mind', es: 'Cambió de opinión', pt: 'Desistiu da compra' },
-                'no_access': { en: 'No product access', es: 'Sin acceso al producto', pt: 'Sem acesso ao produto' },
-                'other': { en: 'Other reason', es: 'Otro motivo', pt: 'Outro motivo' }
-            };
-            function getReasonLabel(key, lang) {
-                const entry = reasonLabelsI18n[key];
-                if (!entry) return key || '-';
-                return entry[lang] || entry['en'] || key;
-            }
             
             let html = '';
             filtered.forEach(r => {
