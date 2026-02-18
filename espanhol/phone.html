@@ -3136,7 +3136,7 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         const gender = urlParams.get('gender');
                         const genderParam = gender ? '&gender=' + gender : '';
-                        window.location.href = 'conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
+                        window.location.href = 'cta-unified.html?gender=' + (gender || 'male');
                     }, 1500);
                     return;
                 }
