@@ -56,6 +56,184 @@ router.get('/api/admin/debug/refund-check', authenticateToken, async (req, res) 
     }
 });
 
+// Refund status check - batch support (comma-separated IDs)
+router.get('/api/admin/debug/refund-status/:ids', authenticateToken, async (req, res) => {
+    try {
+        const ids = req.params.ids.split(',').map(id => id.trim()).filter(Boolean);
+        const results = [];
+
+        for (const txId of ids) {
+            const tx = await pool.query(
+                `SELECT transaction_id, email, name, product, value, status, monetizze_status, 
+                        funnel_language, funnel_source, created_at, updated_at,
+                        raw_data->>'venda' as raw_venda
+                 FROM transactions WHERE transaction_id = $1`, [txId]
+            );
+
+            const rr = await pool.query(
+                `SELECT id, protocol, refund_type, status as rr_status, source, value, created_at
+                 FROM refund_requests WHERE transaction_id = $1`, [txId]
+            );
+
+            const postback = await pool.query(
+                `SELECT id, body, created_at FROM postback_logs 
+                 WHERE body::text ILIKE $1 ORDER BY created_at DESC LIMIT 1`,
+                [`%${txId}%`]
+            );
+
+            let rawStatus = null;
+            if (tx.rows.length > 0 && tx.rows[0].raw_venda) {
+                try {
+                    const venda = JSON.parse(tx.rows[0].raw_venda);
+                    rawStatus = venda.status || null;
+                } catch (e) {}
+            }
+
+            results.push({
+                transactionId: txId,
+                inDatabase: tx.rows.length > 0,
+                transaction: tx.rows[0] || null,
+                rawVendaStatus: rawStatus,
+                hasRefundRequest: rr.rows.length > 0,
+                refundRequest: rr.rows[0] || null,
+                hasPostbackLog: postback.rows.length > 0,
+                statusSummary: tx.rows.length > 0
+                    ? `DB: ${tx.rows[0].status} | Monetizze: ${tx.rows[0].monetizze_status} | Raw: ${rawStatus || 'N/A'}`
+                    : 'NOT FOUND in database'
+            });
+        }
+
+        res.json({ count: results.length, results });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Fetch transaction(s) from Monetizze API by ID and import into database
+router.post('/api/admin/debug/fetch-monetizze-transaction', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { transactionIds } = req.body;
+        if (!transactionIds || !Array.isArray(transactionIds) || transactionIds.length === 0) {
+            return res.status(400).json({ error: 'transactionIds array required' });
+        }
+
+        let monetizzeToken;
+        try {
+            monetizzeToken = await getMonetizzeToken();
+        } catch (e) {
+            return res.status(500).json({ error: 'Monetizze auth failed: ' + e.message });
+        }
+
+        const results = [];
+        const spanishCodes = ['349260', '349261', '349266', '349267', '338375', '341452', '341453', '341454'];
+        const affiliateCodes = ['330254', '341443', '341444', '341448', '338375', '341452', '341453', '341454'];
+        const statusMap = {
+            '1': 'pending_payment', '2': 'approved', '3': 'cancelled',
+            '4': 'refunded', '5': 'blocked', '6': 'approved',
+            '7': 'abandoned_checkout', '8': 'chargeback', '9': 'chargeback'
+        };
+
+        for (const txId of transactionIds) {
+            try {
+                const url = `https://api.monetizze.com.br/2.1/transactions?codigo=${txId}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'TOKEN': monetizzeToken, 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    results.push({ transactionId: txId, success: false, error: `API returned ${response.status}` });
+                    continue;
+                }
+
+                const data = await response.json();
+                let items = Array.isArray(data) ? data : (data.dados || data.vendas || []);
+                if (!Array.isArray(items)) items = [items];
+
+                if (items.length === 0) {
+                    results.push({ transactionId: txId, success: false, error: 'Not found in Monetizze API' });
+                    continue;
+                }
+
+                const item = items[0];
+                const vendaData = item.venda || item;
+                const compradorData = item.comprador || {};
+                const produtoData = item.produto || {};
+                const tipoEvento = item.tipoEvento || {};
+
+                const transactionId = String(vendaData.codigo || txId);
+                const email = compradorData.email || '';
+                const phone = compradorData.telefone || '';
+                const name = compradorData.nome || '';
+                const productName = (produtoData.nome || '').trim();
+                const productCode = String(produtoData.codigo || '');
+                const value = vendaData.comissao || vendaData.valorRecebido || vendaData.valor || '0';
+                const statusCode = String(tipoEvento.codigo || vendaData.statusCodigo || '2');
+                const vendaStatus = (vendaData.status || '').toLowerCase();
+                const eventoDesc = (tipoEvento.descricao || '').toLowerCase();
+
+                let mappedStatus = statusMap[statusCode] || 'approved';
+                if (vendaStatus.includes('chargeback') || eventoDesc.includes('chargeback') || eventoDesc.includes('disputa')) {
+                    mappedStatus = 'chargeback';
+                } else if (vendaStatus.includes('devolvida') || vendaStatus.includes('reembolso') || eventoDesc.includes('reembolso')) {
+                    mappedStatus = 'refunded';
+                }
+
+                const pLower = productName.toLowerCase();
+                const funnelLanguage = spanishCodes.includes(productCode) || pLower.includes('espanhol') || pLower.includes('español') || pLower.includes('recuperaci') || pLower.includes('infidelidad') ? 'es' : 'en';
+                const funnelSource = affiliateCodes.includes(productCode) ? 'affiliate' : 'main';
+
+                const saleDateStr = vendaData.dataInicio || vendaData.dataFinalizada || null;
+                const saleDate = saleDateStr ? parseMonetizzeDate(saleDateStr) : new Date();
+
+                // Upsert transaction
+                await pool.query(`
+                    INSERT INTO transactions (transaction_id, email, phone, name, product, value, monetizze_status, status, raw_data, funnel_language, funnel_source, created_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()))
+                    ON CONFLICT (transaction_id) DO UPDATE SET
+                        monetizze_status = $7,
+                        status = CASE 
+                            WHEN $8 IN ('refunded', 'chargeback') THEN $8
+                            WHEN transactions.status IN ('refunded', 'chargeback') THEN transactions.status
+                            ELSE $8
+                        END,
+                        value = $6, raw_data = $9, updated_at = NOW()
+                `, [transactionId, email, phone, name, productName, value, statusCode, mappedStatus, JSON.stringify(item), funnelLanguage, funnelSource, saleDate]);
+
+                // Create refund_request if needed
+                let refundCreated = false;
+                if (mappedStatus === 'refunded' || mappedStatus === 'chargeback') {
+                    const existing = await pool.query('SELECT id FROM refund_requests WHERE transaction_id = $1', [transactionId]);
+                    if (existing.rows.length === 0) {
+                        const protocol = `MON-${transactionId.substring(0, 12).toUpperCase()}`;
+                        const refundType = mappedStatus === 'chargeback' ? 'chargeback' : 'refund';
+                        await pool.query(`
+                            INSERT INTO refund_requests (protocol, full_name, email, phone, product, reason, status, source, refund_type, transaction_id, value, funnel_language, created_at)
+                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                            ON CONFLICT (protocol) DO NOTHING
+                        `, [protocol, name || 'N/A', email, phone || null, productName,
+                            refundType === 'chargeback' ? 'Chargeback - Disputa' : 'Reembolso via Monetizze',
+                            'approved', 'monetizze', refundType, transactionId, parseFloat(value) || 0, funnelLanguage, saleDate]);
+                        refundCreated = true;
+                    }
+                }
+
+                results.push({
+                    transactionId, success: true, email, name, product: productName,
+                    value, statusCode, mappedStatus, vendaStatus: vendaData.status,
+                    eventoDescricao: tipoEvento.descricao, funnelLanguage, refundCreated
+                });
+            } catch (itemErr) {
+                results.push({ transactionId: txId, success: false, error: itemErr.message });
+            }
+        }
+
+        res.json({ total: results.length, imported: results.filter(r => r.success).length, results });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/api/admin/debug/sales-count', authenticateToken, async (req, res) => {
     try {
         const total = await pool.query(`SELECT COUNT(*) as count FROM transactions`);
