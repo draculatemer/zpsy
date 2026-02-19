@@ -109,6 +109,63 @@ router.get('/api/admin/debug/refund-status/:ids', authenticateToken, async (req,
     }
 });
 
+// Force-update transaction status (for chargebacks/refunds not reflected by API)
+router.post('/api/admin/debug/force-refund-status', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { updates } = req.body;
+        if (!updates || !Array.isArray(updates) || updates.length === 0) {
+            return res.status(400).json({ error: 'updates array required: [{transactionId, newStatus}]' });
+        }
+
+        const results = [];
+        for (const { transactionId, newStatus } of updates) {
+            if (!['refunded', 'chargeback'].includes(newStatus)) {
+                results.push({ transactionId, success: false, error: 'Invalid status. Use refunded or chargeback' });
+                continue;
+            }
+
+            const tx = await pool.query('SELECT * FROM transactions WHERE transaction_id = $1', [transactionId]);
+            if (tx.rows.length === 0) {
+                results.push({ transactionId, success: false, error: 'Transaction not found' });
+                continue;
+            }
+
+            const oldStatus = tx.rows[0].status;
+            const monetizzeCode = newStatus === 'chargeback' ? '8' : '4';
+
+            await pool.query(
+                `UPDATE transactions SET status = $1, monetizze_status = $2, updated_at = NOW() WHERE transaction_id = $3`,
+                [newStatus, monetizzeCode, transactionId]
+            );
+
+            // Create refund_request if missing
+            let refundCreated = false;
+            const existing = await pool.query('SELECT id FROM refund_requests WHERE transaction_id = $1', [transactionId]);
+            if (existing.rows.length === 0) {
+                const t = tx.rows[0];
+                const protocol = `MON-${transactionId.substring(0, 12).toUpperCase()}`;
+                const refundType = newStatus === 'chargeback' ? 'chargeback' : 'refund';
+                const pLower = (t.product || '').toLowerCase();
+                const lang = t.funnel_language || (pLower.includes('espanhol') || pLower.includes('recuperaci') || pLower.includes('infidelidad') ? 'es' : 'en');
+                await pool.query(`
+                    INSERT INTO refund_requests (protocol, full_name, email, phone, product, reason, status, source, refund_type, transaction_id, value, funnel_language, created_at)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT (protocol) DO NOTHING
+                `, [protocol, t.name || 'N/A', t.email, t.phone || null, t.product,
+                    refundType === 'chargeback' ? 'Chargeback - Disputa de cartão' : 'Reembolso via Monetizze',
+                    'approved', 'monetizze', refundType, transactionId, parseFloat(t.value) || 0, lang, t.created_at || new Date()]);
+                refundCreated = true;
+            }
+
+            results.push({ transactionId, success: true, oldStatus, newStatus, refundCreated });
+            console.log(`Force status: ${transactionId} ${oldStatus} → ${newStatus}`);
+        }
+
+        res.json({ total: results.length, updated: results.filter(r => r.success).length, results });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Fetch transaction(s) from Monetizze API by ID and import into database
 router.post('/api/admin/debug/fetch-monetizze-transaction', authenticateToken, requireAdmin, async (req, res) => {
     try {

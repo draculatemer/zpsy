@@ -2883,6 +2883,10 @@
                             <button class="btn-secondary" style="background: #f59e0b; color: white; border-color: #f59e0b;" onclick="debugRefundFetchMonetizze()">📥 Buscar na API Monetizze e Importar</button>
                             <button class="btn-secondary" style="background: #10b981; color: white; border-color: #10b981;" onclick="debugRefundBackfill()">🔧 Corrigir Status e Backfill</button>
                         </div>
+                        <div style="margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-secondary" style="background: #ef4444; color: white; border-color: #ef4444; font-size: 12px;" onclick="forceAllRefundStatus('chargeback')">⚡ Forçar Todos como Chargeback</button>
+                            <button class="btn-secondary" style="background: #d97706; color: white; border-color: #d97706; font-size: 12px;" onclick="forceAllRefundStatus('refunded')">⚡ Forçar Todos como Reembolso</button>
+                        </div>
                         
                         <div id="refundDebugResult" style="display: none; margin-top: 16px;">
                             <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border); max-height: 500px; overflow-y: auto;">
@@ -12978,6 +12982,13 @@ Posso ajudar em algo mais? 😊`
                         html += `  Idioma: ${t.funnel_language} | Fonte: ${t.funnel_source}\n`;
                         html += `  refund_request: ${r.hasRefundRequest ? '<span style="color:#10b981;">SIM (' + r.refundRequest.refund_type + ')</span>' : '<span style="color:#ef4444;">NÃO</span>'}\n`;
                         html += `  Postback log: ${r.hasPostbackLog ? '<span style="color:#10b981;">SIM</span>' : '<span style="color:#94a3b8;">NÃO</span>'}`;
+                        
+                        if (!['refunded', 'chargeback'].includes(t.status)) {
+                            html += `\n  <div style="margin-top: 8px; display: flex; gap: 8px;">`;
+                            html += `<button onclick="forceRefundStatus('${r.transactionId}', 'chargeback')" style="padding: 4px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;">⚡ Forçar Chargeback</button>`;
+                            html += `<button onclick="forceRefundStatus('${r.transactionId}', 'refunded')" style="padding: 4px 12px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600;">⚡ Forçar Reembolso</button>`;
+                            html += `</div>`;
+                        }
                     } else {
                         html += ` — <span style="color: #ef4444;">NÃO ENCONTRADA NO BANCO</span>\n`;
                         html += `  Esta transação precisa ser importada da API Monetizze.`;
@@ -12986,6 +12997,57 @@ Posso ajudar em algo mais? 😊`
                 }
                 
                 showRefundDebugResult(html);
+            } catch (err) {
+                showToast('Erro', err.message, 'error');
+            }
+        }
+        
+        async function forceRefundStatus(transactionId, newStatus) {
+            const label = newStatus === 'chargeback' ? 'Chargeback' : 'Reembolso';
+            if (!confirm(`Tem certeza que deseja forçar TX #${transactionId} como ${label}?`)) return;
+            
+            showToast('Atualizando...', `Forçando ${label} para TX #${transactionId}`, 'info');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/debug/force-refund-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ updates: [{ transactionId, newStatus }] })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Erro');
+                
+                const r = data.results[0];
+                if (r.success) {
+                    showToast('Concluído', `TX #${transactionId}: ${r.oldStatus} → ${r.newStatus}${r.refundCreated ? ' + refund_request criado' : ''}`, 'success');
+                    debugRefundCheck();
+                } else {
+                    showToast('Erro', r.error, 'error');
+                }
+            } catch (err) {
+                showToast('Erro', err.message, 'error');
+            }
+        }
+        
+        async function forceAllRefundStatus(newStatus) {
+            const ids = getRefundDebugIds();
+            if (ids.length === 0) { showToast('Atenção', 'Cole os IDs das transações', 'warning'); return; }
+            
+            const label = newStatus === 'chargeback' ? 'Chargeback' : 'Reembolso';
+            if (!confirm(`Forçar TODAS as ${ids.length} transações como ${label}?`)) return;
+            
+            showToast('Atualizando...', `Forçando ${label} para ${ids.length} transações`, 'info');
+            try {
+                const updates = ids.map(id => ({ transactionId: id, newStatus }));
+                const response = await fetch(`${API_URL}/api/admin/debug/force-refund-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ updates })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Erro');
+                
+                showToast('Concluído', `${data.updated}/${data.total} transações atualizadas para ${label}`, 'success');
+                debugRefundCheck();
             } catch (err) {
                 showToast('Erro', err.message, 'error');
             }
