@@ -3131,11 +3131,12 @@
 
             function addTerminalLine() {
                 if (commandIndex >= fastCommands.length) {
-                    // Redirigir directamente al CTA (saltar conversas)
+                    // Redirigir a conversaciones después de animación final
                     setTimeout(() => {
                         const urlParams = new URLSearchParams(window.location.search);
-                        const gender = urlParams.get('gender') || 'male';
-                        window.location.href = 'cta-unified.html?gender=' + gender;
+                        const gender = urlParams.get('gender');
+                        const genderParam = gender ? '&gender=' + gender : '';
+                        window.location.href = 'conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
                     }, 1500);
                     return;
                 }

@@ -501,7 +501,7 @@
         .conversation-time {
             font-size: 14px;
             color: var(--text-muted);
-            display: none;
+            white-space: nowrap;
         }
 
         .conversation-time.late {
@@ -1456,6 +1456,326 @@
             padding: 4px 8px;
             border-radius: 12px;
         }
+
+        /* Fade-in animation for conversations */
+        .conversation-item.fade-in {
+            opacity: 0;
+            transform: translateY(8px);
+            animation: convFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes convFadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* People viewing counter */
+        .people-viewing {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--green-primary);
+            margin-top: 2px;
+        }
+
+        .people-viewing .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* Inline widget: Suspicion Detector */
+        .widget-suspicion {
+            background: linear-gradient(135deg, rgba(255,59,48,0.08), rgba(255,149,0,0.06));
+            border: 1px solid rgba(255,59,48,0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 8px 16px;
+        }
+
+        .widget-suspicion .ws-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .widget-suspicion .ws-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .widget-suspicion .ws-score {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--red-alert);
+        }
+
+        .widget-suspicion .ws-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .widget-suspicion .ws-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange-alert), var(--red-alert));
+            border-radius: 3px;
+            transition: width 1.5s ease;
+        }
+
+        .widget-suspicion .ws-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .widget-suspicion .ws-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .widget-suspicion .ws-row-label { color: var(--text-secondary); }
+        .widget-suspicion .ws-row-value { color: var(--text-primary); font-weight: 600; }
+        .widget-suspicion .ws-row-value.danger { color: var(--red-alert); }
+
+        /* Inline widget: Deleted Message Reveal */
+        .widget-deleted-reveal {
+            background: linear-gradient(135deg, rgba(255,59,48,0.1), rgba(255,149,0,0.06));
+            border: 1px solid rgba(255,59,48,0.25);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 8px 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .widget-deleted-reveal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .widget-deleted-reveal .wdr-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: blink 1.5s infinite;
+        }
+
+        .widget-deleted-reveal .wdr-content {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-style: italic;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-content .blocked {
+            background: var(--text-primary);
+            color: var(--text-primary);
+            border-radius: 2px;
+            padding: 0 3px;
+            user-select: none;
+        }
+
+        .widget-deleted-reveal .wdr-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 11px;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-time { color: var(--text-muted); }
+        .widget-deleted-reveal .wdr-unlock { color: var(--green-primary); font-weight: 600; }
+
+        /* Inline widget: Frequent Contact Alert */
+        .widget-frequent {
+            background: linear-gradient(135deg, rgba(255,149,0,0.12), rgba(255,59,48,0.06));
+            border: 1px solid rgba(255,149,0,0.3);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+
+        .widget-frequent .wf-avatar {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+
+        .widget-frequent .wf-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            filter: blur(8px);
+        }
+
+        .widget-frequent .wf-avatar::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+        }
+
+        .widget-frequent .wf-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .widget-frequent .wf-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--orange-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .widget-frequent .wf-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 2px 0;
+        }
+
+        .widget-frequent .wf-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .widget-frequent .wf-stats strong { color: var(--red-alert); }
+
+        .widget-frequent .wf-badge {
+            background: var(--red-alert);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 8px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .widget-frequent .wf-badge span {
+            display: block;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        /* Inline widget: Audio Intercepted */
+        .widget-audio {
+            background: rgba(37,211,102,0.08);
+            border: 1px solid rgba(37,211,102,0.2);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 8px 16px;
+            cursor: pointer;
+        }
+
+        .widget-audio .wa-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+        }
+
+        .widget-audio .wa-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-audio .wa-play-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .widget-audio .wa-play-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--green-primary);
+            animation: audio-pulse 1.5s infinite;
+        }
+
+        .widget-audio .wa-waveform {
+            flex: 1;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .widget-audio .wa-bar {
+            width: 3px;
+            background: var(--green-primary);
+            border-radius: 2px;
+            opacity: 0.6;
+        }
+
+        .widget-audio .wa-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .widget-audio .wa-duration { color: var(--text-muted); }
+        .widget-audio .wa-lock { color: var(--red-alert); display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 <body>
@@ -1619,6 +1939,10 @@
             </svg>
             UNLOCK ALL MESSAGES
         </button>
+        <div class="people-viewing">
+            <span class="dot"></span>
+            <span id="peopleCount">1,247</span> people viewing right now
+        </div>
         <div class="vip-banner-warning">
             <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
@@ -1684,7 +2008,18 @@
         </div>
     </div>
 
-    <!-- Push Notification - Removido para reduzir excesso de informações -->
+    <!-- Push Notification -->
+    <div class="push-notification" id="pushNotification">
+        <img src="imagens/default-avatar.png" alt="" class="avatar" id="pushAvatar">
+        <div class="push-notification-content">
+            <div class="push-notification-header">
+                <span class="push-notification-name" id="pushName">Unknown</span>
+                <span class="push-notification-time" id="pushTime">now</span>
+            </div>
+            <div class="push-notification-text" id="pushText">New message...</div>
+            <span class="push-notification-tag" id="pushTag">DELETED</span>
+        </div>
+    </div>
 
     <script>
         // Get the gender being spied on from URL
@@ -1834,7 +2169,56 @@
             { name: 'Repairs Co.', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Thanks for fix***!', time: '3 weeks ago', blur: 'full', tags: [] },
             { name: '+1 (555) ***-**22', avatar: 'imagens/default-avatar.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
             { name: 'Travel Agency', avatar: 'imagens/default-avatar.png', message: 'Trip itinerary att***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Real Estate', avatar: 'imagens/default-avatar.png', message: 'New listings avail***!', time: '1 month ago', blur: 'full', muted: true, tags: [] }
+            { name: 'Real Estate', avatar: 'imagens/default-avatar.png', message: 'New listings avail***!', time: '1 month ago', blur: 'full', muted: true, tags: [] },
+
+            // ===== MORE SUSPICIOUS CONVERSATIONS =====
+            { name: 'N', avatar: 'imagens/mulher1.jpg', message: 'Last night was incre***...', time: '03:22', unread: 13, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: '+1 (555) ***-**35', avatar: 'imagens/default-avatar.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Hotel Booking', avatar: 'imagens/default-avatar.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+            { name: 'V (Do not call)', avatar: 'imagens/mulher2.jpg', message: 'You left your jack** at my pla***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Jord** (Yoga)', avatar: 'imagens/mulher3.jpg', message: 'Private class ton***?', time: '21:45', unread: 3, blur: 'full', tags: ['suspicious'] },
+            
+            // More normal contacts
+            { name: 'Insurance', avatar: 'imagens/default-avatar.png', message: 'Policy renewal rem***', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Dentist', avatar: 'imagens/default-avatar.png', message: 'Checkup schedu*** for...', time: '2 weeks ago', blur: 'full', tags: [] },
+            
+            // More suspicious - social media style
+            { name: 'Snap - Al***', avatar: 'imagens/mulher4.jpg', message: '📷 Snap received', time: '00:45', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'IG - @sec***', avatar: 'imagens/mulher5.jpg', message: 'Replied to your sto***', time: '23:30', unread: 5, blur: 'full', tags: ['suspicious'] },
+            { name: '+44 7*** ***-**88', avatar: 'imagens/default-avatar.png', message: 'Are you coming to Lon*** this wee***?', time: '22:00', unread: 2, blur: 'full', tags: ['suspicious'] },
+            
+            // Suspicious groups
+            { name: '🔒 Secret Group', avatar: null, message: '~ Unknown: Meet at the us***...', time: '01:00', unread: 34, blur: 'full', lateNight: true, isGroup: true, tags: ['deleted', 'suspicious'], deleted: true },
+            
+            // More contacts with relationship tension
+            { name: 'Ex - Do Not Ans***', avatar: 'imagens/mulher6.jpg', message: 'I know you read my mess***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Ry** (Tinder)', avatar: 'imagens/homem1.jpg', message: 'Great meeting you last ni***!', time: '02:50', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: '+1 (555) ***-**04', avatar: 'imagens/default-avatar.png', message: '🎤 Audio (4:17)', time: '03:05', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            
+            // Normal contacts
+            { name: 'Mom', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
+            { name: 'Dad', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Thanks d**!', time: '17:30', blur: 'full', tags: [] },
+            { name: 'Nick**', avatar: 'imagens/homem2.jpg', message: 'Gym at 6 tom***?', time: '20:00', blur: 'full', tags: [] },
+            
+            // More suspicious - late night patterns
+            { name: 'C', avatar: 'imagens/mulher7.jpg', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Massag** Therapist', avatar: 'imagens/mulher8.jpg', message: 'Special session ton***?', time: '21:00', unread: 2, blur: 'full', tags: ['suspicious'] },
+            { name: '+1 (555) ***-**56', avatar: 'imagens/default-avatar.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
+            
+            // Groups
+            { name: 'Neighbors', avatar: null, message: '~ Admin: Parking rul***...', time: 'Yesterday', blur: 'full', isGroup: true, tags: [] },
+            { name: 'Family Group', avatar: null, message: '~ Aunt: Dinner this Sun***!', time: 'Yesterday', blur: 'full', isGroup: true, unread: 15, tags: [] },
+            
+            // More suspicious
+            { name: 'D (work)', avatar: 'imagens/mulher9.jpg', message: '📍 Shared live locat***', time: '00:20', unread: 3, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: '💋', avatar: 'imagens/cf1.png', message: "When can I see you ag***?", time: '02:55', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'A', avatar: 'imagens/cf2.png', message: '📹 Video (0:23)', time: '01:40', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Uber Trip', avatar: 'imagens/default-avatar.png', message: 'Trip to *** Hotel at 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+            
+            // Normal tail
+            { name: 'Bank', avatar: 'imagens/default-avatar.png', message: 'Statement avail***', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Pharmacy', avatar: 'imagens/default-avatar.png', message: 'Prescription rea**!', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Car Wash', avatar: 'imagens/default-avatar.png', message: 'Your car is rea**!', time: '2 months ago', blur: 'full', tags: [] }
         ];
 
         // Filter and modify conversations based on target gender
@@ -1867,13 +2251,123 @@
         
         const conversations = getFilteredConversations();
         
+        // Widget definitions for injection between conversations
+        const widgetPositions = {
+            4: 'deletedReveal1',
+            10: 'suspicionDetector',
+            18: 'frequentContact',
+            28: 'audioIntercepted',
+            40: 'deletedReveal2'
+        };
+
+        function createDeletedRevealWidget(variant) {
+            const messages = [
+                { text: '"Babe, don\'t tell <span class="blocked">██████</span> that we <span class="blocked">████████</span> yesterday at the <span class="blocked">██████</span>..."', time: 'Deleted yesterday at 11:47 PM' },
+                { text: '"I miss you so much, when can we <span class="blocked">███████</span> again? Last time was <span class="blocked">████████</span>..."', time: 'Deleted today at 2:34 AM' },
+                { text: '"Delete this after reading: I\'ll be at the <span class="blocked">██████</span> at <span class="blocked">████</span> tonight..."', time: 'Deleted today at 1:15 AM' },
+                { text: '"The photos from last night are <span class="blocked">███████</span>. Delete them before <span class="blocked">█████</span> sees..."', time: 'Deleted 2 days ago at 11:58 PM' }
+            ];
+            const msg = messages[variant % messages.length];
+            const div = document.createElement('div');
+            div.className = 'widget-deleted-reveal';
+            div.onclick = () => openConversation({name: 'Deleted', blur: 'full', tags: ['deleted']});
+            div.innerHTML = `
+                <div class="wdr-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span class="wdr-badge">🔴 DELETED MESSAGE RECOVERED</span>
+                </div>
+                <div class="wdr-content">${msg.text}</div>
+                <div class="wdr-footer">
+                    <span class="wdr-time">${msg.time}</span>
+                    <span class="wdr-unlock">🔓 Tap to unlock full message</span>
+                </div>`;
+            return div;
+        }
+
+        function createSuspicionDetectorWidget() {
+            const div = document.createElement('div');
+            div.className = 'widget-suspicion';
+            div.innerHTML = `
+                <div class="ws-header">
+                    <div class="ws-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        SUSPICION ANALYSIS
+                    </div>
+                    <span class="ws-score">87%</span>
+                </div>
+                <div class="ws-bar"><div class="ws-bar-fill" id="wsSuspicionBar"></div></div>
+                <div class="ws-details">
+                    <div class="ws-row"><span class="ws-row-label">🕐 Late-night messages (12AM-5AM)</span><span class="ws-row-value danger">23 found</span></div>
+                    <div class="ws-row"><span class="ws-row-label">🗑️ Deleted conversations</span><span class="ws-row-value danger">18 recovered</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📷 View-once media</span><span class="ws-row-value danger">9 intercepted</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📍 Shared locations</span><span class="ws-row-value danger">5 tracked</span></div>
+                    <div class="ws-row"><span class="ws-row-label">👤 Unknown contacts</span><span class="ws-row-value danger">14 detected</span></div>
+                </div>`;
+            return div;
+        }
+
+        function createFrequentContactWidget() {
+            const avatarSrc = suspiciousGender === 'male' ? 'imagens/homem3.jpg' : 'imagens/mulher3.jpg';
+            const div = document.createElement('div');
+            div.className = 'widget-frequent';
+            div.onclick = () => openConversation({name: 'Frequent Contact', blur: 'full', tags: ['evidence']});
+            div.innerHTML = `
+                <div class="wf-avatar"><img src="${avatarSrc}" alt="" onerror="this.src='imagens/default-avatar.png'"></div>
+                <div class="wf-info">
+                    <div class="wf-label">⚠️ Most Frequent Contact</div>
+                    <div class="wf-name">+1 5**-***-**47</div>
+                    <div class="wf-stats"><strong>347 messages</strong> in the last 7 days • <strong>89% at night</strong></div>
+                </div>
+                <div class="wf-badge"><span>🔴</span>HIGH<br>RISK</div>`;
+            return div;
+        }
+
+        function createAudioWidget() {
+            const div = document.createElement('div');
+            div.className = 'widget-audio';
+            div.onclick = () => openConversation({name: 'Audio', blur: 'full', tags: ['deleted']});
+            let bars = '';
+            for (let i = 0; i < 35; i++) {
+                const h = Math.floor(Math.random() * 22) + 4;
+                const delay = (i * 0.03).toFixed(2);
+                bars += `<div class="wa-bar" style="height:${h}px;animation:wave 0.${3 + Math.floor(Math.random()*4)}s ease-in-out ${delay}s infinite alternate;"></div>`;
+            }
+            div.innerHTML = `
+                <div class="wa-header">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff3b30"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    AUDIO INTERCEPTED - DELETED
+                </div>
+                <div class="wa-player">
+                    <div class="wa-play-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+                    <div class="wa-waveform">${bars}</div>
+                </div>
+                <div class="wa-meta">
+                    <span class="wa-duration">Duration: 2:47</span>
+                    <span class="wa-lock">🔒 Unlock to listen</span>
+                </div>`;
+            return div;
+        }
+
         function renderConversations() {
             const container = document.getElementById('conversationsList');
             container.innerHTML = '';
 
-            conversations.forEach((conv) => {
+            conversations.forEach((conv, idx) => {
+                // Inject widgets at specific positions
+                if (widgetPositions[idx]) {
+                    const wType = widgetPositions[idx];
+                    let widget;
+                    if (wType === 'deletedReveal1') widget = createDeletedRevealWidget(0);
+                    else if (wType === 'deletedReveal2') widget = createDeletedRevealWidget(1);
+                    else if (wType === 'suspicionDetector') widget = createSuspicionDetectorWidget();
+                    else if (wType === 'frequentContact') widget = createFrequentContactWidget();
+                    else if (wType === 'audioIntercepted') widget = createAudioWidget();
+                    if (widget) container.appendChild(widget);
+                }
+
                 const item = document.createElement('div');
-                item.className = `conversation-item ${conv.deleted ? 'deleted-conv' : ''}`;
+                item.className = `conversation-item fade-in ${conv.deleted ? 'deleted-conv' : ''}`;
+                item.style.animationDelay = Math.min(idx * 0.03, 1.5) + 's';
                 item.onclick = () => openConversation(conv);
 
                 let avatarClass = 'avatar' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
@@ -1888,7 +2382,6 @@
                     tag === 'evidence' ? '<span class="tag evidence">🔴 EVIDENCE</span>' : ''
                 ).join('') + '</div>' : '';
 
-                // Avatar - group or photo
                 let avatarHtml;
                 if (conv.isGroup && !conv.avatar) {
                     avatarHtml = `
@@ -1901,22 +2394,16 @@
                     avatarHtml = `<img src="${conv.avatar || 'imagens/default-avatar.png'}" alt="" class="${avatarClass}" onerror="this.src='imagens/default-avatar.png'">`;
                 }
 
-                // Checkmarks for sent messages
                 let checkmarks = '';
                 if (conv.message.includes('You:') || conv.message.startsWith('✓✓')) {
                     checkmarks = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/><polyline points="20 6 9 17 4 12" transform="translate(4, 0)"/></svg>`;
                 }
 
-                // Pinned and muted icons
                 let iconsHtml = '';
                 if (conv.pinned || conv.muted) {
                     iconsHtml = '<div class="icon-row">';
-                    if (conv.muted) {
-                        iconsHtml += `<span class="mute-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>`;
-                    }
-                    if (conv.pinned) {
-                        iconsHtml += `<span class="pin-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></span>`;
-                    }
+                    if (conv.muted) iconsHtml += `<span class="mute-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>`;
+                    if (conv.pinned) iconsHtml += `<span class="pin-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></span>`;
                     iconsHtml += '</div>';
                 }
 
@@ -1941,6 +2428,12 @@
                     </div>`;
                 container.appendChild(item);
             });
+
+            // Animate suspicion bar after render
+            setTimeout(() => {
+                const bar = document.getElementById('wsSuspicionBar');
+                if (bar) bar.style.width = '87%';
+            }, 800);
         }
 
         function openConversation(conv) {
@@ -2025,19 +2518,36 @@
 
         function showPushNotification() {
             const push = pushMessages[Math.floor(Math.random() * pushMessages.length)];
-            document.getElementById('pushName').textContent = push.name;
-            document.getElementById('pushText').textContent = push.text;
-            document.getElementById('pushTag').textContent = push.tag;
-            
+            const nameEl = document.getElementById('pushName');
+            const textEl = document.getElementById('pushText');
+            const tagEl = document.getElementById('pushTag');
             const notification = document.getElementById('pushNotification');
+            if (!nameEl || !textEl || !tagEl || !notification) return;
+            
+            nameEl.textContent = push.name;
+            textEl.textContent = push.text;
+            tagEl.textContent = push.tag;
+            
             notification.classList.add('show');
             
-            // Vibrate
-            VibrationSystem.notification();
+            if (typeof VibrationSystem !== 'undefined') VibrationSystem.notification();
             
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 4000);
+            }, 4500);
+        }
+
+        // People viewing counter
+        function updatePeopleCount() {
+            const el = document.getElementById('peopleCount');
+            if (!el) return;
+            let base = 1200 + Math.floor(Math.random() * 300);
+            el.textContent = base.toLocaleString();
+            setInterval(() => {
+                base += Math.floor(Math.random() * 7) - 2;
+                if (base < 1100) base = 1100;
+                el.textContent = base.toLocaleString();
+            }, 3000);
         }
 
         // ========== TYPING INDICATOR EM TEMPO REAL ==========
@@ -2178,16 +2688,6 @@
             }
         }
 
-        // ========== SUSPICION BAR ANIMATION ==========
-        function animateSuspicionBar() {
-            const bar = document.getElementById('suspicionBar');
-            if (bar) {
-                setTimeout(() => {
-                    bar.style.width = '87%';
-                }, 500);
-            }
-        }
-
         // Update stories based on target gender
         function updateStoriesForGender() {
             const storyImages = document.querySelectorAll('.stories-section .story-ring img');
@@ -2215,24 +2715,26 @@
             updateStoriesForGender();
             updateTimer();
             updateCurrentTime();
+            updatePeopleCount();
             setInterval(updateCurrentTime, 1000);
             
-            // Animate suspicion bar
-            animateSuspicionBar();
-            
-            // Rotate deleted messages every 30 seconds
-            setInterval(rotateDeletedMessage, 30000);
-            
-            // Push notifications removidas - muito artificiais
+            // Push notifications every 25-40 seconds
+            setTimeout(showPushNotification, 8000);
+            setInterval(() => {
+                setTimeout(showPushNotification, Math.random() * 15000);
+            }, 25000);
             
             // Typing indicator - show randomly
             setTimeout(showTypingIndicator, 5000);
-            setInterval(showTypingIndicator, 12000);
+            setInterval(showTypingIndicator, 10000);
             
-            // LIVE SPY MODE - activate after 20 seconds
-            setTimeout(liveSpyMode, 20000);
+            // LIVE SPY MODE - activate after 15 seconds
+            setTimeout(liveSpyMode, 15000);
             
-            // Vibrate on suspicious content (if supported)
+            // Missed call after 30 seconds
+            setTimeout(showMissedCall, 30000);
+            
+            // Vibrate on suspicious content
             if ('vibrate' in navigator) {
                 setTimeout(() => navigator.vibrate(100), 2500);
             }
@@ -2240,11 +2742,12 @@
             // Update deleted messages count dynamically
             let deletedCount = 147;
             setInterval(() => {
-                if (Math.random() > 0.7) {
+                if (Math.random() > 0.6) {
                     deletedCount += Math.floor(Math.random() * 3) + 1;
-                    document.getElementById('deletedAlert').textContent = deletedCount + ' deleted messages recovered!';
+                    const el = document.getElementById('deletedAlert');
+                    if (el) el.textContent = deletedCount + ' deleted messages recovered!';
                 }
-            }, 15000);
+            }, 12000);
         });
 
         // Close modal on overlay click
