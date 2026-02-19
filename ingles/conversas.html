@@ -1951,7 +1951,7 @@
                     <img src="imagens/blocked-female-1.png" alt="" onerror="this.src='imagens/default-avatar.png'">
                     <span class="story-badge">🔴 NEW</span>
                 </div>
-                <span class="story-name">+1 5**-***</span>
+                <span class="story-name ddi-phone">+1 5**-***</span>
             </div>
             <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
                 <div class="story-ring" style="position:relative;">
@@ -2150,12 +2150,58 @@
         const targetGender = urlParams.get('gender') || 'female'; // default: spying on woman
         
         // Determine which gender should appear as suspicious contacts
-        // If spying on FEMALE (girlfriend) -> suspicious contacts should be MALE
-        // If spying on MALE (boyfriend) -> suspicious contacts should be FEMALE
         const suspiciousGender = targetGender === 'female' ? 'male' : 'female';
         
-        // All conversations with gender info for suspicious ones
-        // suspectGender: 'male' = male photo, 'female' = female photo, 'neutral' = unknown number
+        // Detect country code from the target phone number
+        var targetPhone = urlParams.get('phone') || localStorage.getItem('userWhatsApp') || '';
+        targetPhone = targetPhone.replace(/[\s\-\(\)]/g, '');
+        
+        var detectedDDI = '+1';
+        var ddiMap = [
+            { code: '+55', len: [12,13], label: '+55' },
+            { code: '+52', len: [12,13], label: '+52' },
+            { code: '+54', len: [12,13], label: '+54' },
+            { code: '+57', len: [12], label: '+57' },
+            { code: '+56', len: [11], label: '+56' },
+            { code: '+51', len: [11], label: '+51' },
+            { code: '+44', len: [12,13], label: '+44' },
+            { code: '+34', len: [11], label: '+34' },
+            { code: '+33', len: [11], label: '+33' },
+            { code: '+49', len: [12,13], label: '+49' },
+            { code: '+39', len: [12], label: '+39' },
+            { code: '+351', len: [12], label: '+351' },
+            { code: '+91', len: [12], label: '+91' },
+            { code: '+61', len: [11], label: '+61' },
+            { code: '+81', len: [12], label: '+81' },
+            { code: '+82', len: [12], label: '+82' },
+            { code: '+971', len: [12], label: '+971' },
+            { code: '+966', len: [12], label: '+966' },
+            { code: '+234', len: [13], label: '+234' },
+            { code: '+27', len: [11], label: '+27' },
+            { code: '+1', len: [11], label: '+1' }
+        ];
+        
+        if (targetPhone.startsWith('+')) {
+            for (var i = 0; i < ddiMap.length; i++) {
+                if (targetPhone.startsWith(ddiMap[i].code)) {
+                    detectedDDI = ddiMap[i].code;
+                    break;
+                }
+            }
+        } else if (targetPhone.length >= 10) {
+            for (var i = 0; i < ddiMap.length; i++) {
+                if (targetPhone.startsWith(ddiMap[i].code.replace('+', ''))) {
+                    detectedDDI = ddiMap[i].code;
+                    break;
+                }
+            }
+        }
+        
+        function fakePhone(suffix) {
+            var digits = suffix || (Math.floor(Math.random() * 90) + 10);
+            return detectedDDI + ' ***-***-**' + digits;
+        }
+
         const allConversations = [
             // ==================== REALISTIC CONTACTS - NO OBVIOUS EMOJIS ====================
             // Pinned normal contacts (always shown)
@@ -2163,9 +2209,9 @@
             { name: 'Best Fr***', avatar: 'imagens/blocked-female-2.png', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
             
             // ===== SUSPICIOUS - Unknown numbers (neutral - always shown) =====
-            { name: '+1 (555) ***-**47', avatar: 'imagens/default-avatar.png', message: 'Delete this after rea***...', time: '01:22', unread: 12, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
-            { name: '+1 (555) ***-**83', avatar: 'imagens/default-avatar.png', message: "I'm wait*** for you...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
-            { name: '+1 (555) ***-**19', avatar: 'imagens/default-avatar.png', message: "Don't tell any*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(47), avatar: 'imagens/default-avatar.png', message: 'Delete this after rea***...', time: '01:22', unread: 12, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(83), avatar: 'imagens/default-avatar.png', message: "I'm wait*** for you...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(19), avatar: 'imagens/default-avatar.png', message: "Don't tell any*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
             
             // Normal contact
             { name: 'Jam**', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
@@ -2207,7 +2253,7 @@
             { name: 'Rya*', avatar: 'imagens/homem2.jpg', message: '✓✓ You: Will do!', time: '16:30', blur: 'full', tags: [] },
             
             // Suspicious - location sharing late night
-            { name: '+1 (555) ***-**62', avatar: 'imagens/default-avatar.png', message: '📍 Location shar*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: fakePhone(62), avatar: 'imagens/default-avatar.png', message: '📍 Location shar*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
             { name: 'Sam**', avatar: 'imagens/mulher3.jpg', message: '📷 Photo (view on**)', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
             
             // Normal
@@ -2270,7 +2316,7 @@
             
             // Suspicious unknown numbers
             { name: 'Unknown', avatar: 'imagens/default-avatar.png', message: 'Hey, is this sti** your num***?', time: '02:30', unread: 3, blur: 'full', lateNight: true, tags: ['suspicious'], deleted: true },
-            { name: '+1 (555) ***-**91', avatar: 'imagens/default-avatar.png', message: '📷 Photo', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: fakePhone(91), avatar: 'imagens/default-avatar.png', message: '📷 Photo', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
             
             // Normal
             { name: 'Brad', avatar: 'imagens/perfil-sem-foto.jpeg', message: 'Reunion next mon**!', time: 'Last week', blur: 'full', tags: [] },
@@ -2290,13 +2336,13 @@
             // Normal
             { name: 'Home Services', avatar: 'imagens/default-avatar.png', message: 'Available this Sat***?', time: '2 weeks ago', blur: 'full', tags: [] },
             { name: 'Repairs Co.', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Thanks for fix***!', time: '3 weeks ago', blur: 'full', tags: [] },
-            { name: '+1 (555) ***-**22', avatar: 'imagens/default-avatar.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
+            { name: fakePhone(22), avatar: 'imagens/default-avatar.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
             { name: 'Travel Agency', avatar: 'imagens/default-avatar.png', message: 'Trip itinerary att***', time: '1 month ago', blur: 'full', tags: [] },
             { name: 'Real Estate', avatar: 'imagens/default-avatar.png', message: 'New listings avail***!', time: '1 month ago', blur: 'full', muted: true, tags: [] },
 
             // ===== MORE SUSPICIOUS CONVERSATIONS =====
             { name: 'N', avatar: 'imagens/mulher1.jpg', message: 'Last night was incre***...', time: '03:22', unread: 13, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: '+1 (555) ***-**35', avatar: 'imagens/default-avatar.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: fakePhone(35), avatar: 'imagens/default-avatar.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
             { name: 'Hotel Booking', avatar: 'imagens/default-avatar.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
             { name: 'V (Do not call)', avatar: 'imagens/mulher2.jpg', message: 'You left your jack** at my pla***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'Jord** (Yoga)', avatar: 'imagens/mulher3.jpg', message: 'Private class ton***?', time: '21:45', unread: 3, blur: 'full', tags: ['suspicious'] },
@@ -2308,7 +2354,7 @@
             // More suspicious - social media style
             { name: 'Snap - Al***', avatar: 'imagens/mulher4.jpg', message: '📷 Snap received', time: '00:45', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'IG - @sec***', avatar: 'imagens/mulher5.jpg', message: 'Replied to your sto***', time: '23:30', unread: 5, blur: 'full', tags: ['suspicious'] },
-            { name: '+44 7*** ***-**88', avatar: 'imagens/default-avatar.png', message: 'Are you coming to Lon*** this wee***?', time: '22:00', unread: 2, blur: 'full', tags: ['suspicious'] },
+            { name: fakePhone(88), avatar: 'imagens/default-avatar.png', message: 'Are you coming to vis*** this wee***?', time: '22:00', unread: 2, blur: 'full', tags: ['suspicious'] },
             
             // Suspicious groups
             { name: '🔒 Secret Group', avatar: null, message: '~ Unknown: Meet at the us***...', time: '01:00', unread: 34, blur: 'full', lateNight: true, isGroup: true, tags: ['deleted', 'suspicious'], deleted: true },
@@ -2316,7 +2362,7 @@
             // More contacts with relationship tension
             { name: 'Ex - Do Not Ans***', avatar: 'imagens/mulher6.jpg', message: 'I know you read my mess***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'Ry** (Tinder)', avatar: 'imagens/homem1.jpg', message: 'Great meeting you last ni***!', time: '02:50', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: '+1 (555) ***-**04', avatar: 'imagens/default-avatar.png', message: '🎤 Audio (4:17)', time: '03:05', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: fakePhone('04'), avatar: 'imagens/default-avatar.png', message: '🎤 Audio (4:17)', time: '03:05', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
             
             // Normal contacts
             { name: 'Mom', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
@@ -2326,7 +2372,7 @@
             // More suspicious - late night patterns
             { name: 'C', avatar: 'imagens/mulher7.jpg', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'Massag** Therapist', avatar: 'imagens/mulher8.jpg', message: 'Special session ton***?', time: '21:00', unread: 2, blur: 'full', tags: ['suspicious'] },
-            { name: '+1 (555) ***-**56', avatar: 'imagens/default-avatar.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
+            { name: fakePhone(56), avatar: 'imagens/default-avatar.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
             
             // Groups
             { name: 'Neighbors', avatar: null, message: '~ Admin: Parking rul***...', time: 'Yesterday', blur: 'full', isGroup: true, tags: [] },
@@ -2438,7 +2484,7 @@
                 <div class="wf-avatar"><img src="${avatarSrc}" alt="" onerror="this.src='imagens/default-avatar.png'"></div>
                 <div class="wf-info">
                     <div class="wf-label">⚠️ Most Frequent Contact</div>
-                    <div class="wf-name">+1 5**-***-**47</div>
+                    <div class="wf-name">${fakePhone(47)}</div>
                     <div class="wf-stats"><strong>347 messages</strong> in the last 7 days • <strong>89% at night</strong></div>
                 </div>
                 <div class="wf-badge"><span>🔴</span>HIGH<br>RISK</div>`;
@@ -2641,10 +2687,10 @@
 
         // Push notifications - Realistic contact names
         const pushMessages = [
-            { name: '+1 (555) ***-**47', text: 'Did you see my last mes***...', tag: 'DELETED MESSAGE' },
+            { name: fakePhone(47), text: 'Did you see my last mes***...', tag: 'DELETED MESSAGE' },
             { name: 'J', text: "I'm wait*** for you here...", tag: 'DELETED' },
             { name: '(Blocked)', text: 'I need to see you ton***...', tag: 'SUSPICIOUS' },
-            { name: '+1 (555) ***-**83', text: '📍 Location shar***', tag: 'EVIDENCE' },
+            { name: fakePhone(83), text: '📍 Location shar***', tag: 'EVIDENCE' },
             { name: 'M', text: 'Is our secr*** still saf***?', tag: 'DELETED' },
             { name: 'Ash***', text: 'When are you com*** ton***?', tag: 'SUSPICIOUS' },
             { name: 'Kev** (Work)', text: '📷 Sent a pho**...', tag: 'DELETED' },
@@ -2712,7 +2758,7 @@
 
         // ========== MISSED CALL SIMULATION ==========
         function showMissedCall() {
-            const names = ['+1 (555) ***-**47', 'J', '(Blocked)', 'M', 'Unknown', '❤️'];
+            const names = [fakePhone(47), 'J', '(Blocked)', 'M', 'Unknown', '❤️'];
             const name = names[Math.floor(Math.random() * names.length)];
             const isVideo = Math.random() > 0.5;
             
@@ -2931,6 +2977,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderConversations();
             updateStoriesForGender();
+            // Update phone numbers in stories with detected DDI
+            document.querySelectorAll('.ddi-phone').forEach(function(el) {
+                el.textContent = detectedDDI + ' ***-***';
+            });
             updateTimer();
             updateCurrentTime();
             updatePeopleCount();
