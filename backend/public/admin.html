@@ -10158,11 +10158,12 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 const countryStats = {};
                 const emailToCountry = {};
+                const codeCount = {};
                 
                 leads.forEach(lead => {
                     const country = lead.country || 'Desconhecido';
                     const countryCode = (lead.country_code && lead.country_code.trim()) ? lead.country_code.trim().toUpperCase() : 'XX';
-                    const key = countryCode;
+                    const key = country.toLowerCase().trim();
                     
                     if (!countryStats[key]) {
                         countryStats[key] = {
@@ -10175,7 +10176,12 @@ Estou aqui para esclarecer tudo! 😊`
                             emails: new Set(),
                             buyerEmails: new Set()
                         };
+                        codeCount[key] = {};
                     }
+                    
+                    codeCount[key][countryCode] = (codeCount[key][countryCode] || 0) + 1;
+                    const bestCode = Object.entries(codeCount[key]).sort((a, b) => b[1] - a[1])[0][0];
+                    countryStats[key].country_code = bestCode;
                     
                     countryStats[key].leads++;
                     if (lead.email) {
