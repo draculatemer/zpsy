@@ -8,10 +8,12 @@
         
         const statusLabels = { 'new': 'Novo', 'contacted': 'Contatado', 'converted': 'Convertido', 'lost': 'Perdido' };
         
-        function getCountryFlag(countryCode) {
-            if (!countryCode || countryCode === 'XX') return '<img src="https://flagcdn.com/w40/un.png" alt="🌍" style="width:24px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML=\'🌍\'">';
+        function getCountryFlag(countryCode, size) {
+            const w = size === 'lg' ? 32 : 24;
+            const h = size === 'lg' ? 22 : 16;
+            if (!countryCode || countryCode === 'XX') return `<img src="https://flagcdn.com/w80/un.png" alt="🌍" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
             const code = countryCode.toLowerCase();
-            return `<img src="https://flagcdn.com/w40/${code}.png" alt="${countryCode}" style="width:24px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
+            return `<img src="https://flagcdn.com/w80/${code}.png" alt="${countryCode}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
         }
         
         const pageTitles = {

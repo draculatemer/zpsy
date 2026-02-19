@@ -2128,6 +2128,19 @@
                         </div>
                     </div>
                     
+                    <!-- Revenue Chart -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Top 10 Países por Faturamento</h3>
+                            <button onclick="exportCountriesCSV()" class="btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px;" title="Exportar dados para CSV">
+                                📥 Exportar CSV
+                            </button>
+                        </div>
+                        <div style="height: 320px;">
+                            <canvas id="countriesBarChart"></canvas>
+                        </div>
+                    </div>
+                    
                     <!-- Countries Ranking Section -->
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden;">
                         <!-- Toolbar -->
@@ -2162,7 +2175,7 @@
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: center;">#</span>
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px;">País</span>
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px;">Leads</span>
-                            <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: center;">Conversões</span>
+                            <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: center;">Vendas</span>
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: center;">Taxa</span>
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: right;">Faturamento</span>
                             <span style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; text-align: right;">Ticket Médio</span>
@@ -3546,10 +3559,12 @@ Posso ajudar com alguma dúvida?</textarea>
         
         const statusLabels = { 'new': 'Novo', 'contacted': 'Contatado', 'converted': 'Convertido', 'lost': 'Perdido' };
         
-        function getCountryFlag(countryCode) {
-            if (!countryCode || countryCode === 'XX') return '<img src="https://flagcdn.com/w40/un.png" alt="🌍" style="width:24px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML=\'🌍\'">';
+        function getCountryFlag(countryCode, size) {
+            const w = size === 'lg' ? 32 : 24;
+            const h = size === 'lg' ? 22 : 16;
+            if (!countryCode || countryCode === 'XX') return `<img src="https://flagcdn.com/w80/un.png" alt="🌍" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
             const code = countryCode.toLowerCase();
-            return `<img src="https://flagcdn.com/w40/${code}.png" alt="${countryCode}" style="width:24px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
+            return `<img src="https://flagcdn.com/w80/${code}.png" alt="${countryCode}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:3px;vertical-align:middle;" onerror="this.outerHTML='🌍'">`;
         }
         
         const pageTitles = {
@@ -10080,7 +10095,7 @@ Estou aqui para esclarecer tudo! 😊`
             }
         }
         
-        // ==================== COUNTRIES REPORT V2 ====================
+        // ==================== COUNTRIES REPORT V3 ====================
         const countriesState = {
             allData: [],
             filteredData: [],
@@ -10094,6 +10109,18 @@ Estou aqui para esclarecer tudo! 😊`
             unmatchedRevenue: 0,
             unknownCount: 0
         };
+        
+        function formatBRL(value) {
+            return 'R$ ' + (value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        function getValueBRL(tx) {
+            const raw = parseFloat(tx.value) || 0;
+            if (tx.funnel_source === 'perfectpay') {
+                return raw * (exchangeRate || 5.80);
+            }
+            return raw;
+        }
         
         async function loadCountriesData() {
             const container = document.getElementById('countriesListContainer');
@@ -10145,7 +10172,7 @@ Estou aqui para esclarecer tudo! 😊`
                             country: country,
                             country_code: countryCode,
                             leads: 0,
-                            converted: 0,
+                            transactions: 0,
                             revenue: 0,
                             emails: new Set()
                         };
@@ -10157,10 +10184,6 @@ Estou aqui para esclarecer tudo! 😊`
                         countryStats[key].emails.add(emailLower);
                         emailToCountry[emailLower] = key;
                     }
-                    
-                    if (lead.status === 'converted') {
-                        countryStats[key].converted++;
-                    }
                 });
                 
                 let unmatchedRevenue = 0;
@@ -10171,25 +10194,26 @@ Estou aqui para esclarecer tudo! 😊`
                     if (tx.status !== 'approved') return;
                     
                     const email = (tx.email || '').toLowerCase().trim();
-                    const value = parseFloat(tx.value) || 0;
-                    totalRevenue += value;
+                    const valueBRL = getValueBRL(tx);
+                    totalRevenue += valueBRL;
                     totalConverted++;
                     
                     if (email && emailToCountry[email]) {
-                        countryStats[emailToCountry[email]].revenue += value;
+                        countryStats[emailToCountry[email]].revenue += valueBRL;
+                        countryStats[emailToCountry[email]].transactions++;
                     } else {
-                        unmatchedRevenue += value;
+                        unmatchedRevenue += valueBRL;
                     }
                 });
                 
                 const countriesArray = Object.values(countryStats)
                     .map(c => {
-                        const emails = c.emails;
                         delete c.emails;
                         return {
                             ...c,
-                            conversionRate: c.leads > 0 ? ((c.converted / c.leads) * 100) : 0,
-                            avgTicket: c.converted > 0 ? (c.revenue / c.converted) : 0,
+                            converted: c.transactions,
+                            conversionRate: c.leads > 0 ? ((c.transactions / c.leads) * 100) : 0,
+                            avgTicket: c.transactions > 0 ? (c.revenue / c.transactions) : 0,
                             isUnknown: c.country_code === 'XX' || c.country === 'Desconhecido'
                         };
                     })
@@ -10213,24 +10237,24 @@ Estou aqui para esclarecer tudo! 😊`
                 if (searchEl) searchEl.value = '';
                 
                 document.getElementById('countriesTotal').textContent = realCountries.length;
-                document.getElementById('countriesSubtotal').textContent = `de ${countriesState.totalLeads} leads totais`;
+                document.getElementById('countriesSubtotal').textContent = `de ${countriesState.totalLeads.toLocaleString('pt-BR')} leads totais`;
                 document.getElementById('countriesCount').textContent = realCountries.length;
                 
-                document.getElementById('countriesTotalRevenue').textContent = `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-                document.getElementById('countriesTotalConverted').textContent = `${totalConverted} conversões`;
+                document.getElementById('countriesTotalRevenue').textContent = formatBRL(totalRevenue);
+                document.getElementById('countriesTotalConverted').textContent = `${totalConverted} vendas`;
                 
                 if (realCountries.length > 0) {
-                    const top = realCountries[0];
-                    document.getElementById('topCountry').innerHTML = `${getCountryFlag(top.country_code)} ${top.country}`;
-                    document.getElementById('topCountryLeads').textContent = `${top.leads} leads`;
+                    const topByLeads = [...realCountries].sort((a, b) => b.leads - a.leads)[0];
+                    document.getElementById('topCountry').innerHTML = `${getCountryFlag(topByLeads.country_code, 'lg')} ${topByLeads.country}`;
+                    document.getElementById('topCountryLeads').textContent = `${topByLeads.leads.toLocaleString('pt-BR')} leads`;
                     
                     const bestConversion = [...realCountries]
-                        .filter(c => c.leads >= 3 && c.converted > 0)
+                        .filter(c => c.leads >= 5 && c.converted > 0)
                         .sort((a, b) => b.conversionRate - a.conversionRate)[0];
                     
                     if (bestConversion) {
-                        document.getElementById('bestConversionCountry').innerHTML = `${getCountryFlag(bestConversion.country_code)} ${bestConversion.country}`;
-                        document.getElementById('bestConversionRate').textContent = `${bestConversion.conversionRate.toFixed(1)}%`;
+                        document.getElementById('bestConversionCountry').innerHTML = `${getCountryFlag(bestConversion.country_code, 'lg')} ${bestConversion.country}`;
+                        document.getElementById('bestConversionRate').textContent = `${bestConversion.conversionRate.toFixed(1)}% (min. 5 leads)`;
                     } else {
                         document.getElementById('bestConversionCountry').textContent = '-';
                         document.getElementById('bestConversionRate').textContent = '0%';
@@ -10238,11 +10262,11 @@ Estou aqui para esclarecer tudo! 😊`
                     
                     const topRevenue = [...realCountries].sort((a, b) => b.revenue - a.revenue)[0];
                     if (topRevenue && topRevenue.revenue > 0) {
-                        document.getElementById('topRevenueCountry').innerHTML = `${getCountryFlag(topRevenue.country_code)} ${topRevenue.country}`;
-                        document.getElementById('topRevenueValue').textContent = `$${topRevenue.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                        document.getElementById('topRevenueCountry').innerHTML = `${getCountryFlag(topRevenue.country_code, 'lg')} ${topRevenue.country}`;
+                        document.getElementById('topRevenueValue').textContent = formatBRL(topRevenue.revenue);
                     } else {
                         document.getElementById('topRevenueCountry').textContent = '-';
-                        document.getElementById('topRevenueValue').textContent = '$0';
+                        document.getElementById('topRevenueValue').textContent = 'R$ 0,00';
                     }
                 } else {
                     document.getElementById('topCountry').textContent = '-';
@@ -10250,7 +10274,7 @@ Estou aqui para esclarecer tudo! 😊`
                     document.getElementById('bestConversionCountry').textContent = '-';
                     document.getElementById('bestConversionRate').textContent = '0%';
                     document.getElementById('topRevenueCountry').textContent = '-';
-                    document.getElementById('topRevenueValue').textContent = '$0';
+                    document.getElementById('topRevenueValue').textContent = 'R$ 0,00';
                 }
                 
                 const unknownInfoEl = document.getElementById('countriesUnknownInfo');
@@ -10265,12 +10289,13 @@ Estou aqui para esclarecer tudo! 😊`
                 const unmatchedEl = document.getElementById('countriesUnmatchedRevenue');
                 if (unmatchedRevenue > 0) {
                     unmatchedEl.style.display = 'block';
-                    document.getElementById('countriesUnmatchedText').innerHTML = `<strong>$${unmatchedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> em transações aprovadas não puderam ser atribuídos a um país porque o e-mail da transação não corresponde a nenhum lead cadastrado.`;
+                    document.getElementById('countriesUnmatchedText').innerHTML = `<strong>${formatBRL(unmatchedRevenue)}</strong> em transações aprovadas não puderam ser atribuídos a um país porque o e-mail da transação não corresponde a nenhum lead cadastrado.`;
                 } else {
                     unmatchedEl.style.display = 'none';
                 }
                 
                 sortCountriesTable();
+                renderCountriesChart();
                 
             } catch (error) {
                 console.error('Error loading countries data:', error);
@@ -10378,15 +10403,16 @@ Estou aqui para esclarecer tudo! 😊`
                 const rowBorder = country.isUnknown ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.04)';
                 const flagDisplay = country.isUnknown ? getCountryFlag('XX') : getCountryFlag(country.country_code);
                 const countryName = country.isUnknown ? 'Desconhecido' : country.country;
+                const clickAction = country.isUnknown ? '' : `onclick="viewCountryLeads('${country.country_code}', '${countryName.replace(/'/g, "\\'")}')" style="cursor: pointer;"`;
                 
                 html += `
-                    <div style="padding: 14px 24px; border-bottom: 1px solid ${rowBorder}; display: grid; grid-template-columns: 44px 1.5fr 1fr 90px 80px 110px 100px; align-items: center; gap: 12px; transition: background 0.2s; background: ${rowBg}; cursor: default;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${rowBg}'">
+                    <div ${clickAction} class="country-row" style="padding: 14px 24px; border-bottom: 1px solid ${rowBorder}; display: grid; grid-template-columns: 44px 1.5fr 1fr 90px 80px 110px 100px; align-items: center; gap: 12px; transition: background 0.2s; background: ${rowBg};" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='${rowBg}'">
                         <div style="font-size: ${isTop3 ? '20px' : '13px'}; font-weight: 600; color: ${isTop3 ? '#fff' : 'rgba(255,255,255,0.35)'}; text-align: center;">
                             ${country.isUnknown ? '<span style="color: rgba(245,158,11,0.6);">—</span>' : (medalIcon || `${globalIndex + 1}`)}
                         </div>
                         
                         <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                            <div style="width: 38px; height: 38px; background: ${country.isUnknown ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.05)'}; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                            <div style="width: 38px; height: 28px; background: ${country.isUnknown ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.05)'}; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
                                 ${flagDisplay}
                             </div>
                             <div style="min-width: 0;">
@@ -10397,7 +10423,7 @@ Estou aqui para esclarecer tudo! 😊`
                         
                         <div>
                             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
-                                <span style="font-weight: 700; color: #fff; font-size: 15px;">${country.leads.toLocaleString()}</span>
+                                <span style="font-weight: 700; color: #fff; font-size: 15px;">${country.leads.toLocaleString('pt-BR')}</span>
                                 <span style="font-size: 11px; color: rgba(255,255,255,0.3);">${sharePercent}%</span>
                             </div>
                             <div style="height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
@@ -10414,11 +10440,11 @@ Estou aqui para esclarecer tudo! 😊`
                         </div>
                         
                         <div style="text-align: right;">
-                            <span style="font-weight: 700; color: ${country.revenue > 0 ? '#10b981' : 'rgba(255,255,255,0.25)'}; font-size: 13px;">$${country.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span style="font-weight: 700; color: ${country.revenue > 0 ? '#10b981' : 'rgba(255,255,255,0.25)'}; font-size: 13px;">${formatBRL(country.revenue)}</span>
                         </div>
                         
                         <div style="text-align: right;">
-                            <span style="font-weight: 600; color: ${country.avgTicket > 0 ? '#818cf8' : 'rgba(255,255,255,0.25)'}; font-size: 13px;">${country.avgTicket > 0 ? '$' + country.avgTicket.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</span>
+                            <span style="font-weight: 600; color: ${country.avgTicket > 0 ? '#818cf8' : 'rgba(255,255,255,0.25)'}; font-size: 13px;">${country.avgTicket > 0 ? formatBRL(country.avgTicket) : '-'}</span>
                         </div>
                     </div>
                 `;
@@ -10448,12 +10474,110 @@ Estou aqui para esclarecer tudo! 😊`
             totalsRow.innerHTML = `
                 <div style="text-align: center; font-weight: 700; color: rgba(255,255,255,0.4); font-size: 11px;">Σ</div>
                 <div style="font-weight: 700; color: rgba(255,255,255,0.6); font-size: 13px;">TOTAL (${data.length} países)</div>
-                <div style="font-weight: 700; color: #fff; font-size: 14px;">${totals.leads.toLocaleString()}</div>
+                <div style="font-weight: 700; color: #fff; font-size: 14px;">${totals.leads.toLocaleString('pt-BR')}</div>
                 <div style="text-align: center; font-weight: 700; color: #10b981; font-size: 13px;">${totals.converted}</div>
                 <div style="text-align: center; font-weight: 700; color: #f59e0b; font-size: 13px;">${avgRate}%</div>
-                <div style="text-align: right; font-weight: 700; color: #10b981; font-size: 13px;">$${totals.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                <div style="text-align: right; font-weight: 700; color: #818cf8; font-size: 13px;">${avgTicket > 0 ? '$' + avgTicket.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</div>
+                <div style="text-align: right; font-weight: 700; color: #10b981; font-size: 13px;">${formatBRL(totals.revenue)}</div>
+                <div style="text-align: right; font-weight: 700; color: #818cf8; font-size: 13px;">${avgTicket > 0 ? formatBRL(avgTicket) : '-'}</div>
             `;
+        }
+        
+        function renderCountriesChart() {
+            const canvas = document.getElementById('countriesBarChart');
+            if (!canvas) return;
+            
+            const top10 = countriesState.allData.filter(c => !c.isUnknown).slice(0, 10);
+            if (top10.length === 0) return;
+            
+            const sortedByRevenue = [...top10].sort((a, b) => b.revenue - a.revenue);
+            
+            if (window.countriesChartInstance) {
+                window.countriesChartInstance.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            window.countriesChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedByRevenue.map(c => c.country),
+                    datasets: [{
+                        label: 'Faturamento (R$)',
+                        data: sortedByRevenue.map(c => c.revenue),
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(236, 72, 153, 0.7)',
+                            'rgba(168, 85, 247, 0.7)', 'rgba(34, 211, 238, 0.7)', 'rgba(251, 146, 60, 0.7)',
+                            'rgba(74, 222, 128, 0.7)'
+                        ],
+                        borderColor: [
+                            '#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6',
+                            '#ec4899', '#a855f7', '#22d3ee', '#fb923c', '#4ade80'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ' ' + formatBRL(ctx.raw)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: 'rgba(255,255,255,0.4)',
+                                callback: (v) => 'R$ ' + (v/1000).toFixed(1) + 'k'
+                            },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 12 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function viewCountryLeads(countryCode, countryName) {
+            switchTab('leads');
+            setTimeout(() => {
+                const searchInput = document.getElementById('leadSearchInput') || document.querySelector('input[placeholder*="Buscar"]');
+                if (searchInput) {
+                    searchInput.value = countryCode;
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+                showToast('Filtro aplicado', `Mostrando leads de ${countryName} (${countryCode})`, 'success');
+            }, 500);
+        }
+        
+        function exportCountriesCSV() {
+            const data = countriesState.allData;
+            if (!data || data.length === 0) {
+                showToast('Sem dados', 'Carregue os dados primeiro', 'warning');
+                return;
+            }
+            
+            let csv = 'País,Código,Leads,Vendas,Taxa Conversão (%),Faturamento (R$),Ticket Médio (R$)\n';
+            data.forEach(c => {
+                csv += `"${c.country}",${c.country_code},${c.leads},${c.converted},${c.conversionRate.toFixed(1)},${c.revenue.toFixed(2)},${c.avgTicket.toFixed(2)}\n`;
+            });
+            
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `paises_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exportado!', `${data.length} países exportados para CSV`, 'success');
         }
         
         function renderCountriesPagination(total, page, totalPages, start, end) {
