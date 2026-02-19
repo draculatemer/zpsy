@@ -23,13 +23,8 @@ const MatrixEffect = {
      * @param {Object} options - Optional configuration
      */
     init: function(canvasId, options = {}) {
-        // Matrix effect disabled for better performance
-        console.log('[Matrix] Effect disabled for better performance');
-        var canvas = document.getElementById(canvasId);
-        if (canvas) {
-            canvas.style.display = 'none';
-        }
-        return;
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) return;
 
         this.ctx = this.canvas.getContext('2d');
         this.charArray = this.chars.split('');
