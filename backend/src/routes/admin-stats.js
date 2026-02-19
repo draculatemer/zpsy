@@ -1100,17 +1100,17 @@ router.get('/api/admin/stats/countries-sales', authenticateToken, async (req, re
     try {
         const result = await pool.query(`
             SELECT 
-                COALESCE(l.country, 'Unknown') as country_code,
-                COALESCE(l.country, 'Desconhecido') as country_name,
+                COALESCE(NULLIF(TRIM(l.country_code), ''), 'XX') as country_code,
+                COALESCE(NULLIF(TRIM(l.country), ''), 'Desconhecido') as country_name,
                 COUNT(DISTINCT t.email) as sales,
                 COALESCE(SUM(CAST(t.value AS DECIMAL)), 0) as revenue
             FROM transactions t
-            LEFT JOIN leads l ON t.email = l.email
+            LEFT JOIN leads l ON LOWER(TRIM(t.email)) = LOWER(TRIM(l.email))
             WHERE t.status = 'approved'
             AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '30 days')::date
-            GROUP BY l.country
+            GROUP BY COALESCE(NULLIF(TRIM(l.country_code), ''), 'XX'), COALESCE(NULLIF(TRIM(l.country), ''), 'Desconhecido')
             ORDER BY sales DESC, revenue DESC
-            LIMIT 5
+            LIMIT 10
         `);
         
         res.json({ countries: result.rows });

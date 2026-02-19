@@ -2589,6 +2589,54 @@
     50% { transform: scale(1.4); opacity: 1; }
 }
 
+/* Countries table responsive */
+@media (max-width: 900px) {
+    .countries-table-header,
+    #countriesListContainer > div,
+    #countriesTotalsRow {
+        grid-template-columns: 30px 1.2fr 80px 60px 60px 90px 80px !important;
+        gap: 6px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .countries-table-header,
+    #countriesListContainer > div,
+    #countriesTotalsRow {
+        grid-template-columns: 28px 1fr 60px 50px 90px !important;
+    }
+    .countries-table-header > span:nth-child(5),
+    #countriesListContainer > div > div:nth-child(5),
+    #countriesTotalsRow > div:nth-child(5),
+    .countries-table-header > span:nth-child(7),
+    #countriesListContainer > div > div:nth-child(7),
+    #countriesTotalsRow > div:nth-child(7) {
+        display: none !important;
+    }
+}
+
+/* Countries pagination buttons hover */
+#countriesPaginationButtons button:not(:disabled):hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    color: #818cf8 !important;
+}
+
+/* Countries search focus */
+#countriesSearch:focus {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Countries sort select */
+#countriesSortBy option, #countriesPerPage option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
 /* ==================== ACTIVE USERS WIDGET ==================== */
 @keyframes activePulse {
     0% { transform: scale(1); opacity: 0.7; }
