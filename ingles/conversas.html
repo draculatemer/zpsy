@@ -2004,7 +2004,7 @@
             <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
         <div class="alert-banner-text">
-            <strong id="deletedAlert">147 deleted messages recovered!</strong>
+            <strong id="deletedAlert">Loading...</strong>
             <span>Conversations deleted to hide something from you</span>
         </div>
     </div>
@@ -2032,7 +2032,7 @@
                     </svg>
                 </div>
                 <div class="vip-banner-text">
-                    <strong>23 hidden conversations found!</strong>
+                    <strong id="hiddenConvCount">23 hidden conversations found!</strong>
                     <span>Access expires in <span class="timer" id="timerDisplay">04:59</span></span>
                 </div>
             </div>
@@ -2450,6 +2450,12 @@
         }
 
         function createSuspicionDetectorWidget() {
+            var lateNightCount = conversations.filter(function(c){return c.lateNight}).length;
+            var deletedCount = conversations.filter(function(c){return c.deleted}).length;
+            var suspiciousCount = conversations.filter(function(c){return c.tags && c.tags.indexOf('suspicious')!==-1}).length;
+            var evidenceCount = conversations.filter(function(c){return c.tags && c.tags.indexOf('evidence')!==-1}).length;
+            var unknownCount = conversations.filter(function(c){return !c.avatar || c.avatar.indexOf('default')!==-1}).length;
+            var score = Math.min(97, 70 + Math.floor(deletedCount / 2) + Math.floor(evidenceCount));
             const div = document.createElement('div');
             div.className = 'widget-suspicion';
             div.innerHTML = `
@@ -2458,15 +2464,15 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         SUSPICION ANALYSIS
                     </div>
-                    <span class="ws-score">87%</span>
+                    <span class="ws-score">${score}%</span>
                 </div>
-                <div class="ws-bar"><div class="ws-bar-fill" id="wsSuspicionBar"></div></div>
+                <div class="ws-bar"><div class="ws-bar-fill" id="wsSuspicionBar" style="width:0%;" data-target="${score}"></div></div>
                 <div class="ws-details">
-                    <div class="ws-row"><span class="ws-row-label">🕐 Late-night messages (12AM-5AM)</span><span class="ws-row-value danger">23 found</span></div>
-                    <div class="ws-row"><span class="ws-row-label">🗑️ Deleted conversations</span><span class="ws-row-value danger">18 recovered</span></div>
-                    <div class="ws-row"><span class="ws-row-label">📷 View-once media</span><span class="ws-row-value danger">9 intercepted</span></div>
-                    <div class="ws-row"><span class="ws-row-label">📍 Shared locations</span><span class="ws-row-value danger">5 tracked</span></div>
-                    <div class="ws-row"><span class="ws-row-label">👤 Unknown contacts</span><span class="ws-row-value danger">14 detected</span></div>
+                    <div class="ws-row"><span class="ws-row-label">🕐 Late-night messages (12AM-5AM)</span><span class="ws-row-value danger">${lateNightCount} found</span></div>
+                    <div class="ws-row"><span class="ws-row-label">🗑️ Deleted conversations</span><span class="ws-row-value danger">${deletedCount} recovered</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📷 View-once media</span><span class="ws-row-value danger">${evidenceCount} intercepted</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📍 Shared locations</span><span class="ws-row-value danger">${suspiciousCount} tracked</span></div>
+                    <div class="ws-row"><span class="ws-row-label">👤 Unknown contacts</span><span class="ws-row-value danger">${unknownCount} detected</span></div>
                 </div>`;
             return div;
         }
@@ -2594,10 +2600,9 @@
                 container.appendChild(item);
             });
 
-            // Animate suspicion bar after render
             setTimeout(() => {
                 const bar = document.getElementById('wsSuspicionBar');
-                if (bar) bar.style.width = '87%';
+                if (bar) bar.style.width = (bar.dataset.target || '87') + '%';
             }, 800);
         }
 
@@ -2659,6 +2664,22 @@
             } else {
                 el.textContent = '00:00';
                 el.style.animation = 'blink 0.5s infinite';
+                showExpiredModal();
+            }
+        }
+
+        var expiredModalShown = false;
+        function showExpiredModal() {
+            if (expiredModalShown) return;
+            expiredModalShown = true;
+            var overlay = document.getElementById('modalOverlay');
+            var text = document.getElementById('modalText');
+            var title = document.querySelector('.modal-title');
+            if (overlay && text && title) {
+                title.textContent = '⚠️ Access Expiring!';
+                text.innerHTML = 'Your monitoring session is about to be <strong>permanently deleted</strong>. All <strong>' + conversations.filter(function(c){return c.deleted}).length + ' recovered conversations</strong> will be lost. Unlock now before it\'s too late.';
+                overlay.classList.add('show');
+                if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
             }
         }
 
@@ -2713,6 +2734,7 @@
             
             notification.classList.add('show');
             
+            playNotificationSound();
             if (typeof VibrationSystem !== 'undefined') VibrationSystem.notification();
             
             setTimeout(() => {
@@ -2720,17 +2742,59 @@
             }, 4500);
         }
 
-        // People viewing counter
+        // People viewing counter with localStorage persistence
         function updatePeopleCount() {
             const el = document.getElementById('peopleCount');
             if (!el) return;
-            let base = 1200 + Math.floor(Math.random() * 300);
+            var stored = parseInt(localStorage.getItem('peopleViewBase') || '0');
+            var base = stored > 1000 ? stored + Math.floor(Math.random() * 30) : 1200 + Math.floor(Math.random() * 300);
+            localStorage.setItem('peopleViewBase', base);
             el.textContent = base.toLocaleString();
             setInterval(() => {
                 base += Math.floor(Math.random() * 7) - 2;
                 if (base < 1100) base = 1100;
+                localStorage.setItem('peopleViewBase', base);
                 el.textContent = base.toLocaleString();
             }, 3000);
+        }
+
+        // Exit-intent detection
+        function initExitIntent() {
+            var exitShown = false;
+            document.addEventListener('mouseleave', function(e) {
+                if (e.clientY < 5 && !exitShown) {
+                    exitShown = true;
+                    var overlay = document.getElementById('modalOverlay');
+                    var text = document.getElementById('modalText');
+                    var title = document.querySelector('.modal-title');
+                    if (overlay && text && title) {
+                        title.textContent = 'Wait! Don\'t Leave Yet!';
+                        text.innerHTML = 'You have <strong>' + conversations.filter(function(c){return c.deleted}).length + ' deleted conversations</strong> waiting to be unlocked. If you leave now, this data may be <strong>permanently erased</strong>.';
+                        overlay.classList.add('show');
+                        if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
+                    }
+                }
+            });
+        }
+
+        // Notification sound using Web Audio API
+        function playNotificationSound() {
+            try {
+                if (typeof WhatsAppAudio !== 'undefined' && WhatsAppAudio.audioContext) {
+                    var ctx = WhatsAppAudio.audioContext;
+                    if (ctx.state === 'suspended') return;
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            } catch(e) {}
         }
 
         // ========== TYPING INDICATOR EM TEMPO REAL ==========
@@ -2815,6 +2879,7 @@
                 liveConv.onclick = () => openConversation({name: 'LIVE Intercept', blur: 'full'});
                 
                 convList.insertBefore(liveConv, firstConv);
+                playNotificationSound();
                 
                 // Vibration
                 VibrationSystem.alert();
@@ -2838,36 +2903,6 @@
                         VibrationSystem.notification();
                     }
                 }, 3000);
-            }
-        }
-
-        // ========== DELETED MESSAGES VARIATIONS ==========
-        const deletedMessages = [
-            '"Babe, don\'t tell <span class="blocked">██████</span> that we <span class="blocked">████████</span> yesterday at the <span class="blocked">██████</span>..."',
-            '"I miss you so much, when can we <span class="blocked">███████</span> again? Last time was <span class="blocked">████████</span>..."',
-            '"Delete this after reading: I\'ll be at the <span class="blocked">██████</span> at <span class="blocked">████</span> tonight..."',
-            '"Can\'t stop thinking about what happened at <span class="blocked">███████</span>. We need to <span class="blocked">██████</span>..."',
-            '"My <span class="blocked">██████</span> almost found out about us. Be more <span class="blocked">███████</span>..."',
-            '"I told <span class="blocked">█████</span> I was at work but I was actually <span class="blocked">████████</span> with you..."',
-            '"The photos from last night are <span class="blocked">███████</span>. Delete them before <span class="blocked">█████</span> sees..."',
-            '"I can\'t believe we <span class="blocked">████████</span> in their <span class="blocked">██████</span>. So risky but <span class="blocked">██████</span>..."'
-        ];
-
-        const deletedTimes = [
-            'Deleted yesterday at 11:47 PM',
-            'Deleted today at 2:34 AM',
-            'Deleted yesterday at 10:22 PM',
-            'Deleted 2 days ago at 11:58 PM',
-            'Deleted today at 1:15 AM',
-            'Deleted yesterday at 9:45 PM'
-        ];
-
-        function rotateDeletedMessage() {
-            const contentEl = document.getElementById('deletedMessageContent');
-            const timeEl = document.querySelector('.deleted-message-time');
-            if (contentEl && timeEl) {
-                contentEl.innerHTML = deletedMessages[Math.floor(Math.random() * deletedMessages.length)];
-                timeEl.textContent = deletedTimes[Math.floor(Math.random() * deletedTimes.length)];
             }
         }
 
@@ -2982,6 +3017,7 @@
             updatePeopleCount();
             initScreenshotDetection();
             initScrollCta();
+            initExitIntent();
             setInterval(updateCurrentTime, 1000);
             
             // Push notifications every 25-40 seconds
@@ -3008,8 +3044,13 @@
                 setTimeout(() => navigator.vibrate(100), 2500);
             }
             
-            // Update deleted messages count dynamically
-            let deletedCount = 147;
+            // Dynamic deleted count based on real data
+            var baseDeleted = conversations.filter(function(c){return c.deleted}).length;
+            let deletedCount = baseDeleted * 6 + Math.floor(Math.random() * 20);
+            var alertEl = document.getElementById('deletedAlert');
+            if (alertEl) alertEl.textContent = deletedCount + ' deleted messages recovered!';
+            var hiddenEl = document.getElementById('hiddenConvCount');
+            if (hiddenEl) hiddenEl.textContent = conversations.filter(function(c){return c.deleted || (c.tags && c.tags.indexOf('suspicious')!==-1)}).length + ' hidden conversations found!';
             setInterval(() => {
                 if (Math.random() > 0.6) {
                     deletedCount += Math.floor(Math.random() * 3) + 1;
