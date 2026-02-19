@@ -10169,9 +10169,11 @@ Estou aqui para esclarecer tudo! 😊`
                             country: country,
                             country_code: countryCode,
                             leads: 0,
-                            transactions: 0,
+                            uniqueBuyers: 0,
+                            totalTransactions: 0,
                             revenue: 0,
-                            emails: new Set()
+                            emails: new Set(),
+                            buyerEmails: new Set()
                         };
                     }
                     
@@ -10196,21 +10198,28 @@ Estou aqui para esclarecer tudo! 😊`
                     totalConverted++;
                     
                     if (email && emailToCountry[email]) {
-                        countryStats[emailToCountry[email]].revenue += valueBRL;
-                        countryStats[emailToCountry[email]].transactions++;
+                        const key = emailToCountry[email];
+                        countryStats[key].revenue += valueBRL;
+                        countryStats[key].totalTransactions++;
+                        countryStats[key].buyerEmails.add(email);
                     } else {
                         unmatchedRevenue += valueBRL;
                     }
                 });
                 
+                Object.values(countryStats).forEach(c => {
+                    c.uniqueBuyers = c.buyerEmails.size;
+                });
+                
                 const countriesArray = Object.values(countryStats)
                     .map(c => {
                         delete c.emails;
+                        delete c.buyerEmails;
                         return {
                             ...c,
-                            converted: c.transactions,
-                            conversionRate: c.leads > 0 ? ((c.transactions / c.leads) * 100) : 0,
-                            avgTicket: c.transactions > 0 ? (c.revenue / c.transactions) : 0,
+                            converted: c.uniqueBuyers,
+                            conversionRate: c.leads > 0 ? ((c.uniqueBuyers / c.leads) * 100) : 0,
+                            avgTicket: c.uniqueBuyers > 0 ? (c.revenue / c.uniqueBuyers) : 0,
                             isUnknown: c.country_code === 'XX' || c.country === 'Desconhecido'
                         };
                     })
@@ -10237,8 +10246,9 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('countriesSubtotal').textContent = `de ${countriesState.totalLeads.toLocaleString('pt-BR')} leads totais`;
                 document.getElementById('countriesCount').textContent = realCountries.length;
                 
+                const totalUniqueBuyers = countriesArray.reduce((sum, c) => sum + c.converted, 0);
                 document.getElementById('countriesTotalRevenue').textContent = formatBRL(totalRevenue);
-                document.getElementById('countriesTotalConverted').textContent = `${totalConverted} vendas`;
+                document.getElementById('countriesTotalConverted').textContent = `${totalUniqueBuyers} compradores únicos`;
                 
                 if (realCountries.length > 0) {
                     const topByLeads = [...realCountries].sort((a, b) => b.leads - a.leads)[0];
