@@ -2178,26 +2178,6 @@
                             <span class="social-label">Tinder</span>
                             <span class="social-badge">✓</span>
                         </div>
-                        <div class="social-item" data-platform="linkedin">
-                            <span class="social-icon">💼</span>
-                            <span class="social-label">LinkedIn</span>
-                            <span class="social-badge">✓</span>
-                        </div>
-                        <div class="social-item" data-platform="viber">
-                            <span class="social-icon">📞</span>
-                            <span class="social-label">Viber</span>
-                            <span class="social-badge">✓</span>
-                        </div>
-                        <div class="social-item" data-platform="bumble">
-                            <span class="social-icon">🐝</span>
-                            <span class="social-label">Bumble</span>
-                            <span class="social-badge">✓</span>
-                        </div>
-                        <div class="social-item" data-platform="google">
-                            <span class="social-icon">🔍</span>
-                            <span class="social-label">Google</span>
-                            <span class="social-badge">✓</span>
-                        </div>
                     </div>
                     <div class="social-scan-result" id="socialScanResult"></div>
                 </div>
@@ -2981,9 +2961,9 @@
 
                     // Generate social scan results locally based on phone number
                     const phoneHash = fullPhone.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-                    const alwaysFound = ['whatsapp', 'instagram', 'facebook', 'google', 'telegram'];
-                    const variable = ['tiktok', 'snapchat', 'twitter', 'linkedin', 'viber', 'tinder', 'bumble'];
-                    const extraFound = variable.filter((_, idx) => (phoneHash * (idx + 3)) % 5 !== 0);
+                    const alwaysFound = ['whatsapp', 'instagram', 'facebook'];
+                    const variable = ['telegram', 'tiktok', 'twitter', 'snapchat', 'tinder'];
+                    const extraFound = variable.filter((_, idx) => (phoneHash * (idx + 3)) % 4 !== 0);
                     socialScanData = {
                         success: true,
                         found: [...alwaysFound, ...extraFound],
