@@ -2979,9 +2979,9 @@
                         );
                     }
 
-                    // Call Defastra social scan via backend
+                    // Call social scan via backend (with 15s timeout)
                     const backendUrl = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
-                    promises.push(
+                    const socialScanPromise = Promise.race([
                         fetch(`${backendUrl}/api/social-scan`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2991,11 +2991,18 @@
                         .then(data => {
                             if (data.success && data.found) {
                                 socialScanData = data;
-                                console.log('Defastra OK:', data.found.length, 'platforms found', data.found);
+                                console.log('Social scan OK:', data.found.length, 'platforms found', data.found);
+                            } else {
+                                console.log('Social scan response:', JSON.stringify(data));
                             }
-                        })
-                        .catch(e => console.log('Social scan error:', e.message))
-                    );
+                        }),
+                        new Promise(resolve => setTimeout(() => {
+                            console.log('Social scan: timeout after 15s');
+                            resolve();
+                        }, 15000))
+                    ]).catch(e => console.log('Social scan error:', e.message));
+                    
+                    promises.push(socialScanPromise);
 
                     await Promise.all(promises);
                 }
