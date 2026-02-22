@@ -314,7 +314,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
             funnelLanguage = 'es';
         }
         
-        // Identify product type (front/upsell1/upsell2/upsell3)
+        // Identify product type (front/upsell1-7)
         let productType = 'front';
         const productNameLower = (productName || '').toLowerCase();
         const productCodeStr = String(productCode || '');
@@ -327,6 +327,14 @@ router.all('/api/postback/monetizze', async (req, res) => {
             productType = 'upsell2';
         } else if (productNameLower.includes('instant access') || ['349243', '341448'].includes(productCodeStr)) {
             productType = 'upsell3';
+        } else if (productNameLower.includes('invisibility cloak') || productNameLower.includes('manto invisible') || productNameLower.includes('capa invisible')) {
+            productType = 'upsell4';
+        } else if (productNameLower.includes('live room') || productNameLower.includes('live access') || productNameLower.includes('acceso en vivo') || productNameLower.includes('cámara en vivo')) {
+            productType = 'upsell5';
+        } else if (productNameLower.includes('multi-device') || productNameLower.includes('multi-dispositivo')) {
+            productType = 'upsell6';
+        } else if (productNameLower.includes('behavior analyst') || productNameLower.includes('analista de comportamiento')) {
+            productType = 'upsell7';
         }
         // Spanish products - Main: 349260=Front, 349261=UP1, 349266=UP2, 349267=UP3
         //                  - Affiliates: 338375=Front, 341452=UP1, 341453=UP2, 341454=UP3
@@ -1121,7 +1129,7 @@ router.all('/api/postback/perfectpay', async (req, res) => {
             funnelLanguage = 'es';
         }
         
-        // Identify product type (front/upsell1/upsell2/upsell3)
+        // Identify product type (front/upsell1-7)
         // PerfectPay English: PPPBE8FE=Front, PPPBE8FH=UP1, PPPBE8FI=UP2, PPPBE8FJ=UP3
         let productType = 'front';
         const ppCodeStr = String(productCode || '').toUpperCase();
@@ -1131,6 +1139,14 @@ router.all('/api/postback/perfectpay', async (req, res) => {
             productType = 'upsell2';
         } else if (ppCodeStr === 'PPPBE8FJ' || productNameLower.includes('instant') || productNameLower.includes('vip') || productNameLower.includes('priority')) {
             productType = 'upsell3';
+        } else if (productNameLower.includes('invisibility') || productNameLower.includes('cloak') || productNameLower.includes('manto invisible')) {
+            productType = 'upsell4';
+        } else if (productNameLower.includes('live room') || productNameLower.includes('live access') || productNameLower.includes('acceso en vivo')) {
+            productType = 'upsell5';
+        } else if (productNameLower.includes('multi-device') || productNameLower.includes('multi-dispositivo')) {
+            productType = 'upsell6';
+        } else if (productNameLower.includes('behavior analyst') || productNameLower.includes('analista de comportamiento')) {
+            productType = 'upsell7';
         }
         
         console.log(`🌐 PerfectPay Funnel: lang=${funnelLanguage}, source=${funnelSource}, type=${productType}`);
@@ -1171,11 +1187,11 @@ router.all('/api/postback/perfectpay', async (req, res) => {
         }
         
         // ==================== PARSE DATES ====================
-        // PerfectPay date format: "2019-04-10 18:50:56"
+        // PerfectPay date format: "2019-04-10 18:50:56" in BRT (America/Sao_Paulo, UTC-3)
         let saleDate = null;
         try {
             if (dateCreated) {
-                saleDate = new Date(dateCreated);
+                saleDate = new Date(dateCreated.replace(' ', 'T') + '-03:00');
                 if (isNaN(saleDate.getTime())) saleDate = null;
             }
         } catch (e) { saleDate = null; }
@@ -1480,6 +1496,64 @@ router.all('/api/postback/perfectpay', async (req, res) => {
         
         // Still return 200 to prevent PerfectPay from retrying
         res.status(200).json({ status: 'ok' });
+    }
+});
+
+// Admin: Fix PerfectPay transaction dates (BRT timezone correction)
+router.post('/api/admin/fix-perfectpay-dates', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        // PerfectPay date_created is in BRT but was stored as UTC.
+        // Re-parse from raw_data and store with correct timezone offset.
+        const ppTransactions = await pool.query(`
+            SELECT id, transaction_id, raw_data, created_at
+            FROM transactions 
+            WHERE funnel_source = 'perfectpay' AND transaction_id LIKE 'PP_%'
+        `);
+        
+        let fixed = 0;
+        let skipped = 0;
+        const details = [];
+        
+        for (const tx of ppTransactions.rows) {
+            const rawData = typeof tx.raw_data === 'string' ? JSON.parse(tx.raw_data) : tx.raw_data;
+            const dateCreated = rawData?.date_created;
+            
+            if (!dateCreated) {
+                skipped++;
+                continue;
+            }
+            
+            const correctedDate = new Date(dateCreated.replace(' ', 'T') + '-03:00');
+            if (isNaN(correctedDate.getTime())) {
+                skipped++;
+                continue;
+            }
+            
+            const oldDate = new Date(tx.created_at);
+            const diffHours = Math.abs(correctedDate.getTime() - oldDate.getTime()) / (1000 * 60 * 60);
+            
+            if (diffHours > 0.1) {
+                await pool.query(
+                    'UPDATE transactions SET created_at = $1 WHERE id = $2',
+                    [correctedDate, tx.id]
+                );
+                details.push({
+                    transaction_id: tx.transaction_id,
+                    old_created_at: tx.created_at,
+                    new_created_at: correctedDate.toISOString(),
+                    diff_hours: diffHours.toFixed(1)
+                });
+                fixed++;
+            } else {
+                skipped++;
+            }
+        }
+        
+        console.log(`🔧 PerfectPay date fix: ${fixed} fixed, ${skipped} skipped`);
+        res.json({ success: true, fixed, skipped, total: ppTransactions.rows.length, details });
+    } catch (error) {
+        console.error('Error fixing PerfectPay dates:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
