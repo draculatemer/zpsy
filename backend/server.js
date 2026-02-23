@@ -209,27 +209,23 @@ app.get('/go/:slug', async (req, res) => {
 
 // ==================== STATIC FILE SERVING ====================
 
+// Admin panel served from backend/public/
 app.use(express.static('public'));
-app.use('/ingles', express.static(path.join(__dirname, 'public', 'ingles')));
-app.use('/espanhol', express.static(path.join(__dirname, 'public', 'espanhol')));
-app.use('/perfectpay', express.static(path.join(__dirname, 'public', 'perfectpay')));
-app.use('/ingles3', express.static(path.join(__dirname, 'public', 'ingles3')));
-app.use('/en', express.static(path.join(__dirname, 'public', 'ingles')));
-app.use('/es', express.static(path.join(__dirname, 'public', 'espanhol')));
+
+// Funnels served from monetizze/ (repo root)
+const funnelPath = path.join(__dirname, '..', 'monetizze');
+app.use('/ingles', express.static(path.join(funnelPath, 'ingles')));
+app.use('/espanhol', express.static(path.join(funnelPath, 'espanhol')));
+app.use('/en', express.static(path.join(funnelPath, 'ingles')));
+app.use('/es', express.static(path.join(funnelPath, 'espanhol')));
 
 // Domain-based routing
 app.use((req, res, next) => {
     const host = req.hostname || req.headers.host || '';
-    if (host.includes('perfect') || host.includes('perfect.zappdetect')) {
-        if (req.path.startsWith('/ingles')) {
-            const newPath = req.path.replace('/ingles', '');
-            req.url = newPath || '/';
-        }
-        express.static(path.join(__dirname, 'public', 'perfectpay'))(req, res, next);
-    } else if (host.includes('ingles') || host.includes('ingles.zappdetect')) {
-        express.static(path.join(__dirname, 'public', 'ingles'))(req, res, next);
+    if (host.includes('ingles') || host.includes('ingles.zappdetect')) {
+        express.static(path.join(funnelPath, 'ingles'))(req, res, next);
     } else if (host.includes('espanhol') || host.includes('espanhol.zappdetect')) {
-        express.static(path.join(__dirname, 'public', 'espanhol'))(req, res, next);
+        express.static(path.join(funnelPath, 'espanhol'))(req, res, next);
     } else {
         next();
     }

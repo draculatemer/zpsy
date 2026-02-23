@@ -16,6 +16,13 @@ const FB_PIXELS_BY_LANGUAGE = {
             token: process.env.FB_PIXEL_TOKEN_ES || 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
             name: 'PIXEL SPY ESPANHOL'
         }
+    ],
+    pt: [
+        {
+            id: '820651673268238',
+            token: process.env.FB_PIXEL_TOKEN_PT || 'EAALZCphpZCmcIBQ8cg9hswdI4uIXKLSil7qKGG3lY7tpz40BKqA0JYNay9qKon7SpOEFS7UxmvtizBaSzSiXZBNfXRHGFp0LW5rO4rhiYfS5C9UvoZAWDrW4A8RgwQOxFr011oCtMcyvRIwIUGci1yZAtd4iFaG7UUQh9pfBEbt129yMT4KUNRN9EsHmj7fEZAiAZDZD',
+            name: 'PIXEL SPY PORTUGUES'
+        }
     ]
 };
 

@@ -522,6 +522,8 @@ async function sendMissingCAPIPurchases() {
                 if (funnelSource === 'perfectpay') {
                     eventSourceUrl = funnelLanguage === 'es' 
                         ? 'https://perfect.zappdetect.com/espanhol/' 
+                        : funnelLanguage === 'pt'
+                        ? 'https://perfect.zappdetect.com/portugues/'
                         : 'https://perfect.zappdetect.com/ingles/';
                 } else if (funnelSource === 'affiliate') {
                     eventSourceUrl = funnelLanguage === 'es' 
@@ -530,6 +532,8 @@ async function sendMissingCAPIPurchases() {
                 } else {
                     eventSourceUrl = funnelLanguage === 'es' 
                         ? 'https://espanhol.zappdetect.com/' 
+                        : funnelLanguage === 'pt'
+                        ? 'https://portugues.zappdetect.com/'
                         : 'https://ingles.zappdetect.com/';
                 }
                 

@@ -1341,6 +1341,18 @@ Estou aqui para esclarecer tudo! 😊`
                 { key: 'upsell_3_view', label: 'Upsell 3 - View', section: 'upsell' },
                 { key: 'upsell_3_accepted', label: 'Upsell 3 - Aceito ✅', section: 'upsell', isConversion: true },
                 { key: 'upsell_3_declined', label: 'Upsell 3 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_4_view', label: 'Upsell 4 - View', section: 'upsell' },
+                { key: 'upsell_4_accepted', label: 'Upsell 4 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_4_declined', label: 'Upsell 4 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_5_view', label: 'Upsell 5 - View', section: 'upsell' },
+                { key: 'upsell_5_accepted', label: 'Upsell 5 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_5_declined', label: 'Upsell 5 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_6_view', label: 'Upsell 6 - View', section: 'upsell' },
+                { key: 'upsell_6_accepted', label: 'Upsell 6 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_6_declined', label: 'Upsell 6 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_7_view', label: 'Upsell 7 - View', section: 'upsell' },
+                { key: 'upsell_7_accepted', label: 'Upsell 7 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_7_declined', label: 'Upsell 7 - Recusado', section: 'upsell', isDecline: true },
                 { key: 'thankyou_view', label: 'Obrigado', section: 'upsell' }
             ];
             
@@ -1389,29 +1401,23 @@ Estou aqui para esclarecer tudo! 😊`
             if (hasUpsellData) {
                 html += '<h4 style="color: var(--text-secondary); margin: 24px 0 12px 0; font-size: 13px; border-top: 1px solid var(--border); padding-top: 20px;">🚀 UPSELLS</h4>';
                 
-                // Calculate upsell stats
-                const up1Conv = upsell1View > 0 ? ((upsell1Accept / upsell1View) * 100).toFixed(1) : 0;
-                const up2View = statsMap['upsell_2_view'] || 0;
-                const up2Accept = statsMap['upsell_2_accepted'] || 0;
-                const up2Conv = up2View > 0 ? ((up2Accept / up2View) * 100).toFixed(1) : 0;
-                const up3View = statsMap['upsell_3_view'] || 0;
-                const up3Accept = statsMap['upsell_3_accepted'] || 0;
-                const up3Conv = up3View > 0 ? ((up3Accept / up3View) * 100).toFixed(1) : 0;
-                
-                html += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up1Conv}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 1</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up2Conv}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 2</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up3Conv}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 3</div>
-                    </div>
-                </div>`;
+                // Calculate upsell conversion stats dynamically
+                const upsellConvCards = [];
+                for (let i = 1; i <= 7; i++) {
+                    const upView = statsMap[`upsell_${i}_view`] || 0;
+                    const upAccept = statsMap[`upsell_${i}_accepted`] || 0;
+                    if (upView > 0) {
+                        const conv = ((upAccept / upView) * 100).toFixed(1);
+                        upsellConvCards.push(`<div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${conv}%</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Upsell ${i}</div>
+                    </div>`);
+                    }
+                }
+                if (upsellConvCards.length > 0) {
+                    const cols = Math.min(upsellConvCards.length, 4);
+                    html += `<div style="display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 12px; margin-bottom: 16px;">${upsellConvCards.join('')}</div>`;
+                }
                 
                 prevValue = checkoutVisitors; // Start from checkout
                 upsellFunnelOrder.forEach(step => {
@@ -1461,6 +1467,18 @@ Estou aqui para esclarecer tudo! 😊`
             'upsell_3_view': 'Upsell 3 - Visualizou',
             'upsell_3_accepted': 'Upsell 3 - Aceitou ✅',
             'upsell_3_declined': 'Upsell 3 - Recusou ❌',
+            'upsell_4_view': 'Upsell 4 - Visualizou',
+            'upsell_4_accepted': 'Upsell 4 - Aceitou ✅',
+            'upsell_4_declined': 'Upsell 4 - Recusou ❌',
+            'upsell_5_view': 'Upsell 5 - Visualizou',
+            'upsell_5_accepted': 'Upsell 5 - Aceitou ✅',
+            'upsell_5_declined': 'Upsell 5 - Recusou ❌',
+            'upsell_6_view': 'Upsell 6 - Visualizou',
+            'upsell_6_accepted': 'Upsell 6 - Aceitou ✅',
+            'upsell_6_declined': 'Upsell 6 - Recusou ❌',
+            'upsell_7_view': 'Upsell 7 - Visualizou',
+            'upsell_7_accepted': 'Upsell 7 - Aceitou ✅',
+            'upsell_7_declined': 'Upsell 7 - Recusou ❌',
             'thankyou_view': 'Página Obrigado'
         };
         
@@ -1477,6 +1495,10 @@ Estou aqui para esclarecer tudo! 😊`
                 'upsell_1_view': 'Up1 👁️', 'upsell_1_accepted': 'Up1 ✅', 'upsell_1_declined': 'Up1 ❌',
                 'upsell_2_view': 'Up2 👁️', 'upsell_2_accepted': 'Up2 ✅', 'upsell_2_declined': 'Up2 ❌',
                 'upsell_3_view': 'Up3 👁️', 'upsell_3_accepted': 'Up3 ✅', 'upsell_3_declined': 'Up3 ❌',
+                'upsell_4_view': 'Up4 👁️', 'upsell_4_accepted': 'Up4 ✅', 'upsell_4_declined': 'Up4 ❌',
+                'upsell_5_view': 'Up5 👁️', 'upsell_5_accepted': 'Up5 ✅', 'upsell_5_declined': 'Up5 ❌',
+                'upsell_6_view': 'Up6 👁️', 'upsell_6_accepted': 'Up6 ✅', 'upsell_6_declined': 'Up6 ❌',
+                'upsell_7_view': 'Up7 👁️', 'upsell_7_accepted': 'Up7 ✅', 'upsell_7_declined': 'Up7 ❌',
                 'thankyou_view': 'Obrigado'
             };
             let html = '';

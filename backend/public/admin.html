@@ -172,6 +172,7 @@
                             <option value="">🌍 Todos os Funis</option>
                             <option value="en">🇺🇸 Inglês</option>
                             <option value="es">🇪🇸 Espanhol</option>
+                            <option value="pt">🇧🇷 Português</option>
                         </select>
                         <select class="funnel-selector" id="globalSourceFilter" onchange="onGlobalFilterChange()" title="Filtrar por origem do funil" style="min-width: 140px;">
                             <option value="">📦 Todas as Origens</option>
@@ -749,6 +750,7 @@
                                     <option value="">🌍 Todos os Funis</option>
                                     <option value="en">🇺🇸 Inglês</option>
                                     <option value="es">🇪🇸 Espanhol</option>
+                                    <option value="pt">🇧🇷 Português</option>
                                 </select>
                                 <select class="funnel-selector" id="statusFilter" style="min-width: 160px;">
                                     <option value="">📋 Todos os Status</option>
@@ -823,6 +825,7 @@
                                     <option value="">🌍 Todos os Funis</option>
                                     <option value="en">🇺🇸 Inglês</option>
                                     <option value="es">🇪🇸 Espanhol</option>
+                                    <option value="pt">🇧🇷 Português</option>
                                 </select>
                                 <select class="funnel-selector" id="clientSourceFilter" style="min-width: 160px;">
                                     <option value="">📦 Todas as Origens</option>
@@ -1941,6 +1944,7 @@
                                     <option value="">🌍 Todos Funis</option>
                                     <option value="en">🇺🇸 Inglês</option>
                                     <option value="es">🇪🇸 Espanhol</option>
+                                    <option value="pt">🇧🇷 Português</option>
                                 </select>
                                 <select id="journeyFilterGender" onchange="filterJourneys()" class="funnel-selector" style="min-width: 150px;">
                                     <option value="">👥 Todos Gêneros</option>
@@ -1955,6 +1959,16 @@
                                     <option value="upsell_1_accepted">💰 Comprou Upsell 1</option>
                                     <option value="upsell_2_view">🎁 Viu Upsell 2</option>
                                     <option value="upsell_2_accepted">💰 Comprou Upsell 2</option>
+                                    <option value="upsell_3_view">🎁 Viu Upsell 3</option>
+                                    <option value="upsell_3_accepted">💰 Comprou Upsell 3</option>
+                                    <option value="upsell_4_view">🎁 Viu Upsell 4</option>
+                                    <option value="upsell_4_accepted">💰 Comprou Upsell 4</option>
+                                    <option value="upsell_5_view">🎁 Viu Upsell 5</option>
+                                    <option value="upsell_5_accepted">💰 Comprou Upsell 5</option>
+                                    <option value="upsell_6_view">🎁 Viu Upsell 6</option>
+                                    <option value="upsell_6_accepted">💰 Comprou Upsell 6</option>
+                                    <option value="upsell_7_view">🎁 Viu Upsell 7</option>
+                                    <option value="upsell_7_accepted">💰 Comprou Upsell 7</option>
                                     <option value="thankyou_view">🎉 Chegou no Obrigado</option>
                                 </select>
                                 <select id="journeyFilterHasEmail" onchange="filterJourneys()" class="funnel-selector" style="min-width: 140px;">
@@ -3009,6 +3023,7 @@
                             <button class="btn-secondary pixel-filter active" data-filter="all" onclick="filterPixelData('all')">Todos</button>
                             <button class="btn-secondary pixel-filter" data-filter="en" onclick="filterPixelData('en')">🇺🇸 Inglês</button>
                             <button class="btn-secondary pixel-filter" data-filter="es" onclick="filterPixelData('es')">🇪🇸 Espanhol</button>
+                            <button class="btn-secondary pixel-filter" data-filter="pt" onclick="filterPixelData('pt')">🇧🇷 Português</button>
                             <span style="font-size: 12px; color: var(--text-muted); align-self: center; margin-left: 8px;">Período:</span>
                             <select class="form-input" id="pixelDateRange" style="width: auto; padding: 8px 12px;" onchange="loadPixelStats(); loadPurchaseCAPILogs()">
                                 <option value="30min">Últimos 30 min</option>
@@ -3411,6 +3426,7 @@
                                 <select class="form-input" id="testPostbackLang">
                                     <option value="en">Inglês</option>
                                     <option value="es">Espanhol</option>
+                                    <option value="pt">Português</option>
                                 </select>
                             </div>
                         </div>
@@ -5645,7 +5661,7 @@ Estou aqui para esclarecer tudo! 😊`
                 }
                 
                 // Update count with language indicator
-                const langLabel = language === 'en' ? ' (Inglês)' : language === 'es' ? ' (Espanhol)' : '';
+                const langLabel = language === 'en' ? ' (Inglês)' : language === 'es' ? ' (Espanhol)' : language === 'pt' ? ' (Português)' : '';
                 const total = data.pagination ? data.pagination.total : 0;
                 document.getElementById('panelLeadCount').textContent = `${total} leads${langLabel}`;
             } catch (error) {
@@ -5662,6 +5678,8 @@ Estou aqui para esclarecer tudo! 😊`
                 indicator.innerHTML = '<span class="lang-badge en">🇺🇸 English</span>';
             } else if (lang === 'es') {
                 indicator.innerHTML = '<span class="lang-badge es">🇪🇸 Español</span>';
+            } else if (lang === 'pt') {
+                indicator.innerHTML = '<span class="lang-badge pt">🇧🇷 Português</span>';
             } else {
                 indicator.innerHTML = '<span class="lang-badge all">🌍 Todos</span>';
             }
@@ -7426,7 +7444,7 @@ Estou aqui para esclarecer tudo! 😊`
                 // Update filter info display
                 const filterInfo = document.getElementById('funnelFilterInfo');
                 if (filterInfo) {
-                    const langLabel = langFilter === 'en' ? '🇺🇸 Inglês' : langFilter === 'es' ? '🇪🇸 Espanhol' : '🌍 Todos os idiomas';
+                    const langLabel = langFilter === 'en' ? '🇺🇸 Inglês' : langFilter === 'es' ? '🇪🇸 Espanhol' : langFilter === 'pt' ? '🇧🇷 Português' : '🌍 Todos os idiomas';
                     const sourceLabel = sourceFilter === 'main' ? '🏠 Principal' : sourceFilter === 'affiliate' ? '🤝 Afiliados' : sourceFilter === 'perfectpay' ? '💳 PerfectPay' : '📦 Todas as origens';
                     filterInfo.textContent = `${langLabel} • ${sourceLabel}`;
                 }
@@ -7610,6 +7628,8 @@ Estou aqui para esclarecer tudo! 😊`
                 indicator.innerHTML = '<span class="lang-badge en">🇺🇸 English</span>';
             } else if (lang === 'es') {
                 indicator.innerHTML = '<span class="lang-badge es">🇪🇸 Español</span>';
+            } else if (lang === 'pt') {
+                indicator.innerHTML = '<span class="lang-badge pt">🇧🇷 Português</span>';
             } else {
                 indicator.innerHTML = '<span class="lang-badge all">🌍 Todos</span>';
             }
@@ -7638,6 +7658,18 @@ Estou aqui para esclarecer tudo! 😊`
                 { key: 'upsell_3_view', label: 'Upsell 3 - View', section: 'upsell' },
                 { key: 'upsell_3_accepted', label: 'Upsell 3 - Aceito ✅', section: 'upsell', isConversion: true },
                 { key: 'upsell_3_declined', label: 'Upsell 3 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_4_view', label: 'Upsell 4 - View', section: 'upsell' },
+                { key: 'upsell_4_accepted', label: 'Upsell 4 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_4_declined', label: 'Upsell 4 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_5_view', label: 'Upsell 5 - View', section: 'upsell' },
+                { key: 'upsell_5_accepted', label: 'Upsell 5 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_5_declined', label: 'Upsell 5 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_6_view', label: 'Upsell 6 - View', section: 'upsell' },
+                { key: 'upsell_6_accepted', label: 'Upsell 6 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_6_declined', label: 'Upsell 6 - Recusado', section: 'upsell', isDecline: true },
+                { key: 'upsell_7_view', label: 'Upsell 7 - View', section: 'upsell' },
+                { key: 'upsell_7_accepted', label: 'Upsell 7 - Aceito ✅', section: 'upsell', isConversion: true },
+                { key: 'upsell_7_declined', label: 'Upsell 7 - Recusado', section: 'upsell', isDecline: true },
                 { key: 'thankyou_view', label: 'Obrigado', section: 'upsell' }
             ];
             
@@ -7718,80 +7750,67 @@ Estou aqui para esclarecer tudo! 😊`
             // Render upsell funnel using REAL transaction data (not tracking events)
             // This ensures accuracy - only count actual approved sales
             const frontSales = transactionStats?.front || 0;
-            const up1Sales = transactionStats?.upsell1 || 0;
-            const up2Sales = transactionStats?.upsell2 || 0;
-            const up3Sales = transactionStats?.upsell3 || 0;
+            const upsellSalesData = [];
+            const upsellBarColors = [
+                ['#8b5cf6', '#7c3aed'],
+                ['#6366f1', '#4f46e5'],
+                ['#3b82f6', '#2563eb'],
+                ['#0ea5e9', '#0284c7'],
+                ['#14b8a6', '#0d9488'],
+                ['#f59e0b', '#d97706'],
+                ['#f97316', '#ea580c']
+            ];
+            for (let i = 1; i <= 7; i++) {
+                upsellSalesData.push({ num: i, sales: transactionStats?.[`upsell${i}`] || 0 });
+            }
             
-            const hasUpsellData = up1Sales > 0 || up2Sales > 0 || up3Sales > 0;
+            const hasUpsellData = upsellSalesData.some(u => u.sales > 0);
             if (hasUpsellData && frontSales > 0) {
                 html += '<h4 style="color: var(--text-secondary); margin: 24px 0 12px 0; font-size: 13px; border-top: 1px solid var(--border); padding-top: 20px;">🚀 UPSELLS (Vendas Aprovadas)</h4>';
                 
-                // Calculate take rates based on REAL transaction data
-                const up1TakeRate = frontSales > 0 ? ((up1Sales / frontSales) * 100).toFixed(1) : 0;
-                const up2TakeRate = frontSales > 0 ? ((up2Sales / frontSales) * 100).toFixed(1) : 0;
-                const up3TakeRate = frontSales > 0 ? ((up3Sales / frontSales) * 100).toFixed(1) : 0;
+                const activeUpsells = upsellSalesData.filter(u => u.sales > 0);
+                const gridCols = Math.min(activeUpsells.length, 4);
+                html += `<div style="display: grid; grid-template-columns: repeat(${gridCols}, 1fr); gap: 12px; margin-bottom: 16px;">`;
+                activeUpsells.forEach(u => {
+                    const takeRate = frontSales > 0 ? ((u.sales / frontSales) * 100).toFixed(1) : 0;
+                    html += `<div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${takeRate}%</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Upsell ${u.num} Take Rate</div>
+                        <div style="font-size: 10px; color: var(--text-muted);">${u.sales} de ${frontSales}</div>
+                    </div>`;
+                });
+                html += '</div>';
                 
-                html += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up1TakeRate}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 1 Take Rate</div>
-                        <div style="font-size: 10px; color: var(--text-muted);">${up1Sales} de ${frontSales}</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up2TakeRate}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 2 Take Rate</div>
-                        <div style="font-size: 10px; color: var(--text-muted);">${up2Sales} de ${frontSales}</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 20px; font-weight: 600; color: var(--accent);">${up3TakeRate}%</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Upsell 3 Take Rate</div>
-                        <div style="font-size: 10px; color: var(--text-muted);">${up3Sales} de ${frontSales}</div>
-                    </div>
-                </div>`;
+                const upsellMaxValue = Math.max(frontSales, ...upsellSalesData.map(u => u.sales));
                 
-                // Show upsell funnel bars based on real sales
-                const upsellMaxValue = Math.max(frontSales, up1Sales, up2Sales, up3Sales);
-                
-                // Front sales bar
                 const frontWidth = upsellMaxValue > 0 ? Math.max((frontSales / upsellMaxValue) * 100, 20) : 20;
                 html += `<div class="funnel-step"><div class="funnel-bar" style="width: ${frontWidth}%; background: linear-gradient(90deg, #10b981, #059669);"><span class="funnel-step-name">FRONT (Aprovadas)</span><span class="funnel-step-value">${frontSales}</span></div></div>`;
                 
-                // Upsell 1 bar
-                if (up1Sales > 0) {
-                    const up1Width = upsellMaxValue > 0 ? Math.max((up1Sales / upsellMaxValue) * 100, 15) : 15;
-                    html += `<div class="funnel-step"><div class="funnel-bar" style="width: ${up1Width}%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"><span class="funnel-step-name">UPSELL 1</span><span class="funnel-step-value">${up1Sales}</span></div></div>`;
-                }
-                
-                // Upsell 2 bar
-                if (up2Sales > 0) {
-                    const up2Width = upsellMaxValue > 0 ? Math.max((up2Sales / upsellMaxValue) * 100, 15) : 15;
-                    html += `<div class="funnel-step"><div class="funnel-bar" style="width: ${up2Width}%; background: linear-gradient(90deg, #6366f1, #4f46e5);"><span class="funnel-step-name">UPSELL 2</span><span class="funnel-step-value">${up2Sales}</span></div></div>`;
-                }
-                
-                // Upsell 3 bar
-                if (up3Sales > 0) {
-                    const up3Width = upsellMaxValue > 0 ? Math.max((up3Sales / upsellMaxValue) * 100, 15) : 15;
-                    html += `<div class="funnel-step"><div class="funnel-bar" style="width: ${up3Width}%; background: linear-gradient(90deg, #3b82f6, #2563eb);"><span class="funnel-step-name">UPSELL 3</span><span class="funnel-step-value">${up3Sales}</span></div></div>`;
-                }
+                upsellSalesData.forEach((u, idx) => {
+                    if (u.sales > 0) {
+                        const w = upsellMaxValue > 0 ? Math.max((u.sales / upsellMaxValue) * 100, 15) : 15;
+                        const [c1, c2] = upsellBarColors[idx];
+                        html += `<div class="funnel-step"><div class="funnel-bar" style="width: ${w}%; background: linear-gradient(90deg, ${c1}, ${c2});"><span class="funnel-step-name">UPSELL ${u.num}</span><span class="funnel-step-value">${u.sales}</span></div></div>`;
+                    }
+                });
             }
             
             // =====================================================
             // DIAGNÓSTICO DE UPSELLS - Comparativo Tracking vs Vendas
             // Ajuda a entender onde estão os gargalos no funil de upsell
             // =====================================================
-            const up1View = statsMap['upsell_1_view'] || 0;
-            const up1Accept = statsMap['upsell_1_accepted'] || 0;
-            const up1Decline = statsMap['upsell_1_declined'] || 0;
-            const up2View = statsMap['upsell_2_view'] || 0;
-            const up2Accept = statsMap['upsell_2_accepted'] || 0;
-            const up2Decline = statsMap['upsell_2_declined'] || 0;
-            const up3View = statsMap['upsell_3_view'] || 0;
-            const up3Accept = statsMap['upsell_3_accepted'] || 0;
-            const up3Decline = statsMap['upsell_3_declined'] || 0;
-            // thankyouView already declared above
+            const upDiag = [];
+            for (let i = 1; i <= 7; i++) {
+                upDiag.push({
+                    num: i,
+                    view: statsMap[`upsell_${i}_view`] || 0,
+                    accept: statsMap[`upsell_${i}_accepted`] || 0,
+                    decline: statsMap[`upsell_${i}_declined`] || 0,
+                    sales: transactionStats?.[`upsell${i}`] || 0
+                });
+            }
             
-            // Only show diagnostic if there's tracking data
-            if (up1View > 0 || up2View > 0 || up3View > 0) {
+            if (upDiag.some(u => u.view > 0)) {
                 html += '<h4 style="color: var(--text-secondary); margin: 24px 0 12px 0; font-size: 13px; border-top: 1px solid var(--border); padding-top: 20px;">🔍 DIAGNÓSTICO DE UPSELLS (Eventos de Tracking)</h4>';
                 html += '<p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">⚠️ Estes números vêm do tracking JavaScript e podem incluir acessos inválidos. Use para diagnóstico, não como métrica oficial.</p>';
                 
@@ -7809,41 +7828,21 @@ Estou aqui para esclarecer tudo! 😊`
                     </thead>
                     <tbody>`;
                 
-                // Upsell 1 row
-                const up1ClickToSale = up1Accept > 0 ? ((up1Sales / up1Accept) * 100).toFixed(0) : 0;
-                const up1Problem = up1Accept > 0 && up1Sales < up1Accept ? 'color: #ef4444;' : 'color: #10b981;';
-                html += `<tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px 4px; font-weight: 600;">Upsell 1</td>
-                    <td style="text-align: center; padding: 8px 4px;">${up1View}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #10b981;">${up1Accept}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #ef4444;">${up1Decline}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #8b5cf6; font-weight: 600;">${up1Sales}</td>
-                    <td style="text-align: center; padding: 8px 4px; ${up1Problem} font-weight: 600;">${up1ClickToSale}%</td>
-                </tr>`;
-                
-                // Upsell 2 row
-                const up2ClickToSale = up2Accept > 0 ? ((up2Sales / up2Accept) * 100).toFixed(0) : 0;
-                const up2Problem = up2Accept > 0 && up2Sales < up2Accept ? 'color: #ef4444;' : 'color: #10b981;';
-                html += `<tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px 4px; font-weight: 600;">Upsell 2</td>
-                    <td style="text-align: center; padding: 8px 4px;">${up2View}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #10b981;">${up2Accept}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #ef4444;">${up2Decline}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #6366f1; font-weight: 600;">${up2Sales}</td>
-                    <td style="text-align: center; padding: 8px 4px; ${up2Problem} font-weight: 600;">${up2ClickToSale}%</td>
-                </tr>`;
-                
-                // Upsell 3 row
-                const up3ClickToSale = up3Accept > 0 ? ((up3Sales / up3Accept) * 100).toFixed(0) : 0;
-                const up3Problem = up3Accept > 0 && up3Sales < up3Accept ? 'color: #ef4444;' : 'color: #10b981;';
-                html += `<tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px 4px; font-weight: 600;">Upsell 3</td>
-                    <td style="text-align: center; padding: 8px 4px;">${up3View}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #10b981;">${up3Accept}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #ef4444;">${up3Decline}</td>
-                    <td style="text-align: center; padding: 8px 4px; color: #3b82f6; font-weight: 600;">${up3Sales}</td>
-                    <td style="text-align: center; padding: 8px 4px; ${up3Problem} font-weight: 600;">${up3ClickToSale}%</td>
-                </tr>`;
+                const diagColors = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#14b8a6', '#f59e0b', '#f97316'];
+                upDiag.forEach((u, idx) => {
+                    if (u.view > 0 || u.accept > 0 || u.sales > 0) {
+                        const clickToSale = u.accept > 0 ? ((u.sales / u.accept) * 100).toFixed(0) : 0;
+                        const problemStyle = u.accept > 0 && u.sales < u.accept ? 'color: #ef4444;' : 'color: #10b981;';
+                        html += `<tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 8px 4px; font-weight: 600;">Upsell ${u.num}</td>
+                            <td style="text-align: center; padding: 8px 4px;">${u.view}</td>
+                            <td style="text-align: center; padding: 8px 4px; color: #10b981;">${u.accept}</td>
+                            <td style="text-align: center; padding: 8px 4px; color: #ef4444;">${u.decline}</td>
+                            <td style="text-align: center; padding: 8px 4px; color: ${diagColors[idx]}; font-weight: 600;">${u.sales}</td>
+                            <td style="text-align: center; padding: 8px 4px; ${problemStyle} font-weight: 600;">${clickToSale}%</td>
+                        </tr>`;
+                    }
+                });
                 
                 html += `</tbody></table>`;
                 
@@ -7852,42 +7851,41 @@ Estou aqui para esclarecer tudo! 😊`
                 html += '<strong style="color: var(--text-primary);">💡 Insights:</strong><ul style="margin: 8px 0 0 0; padding-left: 16px; color: var(--text-muted);">';
                 
                 // Insight 1: Views vs Front Sales discrepancy
-                if (up1View > frontSales && frontSales > 0) {
-                    const viewsExtra = up1View - frontSales;
+                if (upDiag[0].view > frontSales && frontSales > 0) {
+                    const viewsExtra = upDiag[0].view - frontSales;
                     html += `<li style="margin-bottom: 4px;"><span style="color: #f59e0b;">⚠️</span> ${viewsExtra} views de Upsell 1 sem compra do Front - possíveis acessos diretos, bots ou reloads</li>`;
                 }
                 
-                // Insight 2: Click to Sale rate problems
-                if (up1Accept > 0 && up1Sales < up1Accept * 0.5) {
-                    const lostSales = up1Accept - up1Sales;
-                    html += `<li style="margin-bottom: 4px;"><span style="color: #ef4444;">🚨</span> ${lostSales} cliques em "Aceitar" Upsell 1 não viraram venda - possível problema no 1-click do Monetizze</li>`;
-                }
-                if (up2Accept > 0 && up2Sales < up2Accept * 0.5) {
-                    const lostSales = up2Accept - up2Sales;
-                    html += `<li style="margin-bottom: 4px;"><span style="color: #ef4444;">🚨</span> ${lostSales} cliques em "Aceitar" Upsell 2 não viraram venda - possível problema no 1-click</li>`;
-                }
-                if (up3Accept > 0 && up3Sales < up3Accept * 0.5) {
-                    const lostSales = up3Accept - up3Sales;
-                    html += `<li style="margin-bottom: 4px;"><span style="color: #ef4444;">🚨</span> ${lostSales} cliques em "Aceitar" Upsell 3 não viraram venda - possível problema no 1-click</li>`;
-                }
+                // Insight 2: Click to Sale rate problems (all upsells)
+                upDiag.forEach(u => {
+                    if (u.accept > 0 && u.sales < u.accept * 0.5) {
+                        const lostSales = u.accept - u.sales;
+                        html += `<li style="margin-bottom: 4px;"><span style="color: #ef4444;">🚨</span> ${lostSales} cliques em "Aceitar" Upsell ${u.num} não viraram venda - possível problema no 1-click</li>`;
+                    }
+                });
                 
-                // Insight 3: Decline rate analysis
-                const totalUp1Actions = up1Accept + up1Decline;
-                if (totalUp1Actions > 0 && up1Decline > up1Accept) {
-                    const declineRate = ((up1Decline / totalUp1Actions) * 100).toFixed(0);
-                    html += `<li style="margin-bottom: 4px;"><span style="color: #f59e0b;">📉</span> Taxa de recusa do Upsell 1: ${declineRate}% - considere melhorar a oferta ou copy</li>`;
-                }
+                // Insight 3: Decline rate analysis (all upsells)
+                upDiag.forEach(u => {
+                    const totalActions = u.accept + u.decline;
+                    if (totalActions > 0 && u.decline > u.accept) {
+                        const declineRate = ((u.decline / totalActions) * 100).toFixed(0);
+                        html += `<li style="margin-bottom: 4px;"><span style="color: #f59e0b;">📉</span> Taxa de recusa do Upsell ${u.num}: ${declineRate}% - considere melhorar a oferta ou copy</li>`;
+                    }
+                });
                 
                 // Insight 4: Thank you page analysis
                 if (thankyouView > 0) {
-                    const totalRealSales = frontSales + up1Sales + up2Sales + up3Sales;
+                    const totalRealSales = frontSales + upDiag.reduce((sum, u) => sum + u.sales, 0);
                     html += `<li style="margin-bottom: 4px;"><span style="color: #10b981;">✅</span> ${thankyouView} pessoas viram a página de obrigado</li>`;
                 }
                 
-                // Insight 5: Good performance
-                if (up1Accept > 0 && up1Sales >= up1Accept * 0.8) {
-                    html += `<li style="margin-bottom: 4px;"><span style="color: #10b981;">✅</span> Upsell 1 com boa conversão de clique para venda (${up1ClickToSale}%)</li>`;
-                }
+                // Insight 5: Good performance (all upsells)
+                upDiag.forEach(u => {
+                    if (u.accept > 0 && u.sales >= u.accept * 0.8) {
+                        const clickToSale = ((u.sales / u.accept) * 100).toFixed(0);
+                        html += `<li style="margin-bottom: 4px;"><span style="color: #10b981;">✅</span> Upsell ${u.num} com boa conversão de clique para venda (${clickToSale}%)</li>`;
+                    }
+                });
                 
                 html += '</ul></div>';
             }
@@ -7928,6 +7926,18 @@ Estou aqui para esclarecer tudo! 😊`
             'upsell_3_view': 'Upsell 3 - Visualizou',
             'upsell_3_accepted': 'Upsell 3 - Aceitou ✅',
             'upsell_3_declined': 'Upsell 3 - Recusou ❌',
+            'upsell_4_view': 'Upsell 4 - Visualizou',
+            'upsell_4_accepted': 'Upsell 4 - Aceitou ✅',
+            'upsell_4_declined': 'Upsell 4 - Recusou ❌',
+            'upsell_5_view': 'Upsell 5 - Visualizou',
+            'upsell_5_accepted': 'Upsell 5 - Aceitou ✅',
+            'upsell_5_declined': 'Upsell 5 - Recusou ❌',
+            'upsell_6_view': 'Upsell 6 - Visualizou',
+            'upsell_6_accepted': 'Upsell 6 - Aceitou ✅',
+            'upsell_6_declined': 'Upsell 6 - Recusou ❌',
+            'upsell_7_view': 'Upsell 7 - Visualizou',
+            'upsell_7_accepted': 'Upsell 7 - Aceitou ✅',
+            'upsell_7_declined': 'Upsell 7 - Recusou ❌',
             'thankyou_view': 'Página Obrigado'
         };
         
@@ -8328,6 +8338,8 @@ Estou aqui para esclarecer tudo! 😊`
             
             const funnelBadge = lead.funnel_language === 'es' 
                 ? '<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 11px;">🇪🇸 Espanhol</span>'
+                : lead.funnel_language === 'pt'
+                ? '<span style="background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 4px 10px; border-radius: 6px; font-size: 11px;">🇧🇷 Português</span>'
                 : '<span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 11px;">🇺🇸 Inglês</span>';
             
             document.getElementById('customerInfoData').innerHTML = `
@@ -8365,7 +8377,7 @@ Estou aqui para esclarecer tudo! 😊`
                 productsSection.style.display = 'block';
                 productsList.innerHTML = summary.productsPurchased.map(p => {
                     const [type, name] = p.split(':');
-                    const typeLabels = { 'front': '🎯 Front', 'upsell1': '⬆️ Upsell 1', 'upsell2': '⬆️ Upsell 2', 'upsell3': '⬆️ Upsell 3' };
+                    const typeLabels = { 'front': '🎯 Front', 'upsell1': '⬆️ Upsell 1', 'upsell2': '⬆️ Upsell 2', 'upsell3': '⬆️ Upsell 3', 'upsell4': '⬆️ Upsell 4', 'upsell5': '⬆️ Upsell 5', 'upsell6': '⬆️ Upsell 6', 'upsell7': '⬆️ Upsell 7' };
                     return `<span class="badge" style="background: rgba(0,230,118,0.15); color: #00e676; padding: 6px 12px;">${typeLabels[type] || type}: ${name || 'Produto'}</span>`;
                 }).join('');
             } else {
@@ -8666,6 +8678,8 @@ Estou aqui para esclarecer tudo! 😊`
                 langText = '<span class="lang-badge en">🇺🇸 English</span>';
             } else if (lang === 'es') {
                 langText = '<span class="lang-badge es">🇪🇸 Spanish</span>';
+            } else if (lang === 'pt') {
+                langText = '<span class="lang-badge pt">🇧🇷 Português</span>';
             } else {
                 langText = '<span class="lang-badge all">🌍 Todos</span>';
             }
@@ -9631,7 +9645,8 @@ Estou aqui para esclarecer tudo! 😊`
             // Language badge for modal
             const modalLangLabels = {
                 'en': { text: '🇺🇸 Inglês', color: '#3b82f6' },
-                'es': { text: '🇪🇸 Espanhol', color: '#f59e0b' }
+                'es': { text: '🇪🇸 Espanhol', color: '#f59e0b' },
+                'pt': { text: '🇧🇷 Português', color: '#22c55e' }
             };
             const modalDefaultLang = { text: '🌍 Não definido', color: '#71717a' };
             const modalLang = modalLangLabels[refund.funnel_language] || modalDefaultLang;
@@ -10770,7 +10785,7 @@ Estou aqui para esclarecer tudo! 😊`
                     eventsTable.innerHTML = capiLogs.map(log => {
                         const date = new Date(log.created_at);
                         const dateStr = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                        const pixelName = log.funnel_language === 'es' ? '🇪🇸 Espanhol' : '🇺🇸 Inglês';
+                        const pixelName = log.funnel_language === 'es' ? '🇪🇸 Espanhol' : log.funnel_language === 'pt' ? '🇧🇷 Português' : '🇺🇸 Inglês';
                         const params = [];
                         if (log.has_email) params.push('em');
                         if (log.has_fbc) params.push('fbc');
@@ -11015,7 +11030,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const total = s.total || 0;
                 const rows = [
                     ['Período', `${s.startDate} a ${s.endDate}`],
-                    ['Filtro funil', language === 'all' ? 'Todos' : language === 'en' ? 'Inglês' : 'Espanhol'],
+                    ['Filtro funil', language === 'all' ? 'Todos' : language === 'en' ? 'Inglês' : language === 'es' ? 'Espanhol' : 'Português'],
                     ['Total de leads', total],
                     ['Com FBP', s.with_fbp || 0],
                     ['Com FBC', s.with_fbc || 0],

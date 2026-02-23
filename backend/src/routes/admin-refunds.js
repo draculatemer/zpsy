@@ -861,7 +861,7 @@ router.get('/api/admin/sales', authenticateToken, async (req, res) => {
         ]);
         
         let funnelLangCondition = '';
-        if (language === 'en' || language === 'es') {
+        if (language === 'en' || language === 'es' || language === 'pt') {
             funnelLangCondition = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
         }
         

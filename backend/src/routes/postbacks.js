@@ -309,6 +309,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
         // First check idioma field from Monetizze
         if (idioma === 'es') {
             funnelLanguage = 'es';
+        } else if (idioma === 'pt') {
+            funnelLanguage = 'pt';
         } else if (productCode && spanishProductCodes.includes(String(productCode))) {
             funnelLanguage = 'es';
         } else if (productName && spanishProductKeywords.some(kw => productName.includes(kw))) {
@@ -789,6 +791,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
         if (funnelSource === 'perfectpay') {
             eventSourceUrl = funnelLanguage === 'es' 
                 ? 'https://perfect.zappdetect.com/espanhol/' 
+                : funnelLanguage === 'pt'
+                ? 'https://perfect.zappdetect.com/portugues/'
                 : 'https://perfect.zappdetect.com/ingles/';
         } else if (funnelSource === 'affiliate') {
             eventSourceUrl = funnelLanguage === 'es' 
@@ -797,6 +801,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
         } else {
             eventSourceUrl = funnelLanguage === 'es' 
                 ? 'https://espanhol.zappdetect.com/' 
+                : funnelLanguage === 'pt'
+                ? 'https://portugues.zappdetect.com/'
                 : 'https://ingles.zappdetect.com/';
         }
         
@@ -1154,9 +1160,20 @@ router.all('/api/postback/perfectpay', async (req, res) => {
         
         // Check UTM or product name for language hints
         const productNameLower = (productName || '').toLowerCase();
-        if (productNameLower.includes('infidelidad') || productNameLower.includes('recuperación') || 
-            utmCampaign === 'es' || utmSource === 'es') {
+        const utmCampaignLower = (utmCampaign || '').toLowerCase();
+        const utmSourceLower = (utmSource || '').toLowerCase();
+        const utmMediumLower = (utmMedium || '').toLowerCase();
+        if (productNameLower.includes('infidelidad') || productNameLower.includes('recuperación') ||
+            productNameLower.includes('visión total') || productNameLower.includes('vision total') ||
+            productNameLower.includes('vip sin esperas') || productNameLower.includes('manto invisible') ||
+            productNameLower.includes('sala en vivo') || productNameLower.includes('multi-dispositivo') ||
+            productNameLower.includes('analista de comportamiento') ||
+            utmCampaign === 'es' || utmSource === 'es' || utmMediumLower.includes('funnel_es') ||
+            utmCampaignLower.includes('funnel_es') || utmSourceLower.includes('funnel_es')) {
             funnelLanguage = 'es';
+        } else if (utmCampaignLower === 'pt' || utmSourceLower === 'pt' || utmMediumLower === 'pt' ||
+            utmCampaignLower.includes('portugues') || utmSourceLower.includes('portugues') || utmMediumLower.includes('portugues')) {
+            funnelLanguage = 'pt';
         }
         
         // Identify product type (front/upsell1-7)
@@ -1189,16 +1206,27 @@ router.all('/api/postback/perfectpay', async (req, res) => {
             return res.status(200).json({ status: 'ok', message: 'No email found, skipped' });
         }
         
-        // ==================== RESOLVE PHONE FROM LEADS ====================
+        // ==================== RESOLVE PHONE AND FUNNEL LANGUAGE FROM LEADS ====================
         let finalPhone = buyerPhone;
         try {
             const leadResult = await pool.query(
-                `SELECT whatsapp, name FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
+                `SELECT whatsapp, name, funnel_language FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                 [buyerEmail]
             );
-            if (leadResult.rows.length > 0 && leadResult.rows[0].whatsapp) {
-                finalPhone = leadResult.rows[0].whatsapp;
-                console.log(`📱 PerfectPay: Using WhatsApp from lead: ${finalPhone}`);
+            if (leadResult.rows.length > 0) {
+                const lead = leadResult.rows[0];
+                if (lead.whatsapp) {
+                    finalPhone = lead.whatsapp;
+                    console.log(`📱 PerfectPay: Using WhatsApp from lead: ${finalPhone}`);
+                }
+                // Use lead's funnel_language when we couldn't detect from UTM (e.g. Portuguese funnel)
+                if (funnelLanguage === 'en' && lead.funnel_language) {
+                    const leadLang = (lead.funnel_language || '').toLowerCase();
+                    if (leadLang === 'pt' || leadLang === 'pt-br' || leadLang === 'es') {
+                        funnelLanguage = leadLang.startsWith('pt') ? 'pt' : 'es';
+                        console.log(`🌐 PerfectPay: Using funnel language from lead: ${funnelLanguage}`);
+                    }
+                }
             }
         } catch (leadErr) {
             console.log(`⚠️ PerfectPay: Error looking up lead WhatsApp: ${leadErr.message}`);
@@ -1415,7 +1443,11 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                 num_items: 1
             };
             
-            const eventSourceUrl = 'https://perfect.zappdetect.com/ingles/';
+            const eventSourceUrl = funnelLanguage === 'es' 
+                ? 'https://perfect.zappdetect.com/espanhol/' 
+                : funnelLanguage === 'pt'
+                ? 'https://perfect.zappdetect.com/portugues/'
+                : 'https://perfect.zappdetect.com/ingles/';
             const eventId = `perfectpay_${transactionCode}_${statusEnum}`;
             const capiOptions = { language: funnelLanguage, eventTime: saleDate || null };
             

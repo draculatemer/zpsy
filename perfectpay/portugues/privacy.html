@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Política de Privacidade - ZapSpy.ai</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    fbq('init', '820651673268238', userData);
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Privacy Policy');
+            }
+        });
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #e9edef;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #25d366;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .last-updated {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #25d366;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #a0a0a0;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #a0a0a0;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Início
+        </a>
+
+        <h1>Política de Privacidade</h1>
+        <p class="last-updated">Última atualização: <script>document.write(new Date().toLocaleDateString('pt-BR', {day: 'numeric', month: 'long', year: 'numeric'}))</script></p>
+
+        <h2>1. Informações que Coletamos</h2>
+        <p>Quando você utiliza o ZapSpy.ai, podemos coletar as seguintes informações:</p>
+        <ul>
+            <li>Endereço de e-mail (para criação de conta e comunicação)</li>
+            <li>Informações de pagamento (processadas com segurança pelo nosso provedor de pagamento)</li>
+            <li>Dados de uso e análises</li>
+            <li>Informações do dispositivo e navegador</li>
+        </ul>
+
+        <h2>2. Como Utilizamos Suas Informações</h2>
+        <p>Utilizamos as informações coletadas para:</p>
+        <ul>
+            <li>Fornecer e manter nossos serviços</li>
+            <li>Processar transações e enviar informações relacionadas</li>
+            <li>Enviar comunicações promocionais (com seu consentimento)</li>
+            <li>Melhorar nossos serviços e a experiência do usuário</li>
+        </ul>
+
+        <h2>3. Segurança dos Dados</h2>
+        <p>Implementamos medidas de segurança padrão da indústria para proteger suas informações pessoais. Todas as transmissões de dados são criptografadas utilizando tecnologia SSL.</p>
+
+        <h2>4. Serviços de Terceiros</h2>
+        <p>Podemos utilizar serviços de terceiros para processamento de pagamentos, análises e marketing. Esses serviços possuem suas próprias políticas de privacidade que regem o uso das suas informações.</p>
+
+        <h2>5. Cookies</h2>
+        <p>Utilizamos cookies e tecnologias de rastreamento similares para melhorar sua experiência de navegação, analisar o tráfego do site e entender de onde vêm nossos visitantes.</p>
+
+        <h2>6. Seus Direitos</h2>
+        <p>Você tem o direito de:</p>
+        <ul>
+            <li>Acessar seus dados pessoais</li>
+            <li>Solicitar a correção dos seus dados</li>
+            <li>Solicitar a exclusão dos seus dados</li>
+            <li>Cancelar o recebimento de comunicações de marketing</li>
+        </ul>
+
+        <h2>7. Fale Conosco</h2>
+        <p>Se você tiver alguma dúvida sobre esta Política de Privacidade, entre em contato conosco:</p>
+        <p><strong>E-mail:</strong> support@zapspy.ai</p>
+
+        <div class="footer">
+            <p>&copy; <script>document.write(new Date().getFullYear())</script> ZapSpy.ai. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

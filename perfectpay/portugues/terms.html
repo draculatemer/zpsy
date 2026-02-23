@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Termos de Uso - ZapSpy.ai</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    fbq('init', '820651673268238', userData);
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Terms of Service');
+            }
+        });
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #e9edef;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #25d366;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .last-updated {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #25d366;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #a0a0a0;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #a0a0a0;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Início
+        </a>
+
+        <h1>Termos de Uso</h1>
+        <p class="last-updated">Última atualização: <script>document.write(new Date().toLocaleDateString('pt-BR', {day: 'numeric', month: 'long', year: 'numeric'}))</script></p>
+
+        <h2>1. Aceitação dos Termos</h2>
+        <p>Ao acessar e utilizar o ZapSpy.ai, você aceita e concorda em cumprir estes Termos de Uso. Se você não concordar com estes termos, por favor, não utilize nossos serviços.</p>
+
+        <h2>2. Descrição do Serviço</h2>
+        <p>O ZapSpy.ai fornece serviços digitais de monitoramento e recuperação de informações. Nossa plataforma foi desenvolvida para fins educacionais e informativos.</p>
+
+        <h2>3. Responsabilidades do Usuário</h2>
+        <p>Ao utilizar nosso serviço, você concorda em:</p>
+        <ul>
+            <li>Utilizar o serviço apenas para fins lícitos</li>
+            <li>Não violar nenhuma lei ou regulamentação aplicável</li>
+            <li>Não infringir os direitos de terceiros</li>
+            <li>Fornecer informações precisas durante o cadastro</li>
+            <li>Manter a confidencialidade da sua conta</li>
+        </ul>
+
+        <h2>4. Pagamento e Reembolsos</h2>
+        <p>Todas as compras estão sujeitas à nossa garantia de devolução do dinheiro em 30 dias. Se você não estiver satisfeito com nosso serviço por qualquer motivo, entre em contato com nossa equipe de suporte dentro de 30 dias após a compra para obter um reembolso integral.</p>
+
+        <h2>5. Propriedade Intelectual</h2>
+        <p>Todo o conteúdo, funcionalidades e recursos do ZapSpy.ai são de nossa propriedade e estão protegidos por leis internacionais de direitos autorais, marcas registradas e outras leis de propriedade intelectual.</p>
+
+        <h2>6. Limitação de Responsabilidade</h2>
+        <p>O ZapSpy.ai não será responsável por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos resultantes do seu uso ou da impossibilidade de usar o serviço.</p>
+
+        <h2>7. Isenção de Garantias</h2>
+        <p>O serviço é fornecido "como está", sem garantias de qualquer tipo, sejam expressas ou implícitas. Não garantimos que o serviço será ininterrupto, seguro ou livre de erros.</p>
+
+        <h2>8. Alterações nos Termos</h2>
+        <p>Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entrarão em vigor imediatamente após a publicação. O uso contínuo do serviço após as alterações constitui aceitação dos novos termos.</p>
+
+        <h2>9. Legislação Aplicável</h2>
+        <p>Estes termos serão regidos e interpretados de acordo com as leis aplicáveis, sem considerar conflitos de princípios legais.</p>
+
+        <h2>10. Informações de Contato</h2>
+        <p>Para quaisquer dúvidas sobre estes Termos de Uso, entre em contato conosco:</p>
+        <p><strong>E-mail:</strong> support@zapspy.ai</p>
+
+        <div class="footer">
+            <p>&copy; <script>document.write(new Date().getFullYear())</script> ZapSpy.ai. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

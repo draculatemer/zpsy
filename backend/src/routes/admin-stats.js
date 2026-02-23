@@ -17,6 +17,7 @@ router.get('/api/admin/active-users', authenticateToken, async (req, res) => {
                 COUNT(DISTINCT visitor_id) AS total_active,
                 COUNT(DISTINCT CASE WHEN COALESCE(metadata->>'funnelLanguage', 'en') = 'en' THEN visitor_id END) AS active_en,
                 COUNT(DISTINCT CASE WHEN metadata->>'funnelLanguage' = 'es' THEN visitor_id END) AS active_es,
+                COUNT(DISTINCT CASE WHEN metadata->>'funnelLanguage' = 'pt' THEN visitor_id END) AS active_pt,
                 COUNT(*) AS total_events
             FROM funnel_events
             WHERE created_at >= NOW() - make_interval(mins => $1)
@@ -1417,6 +1418,8 @@ router.get('/api/admin/funnel', authenticateToken, async (req, res) => {
             langCondition = `AND COALESCE(metadata->>'funnelLanguage', 'en') = 'en'`;
         } else if (language === 'es') {
             langCondition = `AND metadata->>'funnelLanguage' = 'es'`;
+        } else if (language === 'pt') {
+            langCondition = `AND metadata->>'funnelLanguage' = 'pt'`;
         }
         
         let sourceCondition = '';
