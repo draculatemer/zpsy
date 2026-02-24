@@ -72,6 +72,10 @@
                         <span class="nav-item-icon">🔄</span>
                         Recuperação
                     </div>
+                    <div class="nav-item" onclick="switchTab('emailautomations')">
+                        <span class="nav-item-icon">📧</span>
+                        Email Automations
+                    </div>
                 </div>
                 
                 <div class="nav-section">
@@ -1191,6 +1195,196 @@
                     </div>
                 </div>
                 
+                <!-- Tab: Email Automations (ActiveCampaign) -->
+                <div class="tab-content" id="tab-emailautomations">
+                    <div class="ac-dashboard">
+                        <!-- Header -->
+                        <div class="ac-header">
+                            <div class="ac-header-left">
+                                <h2>Email Automations</h2>
+                                <p style="color: var(--text-muted); margin: 0;">ActiveCampaign Recovery System</p>
+                            </div>
+                            <div class="ac-header-right">
+                                <div class="ac-connection-status" id="acConnectionStatus">
+                                    <span class="ac-status-dot disconnected"></span>
+                                    <span id="acStatusText">Verificando...</span>
+                                </div>
+                                <button class="ac-refresh-btn" onclick="loadACDashboard()" title="Atualizar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards -->
+                        <div class="ac-kpi-grid">
+                            <div class="ac-kpi-card">
+                                <div class="ac-kpi-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                </div>
+                                <div class="ac-kpi-data">
+                                    <span class="ac-kpi-value" id="acTotalAutomations">0</span>
+                                    <span class="ac-kpi-label">Automações</span>
+                                </div>
+                            </div>
+                            <div class="ac-kpi-card">
+                                <div class="ac-kpi-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                </div>
+                                <div class="ac-kpi-data">
+                                    <span class="ac-kpi-value" id="acActiveAutomations">0</span>
+                                    <span class="ac-kpi-label">Ativas</span>
+                                </div>
+                            </div>
+                            <div class="ac-kpi-card">
+                                <div class="ac-kpi-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                </div>
+                                <div class="ac-kpi-data">
+                                    <span class="ac-kpi-value" id="acTotalEntered">0</span>
+                                    <span class="ac-kpi-label">Contatos Entrados</span>
+                                </div>
+                            </div>
+                            <div class="ac-kpi-card">
+                                <div class="ac-kpi-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                                </div>
+                                <div class="ac-kpi-data">
+                                    <span class="ac-kpi-value" id="acTotalTags">0</span>
+                                    <span class="ac-kpi-label">Tags ZapSpy</span>
+                                </div>
+                            </div>
+                            <div class="ac-kpi-card">
+                                <div class="ac-kpi-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                </div>
+                                <div class="ac-kpi-data">
+                                    <span class="ac-kpi-value" id="acTotalContacts">0</span>
+                                    <span class="ac-kpi-label">Contatos Total</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Automations Table -->
+                        <div class="ac-section">
+                            <div class="ac-section-header">
+                                <h3>Automações de Recuperação</h3>
+                                <button class="ac-add-contact-btn" onclick="openACAddContactModal()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Adicionar Contato
+                                </button>
+                            </div>
+                            <div class="ac-table-wrap">
+                                <table class="ac-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;">Status</th>
+                                            <th>Automação</th>
+                                            <th style="width: 100px;">Tipo</th>
+                                            <th style="width: 60px;">Idioma</th>
+                                            <th style="width: 100px;">Entrados</th>
+                                            <th style="width: 100px;">Saídos</th>
+                                            <th style="width: 140px;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="acAutomationsTableBody">
+                                        <tr><td colspan="7"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tags & Lists Section -->
+                        <div class="ac-two-columns">
+                            <div class="ac-section">
+                                <div class="ac-section-header">
+                                    <h3>Tags ZapSpy</h3>
+                                </div>
+                                <div class="ac-tags-list" id="acTagsList">
+                                    <div class="loading"><div class="spinner"></div>Carregando...</div>
+                                </div>
+                            </div>
+                            <div class="ac-section">
+                                <div class="ac-section-header">
+                                    <h3>Listas ZapSpy</h3>
+                                </div>
+                                <div class="ac-lists-list" id="acListsList">
+                                    <div class="loading"><div class="spinner"></div>Carregando...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Contacts -->
+                        <div class="ac-section">
+                            <div class="ac-section-header">
+                                <h3>Contatos Recentes</h3>
+                                <div class="ac-search-wrap">
+                                    <input type="text" id="acContactSearch" placeholder="Buscar por email..." onkeyup="if(event.key==='Enter') searchACContacts()">
+                                    <button onclick="searchACContacts()">Buscar</button>
+                                </div>
+                            </div>
+                            <div class="ac-table-wrap">
+                                <table class="ac-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Nome</th>
+                                            <th>Telefone</th>
+                                            <th style="width: 140px;">Criado em</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="acContactsTableBody">
+                                        <tr><td colspan="4"><div class="loading"><div class="spinner"></div>Carregando...</div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="ac-pagination" id="acContactsPagination"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal: Add Contact to Automation -->
+                <div class="modal-overlay" id="acAddContactModal">
+                    <div class="modal" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h3>Adicionar Contato à Automação</h3>
+                            <button class="modal-close" onclick="closeACAddContactModal()">&times;</button>
+                        </div>
+                        <div class="modal-body" style="padding: 24px;">
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 13px;">Email *</label>
+                                <input type="email" id="acAddEmail" placeholder="email@example.com" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 14px;">
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 13px;">Nome</label>
+                                <input type="text" id="acAddName" placeholder="Nome do contato" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 14px;">
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 13px;">Telefone</label>
+                                <input type="text" id="acAddPhone" placeholder="+1234567890" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 14px;">
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 13px;">Tipo de Evento *</label>
+                                <select id="acAddEventType" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 14px;">
+                                    <option value="lead_captured">Lead Capturado (Funnel Abandon)</option>
+                                    <option value="checkout_abandoned">Checkout Abandonado</option>
+                                    <option value="sale_cancelled">Venda Cancelada</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 13px;">Idioma *</label>
+                                <select id="acAddLanguage" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 14px;">
+                                    <option value="en">English (EN)</option>
+                                    <option value="es">Español (ES)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--border);">
+                            <button class="btn-secondary" onclick="closeACAddContactModal()">Cancelar</button>
+                            <button class="ac-submit-btn" onclick="submitACAddContact()">Adicionar e Disparar</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tab: Funnel -->
                 <div class="tab-content" id="tab-funnel">
                     <div class="funnel-page-header">
@@ -3551,7 +3745,8 @@ Posso ajudar com alguma dúvida?</textarea>
             'pixel': { title: 'Pixel & CAPI', subtitle: 'Monitore a qualidade dos eventos do Facebook' },
             'abtests': { title: 'Testes A/B', subtitle: 'Compare versões do funil e otimize conversões' },
             'settings': { title: 'Configurações', subtitle: 'Configure integrações' },
-            'users': { title: 'Usuários', subtitle: 'Gerencie membros da equipe' }
+            'users': { title: 'Usuários', subtitle: 'Gerencie membros da equipe' },
+            'emailautomations': { title: 'Email Automations', subtitle: 'Gerencie automações de email do ActiveCampaign' }
         };
         
         const templates = {
@@ -4045,6 +4240,7 @@ Estou aqui para esclarecer tudo! 😊`
             else if (tabName === 'users') loadUsers();
             else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); }
             else if (tabName === 'abtests') loadABTests();
+            else if (tabName === 'emailautomations') loadACDashboard();
             if (window.innerWidth <= 768 && document.body.classList.contains('sidebar-open')) toggleSidebarMobile();
         }
         
@@ -15442,6 +15638,265 @@ Posso ajudar em algo mais? 😊`
         setTimeout(function() { clearInterval(_interceptInterval); }, 120000);
         
     })();
+    </script>
+
+    <!-- ActiveCampaign Email Automations JS -->
+    <script>
+    // ==================== ActiveCampaign Dashboard ====================
+    let acContactsPage = 1;
+
+    async function loadACDashboard() {
+        try {
+            const token = getAuthToken();
+            if (!token) return;
+
+            const res = await fetch(`${API_URL}/api/admin/ac/dashboard`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            // Update connection status
+            const statusDot = document.querySelector('#acConnectionStatus .ac-status-dot');
+            const statusText = document.getElementById('acStatusText');
+            if (data.configured && data.connected) {
+                statusDot.className = 'ac-status-dot connected';
+                statusText.textContent = 'Conectado';
+            } else if (data.configured) {
+                statusDot.className = 'ac-status-dot disconnected';
+                statusText.textContent = 'Erro de conexão';
+            } else {
+                statusDot.className = 'ac-status-dot disconnected';
+                statusText.textContent = 'Não configurado';
+            }
+
+            if (!data.configured) {
+                document.getElementById('acAutomationsTableBody').innerHTML = `
+                    <tr><td colspan="7">
+                        <div class="ac-not-configured">
+                            <h3>ActiveCampaign não configurado</h3>
+                            <p>Configure as variáveis de ambiente AC_API_URL e AC_API_KEY no Railway.</p>
+                            <code>AC_API_URL=https://yourname.api-us1.com<br>AC_API_KEY=your-api-key</code>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            // Update KPIs
+            const s = data.stats || {};
+            document.getElementById('acTotalAutomations').textContent = s.totalAutomations || 0;
+            document.getElementById('acActiveAutomations').textContent = s.activeAutomations || 0;
+            document.getElementById('acTotalEntered').textContent = (s.totalEntered || 0).toLocaleString();
+            document.getElementById('acTotalTags').textContent = s.totalTags || 0;
+            document.getElementById('acTotalContacts').textContent = (s.totalContacts || 0).toLocaleString();
+
+            // Render automations table
+            renderACAutomations(data.automations || []);
+
+            // Render tags
+            renderACTags(data.tags || []);
+
+            // Render lists
+            renderACLists(data.lists || []);
+
+            // Load contacts
+            loadACContacts(1);
+
+        } catch (error) {
+            console.error('Error loading AC dashboard:', error);
+            showToast('Erro', 'Falha ao carregar dados do ActiveCampaign', 'error');
+        }
+    }
+
+    function renderACAutomations(automations) {
+        const tbody = document.getElementById('acAutomationsTableBody');
+        if (!automations.length) {
+            tbody.innerHTML = '<tr><td colspan="7"><div class="ac-empty-state"><p>Nenhuma automação ZapSpy encontrada</p></div></td></tr>';
+            return;
+        }
+
+        const typeLabels = {
+            'checkout_abandon': 'Checkout',
+            'sale_cancelled': 'Cancelamento',
+            'funnel_abandon': 'Funil',
+            'other': 'Outro'
+        };
+
+        tbody.innerHTML = automations.map(a => `
+            <tr>
+                <td>
+                    <span class="ac-status-badge ${a.status}">
+                        <span class="status-dot"></span>
+                        ${a.status === 'active' ? 'Ativa' : 'Inativa'}
+                    </span>
+                </td>
+                <td style="font-weight: 600;">${escapeHtml(a.name)}</td>
+                <td><span class="ac-type-badge ${a.type}">${typeLabels[a.type] || a.type}</span></td>
+                <td><span class="ac-lang-badge ${a.language}">${(a.language || '?').toUpperCase()}</span></td>
+                <td style="font-weight: 600;">${a.entered.toLocaleString()}</td>
+                <td>${a.exited.toLocaleString()}</td>
+                <td>
+                    ${a.status === 'active'
+                        ? `<button class="ac-action-btn deactivate" onclick="toggleACAutomation(${a.id}, 'deactivate')" title="Desativar">Desativar</button>`
+                        : `<button class="ac-action-btn activate" onclick="toggleACAutomation(${a.id}, 'activate')" title="Ativar">Ativar</button>`
+                    }
+                    <a href="https://matheus0597.activehosted.com/app/automations/${a.id}" target="_blank" class="ac-action-btn" title="Abrir no AC">Abrir</a>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderACTags(tags) {
+        const container = document.getElementById('acTagsList');
+        if (!tags.length) {
+            container.innerHTML = '<div class="ac-empty-state"><p>Nenhuma tag encontrada</p></div>';
+            return;
+        }
+        container.innerHTML = tags.map(t => `
+            <div class="ac-tag-item">
+                <span class="ac-tag-name">${escapeHtml(t.name)}</span>
+            </div>
+        `).join('');
+    }
+
+    function renderACLists(lists) {
+        const container = document.getElementById('acListsList');
+        if (!lists.length) {
+            container.innerHTML = '<div class="ac-empty-state"><p>Nenhuma lista encontrada</p></div>';
+            return;
+        }
+        container.innerHTML = lists.map(l => `
+            <div class="ac-list-item">
+                <span class="ac-list-name">${escapeHtml(l.name)}</span>
+                <span class="ac-list-count">${l.subscribers} inscritos</span>
+            </div>
+        `).join('');
+    }
+
+    async function toggleACAutomation(id, action) {
+        try {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/api/admin/ac/automations/${id}/${action}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Sucesso', `Automação ${action === 'activate' ? 'ativada' : 'desativada'} com sucesso`, 'success');
+                loadACDashboard();
+            } else {
+                showToast('Erro', data.error || 'Falha na operação', 'error');
+            }
+        } catch (error) {
+            showToast('Erro', error.message, 'error');
+        }
+    }
+
+    async function loadACContacts(page) {
+        try {
+            acContactsPage = page || 1;
+            const token = getAuthToken();
+            const search = document.getElementById('acContactSearch')?.value || '';
+            let url = `${API_URL}/api/admin/ac/contacts?page=${acContactsPage}&limit=10`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            const tbody = document.getElementById('acContactsTableBody');
+            const contacts = data.contacts || [];
+
+            if (!contacts.length) {
+                tbody.innerHTML = '<tr><td colspan="4"><div class="ac-empty-state"><p>Nenhum contato encontrado</p></div></td></tr>';
+                document.getElementById('acContactsPagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = contacts.map(c => `
+                <tr>
+                    <td style="font-weight: 500;">${escapeHtml(c.email)}</td>
+                    <td>${escapeHtml(c.firstName || '')} ${escapeHtml(c.lastName || '')}</td>
+                    <td>${escapeHtml(c.phone || '-')}</td>
+                    <td>${c.created ? new Date(c.created).toLocaleDateString('pt-BR') : '-'}</td>
+                </tr>
+            `).join('');
+
+            // Pagination
+            const totalPages = Math.ceil((data.total || 0) / 10);
+            let paginationHtml = '';
+            if (totalPages > 1) {
+                paginationHtml += `<button ${acContactsPage <= 1 ? 'disabled' : ''} onclick="loadACContacts(${acContactsPage - 1})">Anterior</button>`;
+                for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                    paginationHtml += `<button class="${i === acContactsPage ? 'active' : ''}" onclick="loadACContacts(${i})">${i}</button>`;
+                }
+                if (totalPages > 5) paginationHtml += `<button disabled>...</button><button onclick="loadACContacts(${totalPages})">${totalPages}</button>`;
+                paginationHtml += `<button ${acContactsPage >= totalPages ? 'disabled' : ''} onclick="loadACContacts(${acContactsPage + 1})">Próximo</button>`;
+            }
+            document.getElementById('acContactsPagination').innerHTML = paginationHtml;
+
+        } catch (error) {
+            console.error('Error loading AC contacts:', error);
+        }
+    }
+
+    function searchACContacts() {
+        loadACContacts(1);
+    }
+
+    function openACAddContactModal() {
+        document.getElementById('acAddContactModal').style.display = 'flex';
+        document.getElementById('acAddEmail').value = '';
+        document.getElementById('acAddName').value = '';
+        document.getElementById('acAddPhone').value = '';
+    }
+
+    function closeACAddContactModal() {
+        document.getElementById('acAddContactModal').style.display = 'none';
+    }
+
+    async function submitACAddContact() {
+        const email = document.getElementById('acAddEmail').value.trim();
+        const firstName = document.getElementById('acAddName').value.trim();
+        const phone = document.getElementById('acAddPhone').value.trim();
+        const eventType = document.getElementById('acAddEventType').value;
+        const language = document.getElementById('acAddLanguage').value;
+
+        if (!email) {
+            showToast('Erro', 'Email é obrigatório', 'error');
+            return;
+        }
+
+        try {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/api/admin/ac/contacts/add`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, firstName, phone, eventType, language })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('Sucesso', `Contato adicionado e tag "${data.tagName}" aplicada`, 'success');
+                closeACAddContactModal();
+                loadACDashboard();
+            } else {
+                showToast('Erro', data.reason || 'Falha ao adicionar contato', 'error');
+            }
+        } catch (error) {
+            showToast('Erro', error.message, 'error');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
     </script>
 </body>
 </html>

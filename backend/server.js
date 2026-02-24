@@ -30,6 +30,7 @@ const adminAbTestsRoutes = require('./src/routes/admin-ab-tests');
 const adminRecoveryRoutes = require('./src/routes/admin-recovery');
 const adminRefundsRoutes = require('./src/routes/admin-refunds');
 const adminDebugRoutes = require('./src/routes/admin-debug');
+const adminACRoutes = require('./src/routes/admin-activecampaign');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -247,6 +248,7 @@ app.use('/', adminAbTestsRoutes);
 app.use('/', adminRecoveryRoutes);
 app.use('/', adminRefundsRoutes);
 app.use('/', adminDebugRoutes);
+app.use('/', adminACRoutes);
 
 // ==================== ERROR HANDLING ====================
 
