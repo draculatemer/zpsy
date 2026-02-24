@@ -15645,12 +15645,26 @@ Posso ajudar em algo mais? 😊`
     // ==================== ActiveCampaign Dashboard ====================
     let acContactsPage = 1;
 
+    // Helper functions (needed because main script functions are scoped)
+    function _acGetToken() {
+        try { if (typeof authToken !== 'undefined' && authToken) return authToken; } catch(e) {}
+        return localStorage.getItem('adminToken');
+    }
+    function _acGetApiUrl() {
+        try { if (typeof API_URL !== 'undefined') return API_URL; } catch(e) {}
+        return window.location.origin;
+    }
+    function _acShowToast(title, message, type) {
+        try { if (typeof showToast === 'function') { showToast(title, message, type); return; } } catch(e) {}
+        console.log(`[${type}] ${title}: ${message}`);
+    }
+
     async function loadACDashboard() {
         try {
-            const token = getAuthToken();
+            const token = _acGetToken();
             if (!token) return;
 
-            const res = await fetch(`${API_URL}/api/admin/ac/dashboard`, {
+            const res = await fetch(`${_acGetApiUrl()}/api/admin/ac/dashboard`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -15703,7 +15717,7 @@ Posso ajudar em algo mais? 😊`
 
         } catch (error) {
             console.error('Error loading AC dashboard:', error);
-            showToast('Erro', 'Falha ao carregar dados do ActiveCampaign', 'error');
+            _acShowToast('Erro', 'Falha ao carregar dados do ActiveCampaign', 'error');
         }
     }
 
@@ -15729,7 +15743,7 @@ Posso ajudar em algo mais? 😊`
                         ${a.status === 'active' ? 'Ativa' : 'Inativa'}
                     </span>
                 </td>
-                <td style="font-weight: 600;">${escapeHtml(a.name)}</td>
+                <td style="font-weight: 600;">${_acEscapeHtml(a.name)}</td>
                 <td><span class="ac-type-badge ${a.type}">${typeLabels[a.type] || a.type}</span></td>
                 <td><span class="ac-lang-badge ${a.language}">${(a.language || '?').toUpperCase()}</span></td>
                 <td style="font-weight: 600;">${a.entered.toLocaleString()}</td>
@@ -15753,7 +15767,7 @@ Posso ajudar em algo mais? 😊`
         }
         container.innerHTML = tags.map(t => `
             <div class="ac-tag-item">
-                <span class="ac-tag-name">${escapeHtml(t.name)}</span>
+                <span class="ac-tag-name">${_acEscapeHtml(t.name)}</span>
             </div>
         `).join('');
     }
@@ -15766,7 +15780,7 @@ Posso ajudar em algo mais? 😊`
         }
         container.innerHTML = lists.map(l => `
             <div class="ac-list-item">
-                <span class="ac-list-name">${escapeHtml(l.name)}</span>
+                <span class="ac-list-name">${_acEscapeHtml(l.name)}</span>
                 <span class="ac-list-count">${l.subscribers} inscritos</span>
             </div>
         `).join('');
@@ -15774,29 +15788,29 @@ Posso ajudar em algo mais? 😊`
 
     async function toggleACAutomation(id, action) {
         try {
-            const token = getAuthToken();
-            const res = await fetch(`${API_URL}/api/admin/ac/automations/${id}/${action}`, {
+            const token = _acGetToken();
+            const res = await fetch(`${_acGetApiUrl()}/api/admin/ac/automations/${id}/${action}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
             if (data.success) {
-                showToast('Sucesso', `Automação ${action === 'activate' ? 'ativada' : 'desativada'} com sucesso`, 'success');
+                _acShowToast('Sucesso', `Automação ${action === 'activate' ? 'ativada' : 'desativada'} com sucesso`, 'success');
                 loadACDashboard();
             } else {
-                showToast('Erro', data.error || 'Falha na operação', 'error');
+                _acShowToast('Erro', data.error || 'Falha na operação', 'error');
             }
         } catch (error) {
-            showToast('Erro', error.message, 'error');
+            _acShowToast('Erro', error.message, 'error');
         }
     }
 
     async function loadACContacts(page) {
         try {
             acContactsPage = page || 1;
-            const token = getAuthToken();
+            const token = _acGetToken();
             const search = document.getElementById('acContactSearch')?.value || '';
-            let url = `${API_URL}/api/admin/ac/contacts?page=${acContactsPage}&limit=10`;
+            let url = `${_acGetApiUrl()}/api/admin/ac/contacts?page=${acContactsPage}&limit=10`;
             if (search) url += `&search=${encodeURIComponent(search)}`;
 
             const res = await fetch(url, {
@@ -15815,9 +15829,9 @@ Posso ajudar em algo mais? 😊`
 
             tbody.innerHTML = contacts.map(c => `
                 <tr>
-                    <td style="font-weight: 500;">${escapeHtml(c.email)}</td>
-                    <td>${escapeHtml(c.firstName || '')} ${escapeHtml(c.lastName || '')}</td>
-                    <td>${escapeHtml(c.phone || '-')}</td>
+                    <td style="font-weight: 500;">${_acEscapeHtml(c.email)}</td>
+                    <td>${_acEscapeHtml(c.firstName || '')} ${_acEscapeHtml(c.lastName || '')}</td>
+                    <td>${_acEscapeHtml(c.phone || '-')}</td>
                     <td>${c.created ? new Date(c.created).toLocaleDateString('pt-BR') : '-'}</td>
                 </tr>
             `).join('');
@@ -15863,13 +15877,13 @@ Posso ajudar em algo mais? 😊`
         const language = document.getElementById('acAddLanguage').value;
 
         if (!email) {
-            showToast('Erro', 'Email é obrigatório', 'error');
+            _acShowToast('Erro', 'Email é obrigatório', 'error');
             return;
         }
 
         try {
-            const token = getAuthToken();
-            const res = await fetch(`${API_URL}/api/admin/ac/contacts/add`, {
+            const token = _acGetToken();
+            const res = await fetch(`${_acGetApiUrl()}/api/admin/ac/contacts/add`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -15880,18 +15894,18 @@ Posso ajudar em algo mais? 😊`
             const data = await res.json();
 
             if (data.success) {
-                showToast('Sucesso', `Contato adicionado e tag "${data.tagName}" aplicada`, 'success');
+                _acShowToast('Sucesso', `Contato adicionado e tag "${data.tagName}" aplicada`, 'success');
                 closeACAddContactModal();
                 loadACDashboard();
             } else {
-                showToast('Erro', data.reason || 'Falha ao adicionar contato', 'error');
+                _acShowToast('Erro', data.reason || 'Falha ao adicionar contato', 'error');
             }
         } catch (error) {
-            showToast('Erro', error.message, 'error');
+            _acShowToast('Erro', error.message, 'error');
         }
     }
 
-    function escapeHtml(text) {
+    function _acEscapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
