@@ -1313,6 +1313,142 @@
                             </div>
                         </div>
 
+                        <!-- Batch Dispatch Section -->
+                        <div class="ac-section" style="border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));">
+                            <div class="ac-section-header">
+                                <h3 style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    Disparo em Massa
+                                </h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="ac-add-contact-btn" onclick="runCleanup_ac()" style="background: #f59e0b; font-size: 12px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        Limpar Concluídos
+                                    </button>
+                                    <button class="ac-add-contact-btn" onclick="loadDispatchCounts_ac()" style="font-size: 12px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                        Atualizar Contagens
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lead Counts Grid -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                                <!-- Checkout Abandoned -->
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Checkout Abandonado</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div>
+                                            <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px;">EN</span>
+                                            <span id="dispatchCountCheckoutEN" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 11px; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px;">ES</span>
+                                            <span id="dispatchCountCheckoutES" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button onclick="startDispatch_ac('checkout_abandoned','en')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar EN</button>
+                                        <button onclick="startDispatch_ac('checkout_abandoned','es')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #f59e0b; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar ES</button>
+                                    </div>
+                                </div>
+                                <!-- Sale Cancelled -->
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Venda Cancelada</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div>
+                                            <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px;">EN</span>
+                                            <span id="dispatchCountSaleEN" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 11px; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px;">ES</span>
+                                            <span id="dispatchCountSaleES" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button onclick="startDispatch_ac('sale_cancelled','en')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar EN</button>
+                                        <button onclick="startDispatch_ac('sale_cancelled','es')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #f59e0b; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar ES</button>
+                                    </div>
+                                </div>
+                                <!-- Funnel Abandon -->
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Abandono de Funil</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div>
+                                            <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px;">EN</span>
+                                            <span id="dispatchCountFunnelEN" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                        <div>
+                                            <span style="font-size: 11px; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px;">ES</span>
+                                            <span id="dispatchCountFunnelES" style="font-weight: 700; margin-left: 6px;">--</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button onclick="startDispatch_ac('funnel_abandon','en')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar EN</button>
+                                        <button onclick="startDispatch_ac('funnel_abandon','es')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #f59e0b; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar ES</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Batch Size Control -->
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border);">
+                                <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Tamanho do lote:</label>
+                                <input type="number" id="dispatchBatchSize" value="500" min="10" max="2000" step="50" style="width: 100px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px;">
+                                <span style="font-size: 12px; color: var(--text-muted);">Recomendado: 500 (respeita limite de 5.000 contatos ativos)</span>
+                            </div>
+
+                            <!-- Dispatch Progress -->
+                            <div id="dispatchProgressSection" style="display: none; padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="margin: 0; font-size: 14px;">Progresso do Disparo</h4>
+                                    <span id="dispatchProgressPercent" style="font-weight: 700; color: var(--primary);">0%</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                                    <div id="dispatchProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #3b82f6); border-radius: 4px; transition: width 0.3s;"></div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 12px;">
+                                    <div style="text-align: center;">
+                                        <div style="color: var(--text-muted);">Total</div>
+                                        <div id="dispatchTotal" style="font-weight: 700;">0</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="color: var(--text-muted);">Processados</div>
+                                        <div id="dispatchProcessed" style="font-weight: 700;">0</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="color: #10b981;">Sucesso</div>
+                                        <div id="dispatchSuccess" style="font-weight: 700; color: #10b981;">0</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="color: #ef4444;">Falhas</div>
+                                        <div id="dispatchFailed" style="font-weight: 700; color: #ef4444;">0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dispatch History -->
+                            <div style="margin-top: 12px;">
+                                <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Histórico de Disparos</h4>
+                                <div class="ac-table-wrap">
+                                    <table class="ac-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Categoria</th>
+                                                <th>Idioma</th>
+                                                <th>Total</th>
+                                                <th>Sucesso</th>
+                                                <th>Falhas</th>
+                                                <th>Data</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dispatchHistoryBody">
+                                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">Nenhum disparo realizado ainda</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Recent Contacts -->
                         <div class="ac-section">
                             <div class="ac-section-header">
@@ -15911,6 +16047,175 @@ Posso ajudar em algo mais? 😊`
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // ==================== DISPATCH FUNCTIONS ====================
+
+    let _dispatchPolling = null;
+
+    async function loadDispatchCounts_ac() {
+        try {
+            const token = _acGetAuthToken();
+            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/counts`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await resp.json();
+            if (data.success && data.counts) {
+                const c = data.counts;
+                document.getElementById('dispatchCountCheckoutEN').textContent = (c.checkout_abandoned?.en || 0).toLocaleString();
+                document.getElementById('dispatchCountCheckoutES').textContent = (c.checkout_abandoned?.es || 0).toLocaleString();
+                document.getElementById('dispatchCountSaleEN').textContent = (c.sale_cancelled?.en || 0).toLocaleString();
+                document.getElementById('dispatchCountSaleES').textContent = (c.sale_cancelled?.es || 0).toLocaleString();
+                document.getElementById('dispatchCountFunnelEN').textContent = (c.funnel_abandon?.en || 0).toLocaleString();
+                document.getElementById('dispatchCountFunnelES').textContent = (c.funnel_abandon?.es || 0).toLocaleString();
+            }
+        } catch (err) {
+            console.error('Error loading dispatch counts:', err);
+        }
+    }
+
+    async function startDispatch_ac(category, language) {
+        const categoryNames = {
+            'checkout_abandoned': 'Checkout Abandonado',
+            'sale_cancelled': 'Venda Cancelada',
+            'funnel_abandon': 'Abandono de Funil'
+        };
+        const langNames = { 'en': 'Ingl\u00eas', 'es': 'Espanhol' };
+        const batchSize = parseInt(document.getElementById('dispatchBatchSize').value) || 500;
+
+        if (!confirm(`Iniciar disparo de ${categoryNames[category]} (${langNames[language]}) com lote de ${batchSize} contatos?\n\nIsso vai adicionar os contatos ao ActiveCampaign e disparar a automa\u00e7\u00e3o de recupera\u00e7\u00e3o.`)) {
+            return;
+        }
+
+        try {
+            const token = _acGetAuthToken();
+            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/start`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category, language, batchSize })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                _acShowToast('Disparo iniciado! Acompanhe o progresso abaixo.', 'success');
+                document.getElementById('dispatchProgressSection').style.display = 'block';
+                startDispatchPolling_ac();
+            } else {
+                _acShowToast(data.message || 'Erro ao iniciar disparo', 'error');
+            }
+        } catch (err) {
+            _acShowToast('Erro: ' + err.message, 'error');
+        }
+    }
+
+    function startDispatchPolling_ac() {
+        if (_dispatchPolling) clearInterval(_dispatchPolling);
+        _dispatchPolling = setInterval(async () => {
+            try {
+                const token = _acGetAuthToken();
+                const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await resp.json();
+                if (data.success && data.status) {
+                    updateDispatchProgress_ac(data.status);
+                    if (!data.status.running) {
+                        clearInterval(_dispatchPolling);
+                        _dispatchPolling = null;
+                        _acShowToast(`Disparo conclu\u00eddo! ${data.status.success} enviados, ${data.status.failed} falhas.`, data.status.failed > 0 ? 'warning' : 'success');
+                        loadDispatchHistory_ac();
+                        loadDispatchCounts_ac();
+                    }
+                }
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
+        }, 2000);
+    }
+
+    function updateDispatchProgress_ac(status) {
+        const pct = status.total > 0 ? Math.round((status.processed / status.total) * 100) : 0;
+        document.getElementById('dispatchProgressPercent').textContent = pct + '%';
+        document.getElementById('dispatchProgressBar').style.width = pct + '%';
+        document.getElementById('dispatchTotal').textContent = status.total;
+        document.getElementById('dispatchProcessed').textContent = status.processed;
+        document.getElementById('dispatchSuccess').textContent = status.success;
+        document.getElementById('dispatchFailed').textContent = status.failed;
+    }
+
+    async function loadDispatchHistory_ac() {
+        try {
+            const token = _acGetAuthToken();
+            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/history?limit=10`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await resp.json();
+            const tbody = document.getElementById('dispatchHistoryBody');
+            if (data.success && data.history && data.history.length > 0) {
+                const categoryNames = {
+                    'checkout_abandoned': 'Checkout Abandonado',
+                    'sale_cancelled': 'Venda Cancelada',
+                    'funnel_abandon': 'Abandono de Funil'
+                };
+                tbody.innerHTML = data.history.map(h => `
+                    <tr>
+                        <td>${categoryNames[h.category] || h.category}</td>
+                        <td><span style="font-size: 11px; background: ${h.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px;">${h.language.toUpperCase()}</span></td>
+                        <td>${parseInt(h.total).toLocaleString()}</td>
+                        <td style="color: #10b981;">${parseInt(h.success).toLocaleString()}</td>
+                        <td style="color: ${parseInt(h.failed) > 0 ? '#ef4444' : 'inherit'};">${parseInt(h.failed).toLocaleString()}</td>
+                        <td>${new Date(h.started_at).toLocaleDateString('pt-BR')} ${new Date(h.started_at).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">Nenhum disparo realizado ainda</td></tr>';
+            }
+        } catch (err) {
+            console.error('Error loading dispatch history:', err);
+        }
+    }
+
+    async function runCleanup_ac() {
+        if (!confirm('Executar limpeza de contatos que j\u00e1 completaram o ciclo de emails (7+ dias)?\n\nIsso vai remover as tags e desinscrever da lista para liberar espa\u00e7o no plano.')) {
+            return;
+        }
+        try {
+            const token = _acGetAuthToken();
+            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/cleanup`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await resp.json();
+            if (data.success) {
+                _acShowToast(`Limpeza conclu\u00edda! ${data.cleaned} contatos removidos.`, 'success');
+            } else {
+                _acShowToast('Erro na limpeza: ' + (data.error || 'Desconhecido'), 'error');
+            }
+        } catch (err) {
+            _acShowToast('Erro: ' + err.message, 'error');
+        }
+    }
+
+    // Load dispatch data when AC tab is opened
+    const _origLoadACDashboard = loadACDashboard;
+    loadACDashboard = async function() {
+        await _origLoadACDashboard();
+        loadDispatchCounts_ac();
+        loadDispatchHistory_ac();
+        // Check if a dispatch is running
+        try {
+            const token = _acGetAuthToken();
+            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/status`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await resp.json();
+            if (data.success && data.status && data.status.running) {
+                document.getElementById('dispatchProgressSection').style.display = 'block';
+                updateDispatchProgress_ac(data.status);
+                startDispatchPolling_ac();
+            }
+        } catch (err) {}
+    };
     </script>
+</body>
+</html>
 </body>
 </html>
