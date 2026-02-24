@@ -42,10 +42,9 @@ async function getLeadCounts() {
             SELECT COUNT(DISTINCT l.email) as count
             FROM leads l
             INNER JOIN funnel_events fe ON l.ip_address = fe.ip_address
-            WHERE fe.event_type = 'checkout_clicked'
+            WHERE fe.event = 'checkout_clicked'
             AND l.email IS NOT NULL AND l.email != ''
-            AND l.referrer NOT ILIKE '%espanhol%'
-            AND l.referrer NOT ILIKE '%espanol%'
+            AND l.funnel_language = 'en'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE t.email = l.email AND t.status = 'approved'
@@ -61,9 +60,9 @@ async function getLeadCounts() {
             SELECT COUNT(DISTINCT l.email) as count
             FROM leads l
             INNER JOIN funnel_events fe ON l.ip_address = fe.ip_address
-            WHERE fe.event_type = 'checkout_clicked'
+            WHERE fe.event = 'checkout_clicked'
             AND l.email IS NOT NULL AND l.email != ''
-            AND (l.referrer ILIKE '%espanhol%' OR l.referrer ILIKE '%espanol%')
+            AND l.funnel_language = 'es'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE t.email = l.email AND t.status = 'approved'
@@ -80,8 +79,7 @@ async function getLeadCounts() {
             FROM transactions t
             WHERE t.status IN ('refunded', 'cancelled', 'chargeback')
             AND t.email IS NOT NULL AND t.email != ''
-            AND t.referrer NOT ILIKE '%espanhol%'
-            AND t.referrer NOT ILIKE '%espanol%'
+            AND t.funnel_language = 'en'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t2 
                 WHERE t2.email = t.email AND t2.status = 'approved'
@@ -98,7 +96,7 @@ async function getLeadCounts() {
             FROM transactions t
             WHERE t.status IN ('refunded', 'cancelled', 'chargeback')
             AND t.email IS NOT NULL AND t.email != ''
-            AND (t.referrer ILIKE '%espanhol%' OR t.referrer ILIKE '%espanol%')
+            AND t.funnel_language = 'es'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t2 
                 WHERE t2.email = t.email AND t2.status = 'approved'
@@ -114,15 +112,14 @@ async function getLeadCounts() {
             SELECT COUNT(DISTINCT l.email) as count
             FROM leads l
             WHERE l.email IS NOT NULL AND l.email != ''
-            AND l.referrer NOT ILIKE '%espanhol%'
-            AND l.referrer NOT ILIKE '%espanol%'
+            AND l.funnel_language = 'en'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE t.email = l.email AND t.status = 'approved'
             )
             AND NOT EXISTS (
                 SELECT 1 FROM funnel_events fe 
-                WHERE fe.ip_address = l.ip_address AND fe.event_type = 'checkout_clicked'
+                WHERE fe.ip_address = l.ip_address AND fe.event = 'checkout_clicked'
             )
             AND NOT EXISTS (
                 SELECT 1 FROM email_dispatch_log d 
@@ -135,14 +132,14 @@ async function getLeadCounts() {
             SELECT COUNT(DISTINCT l.email) as count
             FROM leads l
             WHERE l.email IS NOT NULL AND l.email != ''
-            AND (l.referrer ILIKE '%espanhol%' OR l.referrer ILIKE '%espanol%')
+            AND l.funnel_language = 'es'
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE t.email = l.email AND t.status = 'approved'
             )
             AND NOT EXISTS (
                 SELECT 1 FROM funnel_events fe 
-                WHERE fe.ip_address = l.ip_address AND fe.event_type = 'checkout_clicked'
+                WHERE fe.ip_address = l.ip_address AND fe.event = 'checkout_clicked'
             )
             AND NOT EXISTS (
                 SELECT 1 FROM email_dispatch_log d 
@@ -174,26 +171,17 @@ async function getLeadCounts() {
  * Get leads for a specific category and language
  */
 async function getLeadsForDispatch(category, language, limit = 500) {
-    const isSpanish = language === 'es';
-    const langFilter = isSpanish 
-        ? `AND (ref ILIKE '%espanhol%' OR ref ILIKE '%espanol%')`
-        : `AND ref NOT ILIKE '%espanhol%' AND ref NOT ILIKE '%espanol%'`;
-
     let query;
 
-    const langConditionL = isSpanish
-        ? `AND (l.referrer ILIKE '%espanhol%' OR l.referrer ILIKE '%espanol%')`
-        : `AND l.referrer NOT ILIKE '%espanhol%' AND l.referrer NOT ILIKE '%espanol%'`;
-    const langConditionT = isSpanish
-        ? `AND (t.referrer ILIKE '%espanhol%' OR t.referrer ILIKE '%espanol%')`
-        : `AND t.referrer NOT ILIKE '%espanhol%' AND t.referrer NOT ILIKE '%espanol%'`;
+    const langConditionL = `AND l.funnel_language = '${language}'`;
+    const langConditionT = `AND t.funnel_language = '${language}'`;
 
     if (category === 'checkout_abandoned') {
         query = `
             SELECT DISTINCT ON (l.email) l.email, l.name, l.phone
             FROM leads l
             INNER JOIN funnel_events fe ON l.ip_address = fe.ip_address
-            WHERE fe.event_type = 'checkout_clicked'
+            WHERE fe.event = 'checkout_clicked'
             AND l.email IS NOT NULL AND l.email != ''
             ${langConditionL}
             AND NOT EXISTS (
@@ -237,7 +225,7 @@ async function getLeadsForDispatch(category, language, limit = 500) {
             )
             AND NOT EXISTS (
                 SELECT 1 FROM funnel_events fe 
-                WHERE fe.ip_address = l.ip_address AND fe.event_type = 'checkout_clicked'
+                WHERE fe.ip_address = l.ip_address AND fe.event = 'checkout_clicked'
             )
             AND NOT EXISTS (
                 SELECT 1 FROM email_dispatch_log d 
