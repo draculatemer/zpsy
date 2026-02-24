@@ -16054,8 +16054,8 @@ Posso ajudar em algo mais? 😊`
 
     async function loadDispatchCounts_ac() {
         try {
-            const token = _acGetAuthToken();
-            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/counts`, {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/counts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await resp.json();
@@ -16087,22 +16087,22 @@ Posso ajudar em algo mais? 😊`
         }
 
         try {
-            const token = _acGetAuthToken();
-            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/start`, {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/start`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ category, language, batchSize })
             });
             const data = await resp.json();
             if (data.success) {
-                _acShowToast('Disparo iniciado! Acompanhe o progresso abaixo.', 'success');
+                _acShowToast('Disparo', 'Disparo iniciado! Acompanhe o progresso abaixo.', 'success');
                 document.getElementById('dispatchProgressSection').style.display = 'block';
                 startDispatchPolling_ac();
             } else {
-                _acShowToast(data.message || 'Erro ao iniciar disparo', 'error');
+                _acShowToast('Erro', data.message || 'Erro ao iniciar disparo', 'error');
             }
         } catch (err) {
-            _acShowToast('Erro: ' + err.message, 'error');
+            _acShowToast('Erro', err.message, 'error');
         }
     }
 
@@ -16110,8 +16110,8 @@ Posso ajudar em algo mais? 😊`
         if (_dispatchPolling) clearInterval(_dispatchPolling);
         _dispatchPolling = setInterval(async () => {
             try {
-                const token = _acGetAuthToken();
-                const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/status`, {
+                const token = _acGetToken();
+                const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/status`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await resp.json();
@@ -16120,7 +16120,7 @@ Posso ajudar em algo mais? 😊`
                     if (!data.status.running) {
                         clearInterval(_dispatchPolling);
                         _dispatchPolling = null;
-                        _acShowToast(`Disparo conclu\u00eddo! ${data.status.success} enviados, ${data.status.failed} falhas.`, data.status.failed > 0 ? 'warning' : 'success');
+                        _acShowToast('Disparo', `Disparo concluído! ${data.status.success} enviados, ${data.status.failed} falhas.`, data.status.failed > 0 ? 'warning' : 'success');
                         loadDispatchHistory_ac();
                         loadDispatchCounts_ac();
                     }
@@ -16143,8 +16143,8 @@ Posso ajudar em algo mais? 😊`
 
     async function loadDispatchHistory_ac() {
         try {
-            const token = _acGetAuthToken();
-            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/history?limit=10`, {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/history?limit=10`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await resp.json();
@@ -16178,19 +16178,19 @@ Posso ajudar em algo mais? 😊`
             return;
         }
         try {
-            const token = _acGetAuthToken();
-            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/cleanup`, {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/cleanup`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await resp.json();
             if (data.success) {
-                _acShowToast(`Limpeza conclu\u00edda! ${data.cleaned} contatos removidos.`, 'success');
+                _acShowToast('Limpeza', `Limpeza concluída! ${data.cleaned} contatos removidos.`, 'success');
             } else {
-                _acShowToast('Erro na limpeza: ' + (data.error || 'Desconhecido'), 'error');
+                _acShowToast('Erro', 'Erro na limpeza: ' + (data.error || 'Desconhecido'), 'error');
             }
         } catch (err) {
-            _acShowToast('Erro: ' + err.message, 'error');
+            _acShowToast('Erro', err.message, 'error');
         }
     }
 
@@ -16202,8 +16202,8 @@ Posso ajudar em algo mais? 😊`
         loadDispatchHistory_ac();
         // Check if a dispatch is running
         try {
-            const token = _acGetAuthToken();
-            const resp = await fetch(`${_acApiUrl}/api/admin/dispatch/status`, {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await resp.json();
