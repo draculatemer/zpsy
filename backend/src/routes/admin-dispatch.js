@@ -34,7 +34,7 @@ router.post('/api/admin/dispatch/start', authenticateToken, async (req, res) => 
             return res.status(400).json({ error: 'category and language are required' });
         }
 
-        const validCategories = ['checkout_abandoned', 'sale_cancelled', 'funnel_abandon'];
+        const validCategories = ['checkout_abandon', 'sale_cancelled', 'funnel_abandon'];
         if (!validCategories.includes(category)) {
             return res.status(400).json({ error: `Invalid category. Must be one of: ${validCategories.join(', ')}` });
         }
@@ -71,6 +71,30 @@ router.get('/api/admin/dispatch/history', authenticateToken, async (req, res) =>
         res.json({ success: true, history });
     } catch (error) {
         console.error('Error getting dispatch history:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /api/admin/dispatch/stats - Get dispatch statistics
+router.get('/api/admin/dispatch/stats', authenticateToken, async (req, res) => {
+    try {
+        const stats = await dispatchService.getDispatchStats();
+        res.json({ success: true, stats });
+    } catch (error) {
+        console.error('Error getting dispatch stats:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== SCHEDULED EMAILS ====================
+
+// POST /api/admin/dispatch/process-scheduled - Process due scheduled emails
+router.post('/api/admin/dispatch/process-scheduled', authenticateToken, async (req, res) => {
+    try {
+        const result = await dispatchService.processScheduledEmails();
+        res.json({ success: true, ...result });
+    } catch (error) {
+        console.error('Error processing scheduled emails:', error);
         res.status(500).json({ error: error.message });
     }
 });

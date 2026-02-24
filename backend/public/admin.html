@@ -1348,8 +1348,8 @@
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 6px;">
-                                        <button onclick="startDispatch_ac('checkout_abandoned','en')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar EN</button>
-                                        <button onclick="startDispatch_ac('checkout_abandoned','es')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #f59e0b; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar ES</button>
+                                        <button onclick="startDispatch_ac('checkout_abandon','en')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar EN</button>
+                                        <button onclick="startDispatch_ac('checkout_abandon','es')" style="flex:1; padding: 8px; border: none; border-radius: 8px; background: #f59e0b; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">Disparar ES</button>
                                     </div>
                                 </div>
                                 <!-- Sale Cancelled -->
@@ -16061,8 +16061,8 @@ Posso ajudar em algo mais? 😊`
             const data = await resp.json();
             if (data.success && data.counts) {
                 const c = data.counts;
-                document.getElementById('dispatchCountCheckoutEN').textContent = (c.checkout_abandoned?.en || 0).toLocaleString();
-                document.getElementById('dispatchCountCheckoutES').textContent = (c.checkout_abandoned?.es || 0).toLocaleString();
+                document.getElementById('dispatchCountCheckoutEN').textContent = (c.checkout_abandon?.en || 0).toLocaleString();
+                document.getElementById('dispatchCountCheckoutES').textContent = (c.checkout_abandon?.es || 0).toLocaleString();
                 document.getElementById('dispatchCountSaleEN').textContent = (c.sale_cancelled?.en || 0).toLocaleString();
                 document.getElementById('dispatchCountSaleES').textContent = (c.sale_cancelled?.es || 0).toLocaleString();
                 document.getElementById('dispatchCountFunnelEN').textContent = (c.funnel_abandon?.en || 0).toLocaleString();
@@ -16075,14 +16075,14 @@ Posso ajudar em algo mais? 😊`
 
     async function startDispatch_ac(category, language) {
         const categoryNames = {
-            'checkout_abandoned': 'Checkout Abandonado',
+            'checkout_abandon': 'Checkout Abandonado',
             'sale_cancelled': 'Venda Cancelada',
             'funnel_abandon': 'Abandono de Funil'
         };
         const langNames = { 'en': 'Ingl\u00eas', 'es': 'Espanhol' };
         const batchSize = parseInt(document.getElementById('dispatchBatchSize').value) || 500;
 
-        if (!confirm(`Iniciar disparo de ${categoryNames[category]} (${langNames[language]}) com lote de ${batchSize} contatos?\n\nIsso vai adicionar os contatos ao ActiveCampaign e disparar a automa\u00e7\u00e3o de recupera\u00e7\u00e3o.`)) {
+        if (!confirm(`Iniciar disparo de ${categoryNames[category]} (${langNames[language]}) com lote de ${batchSize} contatos?\n\nIsso vai enviar os emails de recupera\u00e7\u00e3o diretamente via ActiveCampaign.`)) {
             return;
         }
 
@@ -16151,7 +16151,7 @@ Posso ajudar em algo mais? 😊`
             const tbody = document.getElementById('dispatchHistoryBody');
             if (data.success && data.history && data.history.length > 0) {
                 const categoryNames = {
-                    'checkout_abandoned': 'Checkout Abandonado',
+                    'checkout_abandon': 'Checkout Abandonado',
                     'sale_cancelled': 'Venda Cancelada',
                     'funnel_abandon': 'Abandono de Funil'
                 };

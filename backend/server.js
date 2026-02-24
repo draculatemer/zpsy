@@ -19,6 +19,7 @@ const { initDatabase } = require('./src/init-database');
 const { startAutoSync } = require('./src/services/monetizze');
 const { errorHandler, notFoundHandler } = require('./src/error-handler');
 const { validateEnv } = require('./src/validate-env');
+const dispatchService = require('./src/services/email-dispatch');
 
 // Route modules
 const publicRoutes = require('./src/routes/public');
@@ -274,6 +275,40 @@ app.listen(PORT, async () => {
     await initDatabase();
     await loadABTestOrigins();
     startAutoSync();
+
+    // Initialize dispatch table
+    try {
+        await dispatchService.ensureDispatchTable();
+        console.log('📧 Email dispatch table ready');
+    } catch (e) {
+        console.error('⚠️ Failed to init dispatch table:', e.message);
+    }
+
+    // Cron: Process scheduled emails every 30 minutes
+    setInterval(async () => {
+        try {
+            const result = await dispatchService.processScheduledEmails();
+            if (result.processed > 0) {
+                console.log(`📧 Cron: Processed ${result.processed} scheduled emails (${result.errors} errors)`);
+            }
+        } catch (e) {
+            console.error('⚠️ Cron scheduled emails error:', e.message);
+        }
+    }, 30 * 60 * 1000); // Every 30 minutes
+
+    // Cron: Cleanup completed contacts every 6 hours
+    setInterval(async () => {
+        try {
+            const result = await dispatchService.cleanupCompletedContacts();
+            if (result.cleaned > 0) {
+                console.log(`📧 Cron: Cleaned up ${result.cleaned} completed contacts`);
+            }
+        } catch (e) {
+            console.error('⚠️ Cron cleanup error:', e.message);
+        }
+    }, 6 * 60 * 60 * 1000); // Every 6 hours
+
+    console.log('📧 Email dispatch cron jobs started (scheduled: 30min, cleanup: 6h)');
 });
 
 // Graceful shutdown
