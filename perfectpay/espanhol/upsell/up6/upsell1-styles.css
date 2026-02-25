@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #0f1115;
     --card: #171a21;
     --text: #eef1f7;
@@ -554,12 +554,7 @@ body {
     font-size: 14px;
 }
 
-/* Hide price tag on mobile */
-@media (max-width: 768px) {
-    .price-tag {
-        display: none !important;
-    }
-}
+
 
 /* Responsive */
 @media (max-width: 768px) {

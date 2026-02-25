@@ -538,12 +538,7 @@ body {
     /* Display controlled by JS */
 }
 
-/* Hide price tag on mobile */
-@media (max-width: 768px) {
-    .price-tag {
-        display: none !important;
-    }
-}
+
 
 /* Responsive */
 @media (max-width: 768px) {
