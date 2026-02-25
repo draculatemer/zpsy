@@ -36,6 +36,7 @@ const adminACRoutes = require('./src/routes/admin-activecampaign');
 const adminDispatchRoutes = require('./src/routes/admin-dispatch');
 const trackingRoutes = require('./src/routes/tracking');
 const adminTrackingRoutes = require('./src/routes/admin-tracking');
+const fixPlaceholdersRoutes = require('./src/routes/fix-placeholders');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -259,6 +260,7 @@ app.use('/', adminDebugRoutes);
 app.use('/', adminACRoutes);
 app.use('/', adminDispatchRoutes);
 app.use('/', adminTrackingRoutes);
+app.use('/', fixPlaceholdersRoutes);
 
 // ==================== ERROR HANDLING ====================
 
