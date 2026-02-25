@@ -242,4 +242,144 @@ router.post('/api/admin/tracking/inject', authenticateToken, async (req, res) =>
   }
 });
 
+// ==================== AC CAMPAIGN REPORTS ====================
+
+// GET /api/admin/tracking/ac-reports — Get native AC campaign report data (opens, clicks, bounces)
+router.get('/api/admin/tracking/ac-reports', authenticateToken, async (req, res) => {
+  try {
+    const results = [];
+    
+    // Map campaignId from CAMPAIGN_MAP in email-dispatch.js
+    const CAMPAIGN_MAP = {
+      checkout_abandon_en_1: { campaignId: 194, messageId: 256 },
+      checkout_abandon_en_2: { campaignId: 195, messageId: 257 },
+      checkout_abandon_en_3: { campaignId: 196, messageId: 258 },
+      checkout_abandon_en_4: { campaignId: 197, messageId: 259 },
+      checkout_abandon_es_1: { campaignId: 198, messageId: 260 },
+      checkout_abandon_es_2: { campaignId: 199, messageId: 261 },
+      checkout_abandon_es_3: { campaignId: 200, messageId: 262 },
+      checkout_abandon_es_4: { campaignId: 201, messageId: 263 },
+      sale_cancelled_en_1: { campaignId: 202, messageId: 264 },
+      sale_cancelled_en_2: { campaignId: 203, messageId: 265 },
+      sale_cancelled_en_3: { campaignId: 204, messageId: 266 },
+      sale_cancelled_en_4: { campaignId: 205, messageId: 267 },
+      sale_cancelled_es_1: { campaignId: 206, messageId: 268 },
+      sale_cancelled_es_2: { campaignId: 207, messageId: 269 },
+      sale_cancelled_es_3: { campaignId: 208, messageId: 270 },
+      sale_cancelled_es_4: { campaignId: 209, messageId: 271 },
+      funnel_abandon_en_1: { campaignId: 210, messageId: 272 },
+      funnel_abandon_en_2: { campaignId: 211, messageId: 273 },
+      funnel_abandon_en_3: { campaignId: 212, messageId: 274 },
+      funnel_abandon_en_4: { campaignId: 213, messageId: 275 },
+      funnel_abandon_es_1: { campaignId: 214, messageId: 276 },
+      funnel_abandon_es_2: { campaignId: 215, messageId: 277 },
+      funnel_abandon_es_3: { campaignId: 216, messageId: 278 },
+      funnel_abandon_es_4: { campaignId: 217, messageId: 279 },
+    };
+
+    for (const [key, { campaignId }] of Object.entries(CAMPAIGN_MAP)) {
+      try {
+        const report = await acApiV1Get('campaign_report_totals', { campaignid: campaignId });
+        const [category, language, , emailNum] = key.split('_');
+        results.push({
+          key,
+          category: `${category}_${key.split('_')[1]}`,
+          language: key.includes('_en_') ? 'en' : 'es',
+          emailNum: parseInt(key.split('_').pop()),
+          campaignId,
+          totals: {
+            sends: parseInt(report.sends || report.totals?.sends || 0),
+            uniqueOpens: parseInt(report.uniqueopens || report.totals?.uniqueopens || 0),
+            opens: parseInt(report.opens || report.totals?.opens || 0),
+            clicks: parseInt(report.linkclicks || report.totals?.linkclicks || 0),
+            uniqueClicks: parseInt(report.uniquelinkclicks || report.totals?.uniquelinkclicks || 0),
+            bounces: parseInt(report.bounces || report.totals?.bounces || 0),
+            softBounces: parseInt(report.softbounces || report.totals?.softbounces || 0),
+            hardBounces: parseInt(report.hardbounces || report.totals?.hardbounces || 0),
+            unsubscribes: parseInt(report.unsubscribes || report.totals?.unsubscribes || 0),
+          },
+          raw: report
+        });
+      } catch (err) {
+        results.push({ key, campaignId, error: err.message });
+      }
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    // Aggregate totals
+    const totals = results.reduce((acc, r) => {
+      if (r.totals) {
+        acc.sends += r.totals.sends;
+        acc.uniqueOpens += r.totals.uniqueOpens;
+        acc.opens += r.totals.opens;
+        acc.clicks += r.totals.clicks;
+        acc.uniqueClicks += r.totals.uniqueClicks;
+        acc.bounces += r.totals.bounces;
+        acc.unsubscribes += r.totals.unsubscribes;
+      }
+      return acc;
+    }, { sends: 0, uniqueOpens: 0, opens: 0, clicks: 0, uniqueClicks: 0, bounces: 0, unsubscribes: 0 });
+
+    totals.openRate = totals.sends > 0 ? (totals.uniqueOpens / totals.sends * 100).toFixed(1) : '0.0';
+    totals.clickRate = totals.sends > 0 ? (totals.uniqueClicks / totals.sends * 100).toFixed(1) : '0.0';
+
+    res.json({ success: true, totals, campaigns: results });
+  } catch (error) {
+    console.error('Error getting AC reports:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/admin/tracking/test-send — Send a test email to verify delivery
+router.post('/api/admin/tracking/test-send', authenticateToken, async (req, res) => {
+  const { email, campaignId, messageId } = req.body;
+  if (!email || !campaignId || !messageId) {
+    return res.status(400).json({ success: false, error: 'email, campaignId, and messageId are required' });
+  }
+  try {
+    const result = await acApiV1Get('campaign_send', {
+      email,
+      campaignid: campaignId,
+      messageid: messageId,
+      type: 'mime',
+      action: 'test'
+    });
+    res.json({ success: true, result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/admin/tracking/verify-html/:messageId — Check if tracking is present in a campaign's HTML
+router.get('/api/admin/tracking/verify-html/:messageId', authenticateToken, async (req, res) => {
+  try {
+    const msgData = await acApiV1Get('message_view', { id: req.params.messageId });
+    const html = msgData.html || msgData.htmlcontent || '';
+    const hasPixel = html.includes('/t/open?');
+    const hasClickTracking = html.includes('/t/click?');
+    const hasACTracking = html.includes('lt.php') || html.includes('trackcmp');
+    
+    // Find all links
+    const linkRegex = /href="([^"]+)"/gi;
+    const links = [];
+    let match;
+    while ((match = linkRegex.exec(html)) !== null) {
+      links.push(match[1]);
+    }
+    
+    res.json({
+      success: true,
+      messageId: req.params.messageId,
+      htmlLength: html.length,
+      hasCustomPixel: hasPixel,
+      hasCustomClickTracking: hasClickTracking,
+      hasACNativeTracking: hasACTracking,
+      links,
+      htmlPreview: html.substring(html.length - 500) // Last 500 chars to check pixel
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
