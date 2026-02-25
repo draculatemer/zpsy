@@ -313,7 +313,7 @@ async function getLeadsForDispatch(category, language, limit = 500) {
     `;
   } else if (category === 'sale_cancelled') {
     query = `
-      SELECT DISTINCT ON (t.email) t.email, t.customer_name as name, t.phone
+      SELECT DISTINCT ON (t.email) t.email, t.name, t.phone
       FROM transactions t
       WHERE t.status IN ('refunded', 'cancelled', 'chargeback')
       AND t.email IS NOT NULL AND t.email != ''
