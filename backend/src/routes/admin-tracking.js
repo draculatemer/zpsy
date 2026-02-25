@@ -191,28 +191,25 @@ router.post('/api/admin/tracking/inject', authenticateToken, async (req, res) =>
           continue;
         }
 
-        // 3. Save updated HTML - must include required fields from original message
+        // 3. Save updated HTML - must include all required fields from original message
         const editParams = {
           id: messageId,
           html: updatedHtml,
           htmlconstructor: 'editor',
-          format: 'html',
+          format: msgData.format || 'mime',
+          charset: msgData.charset || 'utf-8',
+          encoding: msgData.encoding || 'quoted-printable',
+          subject: msgData.subject || '',
+          fromemail: msgData.fromemail || 'noreply@zapspy.ai',
+          fromname: msgData.fromname || 'ZapSpy.ai',
+          reply2: msgData.reply2 || 'support@zapspy.ai',
+          priority: msgData.priority || '3',
+          textcopy: msgData.textcopy || '',
         };
         // Include list IDs from original message data
         if (msgData.listslist) {
-          // listslist can be comma-separated list IDs
           const listIds = String(msgData.listslist).split(',');
-          listIds.forEach((lid, idx) => { editParams[`p[${lid.trim()}]`] = lid.trim(); });
-        } else {
-          // Fallback: determine list from campaign key
-          const listMap = {
-            'checkout_abandon_en': '7', 'checkout_abandon_es': '8',
-            'sale_cancelled_en': '9', 'sale_cancelled_es': '10',
-            'funnel_abandon_en': '5', 'funnel_abandon_es': '6',
-          };
-          const listKey = `${category}_${language}`;
-          const listId = listMap[listKey];
-          if (listId) editParams[`p[${listId}]`] = listId;
+          listIds.forEach((lid) => { editParams[`p[${lid.trim()}]`] = lid.trim(); });
         }
         const editResult = await acApiV1Post('message_edit', editParams);
         
