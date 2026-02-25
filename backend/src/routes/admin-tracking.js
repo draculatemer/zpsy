@@ -280,12 +280,16 @@ router.get('/api/admin/tracking/ac-reports', authenticateToken, async (req, res)
     for (const [key, { campaignId }] of Object.entries(CAMPAIGN_MAP)) {
       try {
         const report = await acApiV1Get('campaign_report_totals', { campaignid: campaignId });
-        const [category, language, , emailNum] = key.split('_');
+        // key format: checkout_abandon_en_1, sale_cancelled_es_2, funnel_abandon_en_3
+        const parts = key.split('_');
+        const emailNum = parseInt(parts.pop()); // last part is number
+        const language = parts.pop(); // second to last is language
+        const category = parts.join('_'); // rest is category
         results.push({
           key,
-          category: `${category}_${key.split('_')[1]}`,
-          language: key.includes('_en_') ? 'en' : 'es',
-          emailNum: parseInt(key.split('_').pop()),
+          category,
+          language,
+          emailNum,
           campaignId,
           totals: {
             sends: parseInt(report.sends || report.totals?.sends || 0),

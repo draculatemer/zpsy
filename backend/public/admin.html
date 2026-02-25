@@ -16286,16 +16286,20 @@ Posso ajudar em algo mais? 😊`
                     'sale_cancelled': 'Venda Cancelada',
                     'funnel_abandon': 'Abandono de Funil'
                 };
-                tbody.innerHTML = data.history.map(h => `
-                    <tr>
+                tbody.innerHTML = data.history.map(h => {
+                    const total = parseInt(h.total_contacts) || 0;
+                    const success = parseInt(h.emails_sent) || 0;
+                    const failed = parseInt(h.emails_failed) || 0;
+                    const dateStr = h.started_at ? `${new Date(h.started_at).toLocaleDateString('pt-BR')} ${new Date(h.started_at).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}` : '-';
+                    return `<tr>
                         <td>${categoryNames[h.category] || h.category}</td>
-                        <td><span style="font-size: 11px; background: ${h.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px;">${h.language.toUpperCase()}</span></td>
-                        <td>${parseInt(h.total).toLocaleString()}</td>
-                        <td style="color: #10b981;">${parseInt(h.success).toLocaleString()}</td>
-                        <td style="color: ${parseInt(h.failed) > 0 ? '#ef4444' : 'inherit'};">${parseInt(h.failed).toLocaleString()}</td>
-                        <td>${new Date(h.started_at).toLocaleDateString('pt-BR')} ${new Date(h.started_at).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}</td>
-                    </tr>
-                `).join('');
+                        <td><span style="font-size: 11px; background: ${h.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px;">${(h.language||'').toUpperCase()}</span></td>
+                        <td>${total.toLocaleString()}</td>
+                        <td style="color: #10b981;">${success.toLocaleString()}</td>
+                        <td style="color: ${failed > 0 ? '#ef4444' : 'inherit'};">${failed.toLocaleString()}</td>
+                        <td>${dateStr}</td>
+                    </tr>`;
+                }).join('');
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">Nenhum disparo realizado ainda</td></tr>';
             }
@@ -16408,80 +16412,60 @@ Posso ajudar em algo mais? 😊`
             const token = _acGetToken();
             const apiUrl = _acGetApiUrl();
 
-            // Load summary, detailed metrics, and recent events in parallel
-            const [summaryRes, metricsRes, eventsRes] = await Promise.all([
-                fetch(`${apiUrl}/api/admin/tracking/summary`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch(`${apiUrl}/api/admin/tracking/metrics`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch(`${apiUrl}/api/admin/tracking/events?limit=50`, { headers: { 'Authorization': `Bearer ${token}` } })
-            ]);
+            // Load AC native reports (real opens/clicks from ActiveCampaign)
+            const acReportsRes = await fetch(`${apiUrl}/api/admin/tracking/ac-reports`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const acReports = await acReportsRes.json();
 
-            const summary = await summaryRes.json();
-            const metrics = await metricsRes.json();
-            const events = await eventsRes.json();
+            if (acReports.success) {
+                const t = acReports.totals || {};
+                document.getElementById('trackTotalSent').textContent = (t.sends || 0).toLocaleString();
+                document.getElementById('trackTotalOpens').textContent = (t.uniqueOpens || 0).toLocaleString();
+                document.getElementById('trackTotalClicks').textContent = (t.uniqueClicks || 0).toLocaleString();
+                document.getElementById('trackOpenRate').textContent = (t.openRate || '0.0') + '%';
+                document.getElementById('trackClickRate').textContent = (t.clickRate || '0.0') + '%';
 
-            // Update Summary KPIs
-            if (summary.success && summary.data) {
-                const d = summary.data;
-                document.getElementById('trackTotalSent').textContent = (d.total_sent || 0).toLocaleString();
-                document.getElementById('trackTotalOpens').textContent = (d.unique_opens || 0).toLocaleString();
-                document.getElementById('trackTotalClicks').textContent = (d.unique_clicks || 0).toLocaleString();
-                const openRate = d.total_sent > 0 ? ((d.unique_opens / d.total_sent) * 100).toFixed(1) : '0';
-                const clickRate = d.total_sent > 0 ? ((d.unique_clicks / d.total_sent) * 100).toFixed(1) : '0';
-                document.getElementById('trackOpenRate').textContent = openRate + '%';
-                document.getElementById('trackClickRate').textContent = clickRate + '%';
+                // Build detailed table from campaigns data
+                const tbody = document.getElementById('trackingMetricsTableBody');
+                const campaigns = acReports.campaigns || [];
+                const validCampaigns = campaigns.filter(c => c.totals && (c.totals.sends > 0 || c.totals.uniqueOpens > 0));
+
+                if (validCampaigns.length > 0) {
+                    tbody.innerHTML = validCampaigns.map(c => {
+                        const catLabel = categoryLabels[c.category] || c.category;
+                        const lang = (c.language || '').toUpperCase();
+                        const sends = c.totals.sends || 0;
+                        const opens = c.totals.uniqueOpens || 0;
+                        const clicks = c.totals.uniqueClicks || 0;
+                        const bounces = c.totals.bounces || 0;
+                        const unsubs = c.totals.unsubscribes || 0;
+                        const oRate = sends > 0 ? ((opens / sends) * 100).toFixed(1) + '%' : '0.0%';
+                        const cRate = sends > 0 ? ((clicks / sends) * 100).toFixed(1) + '%' : '0.0%';
+                        return `<tr>
+                            <td>${catLabel}</td>
+                            <td><span class="ac-lang-badge" style="background: ${c.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${lang}</span></td>
+                            <td style="text-align: center;">${c.emailNum || '-'}</td>
+                            <td style="text-align: center; font-weight: 600;">${sends.toLocaleString()}</td>
+                            <td style="text-align: center; color: #10b981; font-weight: 600;">${opens.toLocaleString()}</td>
+                            <td style="text-align: center;">${oRate}</td>
+                            <td style="text-align: center; color: #f59e0b; font-weight: 600;">${clicks.toLocaleString()}</td>
+                            <td style="text-align: center;">${cRate}</td>
+                        </tr>`;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhuma m\u00e9trica dispon\u00edvel ainda. Os dados aparecer\u00e3o ap\u00f3s os primeiros e-mails serem abertos.</td></tr>';
+                }
+
+                // Hide events section since we're using AC native data now
+                const eventsTbody = document.getElementById('trackingEventsTableBody');
+                eventsTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 12px; color: var(--text-muted);">Dados de abertura e clique fornecidos pelo ActiveCampaign</td></tr>';
             }
 
-            // Update Detailed Metrics Table
-            const tbody = document.getElementById('trackingMetricsTableBody');
-            if (metrics.success && metrics.data && metrics.data.length > 0) {
-                tbody.innerHTML = metrics.data.map(m => {
-                    const catLabel = categoryLabels[m.category] || m.category;
-                    const lang = (m.language || '').toUpperCase();
-                    const sent = parseInt(m.total_sent) || 0;
-                    const opens = parseInt(m.unique_opens) || 0;
-                    const clicks = parseInt(m.unique_clicks) || 0;
-                    const oRate = sent > 0 ? ((opens / sent) * 100).toFixed(1) + '%' : '0%';
-                    const cRate = sent > 0 ? ((clicks / sent) * 100).toFixed(1) + '%' : '0%';
-                    return `<tr>
-                        <td>${catLabel}</td>
-                        <td><span class="ac-lang-badge" style="background: ${m.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${lang}</span></td>
-                        <td style="text-align: center;">${m.email_num}</td>
-                        <td style="text-align: center; font-weight: 600;">${sent.toLocaleString()}</td>
-                        <td style="text-align: center; color: #10b981; font-weight: 600;">${opens.toLocaleString()}</td>
-                        <td style="text-align: center;">${oRate}</td>
-                        <td style="text-align: center; color: #f59e0b; font-weight: 600;">${clicks.toLocaleString()}</td>
-                        <td style="text-align: center;">${cRate}</td>
-                    </tr>`;
-                }).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhuma m\u00e9trica dispon\u00edvel ainda. Os dados aparecer\u00e3o ap\u00f3s os primeiros e-mails serem abertos.</td></tr>';
-            }
-
-            // Update Recent Events Table
-            const eventsTbody = document.getElementById('trackingEventsTableBody');
-            if (events.success && events.data && events.data.length > 0) {
-                eventsTbody.innerHTML = events.data.map(ev => {
-                    const typeIcon = ev.event_type === 'open' ? '\ud83d\udc41\ufe0f' : '\ud83d\udd17';
-                    const typeLabel = ev.event_type === 'open' ? 'Abertura' : 'Clique';
-                    const typeColor = ev.event_type === 'open' ? '#10b981' : '#f59e0b';
-                    const catLabel = categoryLabels[ev.category] || ev.category;
-                    const date = new Date(ev.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                    return `<tr>
-                        <td><span style="color: ${typeColor}; font-weight: 600;">${typeIcon} ${typeLabel}</span></td>
-                        <td style="font-size: 12px;">${ev.email || '-'}</td>
-                        <td>${catLabel}</td>
-                        <td style="text-align: center;">${ev.email_num || '-'}</td>
-                        <td style="font-size: 12px; color: var(--text-muted);">${date}</td>
-                    </tr>`;
-                }).join('');
-            } else {
-                eventsTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum evento ainda</td></tr>';
-            }
-
-            _acShowToast('M\u00e9tricas', 'M\u00e9tricas de tracking atualizadas', 'success');
+            _acShowToast('M\u00e9tricas', 'M\u00e9tricas do ActiveCampaign atualizadas', 'success');
         } catch (error) {
             console.error('Error loading tracking metrics:', error);
-            _acShowToast('Erro', 'Falha ao carregar m\u00e9tricas de tracking', 'error');
+            _acShowToast('Erro', 'Falha ao carregar m\u00e9tricas', 'error');
         }
     }
 
