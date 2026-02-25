@@ -595,7 +595,7 @@ router.post('/api/admin/tracking/update-all-senders', authenticateToken, async (
 
     const results = [];
 
-    for (const campaign of CAMPAIGN_MESSAGE_MAP) {
+    for (const campaign of CAMPAIGNS_TO_TRACK) {
       const { key, messageId } = campaign;
 
       try {
