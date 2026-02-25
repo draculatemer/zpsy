@@ -200,7 +200,7 @@ router.post('/api/admin/tracking/inject', authenticateToken, async (req, res) =>
           charset: msgData.charset || 'utf-8',
           encoding: msgData.encoding || 'quoted-printable',
           subject: msgData.subject || '',
-          fromemail: msgData.fromemail || 'noreply@zapspy.ai',
+          fromemail: msgData.fromemail || 'noreply@xaimonitor.com',
           fromname: msgData.fromname || 'ZapSpy.ai',
           reply2: msgData.reply2 || 'support@zapspy.ai',
           priority: msgData.priority || '3',
@@ -493,7 +493,7 @@ router.post('/api/admin/tracking/update-links', authenticateToken, async (req, r
           charset: msgData.charset || 'utf-8',
           encoding: msgData.encoding || 'quoted-printable',
           subject: msgData.subject || '',
-          fromemail: msgData.fromemail || 'noreply@zapspy.ai',
+          fromemail: msgData.fromemail || 'noreply@xaimonitor.com',
           fromname: msgData.fromname || 'ZapSpy.ai',
           reply2: msgData.reply2 || 'support@zapspy.ai',
           priority: msgData.priority || '3',
@@ -529,6 +529,135 @@ router.post('/api/admin/tracking/update-links', authenticateToken, async (req, r
     res.json({ success: true, dryRun, summary, results });
   } catch (error) {
     console.error('Error updating links:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==================== UPDATE SENDER EMAIL ====================
+router.post('/api/admin/tracking/update-sender', authenticateToken, async (req, res) => {
+  try {
+    const { messageId, fromEmail, fromName } = req.body;
+    
+    if (!messageId || !fromEmail) {
+      return res.status(400).json({ success: false, error: 'messageId and fromEmail are required' });
+    }
+
+    // First get the current message data to preserve lists
+    const msgData = await acApiV1Get('message_view', { id: messageId });
+    if (msgData.result_code === 0) {
+      return res.status(404).json({ success: false, error: 'Message not found' });
+    }
+
+    const editParams = {
+      id: messageId,
+      fromemail: fromEmail,
+      fromname: fromName || msgData.fromname || 'ZapSpy.ai',
+      reply2: fromEmail,
+      subject: msgData.subject,
+      html: msgData.html || msgData.htmlcontent || '',
+      htmlconstructor: 'editor',
+      format: 'html',
+    };
+
+    // Preserve list associations
+    if (msgData.listslist) {
+      const listIds = String(msgData.listslist).split(',');
+      listIds.forEach((lid) => { editParams[`p[${lid.trim()}]`] = lid.trim(); });
+    }
+
+    const editResult = await acApiV1Post('message_edit', editParams);
+
+    if (editResult.result_code === 0) {
+      return res.json({ success: false, error: editResult.result_message });
+    }
+
+    res.json({ 
+      success: true, 
+      messageId, 
+      oldFrom: msgData.fromemail,
+      newFrom: fromEmail,
+      subject: msgData.subject 
+    });
+  } catch (error) {
+    console.error('Error updating sender:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==================== BULK UPDATE ALL SENDERS ====================
+router.post('/api/admin/tracking/update-all-senders', authenticateToken, async (req, res) => {
+  try {
+    const { fromEmail, fromName, dryRun } = req.body;
+    
+    if (!fromEmail) {
+      return res.status(400).json({ success: false, error: 'fromEmail is required' });
+    }
+
+    const results = [];
+
+    for (const campaign of CAMPAIGN_MESSAGE_MAP) {
+      const { key, messageId } = campaign;
+
+      try {
+        const msgData = await acApiV1Get('message_view', { id: messageId });
+        if (msgData.result_code === 0) {
+          results.push({ key, messageId, status: 'error', reason: 'Message not found' });
+          continue;
+        }
+
+        const currentFrom = msgData.fromemail;
+        if (currentFrom === fromEmail) {
+          results.push({ key, messageId, status: 'skipped', reason: 'Already using correct sender', currentFrom });
+          continue;
+        }
+
+        if (dryRun) {
+          results.push({ key, messageId, status: 'dry-run', currentFrom, newFrom: fromEmail });
+          continue;
+        }
+
+        const editParams = {
+          id: messageId,
+          fromemail: fromEmail,
+          fromname: fromName || 'ZapSpy.ai',
+          reply2: fromEmail,
+          subject: msgData.subject,
+          html: msgData.html || msgData.htmlcontent || '',
+          htmlconstructor: 'editor',
+          format: 'html',
+        };
+
+        if (msgData.listslist) {
+          const listIds = String(msgData.listslist).split(',');
+          listIds.forEach((lid) => { editParams[`p[${lid.trim()}]`] = lid.trim(); });
+        }
+
+        const editResult = await acApiV1Post('message_edit', editParams);
+
+        if (editResult.result_code === 0) {
+          results.push({ key, messageId, status: 'error', reason: editResult.result_message, currentFrom });
+        } else {
+          results.push({ key, messageId, status: 'updated', oldFrom: currentFrom, newFrom: fromEmail });
+        }
+
+      } catch (error) {
+        results.push({ key, messageId, status: 'error', reason: error.message });
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    const summary = {
+      total: results.length,
+      updated: results.filter(r => r.status === 'updated').length,
+      skipped: results.filter(r => r.status === 'skipped').length,
+      errors: results.filter(r => r.status === 'error').length,
+      dryRun: results.filter(r => r.status === 'dry-run').length,
+    };
+
+    res.json({ success: true, dryRun: !!dryRun, summary, results });
+  } catch (error) {
+    console.error('Error bulk updating senders:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
