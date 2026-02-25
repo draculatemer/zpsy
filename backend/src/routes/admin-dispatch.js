@@ -142,4 +142,64 @@ router.post('/api/admin/dispatch/cleanup', authenticateToken, async (req, res) =
     }
 });
 
+// ==================== FULL RESET ====================
+
+// POST /api/admin/dispatch/reset - Reset all dispatch data and metrics to start fresh
+router.post('/api/admin/dispatch/reset', authenticateToken, async (req, res) => {
+    try {
+        const { confirm } = req.body;
+        if (confirm !== 'RESET_ALL') {
+            return res.status(400).json({ 
+                error: 'Safety check: send { "confirm": "RESET_ALL" } to proceed',
+                warning: 'This will delete ALL dispatch logs, tracking events, and scheduled emails'
+            });
+        }
+
+        const pool = require('../database');
+        const results = {};
+
+        // 1. Truncate email_dispatch_log (all sent/scheduled/error records)
+        try {
+            const r1 = await pool.queryRetry('DELETE FROM email_dispatch_log');
+            results.dispatch_log = { deleted: r1.rowCount };
+        } catch (e) {
+            results.dispatch_log = { error: e.message };
+        }
+
+        // 2. Truncate email_tracking_events
+        try {
+            const r2 = await pool.queryRetry('DELETE FROM email_tracking_events');
+            results.tracking_events = { deleted: r2.rowCount };
+        } catch (e) {
+            results.tracking_events = { error: e.message };
+        }
+
+        // 3. Truncate email_tracking
+        try {
+            const r3 = await pool.queryRetry('DELETE FROM email_tracking');
+            results.tracking = { deleted: r3.rowCount };
+        } catch (e) {
+            results.tracking = { error: e.message };
+        }
+
+        // 4. Reset recovery_contacts
+        try {
+            const r4 = await pool.queryRetry('DELETE FROM recovery_contacts');
+            results.recovery_contacts = { deleted: r4.rowCount };
+        } catch (e) {
+            results.recovery_contacts = { error: e.message };
+        }
+
+        console.log('🔄 FULL RESET completed:', JSON.stringify(results));
+        res.json({ 
+            success: true, 
+            message: 'All dispatch data and metrics have been reset',
+            results 
+        });
+    } catch (error) {
+        console.error('Error resetting dispatch:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
