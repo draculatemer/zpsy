@@ -294,7 +294,7 @@ async function getLeadsForDispatch(category, language, limit = 500) {
 
   if (category === 'checkout_abandon') {
     query = `
-      SELECT DISTINCT ON (l.email) l.email, l.name, l.phone
+      SELECT DISTINCT ON (l.email) l.email, l.name, l.whatsapp as phone
       FROM leads l
       INNER JOIN funnel_events fe ON l.ip_address = fe.ip_address
       WHERE fe.event = 'checkout_clicked'
@@ -329,7 +329,7 @@ async function getLeadsForDispatch(category, language, limit = 500) {
     `;
   } else if (category === 'funnel_abandon') {
     query = `
-      SELECT DISTINCT ON (l.email) l.email, l.name, l.phone
+      SELECT DISTINCT ON (l.email) l.email, l.name, l.whatsapp as phone
       FROM leads l
       WHERE l.email IS NOT NULL AND l.email != ''
       AND l.funnel_language = $1
