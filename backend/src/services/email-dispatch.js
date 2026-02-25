@@ -120,6 +120,23 @@ async function sendCampaignEmail(email, category, language, emailNum) {
 // ==================== DATABASE TABLE ====================
 
 async function ensureDispatchTable() {
+  // First, try to add missing columns if table already exists with old schema
+  try {
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS scheduled_for TIMESTAMP`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS sent_at TIMESTAMP`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS cleaned_up BOOLEAN DEFAULT FALSE`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS cleanup_at TIMESTAMP`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS ac_contact_id VARCHAR(50)`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS batch_id VARCHAR(100)`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS dispatched_at TIMESTAMP DEFAULT NOW()`);
+    await pool.queryRetry(`ALTER TABLE email_dispatch_log ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()`);
+  } catch (e) {
+    // Table might not exist yet, that's fine - CREATE TABLE below will handle it
+    if (!e.message.includes('does not exist')) {
+      console.warn('Warning during ALTER TABLE:', e.message);
+    }
+  }
+
   await pool.queryRetry(`
     CREATE TABLE IF NOT EXISTS email_dispatch_log (
       id SERIAL PRIMARY KEY,
