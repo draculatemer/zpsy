@@ -337,16 +337,18 @@ router.get('/api/admin/tracking/ac-reports', authenticateToken, async (req, res)
 // POST /api/admin/tracking/test-send — Send a test email to verify delivery
 router.post('/api/admin/tracking/test-send', authenticateToken, async (req, res) => {
   const { email, campaignId, messageId } = req.body;
-  if (!email || !campaignId || !messageId) {
-    return res.status(400).json({ success: false, error: 'email, campaignId, and messageId are required' });
+  if (!email || !campaignId) {
+    return res.status(400).json({ success: false, error: 'email and campaignId are required' });
   }
   try {
+    // Use messageid=0 and action=send (same as real dispatch)
+    // messageid=0 tells AC to use the campaign's default message
     const result = await acApiV1Get('campaign_send', {
       email,
       campaignid: campaignId,
-      messageid: messageId,
+      messageid: 0,
       type: 'mime',
-      action: 'test'
+      action: 'send'
     });
     res.json({ success: true, result });
   } catch (error) {
