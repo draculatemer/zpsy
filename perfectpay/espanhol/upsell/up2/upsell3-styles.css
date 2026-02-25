@@ -922,3 +922,16 @@ body {
         font-size: 20px;
     }
 }
+/* Decline Link */
+.decline-link {
+    display: block;
+    margin-top: 20px;
+    color: #e4e4e7;
+    font-size: 14px;
+    text-decoration: underline;
+    opacity: 1;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+}
+.decline-link:hover { color: #ffffff; opacity: 1; }
