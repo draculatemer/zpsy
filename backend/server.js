@@ -20,6 +20,7 @@ const { startAutoSync } = require('./src/services/monetizze');
 const { errorHandler, notFoundHandler } = require('./src/error-handler');
 const { validateEnv } = require('./src/validate-env');
 const dispatchService = require('./src/services/email-dispatch');
+const trackingService = require('./src/services/email-tracking');
 
 // Route modules
 const publicRoutes = require('./src/routes/public');
@@ -33,6 +34,8 @@ const adminRefundsRoutes = require('./src/routes/admin-refunds');
 const adminDebugRoutes = require('./src/routes/admin-debug');
 const adminACRoutes = require('./src/routes/admin-activecampaign');
 const adminDispatchRoutes = require('./src/routes/admin-dispatch');
+const trackingRoutes = require('./src/routes/tracking');
+const adminTrackingRoutes = require('./src/routes/admin-tracking');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -239,6 +242,9 @@ app.use('/api/admin', adminLimiter);
 // Public routes (health, leads, tracking, CAPI, refunds)
 app.use('/', publicRoutes);
 
+// Email tracking routes (public - no auth, called from emails)
+app.use('/', trackingRoutes);
+
 // Postback webhooks (Monetizze + PerfectPay)
 app.use('/', postbackRoutes);
 
@@ -252,6 +258,7 @@ app.use('/', adminRefundsRoutes);
 app.use('/', adminDebugRoutes);
 app.use('/', adminACRoutes);
 app.use('/', adminDispatchRoutes);
+app.use('/', adminTrackingRoutes);
 
 // ==================== ERROR HANDLING ====================
 
@@ -275,6 +282,14 @@ app.listen(PORT, async () => {
     await initDatabase();
     await loadABTestOrigins();
     startAutoSync();
+
+    // Initialize tracking table
+    try {
+        await trackingService.ensureTrackingTable();
+        console.log('📊 Email tracking table ready');
+    } catch (e) {
+        console.error('⚠️ Failed to init tracking table:', e.message);
+    }
 
     // Initialize dispatch table
     try {

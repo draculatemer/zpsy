@@ -1500,6 +1500,86 @@
                             </div>
                         </div>
 
+                        <!-- Email Tracking Dashboard -->
+                        <div class="ac-section">
+                            <div class="ac-section-header">
+                                <h3 style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                    Métricas de E-mail
+                                </h3>
+                                <button class="ac-add-contact-btn" onclick="loadTrackingMetrics()" style="font-size: 12px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                    Atualizar
+                                </button>
+                            </div>
+
+                            <!-- Summary KPIs -->
+                            <div id="trackingSummaryKPIs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6;" id="trackTotalSent">0</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">E-mails Enviados</div>
+                                </div>
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;" id="trackTotalOpens">0</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Aberturas Únicas</div>
+                                </div>
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #f59e0b;" id="trackTotalClicks">0</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Cliques Únicos</div>
+                                </div>
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;" id="trackOpenRate">0%</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Taxa de Abertura</div>
+                                </div>
+                                <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #ef4444;" id="trackClickRate">0%</div>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Taxa de Clique</div>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Metrics Table -->
+                            <div class="ac-table-wrap">
+                                <table class="ac-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Idioma</th>
+                                            <th>E-mail #</th>
+                                            <th>Enviados</th>
+                                            <th>Aberturas</th>
+                                            <th>Taxa Abert.</th>
+                                            <th>Cliques</th>
+                                            <th>Taxa Clique</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trackingMetricsTableBody">
+                                        <tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">Clique em "Atualizar" para carregar métricas</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Recent Events -->
+                            <div style="margin-top: 16px;">
+                                <h4 style="margin-bottom: 8px; color: var(--text-muted); font-size: 13px; font-weight: 600;">Eventos Recentes</h4>
+                                <div class="ac-table-wrap" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="ac-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo</th>
+                                                <th>E-mail</th>
+                                                <th>Categoria</th>
+                                                <th>E-mail #</th>
+                                                <th>Data</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="trackingEventsTableBody">
+                                            <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum evento ainda</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Recent Contacts -->
                         <div class="ac-section">
                             <div class="ac-section-header">
@@ -16315,12 +16395,103 @@ Posso ajudar em algo mais? 😊`
         }
     }
 
+    // ==================== Email Tracking Metrics ====================
+
+    const categoryLabels = {
+        'sale_cancelled': 'Venda Cancelada',
+        'checkout_abandon': 'Checkout Abandonado',
+        'funnel_abandon': 'Abandono de Funil'
+    };
+
+    async function loadTrackingMetrics() {
+        try {
+            const token = _acGetToken();
+            const apiUrl = _acGetApiUrl();
+
+            // Load summary, detailed metrics, and recent events in parallel
+            const [summaryRes, metricsRes, eventsRes] = await Promise.all([
+                fetch(`${apiUrl}/api/admin/tracking/summary`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${apiUrl}/api/admin/tracking/metrics`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${apiUrl}/api/admin/tracking/events?limit=50`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            const summary = await summaryRes.json();
+            const metrics = await metricsRes.json();
+            const events = await eventsRes.json();
+
+            // Update Summary KPIs
+            if (summary.success && summary.data) {
+                const d = summary.data;
+                document.getElementById('trackTotalSent').textContent = (d.total_sent || 0).toLocaleString();
+                document.getElementById('trackTotalOpens').textContent = (d.unique_opens || 0).toLocaleString();
+                document.getElementById('trackTotalClicks').textContent = (d.unique_clicks || 0).toLocaleString();
+                const openRate = d.total_sent > 0 ? ((d.unique_opens / d.total_sent) * 100).toFixed(1) : '0';
+                const clickRate = d.total_sent > 0 ? ((d.unique_clicks / d.total_sent) * 100).toFixed(1) : '0';
+                document.getElementById('trackOpenRate').textContent = openRate + '%';
+                document.getElementById('trackClickRate').textContent = clickRate + '%';
+            }
+
+            // Update Detailed Metrics Table
+            const tbody = document.getElementById('trackingMetricsTableBody');
+            if (metrics.success && metrics.data && metrics.data.length > 0) {
+                tbody.innerHTML = metrics.data.map(m => {
+                    const catLabel = categoryLabels[m.category] || m.category;
+                    const lang = (m.language || '').toUpperCase();
+                    const sent = parseInt(m.total_sent) || 0;
+                    const opens = parseInt(m.unique_opens) || 0;
+                    const clicks = parseInt(m.unique_clicks) || 0;
+                    const oRate = sent > 0 ? ((opens / sent) * 100).toFixed(1) + '%' : '0%';
+                    const cRate = sent > 0 ? ((clicks / sent) * 100).toFixed(1) + '%' : '0%';
+                    return `<tr>
+                        <td>${catLabel}</td>
+                        <td><span class="ac-lang-badge" style="background: ${m.language === 'en' ? '#3b82f6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${lang}</span></td>
+                        <td style="text-align: center;">${m.email_num}</td>
+                        <td style="text-align: center; font-weight: 600;">${sent.toLocaleString()}</td>
+                        <td style="text-align: center; color: #10b981; font-weight: 600;">${opens.toLocaleString()}</td>
+                        <td style="text-align: center;">${oRate}</td>
+                        <td style="text-align: center; color: #f59e0b; font-weight: 600;">${clicks.toLocaleString()}</td>
+                        <td style="text-align: center;">${cRate}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhuma m\u00e9trica dispon\u00edvel ainda. Os dados aparecer\u00e3o ap\u00f3s os primeiros e-mails serem abertos.</td></tr>';
+            }
+
+            // Update Recent Events Table
+            const eventsTbody = document.getElementById('trackingEventsTableBody');
+            if (events.success && events.data && events.data.length > 0) {
+                eventsTbody.innerHTML = events.data.map(ev => {
+                    const typeIcon = ev.event_type === 'open' ? '\ud83d\udc41\ufe0f' : '\ud83d\udd17';
+                    const typeLabel = ev.event_type === 'open' ? 'Abertura' : 'Clique';
+                    const typeColor = ev.event_type === 'open' ? '#10b981' : '#f59e0b';
+                    const catLabel = categoryLabels[ev.category] || ev.category;
+                    const date = new Date(ev.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    return `<tr>
+                        <td><span style="color: ${typeColor}; font-weight: 600;">${typeIcon} ${typeLabel}</span></td>
+                        <td style="font-size: 12px;">${ev.email || '-'}</td>
+                        <td>${catLabel}</td>
+                        <td style="text-align: center;">${ev.email_num || '-'}</td>
+                        <td style="font-size: 12px; color: var(--text-muted);">${date}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                eventsTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Nenhum evento ainda</td></tr>';
+            }
+
+            _acShowToast('M\u00e9tricas', 'M\u00e9tricas de tracking atualizadas', 'success');
+        } catch (error) {
+            console.error('Error loading tracking metrics:', error);
+            _acShowToast('Erro', 'Falha ao carregar m\u00e9tricas de tracking', 'error');
+        }
+    }
+
     // Load dispatch data when AC tab is opened
     const _origLoadACDashboard = loadACDashboard;
     loadACDashboard = async function() {
         await _origLoadACDashboard();
         loadDispatchCounts_ac();
         loadDispatchHistory_ac();
+        loadTrackingMetrics();
         // Check if a dispatch is running
         try {
             const token = _acGetToken();

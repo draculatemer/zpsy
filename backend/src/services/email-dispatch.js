@@ -13,6 +13,7 @@
 const pool = require('../database');
 const acService = require('./activecampaign');
 const { AC_API_URL, AC_API_KEY } = require('../config');
+const trackingService = require('./email-tracking');
 
 // ==================== CAMPAIGN MAPPING ====================
 // Maps category_language_emailNumber to campaign and message IDs
@@ -428,6 +429,13 @@ async function runDispatch(category, language, batchSize, batchId) {
         // 2. Send Email 1 immediately via campaign_send
         await sendCampaignEmail(lead.email, category, language, 1);
 
+        // 2.5. Create tracking record for Email 1
+        try {
+          await trackingService.createTrackingRecord(lead.email, category, language, 1, batchId);
+        } catch (trackErr) {
+          console.error(`Tracking record error for ${lead.email}:`, trackErr.message);
+        }
+
         // 3. Log Email 1 as sent
         await pool.queryRetry(`
           INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, ac_contact_id, scheduled_for, sent_at, dispatched_at)
@@ -520,6 +528,13 @@ async function processScheduledEmails() {
       try {
         // Send the email via campaign_send
         await sendCampaignEmail(row.email, row.category, row.language, row.email_num);
+
+        // Create tracking record
+        try {
+          await trackingService.createTrackingRecord(row.email, row.category, row.language, row.email_num, null);
+        } catch (trackErr) {
+          console.error(`Tracking record error for ${row.email} #${row.email_num}:`, trackErr.message);
+        }
 
         // Update status to sent
         await pool.queryRetry(`
