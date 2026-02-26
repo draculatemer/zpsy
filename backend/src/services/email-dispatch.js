@@ -390,106 +390,144 @@ async function startBatchDispatch(category, language, batchSize = 500) {
 
 async function runDispatch(category, language, batchSize, batchId) {
   try {
-    console.log(`📧 Starting batch dispatch: ${category} ${language} (batch: ${batchSize})`);
+    console.log(`📧 Starting FULL dispatch: ${category} ${language} (batch size: ${batchSize})`);
 
-    const leads = await getLeadsForDispatch(category, language, batchSize);
-    dispatchStatus.total = leads.length;
+    // First, get total count to show in progress
+    let totalRemaining = 0;
+    let batchNumber = 0;
+    let globalProcessed = 0;
+    let globalSuccess = 0;
+    let globalFailed = 0;
 
-    if (leads.length === 0) {
-      dispatchStatus.running = false;
-      dispatchStatus.lastUpdate = new Date().toISOString();
-      console.log('📧 No leads to dispatch');
-      return;
-    }
+    // Loop: fetch and process batches until no more leads remain
+    while (true) {
+      batchNumber++;
+      const leads = await getLeadsForDispatch(category, language, batchSize);
 
-    console.log(`📧 Found ${leads.length} leads to dispatch`);
-
-    for (let i = 0; i < leads.length; i++) {
-      const lead = leads[i];
-
-      try {
-        // 1. Add contact to ActiveCampaign + subscribe to list
-        const contactId = await acService.syncContact(lead.email, lead.name, lead.phone);
-        
-        if (!contactId) {
-          throw new Error('Failed to sync contact to AC');
+      if (leads.length === 0) {
+        if (batchNumber === 1) {
+          console.log('📧 No leads to dispatch');
+        } else {
+          console.log(`📧 No more leads remaining after ${batchNumber - 1} batches`);
         }
+        break;
+      }
 
-        // Subscribe to the appropriate list
-        const eventType = category === 'checkout_abandon' ? 'checkout_abandoned' : 
-                         category === 'sale_cancelled' ? 'sale_cancelled' : 'lead_captured';
-        const listMapping = acService.LIST_MAP[eventType];
-        if (listMapping && listMapping[language]) {
-          const listId = await acService.getOrCreateList(listMapping[language]);
-          if (listId) {
-            await acService.subscribeToList(contactId, listId);
-          }
-        }
-
-        // 2. Send Email 1 immediately via campaign_send
-        await sendCampaignEmail(lead.email, category, language, 1);
-
-        // 2.5. Create tracking record for Email 1
+      // On first batch, estimate total by adding current batch to what we already processed
+      if (batchNumber === 1) {
+        // Get approximate total count for progress display
         try {
-          await trackingService.createTrackingRecord(lead.email, category, language, 1, batchId);
-        } catch (trackErr) {
-          console.error(`Tracking record error for ${lead.email}:`, trackErr.message);
+          const countResult = await getLeadCounts();
+          const catCounts = countResult[category] || {};
+          totalRemaining = catCounts[language] || leads.length;
+        } catch (e) {
+          totalRemaining = leads.length;
         }
+        dispatchStatus.total = totalRemaining;
+      }
 
-        // 3. Log Email 1 as sent
-        await pool.queryRetry(`
-          INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, ac_contact_id, scheduled_for, sent_at, dispatched_at)
-          VALUES ($1, $2, $3, 1, 'sent', $4, $5, NOW(), NOW(), NOW())
-          ON CONFLICT (email, category, language, email_num) DO UPDATE SET 
-            status = 'sent', batch_id = $4, ac_contact_id = $5, sent_at = NOW()
-        `, [lead.email, category, language, batchId, String(contactId)]);
+      console.log(`📧 Batch #${batchNumber}: Processing ${leads.length} leads...`);
 
-        // 4. Schedule Emails 2, 3, 4
-        const now = Date.now();
-        for (let emailNum = 2; emailNum <= 4; emailNum++) {
-          const delayMs = EMAIL_SCHEDULE[emailNum] * 60 * 60 * 1000;
-          const scheduledFor = new Date(now + delayMs);
+      for (let i = 0; i < leads.length; i++) {
+        const lead = leads[i];
+
+        try {
+          // 1. Add contact to ActiveCampaign + subscribe to list
+          const contactId = await acService.syncContact(lead.email, lead.name, lead.phone);
           
+          if (!contactId) {
+            throw new Error('Failed to sync contact to AC');
+          }
+
+          // Subscribe to the appropriate list
+          const eventType = category === 'checkout_abandon' ? 'checkout_abandoned' : 
+                           category === 'sale_cancelled' ? 'sale_cancelled' : 'lead_captured';
+          const listMapping = acService.LIST_MAP[eventType];
+          if (listMapping && listMapping[language]) {
+            const listId = await acService.getOrCreateList(listMapping[language]);
+            if (listId) {
+              await acService.subscribeToList(contactId, listId);
+            }
+          }
+
+          // 2. Send Email 1 immediately via campaign_send
+          await sendCampaignEmail(lead.email, category, language, 1);
+
+          // 2.5. Create tracking record for Email 1
+          try {
+            await trackingService.createTrackingRecord(lead.email, category, language, 1, batchId);
+          } catch (trackErr) {
+            console.error(`Tracking record error for ${lead.email}:`, trackErr.message);
+          }
+
+          // 3. Log Email 1 as sent
           await pool.queryRetry(`
-            INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, ac_contact_id, scheduled_for, dispatched_at)
-            VALUES ($1, $2, $3, $4, 'scheduled', $5, $6, $7, NOW())
-            ON CONFLICT (email, category, language, email_num) DO NOTHING
-          `, [lead.email, category, language, emailNum, batchId, String(contactId), scheduledFor]);
+            INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, ac_contact_id, scheduled_for, sent_at, dispatched_at)
+            VALUES ($1, $2, $3, 1, 'sent', $4, $5, NOW(), NOW(), NOW())
+            ON CONFLICT (email, category, language, email_num) DO UPDATE SET 
+              status = 'sent', batch_id = $4, ac_contact_id = $5, sent_at = NOW()
+          `, [lead.email, category, language, batchId, String(contactId)]);
+
+          // 4. Schedule Emails 2, 3, 4
+          const now = Date.now();
+          for (let emailNum = 2; emailNum <= 4; emailNum++) {
+            const delayMs = EMAIL_SCHEDULE[emailNum] * 60 * 60 * 1000;
+            const scheduledFor = new Date(now + delayMs);
+            
+            await pool.queryRetry(`
+              INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, ac_contact_id, scheduled_for, dispatched_at)
+              VALUES ($1, $2, $3, $4, 'scheduled', $5, $6, $7, NOW())
+              ON CONFLICT (email, category, language, email_num) DO NOTHING
+            `, [lead.email, category, language, emailNum, batchId, String(contactId), scheduledFor]);
+          }
+
+          globalSuccess++;
+          dispatchStatus.success = globalSuccess;
+        } catch (error) {
+          console.error(`Error dispatching to ${lead.email}:`, error.message);
+          globalFailed++;
+          dispatchStatus.failed = globalFailed;
+          if (dispatchStatus.errors.length < 50) {
+            dispatchStatus.errors.push(`${lead.email}: ${error.message}`);
+          }
+
+          // Log as error
+          try {
+            await pool.queryRetry(`
+              INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, dispatched_at)
+              VALUES ($1, $2, $3, 1, 'error', $4, NOW())
+              ON CONFLICT (email, category, language, email_num) DO UPDATE SET status = 'error'
+            `, [lead.email, category, language, batchId]);
+          } catch (e) { /* ignore logging errors */ }
         }
 
-        dispatchStatus.success++;
-      } catch (error) {
-        console.error(`Error dispatching to ${lead.email}:`, error.message);
-        dispatchStatus.failed++;
-        if (dispatchStatus.errors.length < 20) {
-          dispatchStatus.errors.push(`${lead.email}: ${error.message}`);
+        globalProcessed++;
+        dispatchStatus.processed = globalProcessed;
+        dispatchStatus.lastUpdate = new Date().toISOString();
+
+        // Rate limiting: 500ms between contacts (AC API limit ~5/sec)
+        if (i < leads.length - 1) {
+          await new Promise(r => setTimeout(r, 500));
         }
 
-        // Log as error
-        try {
-          await pool.queryRetry(`
-            INSERT INTO email_dispatch_log (email, category, language, email_num, status, batch_id, dispatched_at)
-            VALUES ($1, $2, $3, 1, 'error', $4, NOW())
-            ON CONFLICT (email, category, language, email_num) DO UPDATE SET status = 'error'
-          `, [lead.email, category, language, batchId]);
-        } catch (e) { /* ignore logging errors */ }
+        // Log progress every 50 contacts
+        if (globalProcessed % 50 === 0) {
+          console.log(`📧 Progress: ${globalProcessed}/${dispatchStatus.total} (${globalSuccess} ok, ${globalFailed} failed) [batch #${batchNumber}]`);
+        }
       }
 
-      dispatchStatus.processed++;
-      dispatchStatus.lastUpdate = new Date().toISOString();
+      console.log(`📧 Batch #${batchNumber} complete: ${leads.length} processed. Total so far: ${globalProcessed} (${globalSuccess} ok, ${globalFailed} failed)`);
 
-      // Rate limiting: 500ms between contacts (AC API limit ~5/sec)
-      if (i < leads.length - 1) {
-        await new Promise(r => setTimeout(r, 500));
-      }
+      // Update total estimate for next batch
+      dispatchStatus.total = globalProcessed + batchSize; // Will be corrected when next batch loads
 
-      // Log progress every 50 contacts
-      if ((i + 1) % 50 === 0) {
-        console.log(`📧 Progress: ${i + 1}/${leads.length} (${dispatchStatus.success} ok, ${dispatchStatus.failed} failed)`);
-      }
+      // Small pause between batches to avoid overloading
+      await new Promise(r => setTimeout(r, 2000));
     }
 
-    console.log(`✅ Dispatch complete: ${dispatchStatus.success} sent, ${dispatchStatus.failed} failed out of ${leads.length}`);
+    // Final totals
+    dispatchStatus.total = globalProcessed;
+    console.log(`✅ FULL dispatch complete: ${globalSuccess} sent, ${globalFailed} failed out of ${globalProcessed} total across ${batchNumber} batches`);
   } catch (error) {
     console.error('❌ Dispatch error:', error);
     dispatchStatus.errors.push(error.message);
