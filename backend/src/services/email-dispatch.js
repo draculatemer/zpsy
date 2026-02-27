@@ -119,24 +119,9 @@ async function sendCampaignEmail(email, category, language, emailNum) {
 }
 
 // ==================== DATABASE TABLE ====================
-
 async function ensureDispatchTable() {
-  // Drop and recreate the table to ensure correct schema with all columns and constraints
-  // This is safe because dispatch_log is a processing log, not source data
-  try {
-    const check = await pool.queryRetry(`
-      SELECT constraint_name FROM information_schema.table_constraints 
-      WHERE table_name = 'email_dispatch_log' AND constraint_type = 'UNIQUE'
-    `);
-    if (check.rows.length === 0) {
-      // Table exists but without UNIQUE constraint - drop and recreate
-      console.log('📧 Recreating email_dispatch_log table with correct schema...');
-      await pool.queryRetry(`DROP TABLE IF EXISTS email_dispatch_log`);
-    }
-  } catch (e) {
-    // Table doesn't exist yet, that's fine
-  }
-
+  // Create table if not exists, then safely add UNIQUE constraint if missing
+  // NEVER drop the table - dispatch_log data must persist across deploys
   await pool.queryRetry(`
     CREATE TABLE IF NOT EXISTS email_dispatch_log (
       id SERIAL PRIMARY KEY,
@@ -152,9 +137,38 @@ async function ensureDispatchTable() {
       dispatched_at TIMESTAMP DEFAULT NOW(),
       cleaned_up BOOLEAN DEFAULT FALSE,
       cleanup_at TIMESTAMP,
-      created_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(email, category, language, email_num)
+      created_at TIMESTAMP DEFAULT NOW()
     );
+  `);
+
+  // Add UNIQUE constraint if missing (safe - won't error if already exists)
+  try {
+    const check = await pool.queryRetry(`
+      SELECT constraint_name FROM information_schema.table_constraints 
+      WHERE table_name = 'email_dispatch_log' AND constraint_type = 'UNIQUE'
+    `);
+    if (check.rows.length === 0) {
+      console.log('📧 Adding UNIQUE constraint to email_dispatch_log...');
+      // Remove duplicates first (keep the latest entry)
+      await pool.queryRetry(`
+        DELETE FROM email_dispatch_log a USING email_dispatch_log b
+        WHERE a.id < b.id 
+        AND a.email = b.email AND a.category = b.category 
+        AND a.language = b.language AND a.email_num = b.email_num
+      `);
+      await pool.queryRetry(`
+        ALTER TABLE email_dispatch_log 
+        ADD CONSTRAINT email_dispatch_log_email_category_language_email_num_key 
+        UNIQUE (email, category, language, email_num)
+      `);
+      console.log('✅ UNIQUE constraint added successfully');
+    }
+  } catch (e) {
+    console.log('📧 UNIQUE constraint already exists or could not be added:', e.message);
+  }
+
+  // Ensure indexes exist
+  await pool.queryRetry(`
     CREATE INDEX IF NOT EXISTS idx_dispatch_status ON email_dispatch_log(status);
     CREATE INDEX IF NOT EXISTS idx_dispatch_scheduled ON email_dispatch_log(status, scheduled_for);
     CREATE INDEX IF NOT EXISTS idx_dispatch_cleanup ON email_dispatch_log(cleaned_up, dispatched_at);
