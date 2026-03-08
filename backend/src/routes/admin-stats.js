@@ -2034,9 +2034,9 @@ router.get('/api/admin/customer/:leadId/journey', authenticateToken, async (req,
 });
 
 // ==================== PLATFORM COMPARISON ENDPOINT ====================
-// Dedicated endpoint that correctly handles different data flows:
-// - Monetizze: leads from leads table, checkouts from funnel_events, sales from transactions
-// - PerfectPay: uses transactions table for everything (no funnel page capture)
+// Shared funnel (leads + checkouts) + per-platform transaction data
+// Leads are captured BEFORE checkout platform is chosen, so they are shared.
+// Only transactions can be reliably separated by platform.
 router.get('/api/admin/platform-comparison', authenticateToken, async (req, res) => {
     try {
         const { language, startDate, endDate } = req.query;
@@ -2068,100 +2068,78 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
         const valueBRL = `CASE WHEN funnel_source = 'perfectpay' THEN CAST(value AS DECIMAL) * ${usdToBrl.toFixed(2)} ELSE CAST(value AS DECIMAL) END`;
         
-        // ===== MONETIZZE DATA (source = main + affiliate) =====
-        const monetizzeSourceCond = ` AND (funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
-        const feMonetizzeSourceCond = ` AND (metadata->>'funnelSource' IN ('main', 'affiliate') OR metadata->>'funnelSource' IS NULL)`;
-        
-        // Monetizze leads from leads table
-        const mLeadsResult = await pool.query(
-            `SELECT COUNT(*) FROM leads WHERE 1=1 ${monetizzeSourceCond}${langCondition}${dateCondition}`,
+        // ===== SHARED FUNNEL DATA (all leads + all checkouts) =====
+        const totalLeadsResult = await pool.query(
+            `SELECT COUNT(*) FROM leads WHERE 1=1${langCondition}${dateCondition}`,
             allParams
         );
         
-        // Monetizze checkouts from funnel_events
-        const mCheckoutResult = await pool.query(
-            `SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events WHERE event = 'checkout_clicked'${feMonetizzeSourceCond}${feLangCondition}${feDateCondition}`
+        const totalCheckoutsResult = await pool.query(
+            `SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events WHERE event = 'checkout_clicked'${feLangCondition}${feDateCondition}`
         );
         
-        // Monetizze sales from transactions
-        const mSalesResult = await pool.query(
+        // ===== MONETIZZE TRANSACTIONS (source = main + affiliate) =====
+        const monetizzeSourceCond = ` AND (funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
+        
+        const mTxResult = await pool.query(
             `SELECT 
+                COUNT(*) as total,
                 COUNT(*) FILTER (WHERE status = 'approved') as approved,
                 COUNT(*) FILTER (WHERE status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue,
-                COUNT(DISTINCT email) as total_customers
+                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue
             FROM transactions 
             WHERE 1=1 ${monetizzeSourceCond}${langCondition}${dateCondition}`,
             allParams
         );
         
-        // ===== PERFECTPAY DATA (source = perfectpay) =====
+        // ===== PERFECTPAY TRANSACTIONS (source = perfectpay) =====
         const ppSourceCond = ` AND funnel_source = 'perfectpay'`;
         
-        // PerfectPay leads = unique emails in transactions (total unique customers who attempted)
-        const ppLeadsResult = await pool.query(
-            `SELECT COUNT(DISTINCT LOWER(email)) as count FROM transactions WHERE 1=1 ${ppSourceCond}${langCondition}${dateCondition}`,
-            allParams
-        );
-        
-        // PerfectPay checkouts = total transaction count (each transaction is a checkout attempt)
-        const ppCheckoutResult = await pool.query(
-            `SELECT COUNT(*) as count FROM transactions WHERE 1=1 ${ppSourceCond}${langCondition}${dateCondition}`,
-            allParams
-        );
-        
-        // PerfectPay sales from transactions
-        const ppSalesResult = await pool.query(
+        const ppTxResult = await pool.query(
             `SELECT 
+                COUNT(*) as total,
                 COUNT(*) FILTER (WHERE status = 'approved') as approved,
                 COUNT(*) FILTER (WHERE status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue,
-                COUNT(DISTINCT email) FILTER (WHERE status = 'approved') as approved_customers
+                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue
             FROM transactions 
             WHERE 1=1 ${ppSourceCond}${langCondition}${dateCondition}`,
             allParams
         );
         
-        // Also get PerfectPay leads from leads table (those who came through funnel)
-        const ppFunnelLeadsResult = await pool.query(
-            `SELECT COUNT(*) FROM leads WHERE funnel_source = 'perfectpay'${langCondition}${dateCondition}`,
-            allParams
-        );
-        
         // Build response
-        const mLeads = parseInt(mLeadsResult.rows[0].count) || 0;
-        const mCheckout = parseInt(mCheckoutResult.rows[0].count) || 0;
-        const mSales = parseInt(mSalesResult.rows[0].approved) || 0;
-        const mRevenue = parseFloat(mSalesResult.rows[0].revenue) || 0;
-        const mRefunds = parseInt(mSalesResult.rows[0].refunded) || 0;
+        const totalLeads = parseInt(totalLeadsResult.rows[0].count) || 0;
+        const totalCheckouts = parseInt(totalCheckoutsResult.rows[0].count) || 0;
         
-        const ppLeads = parseInt(ppLeadsResult.rows[0].count) || 0;
-        const ppFunnelLeads = parseInt(ppFunnelLeadsResult.rows[0].count) || 0;
-        const ppCheckout = parseInt(ppCheckoutResult.rows[0].count) || 0;
-        const ppSales = parseInt(ppSalesResult.rows[0].approved) || 0;
-        const ppRevenue = parseFloat(ppSalesResult.rows[0].revenue) || 0;
-        const ppRefunds = parseInt(ppSalesResult.rows[0].refunded) || 0;
-        const ppApprovedCustomers = parseInt(ppSalesResult.rows[0].approved_customers) || 0;
+        const mTotal = parseInt(mTxResult.rows[0].total) || 0;
+        const mSales = parseInt(mTxResult.rows[0].approved) || 0;
+        const mRefunds = parseInt(mTxResult.rows[0].refunded) || 0;
+        const mRevenue = parseFloat(mTxResult.rows[0].revenue) || 0;
+        
+        const ppTotal = parseInt(ppTxResult.rows[0].total) || 0;
+        const ppSales = parseInt(ppTxResult.rows[0].approved) || 0;
+        const ppRefunds = parseInt(ppTxResult.rows[0].refunded) || 0;
+        const ppRevenue = parseFloat(ppTxResult.rows[0].revenue) || 0;
         
         res.json({
+            funnel: {
+                totalLeads,
+                totalCheckouts
+            },
             monetizze: {
-                leads: mLeads,
-                checkouts: mCheckout,
+                totalTx: mTotal,
                 sales: mSales,
                 revenue: mRevenue,
                 refunds: mRefunds,
-                convRate: mLeads > 0 ? ((mSales / mLeads) * 100) : 0,
+                approvalRate: mTotal > 0 ? ((mSales / mTotal) * 100) : 0,
                 refundRate: mSales > 0 ? ((mRefunds / mSales) * 100) : 0,
                 ticket: mSales > 0 ? (mRevenue / mSales) : 0
             },
             perfectpay: {
-                leads: ppLeads,
-                funnelLeads: ppFunnelLeads,
-                checkouts: ppCheckout,
+                totalTx: ppTotal,
                 sales: ppSales,
                 revenue: ppRevenue,
                 refunds: ppRefunds,
-                convRate: ppLeads > 0 ? ((ppApprovedCustomers / ppLeads) * 100) : 0,
+                approvalRate: ppTotal > 0 ? ((ppSales / ppTotal) * 100) : 0,
                 refundRate: ppSales > 0 ? ((ppRefunds / ppSales) * 100) : 0,
                 ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0
             }
@@ -2170,6 +2148,72 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
     } catch (error) {
         console.error('Error fetching platform comparison:', error);
         res.status(500).json({ error: 'Failed to fetch platform comparison' });
+    }
+});
+
+// Revenue by day endpoint (with USD→BRL conversion for PerfectPay)
+router.get('/api/admin/revenue-by-day', authenticateToken, async (req, res) => {
+    try {
+        const { language, source, startDate, endDate } = req.query;
+        
+        // Build date condition - default to last 30 days
+        let dateCondition = '';
+        let dateParams = [];
+        if (startDate && endDate) {
+            dateCondition = ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`;
+            dateParams = [startDate, endDate];
+        } else {
+            dateCondition = ` AND created_at >= CURRENT_DATE - INTERVAL '30 days'`;
+        }
+        
+        // Build language condition
+        let langCondition = '';
+        let langParams = [];
+        if (language === 'en' || language === 'es') {
+            const langIdx = dateParams.length + 1;
+            langCondition = ` AND (funnel_language = $${langIdx} OR (funnel_language IS NULL AND $${langIdx} = 'en'))`;
+            langParams = [language];
+        }
+        
+        // Build source condition
+        let sourceCondition = '';
+        if (source === 'main') {
+            sourceCondition = ` AND (funnel_source = 'main' OR funnel_source IS NULL)`;
+        } else if (source === 'affiliate') {
+            sourceCondition = ` AND funnel_source = 'affiliate'`;
+        } else if (source === 'perfectpay') {
+            sourceCondition = ` AND funnel_source = 'perfectpay'`;
+        }
+        
+        const allParams = [...dateParams, ...langParams];
+        
+        // PerfectPay stores values in USD; convert to BRL
+        const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+        const valueBRL = `CASE WHEN funnel_source = 'perfectpay' THEN CAST(value AS DECIMAL) * ${usdToBrl.toFixed(2)} ELSE CAST(value AS DECIMAL) END`;
+        
+        const result = await pool.query(
+            `SELECT 
+                (created_at AT TIME ZONE 'America/Sao_Paulo')::date as day,
+                COUNT(DISTINCT email) as sales_count,
+                COALESCE(SUM(${valueBRL}), 0) as revenue
+            FROM transactions 
+            WHERE status = 'approved'${dateCondition}${langCondition}${sourceCondition}
+            GROUP BY day
+            ORDER BY day ASC`,
+            allParams
+        );
+        
+        res.json({
+            days: result.rows.map(r => ({
+                day: r.day,
+                count: parseInt(r.sales_count),
+                revenue: parseFloat(r.revenue)
+            }))
+        });
+        
+    } catch (error) {
+        console.error('Error fetching revenue by day:', error);
+        res.status(500).json({ error: 'Failed to fetch revenue by day' });
     }
 });
 
