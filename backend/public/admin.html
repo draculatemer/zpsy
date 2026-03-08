@@ -644,11 +644,11 @@
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Leads</span>
+                                            <span style="font-size: 12px; color: var(--text-muted);">Clientes Únicos</span>
                                             <span style="font-size: 18px; font-weight: 700;" id="cmpPerfectPayLeads">-</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Initiate Checkout</span>
+                                            <span style="font-size: 12px; color: var(--text-muted);">Total Transações</span>
                                             <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayCheckout">-</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
@@ -16054,106 +16054,54 @@ Posso ajudar em algo mais? 😊`
                 const dateRange = getGlobalDateRange();
                 const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 
-                let dateParams = '';
+                let params = [];
                 if (dateRange) {
-                    dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    params.push(`startDate=${dateRange.startDate}`, `endDate=${dateRange.endDate}`);
+                }
+                if (langFilter) {
+                    params.push(`language=${langFilter}`);
                 }
                 
+                const url = `${API_URL}/api/admin/platform-comparison${params.length ? '?' + params.join('&') : ''}`;
                 const headers = { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache' };
                 
-                // Fetch Monetizze (main + affiliate combined) and PerfectPay data in parallel
-                // For Monetizze, we don't pass source filter to get main+affiliate combined
-                let monetizzeLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=main`;
-                let monetizzeAffLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=affiliate`;
-                let ppLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=perfectpay`;
-                let monetizzeSalesUrl = `${API_URL}/api/admin/sales?source=main`;
-                let affSalesUrl = `${API_URL}/api/admin/sales?source=affiliate`;
-                let ppSalesUrl = `${API_URL}/api/admin/sales?source=perfectpay`;
+                const res = await fetch(url, { headers });
+                if (!res.ok) throw new Error('Failed to fetch platform comparison');
+                const data = await res.json();
                 
-                if (langFilter) {
-                    monetizzeLeadsUrl += `&language=${langFilter}`;
-                    monetizzeAffLeadsUrl += `&language=${langFilter}`;
-                    ppLeadsUrl += `&language=${langFilter}`;
-                    monetizzeSalesUrl += `&language=${langFilter}`;
-                    affSalesUrl += `&language=${langFilter}`;
-                    ppSalesUrl += `&language=${langFilter}`;
-                }
-                if (dateParams) {
-                    monetizzeLeadsUrl += `&${dateParams}`;
-                    monetizzeAffLeadsUrl += `&${dateParams}`;
-                    ppLeadsUrl += `&${dateParams}`;
-                    monetizzeSalesUrl += `&${dateParams}`;
-                    affSalesUrl += `&${dateParams}`;
-                    ppSalesUrl += `&${dateParams}`;
-                }
+                const m = data.monetizze;
+                const pp = data.perfectpay;
                 
-                const [mLeadsRes, mAffLeadsRes, ppLeadsRes, mSalesRes, affSalesRes, ppSalesRes] = await Promise.all([
-                    fetch(monetizzeLeadsUrl, { headers }).catch(() => null),
-                    fetch(monetizzeAffLeadsUrl, { headers }).catch(() => null),
-                    fetch(ppLeadsUrl, { headers }).catch(() => null),
-                    fetch(monetizzeSalesUrl, { headers }).catch(() => null),
-                    fetch(affSalesUrl, { headers }).catch(() => null),
-                    fetch(ppSalesUrl, { headers }).catch(() => null)
-                ]);
-                
-                const mLeadsData = mLeadsRes?.ok ? await mLeadsRes.json() : { pagination: { total: 0 } };
-                const mAffLeadsData = mAffLeadsRes?.ok ? await mAffLeadsRes.json() : { pagination: { total: 0 } };
-                const ppLeadsData = ppLeadsRes?.ok ? await ppLeadsRes.json() : { pagination: { total: 0 } };
-                const mSalesData = mSalesRes?.ok ? await mSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
-                const affSalesData = affSalesRes?.ok ? await affSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
-                const ppSalesData = ppSalesRes?.ok ? await ppSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
-                
-                // Combine Monetizze main + affiliate
-                const mLeads = (mLeadsData.pagination?.total || 0) + (mAffLeadsData.pagination?.total || 0);
-                const mSales = (mSalesData.approved || 0) + (affSalesData.approved || 0);
-                const mRevenue = (mSalesData.revenue || 0) + (affSalesData.revenue || 0);
-                const mRefunds = (mSalesData.refunded || 0) + (affSalesData.refunded || 0);
-                const mCheckout = (mSalesData.checkoutClicked || 0) + (affSalesData.checkoutClicked || 0);
-                
-                // PerfectPay
-                const ppLeads = ppLeadsData.pagination?.total || 0;
-                const ppSales = ppSalesData.approved || 0;
-                const ppRevenue = ppSalesData.revenue || 0;
-                const ppRefunds = ppSalesData.refunded || 0;
-                const ppCheckout = ppSalesData.checkoutClicked || 0;
-                
-                // Calculate rates
-                const mConvRate = mLeads > 0 ? ((mSales / mLeads) * 100).toFixed(1) : '0.0';
-                const ppConvRate = ppLeads > 0 ? ((ppSales / ppLeads) * 100).toFixed(1) : '0.0';
-                const mRefundRate = mSales > 0 ? ((mRefunds / mSales) * 100).toFixed(1) : '0.0';
-                const ppRefundRate = ppSales > 0 ? ((ppRefunds / ppSales) * 100).toFixed(1) : '0.0';
-                const mTicket = mSales > 0 ? (mRevenue / mSales) : 0;
-                const ppTicket = ppSales > 0 ? (ppRevenue / ppSales) : 0;
-                
-                const fmt = (n) => n.toLocaleString('pt-BR');
-                const fmtR = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const fmt = (n) => (n || 0).toLocaleString('pt-BR');
+                const fmtR = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const fmtP = (n) => (n || 0).toFixed(1) + '%';
                 
                 // Update Monetizze column
-                document.getElementById('cmpMonetizzeLeads').textContent = fmt(mLeads);
-                document.getElementById('cmpMonetizzeCheckout').textContent = fmt(mCheckout);
-                document.getElementById('cmpMonetizzeSales').textContent = fmt(mSales);
-                document.getElementById('cmpMonetizzeRevenue').textContent = fmtR(mRevenue);
-                document.getElementById('cmpMonetizzeRefunds').textContent = fmt(mRefunds);
-                document.getElementById('cmpMonetizzeConvRate').textContent = mConvRate + '%';
-                document.getElementById('cmpMonetizzeRefundRate').textContent = mRefundRate + '%';
-                document.getElementById('cmpMonetizzeTicket').textContent = fmtR(mTicket);
+                document.getElementById('cmpMonetizzeLeads').textContent = fmt(m.leads);
+                document.getElementById('cmpMonetizzeCheckout').textContent = fmt(m.checkouts);
+                document.getElementById('cmpMonetizzeSales').textContent = fmt(m.sales);
+                document.getElementById('cmpMonetizzeRevenue').textContent = fmtR(m.revenue);
+                document.getElementById('cmpMonetizzeRefunds').textContent = fmt(m.refunds);
+                document.getElementById('cmpMonetizzeConvRate').textContent = fmtP(m.convRate);
+                document.getElementById('cmpMonetizzeRefundRate').textContent = fmtP(m.refundRate);
+                document.getElementById('cmpMonetizzeTicket').textContent = fmtR(m.ticket);
                 
                 // Update PerfectPay column
-                document.getElementById('cmpPerfectPayLeads').textContent = fmt(ppLeads);
-                document.getElementById('cmpPerfectPayCheckout').textContent = fmt(ppCheckout);
-                document.getElementById('cmpPerfectPaySales').textContent = fmt(ppSales);
-                document.getElementById('cmpPerfectPayRevenue').textContent = fmtR(ppRevenue);
-                document.getElementById('cmpPerfectPayRefunds').textContent = fmt(ppRefunds);
-                document.getElementById('cmpPerfectPayConvRate').textContent = ppConvRate + '%';
-                document.getElementById('cmpPerfectPayRefundRate').textContent = ppRefundRate + '%';
-                document.getElementById('cmpPerfectPayTicket').textContent = fmtR(ppTicket);
+                document.getElementById('cmpPerfectPayLeads').textContent = fmt(pp.leads);
+                document.getElementById('cmpPerfectPayCheckout').textContent = fmt(pp.checkouts);
+                document.getElementById('cmpPerfectPaySales').textContent = fmt(pp.sales);
+                document.getElementById('cmpPerfectPayRevenue').textContent = fmtR(pp.revenue);
+                document.getElementById('cmpPerfectPayRefunds').textContent = fmt(pp.refunds);
+                document.getElementById('cmpPerfectPayConvRate').textContent = fmtP(pp.convRate);
+                document.getElementById('cmpPerfectPayRefundRate').textContent = fmtP(pp.refundRate);
+                document.getElementById('cmpPerfectPayTicket').textContent = fmtR(pp.ticket);
                 
                 // Determine winner
                 const winnerEl = document.getElementById('cmpWinner');
                 if (winnerEl) {
-                    if (mRevenue > ppRevenue && mRevenue > 0) {
+                    if (m.revenue > pp.revenue && m.revenue > 0) {
                         winnerEl.innerHTML = '<div style="color: #3b82f6; font-weight: 700;">\ud83c\udfc6 Monetizze</div><div style="margin-top: 4px;">lidera em faturamento</div>';
-                    } else if (ppRevenue > mRevenue && ppRevenue > 0) {
+                    } else if (pp.revenue > m.revenue && pp.revenue > 0) {
                         winnerEl.innerHTML = '<div style="color: #f59e0b; font-weight: 700;">\ud83c\udfc6 PerfectPay</div><div style="margin-top: 4px;">lidera em faturamento</div>';
                     } else {
                         winnerEl.innerHTML = '<div style="color: var(--text-muted);">Empate</div>';
