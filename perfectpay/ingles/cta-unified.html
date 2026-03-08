@@ -273,18 +273,6 @@
             font-weight: 700;
         }
 
-        .timer-countdown {
-            color: #FF3B30;
-            font-weight: 700;
-            font-size: 16px;
-            animation: timer-pulse 1s infinite;
-        }
-
-        @keyframes timer-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
         .timer-btn {
             background: linear-gradient(135deg, #25D366, #128C7E);
             color: white;
@@ -2297,25 +2285,6 @@
         document.getElementById('convCount').textContent = Math.floor(Math.random() * 30) + 35;
         document.getElementById('msgCount').textContent = (Math.random() * 2 + 0.8).toFixed(1) + 'k';
 
-        // Countdown timer
-        function startCountdown() {
-            let minutes = 8;
-            let seconds = 0;
-            const countdownEl = document.getElementById('countdown');
-            if (!countdownEl) return; // Element removed - skip countdown
-
-            setInterval(() => {
-                if (seconds === 0) {
-                    if (minutes === 0) return;
-                    minutes--;
-                    seconds = 59;
-                } else {
-                    seconds--;
-                }
-                countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
         // Live viewers counter
         function updateLiveViewers() {
             const el = document.getElementById('liveViewers');
@@ -2339,49 +2308,6 @@
             }
         }
         setInterval(updateSlots, 45000);
-
-        // Activity notifications
-        const activities = [
-            { emoji: '🇺🇸', name: 'Sarah M.', location: 'New York, USA' },
-            { emoji: '🇺🇸', name: 'John D.', location: 'Los Angeles, USA' },
-            { emoji: '🇬🇧', name: 'Emily R.', location: 'London, UK' },
-            { emoji: '🇨🇦', name: 'Michael S.', location: 'Toronto, Canada' },
-            { emoji: '🇦🇺', name: 'Jessica L.', location: 'Sydney, Australia' },
-            { emoji: '🇧🇷', name: 'Lucas S.', location: 'São Paulo, Brazil' },
-            { emoji: '🇲🇽', name: 'Maria G.', location: 'Mexico City, Mexico' },
-        ];
-
-        const times = ['just now', '1 minute ago', '2 minutes ago', '3 minutes ago', '5 minutes ago'];
-
-        function showActivityNotification() {
-            const activity = activities[Math.floor(Math.random() * activities.length)];
-            const time = times[Math.floor(Math.random() * times.length)];
-            
-            const emojiEl = document.getElementById('activityEmoji');
-            const textEl = document.getElementById('activityText');
-            const timeEl = document.getElementById('activityTime');
-            const notification = document.getElementById('activityNotification');
-            
-            if (!emojiEl || !textEl || !timeEl || !notification) return;
-            
-            emojiEl.textContent = activity.emoji;
-            textEl.innerHTML = `<strong>${activity.name}</strong> from ${activity.location} just unlocked access`;
-            timeEl.textContent = time;
-            
-            notification.classList.add('show');
-            
-            VibrationSystem.notification();
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4000);
-        }
-
-        // Activity notifications removidas
-        // setTimeout(showActivityNotification, 5000);
-        // setInterval(() => {
-        //     if (Math.random() > 0.3) showActivityNotification();
-        // }, 20000);
 
         // Scroll to pricing
         function scrollToPricing() {
@@ -2509,7 +2435,6 @@
         }
 
         // Initialize
-        startCountdown();
         localStorage.setItem('funnelProgress', 'cta');
 
 

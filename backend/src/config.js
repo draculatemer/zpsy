@@ -6,21 +6,21 @@ const FB_PIXELS_BY_LANGUAGE = {
     en: [
         {
             id: '726299943423075',
-            token: process.env.FB_PIXEL_TOKEN_EN || 'EAALZCphpZCmcIBQodgl2fJ81kKfOWRmhYmJPBVQSfOuBBbxfjOxg3HH6y03bqp8fAbZCoghz8d9HglfpbBeZBl7wTaBGvIWRqtNgoJCFz5lts434LKD5EhF26KZCFjICN9jwsEdDu4afDUYH8Ld5ZC9D8gRFq3Y884qotjlqIszrQAzZAju7qkt9OgMhX7X093PNQZDZD',
+            token: process.env.FB_PIXEL_TOKEN_EN || '',
             name: '[PABLO NOVO] - [SPY INGLES] - [2025]'
         }
     ],
     es: [
         {
             id: '534495082571779',
-            token: process.env.FB_PIXEL_TOKEN_ES || 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
+            token: process.env.FB_PIXEL_TOKEN_ES || '',
             name: 'PIXEL SPY ESPANHOL'
         }
     ],
     pt: [
         {
             id: '820651673268238',
-            token: process.env.FB_PIXEL_TOKEN_PT || 'EAALZCphpZCmcIBQ8cg9hswdI4uIXKLSil7qKGG3lY7tpz40BKqA0JYNay9qKon7SpOEFS7UxmvtizBaSzSiXZBNfXRHGFp0LW5rO4rhiYfS5C9UvoZAWDrW4A8RgwQOxFr011oCtMcyvRIwIUGci1yZAtd4iFaG7UUQh9pfBEbt129yMT4KUNRN9EsHmj7fEZAiAZDZD',
+            token: process.env.FB_PIXEL_TOKEN_PT || '',
             name: 'PIXEL SPY PORTUGUES'
         }
     ]
@@ -56,12 +56,15 @@ const UPSELL_SQL = {
     up2: `(t.product ILIKE '%360%' OR t.product ILIKE '%Tracker%' OR t.product ILIKE '%349242%' OR t.product ILIKE '%341444%' OR t.product ILIKE '%Visión Total%' OR t.product ILIKE '%349266%' OR t.product ILIKE '%341453%')`,
     up3: `(t.product ILIKE '%Instant Access%' OR t.product ILIKE '%349243%' OR t.product ILIKE '%341448%' OR t.product ILIKE '%Sin Esperas%' OR t.product ILIKE '%349267%' OR t.product ILIKE '%341454%')`,
     up4: `(t.product ILIKE '%Behavior Analyst%' OR t.product ILIKE '%Analista de Comportamiento%' OR t.product ILIKE '%349244%' OR t.product ILIKE '%341449%' OR t.product ILIKE '%349268%' OR t.product ILIKE '%341455%')`,
-    front: `NOT (t.product ILIKE '%Message Vault%' OR t.product ILIKE '%349241%' OR t.product ILIKE '%341443%' OR t.product ILIKE '%Recuperación Total%' OR t.product ILIKE '%349261%' OR t.product ILIKE '%341452%' OR t.product ILIKE '%360%' OR t.product ILIKE '%Tracker%' OR t.product ILIKE '%349242%' OR t.product ILIKE '%341444%' OR t.product ILIKE '%Visión Total%' OR t.product ILIKE '%349266%' OR t.product ILIKE '%341453%' OR t.product ILIKE '%Instant Access%' OR t.product ILIKE '%349243%' OR t.product ILIKE '%341448%' OR t.product ILIKE '%Sin Esperas%' OR t.product ILIKE '%349267%' OR t.product ILIKE '%341454%' OR t.product ILIKE '%Behavior Analyst%' OR t.product ILIKE '%Analista de Comportamiento%' OR t.product ILIKE '%349244%' OR t.product ILIKE '%341449%' OR t.product ILIKE '%349268%' OR t.product ILIKE '%341455%')`
+    up5: `(t.product ILIKE '%Live Room%' OR t.product ILIKE '%Camera%' OR t.product ILIKE '%Surveillance%' OR t.product ILIKE '%Cámara%' OR t.product ILIKE '%Vigilancia%')`,
+    up6: `(t.product ILIKE '%Multi-Device%' OR t.product ILIKE '%MultiDevice%' OR t.product ILIKE '%Multi Device%' OR t.product ILIKE '%Múltiples Dispositivos%' OR t.product ILIKE '%Multi Dispositivo%')`,
+    up7: `(t.product ILIKE '%AI Behavior%' OR t.product ILIKE '%Smart Pattern%' OR t.product ILIKE '%Comportamiento IA%' OR t.product ILIKE '%Patrón Inteligente%')`,
+    front: `NOT (t.product ILIKE '%Message Vault%' OR t.product ILIKE '%349241%' OR t.product ILIKE '%341443%' OR t.product ILIKE '%Recuperación Total%' OR t.product ILIKE '%349261%' OR t.product ILIKE '%341452%' OR t.product ILIKE '%360%' OR t.product ILIKE '%Tracker%' OR t.product ILIKE '%349242%' OR t.product ILIKE '%341444%' OR t.product ILIKE '%Visión Total%' OR t.product ILIKE '%349266%' OR t.product ILIKE '%341453%' OR t.product ILIKE '%Instant Access%' OR t.product ILIKE '%349243%' OR t.product ILIKE '%341448%' OR t.product ILIKE '%Sin Esperas%' OR t.product ILIKE '%349267%' OR t.product ILIKE '%341454%' OR t.product ILIKE '%Behavior Analyst%' OR t.product ILIKE '%Analista de Comportamiento%' OR t.product ILIKE '%349244%' OR t.product ILIKE '%341449%' OR t.product ILIKE '%349268%' OR t.product ILIKE '%341455%' OR t.product ILIKE '%Live Room%' OR t.product ILIKE '%Camera%' OR t.product ILIKE '%Surveillance%' OR t.product ILIKE '%Cámara%' OR t.product ILIKE '%Vigilancia%' OR t.product ILIKE '%Multi-Device%' OR t.product ILIKE '%MultiDevice%' OR t.product ILIKE '%Múltiples Dispositivos%' OR t.product ILIKE '%Multi Dispositivo%' OR t.product ILIKE '%AI Behavior%' OR t.product ILIKE '%Smart Pattern%' OR t.product ILIKE '%Comportamiento IA%' OR t.product ILIKE '%Patrón Inteligente%')`
 };
 
-const ZAPI_INSTANCE = process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B31BFC5924A7638EE86FD';
-const ZAPI_TOKEN = process.env.ZAPI_TOKEN || '448359FB9C302BCE9D09F8D0';
-const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN || 'F221fdbff74cc4d998046c12b9e0a65ddS';
+const ZAPI_INSTANCE = process.env.ZAPI_INSTANCE_ID || '';
+const ZAPI_TOKEN = process.env.ZAPI_TOKEN || '';
+const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN || '';
 const ZAPI_BASE_URL = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
 
 // ActiveCampaign Configuration
