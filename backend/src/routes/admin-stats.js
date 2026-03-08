@@ -864,14 +864,26 @@ router.delete('/api/admin/financial/costs/:id', authenticateToken, async (req, r
 // Get lead statistics (protected)
 router.get('/api/admin/stats', authenticateToken, async (req, res) => {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, endDate, language, source } = req.query;
         
         // Build date filter (using Brazil timezone)
         let dateFilter = '';
         const params = [];
         if (startDate && endDate) {
-            dateFilter = ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`;
+            dateFilter = ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${params.length + 1}::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${params.length + 2}::date`;
             params.push(startDate, endDate);
+        }
+        
+        // Language filter
+        if (language === 'en' || language === 'es') {
+            dateFilter += ` AND (funnel_language = $${params.length + 1} OR (funnel_language IS NULL AND $${params.length + 1} = 'en'))`;
+            params.push(language);
+        }
+        
+        // Source filter
+        if (source === 'main' || source === 'affiliate' || source === 'perfectpay') {
+            dateFilter += ` AND (funnel_source = $${params.length + 1} OR (funnel_source IS NULL AND $${params.length + 1} = 'main'))`;
+            params.push(source);
         }
         
         const [totalResult, todayResult, weekResult, statusResult] = await Promise.all([
@@ -1248,37 +1260,106 @@ router.get('/api/admin/stats/weekly-performance', authenticateToken, async (req,
 // Funnel stats for conversion funnel chart
 router.get('/api/admin/funnel-stats', authenticateToken, async (req, res) => {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, endDate, language, source } = req.query;
         let dateFilter = '';
         let dateFilterTx = '';
+        let langFilter = '';
+        let langFilterTx = '';
+        let sourceFilter = '';
+        let sourceFilterTx = '';
         const params = [];
         
         if (startDate && endDate) {
-            dateFilter = ` AND created_at >= $1::date AND created_at < $2::date + INTERVAL '1 day'`;
-            dateFilterTx = ` AND created_at >= $1::date AND created_at < $2::date + INTERVAL '1 day'`;
+            dateFilter = ` AND created_at >= $${params.length + 1}::date AND created_at < $${params.length + 2}::date + INTERVAL '1 day'`;
+            dateFilterTx = ` AND created_at >= $${params.length + 1}::date AND created_at < $${params.length + 2}::date + INTERVAL '1 day'`;
             params.push(startDate, endDate);
         }
         
+        if (language === 'en' || language === 'es') {
+            langFilter = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
+            langFilterTx = ` AND (funnel_language = $${params.length + 1} OR (funnel_language IS NULL AND $${params.length + 1} = 'en'))`;
+            params.push(language);
+        }
+        
+        if (source === 'main' || source === 'affiliate' || source === 'perfectpay') {
+            sourceFilter = ` AND (metadata->>'funnelSource' = '${source}' OR (metadata->>'funnelSource' IS NULL AND '${source}' = 'main'))`;
+            sourceFilterTx = ` AND (funnel_source = $${params.length + 1} OR (funnel_source IS NULL AND $${params.length + 1} = 'main'))`;
+            params.push(source);
+        }
+        
+        // Build separate param arrays for leads (no lang/source params) and transactions (with lang/source params)
+        const leadsParams = [];
+        let leadsDateFilter = '';
+        let leadsLangFilter = '';
+        let leadsSourceFilter = '';
+        
+        if (startDate && endDate) {
+            leadsDateFilter = ` AND created_at >= $${leadsParams.length + 1}::date AND created_at < $${leadsParams.length + 2}::date + INTERVAL '1 day'`;
+            leadsParams.push(startDate, endDate);
+        }
+        if (language === 'en' || language === 'es') {
+            leadsLangFilter = ` AND (funnel_language = $${leadsParams.length + 1} OR (funnel_language IS NULL AND $${leadsParams.length + 1} = 'en'))`;
+            leadsParams.push(language);
+        }
+        if (source === 'main' || source === 'affiliate' || source === 'perfectpay') {
+            leadsSourceFilter = ` AND (funnel_source = $${leadsParams.length + 1} OR (funnel_source IS NULL AND $${leadsParams.length + 1} = 'main'))`;
+            leadsParams.push(source);
+        }
+        
         // Total leads (visitors)
-        const leadsRes = await pool.query(`SELECT COUNT(*) as count FROM leads WHERE 1=1${dateFilter}`, params);
+        const leadsRes = await pool.query(`SELECT COUNT(*) as count FROM leads WHERE 1=1${leadsDateFilter}${leadsLangFilter}${leadsSourceFilter}`, leadsParams);
         const totalLeads = parseInt(leadsRes.rows[0]?.count || 0);
+        
+        // Build event params
+        const evtParams = [];
+        let evtDateFilter = '';
+        let evtLangFilter = '';
+        let evtSourceFilter = '';
+        if (startDate && endDate) {
+            evtDateFilter = ` AND created_at >= $${evtParams.length + 1}::date AND created_at < $${evtParams.length + 2}::date + INTERVAL '1 day'`;
+            evtParams.push(startDate, endDate);
+        }
+        if (language === 'en' || language === 'es') {
+            evtLangFilter = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
+        }
+        if (source === 'main' || source === 'affiliate' || source === 'perfectpay') {
+            evtSourceFilter = ` AND (metadata->>'funnelSource' = '${source}' OR (metadata->>'funnelSource' IS NULL AND '${source}' = 'main'))`;
+        }
+        
+        // Build tx params
+        const txParams = [];
+        let txDateFilter = '';
+        let txLangFilter = '';
+        let txSourceFilter = '';
+        if (startDate && endDate) {
+            txDateFilter = ` AND created_at >= $${txParams.length + 1}::date AND created_at < $${txParams.length + 2}::date + INTERVAL '1 day'`;
+            txParams.push(startDate, endDate);
+        }
+        if (language === 'en' || language === 'es') {
+            txLangFilter = ` AND (funnel_language = $${txParams.length + 1} OR (funnel_language IS NULL AND $${txParams.length + 1} = 'en'))`;
+            txParams.push(language);
+        }
+        if (source === 'main' || source === 'affiliate' || source === 'perfectpay') {
+            txSourceFilter = ` AND (funnel_source = $${txParams.length + 1} OR (funnel_source IS NULL AND $${txParams.length + 1} = 'main'))`;
+            txParams.push(source);
+        }
         
         // Leads that reached checkout
         const checkoutRes = await pool.query(`
             SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events 
-            WHERE event = 'checkout_clicked'${dateFilter}
-        `, params);
+            WHERE event = 'checkout_clicked'${evtDateFilter}${evtLangFilter}${evtSourceFilter}
+        `, evtParams);
         const checkouts = parseInt(checkoutRes.rows[0]?.count || 0);
         
         // Total approved sales (unique front-end buyers, not counting upsells as separate sales)
-        const salesRes = await pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved'${dateFilterTx}`, params);
+        const salesRes = await pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved'${txDateFilter}${txLangFilter}${txSourceFilter}`, txParams);
         const totalSales = parseInt(salesRes.rows[0]?.count || 0);
         
         // Visitors (page views - people who entered the funnel)
         const visitorsRes = await pool.query(`
             SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events 
-            WHERE event IN ('page_view', 'landing_visit')${dateFilter}
-        `, params);
+            WHERE event IN ('page_view', 'landing_visit')${evtDateFilter}${evtLangFilter}${evtSourceFilter}
+        `, evtParams);
         const visitors = parseInt(visitorsRes.rows[0]?.count || 0);
         
         res.json({
@@ -1314,6 +1395,8 @@ router.get('/api/admin/funnel', authenticateToken, async (req, res) => {
             sourceCondition = `AND COALESCE(metadata->>'funnelSource', 'main') = 'main'`;
         } else if (source === 'affiliate') {
             sourceCondition = `AND metadata->>'funnelSource' = 'affiliate'`;
+        } else if (source === 'perfectpay') {
+            sourceCondition = `AND metadata->>'funnelSource' = 'perfectpay'`;
         }
         
         let dateCondition = '';

@@ -180,7 +180,7 @@
                             <option value="perfectpay">💳 PerfectPay</option>
                         </select>
                         <select class="funnel-selector" id="globalDateFilter" onchange="onGlobalFilterChange()" title="Filtrar por período" style="min-width: 150px;">
-                            <option value="today" selected>Hoje</option>
+                            <option value="today">Hoje</option>
                             <option value="yesterday">Ontem</option>
                             <option value="this_week">Esta semana</option>
                             <option value="last_week">Semana passada</option>
@@ -189,7 +189,7 @@
                             <option value="last_month">Mês passado</option>
                             <option value="last_7">Últimos 7 dias</option>
                             <option value="last_15">Últimos 15 dias</option>
-                            <option value="last_30">Últimos 30 dias</option>
+                            <option value="last_30" selected>Últimos 30 dias</option>
                             <option value="last_60">Últimos 60 dias</option>
                             <option value="custom">📆 Período personalizado</option>
                         </select>
@@ -578,6 +578,105 @@
                                 <div class="skeleton" style="width:72%;height:52px;border-radius:10px;"></div>
                                 <div class="skeleton" style="width:54%;height:52px;border-radius:10px;"></div>
                                 <div class="skeleton" style="width:36%;height:52px;border-radius:10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Platform Comparison: Monetizze vs PerfectPay -->
+                    <div class="chart-card" style="margin-bottom: 28px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                        <div class="chart-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));">
+                            <span class="chart-title">⚔️ Comparação de Plataformas: Monetizze vs PerfectPay</span>
+                            <button class="btn-secondary" onclick="loadPlatformComparison()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
+                        </div>
+                        <div id="platformComparisonContent" style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 80px 1fr; gap: 16px; align-items: start;">
+                                <!-- Monetizze Column -->
+                                <div id="platformMonetizze" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px;">
+                                    <div style="text-align: center; margin-bottom: 16px;">
+                                        <div style="font-size: 18px; font-weight: 700; color: #3b82f6;">🏠 Monetizze</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Principal + Afiliados</div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Leads</span>
+                                            <span style="font-size: 18px; font-weight: 700;" id="cmpMonetizzeLeads">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Initiate Checkout</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeCheckout">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Vendas Aprovadas</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpMonetizzeSales">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Faturamento (BRL)</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpMonetizzeRevenue">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Reembolsos</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #f59e0b;" id="cmpMonetizzeRefunds">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Conversão</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #8b5cf6;" id="cmpMonetizzeConvRate">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Reembolso</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #ef4444;" id="cmpMonetizzeRefundRate">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Ticket Médio</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeTicket">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- VS Column -->
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px;">
+                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(245, 158, 11, 0.2)); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #fff; border: 2px solid rgba(255,255,255,0.1);">VS</div>
+                                    <div id="cmpWinner" style="margin-top: 16px; text-align: center; font-size: 11px; color: var(--text-muted);"></div>
+                                </div>
+                                <!-- PerfectPay Column -->
+                                <div id="platformPerfectPay" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 20px;">
+                                    <div style="text-align: center; margin-bottom: 16px;">
+                                        <div style="font-size: 18px; font-weight: 700; color: #f59e0b;">💳 PerfectPay</div>
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Checkout direto USD</div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Leads</span>
+                                            <span style="font-size: 18px; font-weight: 700;" id="cmpPerfectPayLeads">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Initiate Checkout</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayCheckout">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Vendas Aprovadas</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpPerfectPaySales">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Faturamento (BRL)</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpPerfectPayRevenue">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Reembolsos</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #f59e0b;" id="cmpPerfectPayRefunds">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Conversão</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #8b5cf6;" id="cmpPerfectPayConvRate">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Reembolso</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #ef4444;" id="cmpPerfectPayRefundRate">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Ticket Médio</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayTicket">-</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4363,6 +4462,7 @@ Estou aqui para esclarecer tudo! 😊`
             loadTopCountriesChart();
             loadWeeklyPerformanceChart();
             loadConversionFunnel();
+            loadPlatformComparison();
             loadClients(1);
         }
         
@@ -4450,7 +4550,7 @@ Estou aqui para esclarecer tudo! 😊`
                 
                 // Calculate metrics
                 const leads = leadsData.leads || [];
-                const totalLeads = leads.length;
+                const totalLeads = leadsData.pagination ? leadsData.pagination.total : leads.length;
                 const convertedLeads = leads.filter(l => l.status === 'converted').length;
                 const contactedLeads = leads.filter(l => l.status === 'contacted').length;
                 // Checkout abandonment (from sales data, not leads)
@@ -5244,14 +5344,21 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadOverviewData() {
             try {
                 const dateRange = getGlobalDateRange();
-                let dateParams = '';
+                const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                const sourceFilter = getGlobalSourceFilter();
+                
+                let params = [];
                 if (dateRange) {
-                    dateParams = `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
                 }
+                if (langFilter) params.push(`language=${langFilter}`);
+                if (sourceFilter) params.push(`source=${sourceFilter}`);
+                const queryString = params.length > 0 ? '?' + params.join('&') : '';
                 
                 const [statsRes, salesRes] = await Promise.all([
-                    fetch(`${API_URL}/api/admin/stats${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch(`${API_URL}/api/admin/sales${dateParams}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
+                    fetch(`${API_URL}/api/admin/stats${queryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/api/admin/sales${queryString}`, { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(() => null)
                 ]);
                 
                 if (statsRes.status === 401) { logout(); return; }
@@ -5328,10 +5435,18 @@ Estou aqui para esclarecer tudo! 😊`
         async function loadStats() {
             try {
                 const dateRange = getGlobalDateRange();
-                let url = `${API_URL}/api/admin/stats`;
+                const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                const sourceFilter = getGlobalSourceFilter();
+                
+                let params = [];
                 if (dateRange) {
-                    url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
                 }
+                if (langFilter) params.push(`language=${langFilter}`);
+                if (sourceFilter) params.push(`source=${sourceFilter}`);
+                let url = `${API_URL}/api/admin/stats`;
+                if (params.length > 0) url += '?' + params.join('&');
                 
                 const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (response.status === 401 || response.status === 403) { logout(); return; }
@@ -5365,11 +5480,13 @@ Estou aqui para esclarecer tudo! 😊`
             const selectAllCheckbox = document.getElementById('selectAllLeads');
             if (selectAllCheckbox) selectAllCheckbox.checked = false;
             
+            const sourceFilter = getGlobalSourceFilter();
             try {
                 let url = `${API_URL}/api/admin/leads?page=${page}&limit=${leadsPerPage || 10}`;
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 if (status) url += `&status=${status}`;
                 if (language) url += `&language=${language}`;
+                if (sourceFilter) url += `&source=${sourceFilter}`;
                 if (whatsappFilter) url += `&whatsapp_verified=${whatsappFilter}`;
                 if (dateRange) {
                     url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
@@ -8413,6 +8530,8 @@ Estou aqui para esclarecer tudo! 😊`
                 sourceText = ' <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">🏠 Principal</span>';
             } else if (source === 'affiliate') {
                 sourceText = ' <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🤝 Afiliados</span>';
+            } else if (source === 'perfectpay') {
+                sourceText = ' <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">💳 PerfectPay</span>';
             }
             indicator.innerHTML = langText + sourceText;
         }
@@ -8443,9 +8562,10 @@ Estou aqui para esclarecer tudo! 😊`
             let html = '';
             transactions.forEach(t => {
                 const badgeClass = t.status === 'approved' ? 'badge-approved' : t.status === 'pending_payment' ? 'badge-pending' : 'badge-cancelled';
-                const isAffiliate = t.funnel_source === 'affiliate';
-                const sourceBadge = isAffiliate 
+                const sourceBadge = t.funnel_source === 'affiliate' 
                     ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🤝 Afiliado</span>'
+                    : t.funnel_source === 'perfectpay'
+                    ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">💳 PerfectPay</span>'
                     : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">🏠 Principal</span>';
                 const langBadge = t.funnel_language === 'es' ? '🇪🇸' : '🇺🇸';
                 html += `<tr>
@@ -15311,12 +15431,19 @@ Posso ajudar em algo mais? 😊`
                 if (!container) return;
                 
                 const dateRange = getGlobalDateRange();
-                let dateParams = '';
-                if (dateRange) {
-                    dateParams = `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
-                }
+                const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                const sourceFilter = getGlobalSourceFilter();
                 
-                const response = await fetch(`${API_URL}/api/admin/funnel-stats${dateParams}`, {
+                let params = [];
+                if (dateRange) {
+                    params.push(`startDate=${dateRange.startDate}`);
+                    params.push(`endDate=${dateRange.endDate}`);
+                }
+                if (langFilter) params.push(`language=${langFilter}`);
+                if (sourceFilter) params.push(`source=${sourceFilter}`);
+                const queryString = params.length > 0 ? '?' + params.join('&') : '';
+                
+                const response = await fetch(`${API_URL}/api/admin/funnel-stats${queryString}`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 
@@ -15920,6 +16047,123 @@ Posso ajudar em algo mais? 😊`
         document.getElementById('shortcutsModal')?.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) toggleShortcutsModal();
         });
+
+        // ==================== PLATFORM COMPARISON ====================
+        async function loadPlatformComparison() {
+            try {
+                const dateRange = getGlobalDateRange();
+                const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
+                
+                let dateParams = '';
+                if (dateRange) {
+                    dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
+                }
+                
+                const headers = { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache' };
+                
+                // Fetch Monetizze (main + affiliate combined) and PerfectPay data in parallel
+                // For Monetizze, we don't pass source filter to get main+affiliate combined
+                let monetizzeLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=main`;
+                let monetizzeAffLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=affiliate`;
+                let ppLeadsUrl = `${API_URL}/api/admin/leads?limit=1&source=perfectpay`;
+                let monetizzeSalesUrl = `${API_URL}/api/admin/sales?source=main`;
+                let affSalesUrl = `${API_URL}/api/admin/sales?source=affiliate`;
+                let ppSalesUrl = `${API_URL}/api/admin/sales?source=perfectpay`;
+                
+                if (langFilter) {
+                    monetizzeLeadsUrl += `&language=${langFilter}`;
+                    monetizzeAffLeadsUrl += `&language=${langFilter}`;
+                    ppLeadsUrl += `&language=${langFilter}`;
+                    monetizzeSalesUrl += `&language=${langFilter}`;
+                    affSalesUrl += `&language=${langFilter}`;
+                    ppSalesUrl += `&language=${langFilter}`;
+                }
+                if (dateParams) {
+                    monetizzeLeadsUrl += `&${dateParams}`;
+                    monetizzeAffLeadsUrl += `&${dateParams}`;
+                    ppLeadsUrl += `&${dateParams}`;
+                    monetizzeSalesUrl += `&${dateParams}`;
+                    affSalesUrl += `&${dateParams}`;
+                    ppSalesUrl += `&${dateParams}`;
+                }
+                
+                const [mLeadsRes, mAffLeadsRes, ppLeadsRes, mSalesRes, affSalesRes, ppSalesRes] = await Promise.all([
+                    fetch(monetizzeLeadsUrl, { headers }).catch(() => null),
+                    fetch(monetizzeAffLeadsUrl, { headers }).catch(() => null),
+                    fetch(ppLeadsUrl, { headers }).catch(() => null),
+                    fetch(monetizzeSalesUrl, { headers }).catch(() => null),
+                    fetch(affSalesUrl, { headers }).catch(() => null),
+                    fetch(ppSalesUrl, { headers }).catch(() => null)
+                ]);
+                
+                const mLeadsData = mLeadsRes?.ok ? await mLeadsRes.json() : { pagination: { total: 0 } };
+                const mAffLeadsData = mAffLeadsRes?.ok ? await mAffLeadsRes.json() : { pagination: { total: 0 } };
+                const ppLeadsData = ppLeadsRes?.ok ? await ppLeadsRes.json() : { pagination: { total: 0 } };
+                const mSalesData = mSalesRes?.ok ? await mSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
+                const affSalesData = affSalesRes?.ok ? await affSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
+                const ppSalesData = ppSalesRes?.ok ? await ppSalesRes.json() : { approved: 0, revenue: 0, refunded: 0, checkoutClicked: 0 };
+                
+                // Combine Monetizze main + affiliate
+                const mLeads = (mLeadsData.pagination?.total || 0) + (mAffLeadsData.pagination?.total || 0);
+                const mSales = (mSalesData.approved || 0) + (affSalesData.approved || 0);
+                const mRevenue = (mSalesData.revenue || 0) + (affSalesData.revenue || 0);
+                const mRefunds = (mSalesData.refunded || 0) + (affSalesData.refunded || 0);
+                const mCheckout = (mSalesData.checkoutClicked || 0) + (affSalesData.checkoutClicked || 0);
+                
+                // PerfectPay
+                const ppLeads = ppLeadsData.pagination?.total || 0;
+                const ppSales = ppSalesData.approved || 0;
+                const ppRevenue = ppSalesData.revenue || 0;
+                const ppRefunds = ppSalesData.refunded || 0;
+                const ppCheckout = ppSalesData.checkoutClicked || 0;
+                
+                // Calculate rates
+                const mConvRate = mLeads > 0 ? ((mSales / mLeads) * 100).toFixed(1) : '0.0';
+                const ppConvRate = ppLeads > 0 ? ((ppSales / ppLeads) * 100).toFixed(1) : '0.0';
+                const mRefundRate = mSales > 0 ? ((mRefunds / mSales) * 100).toFixed(1) : '0.0';
+                const ppRefundRate = ppSales > 0 ? ((ppRefunds / ppSales) * 100).toFixed(1) : '0.0';
+                const mTicket = mSales > 0 ? (mRevenue / mSales) : 0;
+                const ppTicket = ppSales > 0 ? (ppRevenue / ppSales) : 0;
+                
+                const fmt = (n) => n.toLocaleString('pt-BR');
+                const fmtR = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                // Update Monetizze column
+                document.getElementById('cmpMonetizzeLeads').textContent = fmt(mLeads);
+                document.getElementById('cmpMonetizzeCheckout').textContent = fmt(mCheckout);
+                document.getElementById('cmpMonetizzeSales').textContent = fmt(mSales);
+                document.getElementById('cmpMonetizzeRevenue').textContent = fmtR(mRevenue);
+                document.getElementById('cmpMonetizzeRefunds').textContent = fmt(mRefunds);
+                document.getElementById('cmpMonetizzeConvRate').textContent = mConvRate + '%';
+                document.getElementById('cmpMonetizzeRefundRate').textContent = mRefundRate + '%';
+                document.getElementById('cmpMonetizzeTicket').textContent = fmtR(mTicket);
+                
+                // Update PerfectPay column
+                document.getElementById('cmpPerfectPayLeads').textContent = fmt(ppLeads);
+                document.getElementById('cmpPerfectPayCheckout').textContent = fmt(ppCheckout);
+                document.getElementById('cmpPerfectPaySales').textContent = fmt(ppSales);
+                document.getElementById('cmpPerfectPayRevenue').textContent = fmtR(ppRevenue);
+                document.getElementById('cmpPerfectPayRefunds').textContent = fmt(ppRefunds);
+                document.getElementById('cmpPerfectPayConvRate').textContent = ppConvRate + '%';
+                document.getElementById('cmpPerfectPayRefundRate').textContent = ppRefundRate + '%';
+                document.getElementById('cmpPerfectPayTicket').textContent = fmtR(ppTicket);
+                
+                // Determine winner
+                const winnerEl = document.getElementById('cmpWinner');
+                if (winnerEl) {
+                    if (mRevenue > ppRevenue && mRevenue > 0) {
+                        winnerEl.innerHTML = '<div style="color: #3b82f6; font-weight: 700;">\ud83c\udfc6 Monetizze</div><div style="margin-top: 4px;">lidera em faturamento</div>';
+                    } else if (ppRevenue > mRevenue && ppRevenue > 0) {
+                        winnerEl.innerHTML = '<div style="color: #f59e0b; font-weight: 700;">\ud83c\udfc6 PerfectPay</div><div style="margin-top: 4px;">lidera em faturamento</div>';
+                    } else {
+                        winnerEl.innerHTML = '<div style="color: var(--text-muted);">Empate</div>';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading platform comparison:', error);
+            }
+        }
     </script>
     
     <!-- ISOLATED Active Users Script - runs independently of main script -->
