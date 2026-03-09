@@ -18,6 +18,7 @@ router.get('/api/admin/leads', authenticateToken, async (req, res) => {
         const status = req.query.status || '';
         const language = req.query.language || '';  // Filter by funnel language (en/es)
         const source = req.query.source || '';  // Filter by funnel source (main/affiliate)
+        const platform = req.query.platform || '';  // Filter by payment platform (monetizze/perfectpay)
         const { startDate, endDate } = req.query;
         
         let query = `SELECT * FROM leads`;
@@ -58,6 +59,13 @@ router.get('/api/admin/leads', authenticateToken, async (req, res) => {
         if (startDate && endDate) {
             conditions.push(`(created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${params.length + 1}::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${params.length + 2}::date`);
             params.push(startDate, endDate);
+        }
+        
+        // Platform filter: filter leads whose email appears in transactions of the selected platform
+        if (platform === 'monetizze' && !source) {
+            conditions.push(`email IN (SELECT DISTINCT email FROM transactions WHERE funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`);
+        } else if (platform === 'perfectpay' && !source) {
+            conditions.push(`email IN (SELECT DISTINCT email FROM transactions WHERE funnel_source = 'perfectpay')`);
         }
         
         // WhatsApp verification filter

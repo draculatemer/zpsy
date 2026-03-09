@@ -864,10 +864,10 @@ router.delete('/api/admin/financial/costs/:id', authenticateToken, async (req, r
 // Get lead statistics (protected)
 router.get('/api/admin/stats', authenticateToken, async (req, res) => {
     try {
-        const { startDate, endDate, language, source } = req.query;
+        const { startDate, endDate, language, source, platform } = req.query;
         
         // Smart cache (2 min TTL)
-        const cacheKey = `stats-${startDate||''}-${endDate||''}-${language||''}-${source||''}`;
+        const cacheKey = `stats-${startDate||''}-${endDate||''}-${language||''}-${source||''}-${platform||''}`;
         const cached = getCached(cacheKey, 2 * 60 * 1000);
         if (cached) return res.json(cached);
         
@@ -891,25 +891,33 @@ router.get('/api/admin/stats', authenticateToken, async (req, res) => {
             params.push(source);
         }
         
+        // Platform filter: filter leads whose email appears in transactions of the selected platform
+        let platformFilter = '';
+        if (platform === 'monetizze') {
+            platformFilter = ` AND email IN (SELECT DISTINCT email FROM transactions WHERE funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
+        } else if (platform === 'perfectpay') {
+            platformFilter = ` AND email IN (SELECT DISTINCT email FROM transactions WHERE funnel_source = 'perfectpay')`;
+        }
+        
         const [totalResult, todayResult, weekResult, statusResult] = await Promise.all([
-            pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1${dateFilter}`, params),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date${dateFilter}`, params),
-            pool.query(`SELECT COUNT(*) FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '7 days')::date${dateFilter}`, params),
-            pool.query(`SELECT status, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY status`, params)
+            pool.query(`SELECT COUNT(*) FROM leads WHERE 1=1${dateFilter}${platformFilter}`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date${dateFilter}${platformFilter}`, params),
+            pool.query(`SELECT COUNT(*) FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '7 days')::date${dateFilter}${platformFilter}`, params),
+            pool.query(`SELECT status, COUNT(*) FROM leads WHERE 1=1${dateFilter}${platformFilter} GROUP BY status`, params)
         ]);
         
         // Get leads by day for the last 7 days (using Brazil timezone)
         const dailyResult = await pool.query(`
             SELECT (created_at AT TIME ZONE 'America/Sao_Paulo')::date as date, COUNT(*) as count
             FROM leads
-            WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '7 days')::date${dateFilter}
+            WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= ((NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '7 days')::date${dateFilter}${platformFilter}
             GROUP BY (created_at AT TIME ZONE 'America/Sao_Paulo')::date
             ORDER BY date DESC
         `, params);
         
         // Get leads by gender
         const genderResult = await pool.query(`
-            SELECT target_gender, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY target_gender
+            SELECT target_gender, COUNT(*) FROM leads WHERE 1=1${dateFilter}${platformFilter} GROUP BY target_gender
         `, params);
         
         const response = {
@@ -2063,84 +2071,113 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const { language, startDate, endDate } = req.query;
         
         // Smart cache (2 min TTL)
-        const cacheKey = `platform-cmp-${startDate||''}-${endDate||''}-${language||''}`;
+        const cacheKey = `platform-cmp-v2-${startDate||''}-${endDate||''}-${language||''}`;
         const cached = getCached(cacheKey, 2 * 60 * 1000);
         if (cached) return res.json(cached);
         
-        // Build date condition
-        let dateCondition = '';
-        let feDateCondition = '';
-        let dateParams = [];
+        // Build date conditions for each table
+        let txDateCond = '';
+        let leadDateCond = '';
+        let feDateCond = '';
+        const dateParams = [];
         if (startDate && endDate) {
-            dateCondition = ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $1::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $2::date`;
-            feDateCondition = ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= '${startDate}'::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= '${endDate}'::date`;
-            dateParams = [startDate, endDate];
+            txDateCond = ` AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= '${startDate}'::date AND (t.created_at AT TIME ZONE 'America/Sao_Paulo')::date <= '${endDate}'::date`;
+            leadDateCond = ` AND (l.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= '${startDate}'::date AND (l.created_at AT TIME ZONE 'America/Sao_Paulo')::date <= '${endDate}'::date`;
+            feDateCond = ` AND (fe.created_at AT TIME ZONE 'America/Sao_Paulo')::date >= '${startDate}'::date AND (fe.created_at AT TIME ZONE 'America/Sao_Paulo')::date <= '${endDate}'::date`;
         }
         
-        // Build language condition
-        let langCondition = '';
-        let feLangCondition = '';
-        let langParams = [];
+        // Build language conditions
+        let txLangCond = '';
+        let leadLangCond = '';
+        let feLangCond = '';
         if (language === 'en' || language === 'es') {
-            const langIdx = dateParams.length + 1;
-            langCondition = ` AND (funnel_language = $${langIdx} OR (funnel_language IS NULL AND $${langIdx} = 'en'))`;
-            feLangCondition = ` AND (metadata->>'funnelLanguage' = '${language}' OR (metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
-            langParams = [language];
+            txLangCond = ` AND (t.funnel_language = '${language}' OR (t.funnel_language IS NULL AND '${language}' = 'en'))`;
+            leadLangCond = ` AND (l.funnel_language = '${language}' OR (l.funnel_language IS NULL AND '${language}' = 'en'))`;
+            feLangCond = ` AND (fe.metadata->>'funnelLanguage' = '${language}' OR (fe.metadata->>'funnelLanguage' IS NULL AND '${language}' = 'en'))`;
         }
-        
-        const allParams = [...dateParams, ...langParams];
         
         // PerfectPay stores values in USD; convert to BRL
         const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
-        const valueBRL = `CASE WHEN funnel_source = 'perfectpay' THEN CAST(value AS DECIMAL) * ${usdToBrl.toFixed(2)} ELSE CAST(value AS DECIMAL) END`;
         
-        // ===== SHARED FUNNEL DATA (all leads + all checkouts) =====
+        // ===== TOTAL FUNNEL DATA (for reference) =====
         const totalLeadsResult = await pool.query(
-            `SELECT COUNT(*) FROM leads WHERE 1=1${langCondition}${dateCondition}`,
-            allParams
+            `SELECT COUNT(*) as count FROM leads l WHERE 1=1${leadLangCond}${leadDateCond}`
         );
-        
         const totalCheckoutsResult = await pool.query(
-            `SELECT COUNT(DISTINCT visitor_id) as count FROM funnel_events WHERE event = 'checkout_clicked'${feLangCondition}${feDateCondition}`
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count FROM funnel_events fe WHERE fe.event = 'checkout_clicked'${feLangCond}${feDateCond}`
         );
         
-        // ===== MONETIZZE TRANSACTIONS (source = main + affiliate) =====
-        const monetizzeSourceCond = ` AND (funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
+        // ===== MONETIZZE: Isolated leads (leads whose email appears in Monetizze transactions) =====
+        const mLeadsResult = await pool.query(
+            `SELECT COUNT(DISTINCT l.id) as count
+            FROM leads l
+            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            WHERE t.funnel_source IN ('main', 'affiliate')${leadDateCond}${leadLangCond}`
+        );
         
+        // MONETIZZE: Isolated checkouts (checkout events from visitors who later bought on Monetizze)
+        const mCheckoutsResult = await pool.query(
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count
+            FROM funnel_events fe
+            INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            WHERE fe.event = 'checkout_clicked'
+            AND t.funnel_source IN ('main', 'affiliate')${feDateCond}${feLangCond}`
+        );
+        
+        // MONETIZZE: Transaction metrics
         const mTxResult = await pool.query(
             `SELECT 
                 COUNT(*) as total,
-                COUNT(*) FILTER (WHERE status = 'approved') as approved,
-                COUNT(*) FILTER (WHERE status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue
-            FROM transactions 
-            WHERE 1=1 ${monetizzeSourceCond}${langCondition}${dateCondition}`,
-            allParams
+                COUNT(*) FILTER (WHERE t.status = 'approved') as approved,
+                COUNT(*) FILTER (WHERE t.status IN ('refunded', 'chargeback')) as refunded,
+                COALESCE(SUM(CAST(t.value AS DECIMAL)) FILTER (WHERE t.status = 'approved'), 0) as revenue
+            FROM transactions t
+            WHERE t.funnel_source IN ('main', 'affiliate')${txDateCond}${txLangCond}`
         );
         
-        // ===== PERFECTPAY TRANSACTIONS (source = perfectpay) =====
-        const ppSourceCond = ` AND funnel_source = 'perfectpay'`;
+        // ===== PERFECTPAY: Isolated leads (leads whose email appears in PerfectPay transactions) =====
+        const ppLeadsResult = await pool.query(
+            `SELECT COUNT(DISTINCT l.id) as count
+            FROM leads l
+            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            WHERE t.funnel_source = 'perfectpay'${leadDateCond}${leadLangCond}`
+        );
         
+        // PERFECTPAY: Isolated checkouts (checkout events from visitors who later bought on PerfectPay)
+        const ppCheckoutsResult = await pool.query(
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count
+            FROM funnel_events fe
+            INNER JOIN leads l ON fe.visitor_id = l.visitor_id
+            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            WHERE fe.event = 'checkout_clicked'
+            AND t.funnel_source = 'perfectpay'${feDateCond}${feLangCond}`
+        );
+        
+        // PERFECTPAY: Transaction metrics (with USD→BRL conversion)
         const ppTxResult = await pool.query(
             `SELECT 
                 COUNT(*) as total,
-                COUNT(*) FILTER (WHERE status = 'approved') as approved,
-                COUNT(*) FILTER (WHERE status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(${valueBRL}) FILTER (WHERE status = 'approved'), 0) as revenue
-            FROM transactions 
-            WHERE 1=1 ${ppSourceCond}${langCondition}${dateCondition}`,
-            allParams
+                COUNT(*) FILTER (WHERE t.status = 'approved') as approved,
+                COUNT(*) FILTER (WHERE t.status IN ('refunded', 'chargeback')) as refunded,
+                COALESCE(SUM(CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}) FILTER (WHERE t.status = 'approved'), 0) as revenue
+            FROM transactions t
+            WHERE t.funnel_source = 'perfectpay'${txDateCond}${txLangCond}`
         );
         
-        // Build response
+        // Parse results
         const totalLeads = parseInt(totalLeadsResult.rows[0].count) || 0;
         const totalCheckouts = parseInt(totalCheckoutsResult.rows[0].count) || 0;
         
+        const mLeads = parseInt(mLeadsResult.rows[0].count) || 0;
+        const mCheckouts = parseInt(mCheckoutsResult.rows[0].count) || 0;
         const mTotal = parseInt(mTxResult.rows[0].total) || 0;
         const mSales = parseInt(mTxResult.rows[0].approved) || 0;
         const mRefunds = parseInt(mTxResult.rows[0].refunded) || 0;
         const mRevenue = parseFloat(mTxResult.rows[0].revenue) || 0;
         
+        const ppLeads = parseInt(ppLeadsResult.rows[0].count) || 0;
+        const ppCheckouts = parseInt(ppCheckoutsResult.rows[0].count) || 0;
         const ppTotal = parseInt(ppTxResult.rows[0].total) || 0;
         const ppSales = parseInt(ppTxResult.rows[0].approved) || 0;
         const ppRefunds = parseInt(ppTxResult.rows[0].refunded) || 0;
@@ -2152,22 +2189,28 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 totalCheckouts
             },
             monetizze: {
+                leads: mLeads,
+                checkouts: mCheckouts,
                 totalTx: mTotal,
                 sales: mSales,
                 revenue: mRevenue,
                 refunds: mRefunds,
                 approvalRate: mTotal > 0 ? ((mSales / mTotal) * 100) : 0,
                 refundRate: mSales > 0 ? ((mRefunds / mSales) * 100) : 0,
-                ticket: mSales > 0 ? (mRevenue / mSales) : 0
+                ticket: mSales > 0 ? (mRevenue / mSales) : 0,
+                conversionRate: mLeads > 0 ? ((mSales / mLeads) * 100) : 0
             },
             perfectpay: {
+                leads: ppLeads,
+                checkouts: ppCheckouts,
                 totalTx: ppTotal,
                 sales: ppSales,
                 revenue: ppRevenue,
                 refunds: ppRefunds,
                 approvalRate: ppTotal > 0 ? ((ppSales / ppTotal) * 100) : 0,
                 refundRate: ppSales > 0 ? ((ppRefunds / ppSales) * 100) : 0,
-                ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0
+                ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0,
+                conversionRate: ppLeads > 0 ? ((ppSales / ppLeads) * 100) : 0
             }
         };
         setCache(cacheKey, response);
@@ -2182,10 +2225,10 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
 // Revenue by day endpoint (with USD→BRL conversion for PerfectPay)
 router.get('/api/admin/revenue-by-day', authenticateToken, async (req, res) => {
     try {
-        const { language, source, startDate, endDate } = req.query;
+        const { language, source, startDate, endDate, platform } = req.query;
         
         // Smart cache (2 min TTL)
-        const cacheKey = `rev-day-${startDate||''}-${endDate||''}-${language||''}-${source||''}`;
+        const cacheKey = `rev-day-${startDate||''}-${endDate||''}-${language||''}-${source||''}-${platform||''}`;
         const cached = getCached(cacheKey, 2 * 60 * 1000);
         if (cached) return res.json(cached);
         
@@ -2215,6 +2258,13 @@ router.get('/api/admin/revenue-by-day', authenticateToken, async (req, res) => {
         } else if (source === 'affiliate') {
             sourceCondition = ` AND funnel_source = 'affiliate'`;
         } else if (source === 'perfectpay') {
+            sourceCondition = ` AND funnel_source = 'perfectpay'`;
+        }
+        
+        // Platform filter: monetizze = main+affiliate, perfectpay = perfectpay
+        if (platform === 'monetizze' && !source) {
+            sourceCondition = ` AND (funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
+        } else if (platform === 'perfectpay' && !source) {
             sourceCondition = ` AND funnel_source = 'perfectpay'`;
         }
         

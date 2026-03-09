@@ -173,10 +173,15 @@
                             <option value="en">🇺🇸 Inglês</option>
                             <option value="es">🇪🇸 Espanhol</option>
                         </select>
-                        <select class="funnel-selector" id="globalSourceFilter" onchange="onGlobalFilterChange()" title="Filtrar por origem" style="min-width: 140px;">
+                        <select class="funnel-selector" id="globalSourceFilter" onchange="onGlobalFilterChange()" title="Filtrar por origem do funil" style="min-width: 140px;">
                             <option value="">📦 Todas as Origens</option>
                             <option value="main">🏠 Principal</option>
                             <option value="affiliate">🤝 Afiliados</option>
+                            <option value="perfectpay">💳 PerfectPay</option>
+                        </select>
+                        <select class="funnel-selector" id="globalPlatformFilter" onchange="onGlobalFilterChange()" title="Filtrar por plataforma de pagamento" style="min-width: 160px; border-color: rgba(245,158,11,0.4);">
+                            <option value="">💰 Todas Plataformas</option>
+                            <option value="monetizze">🏠 Monetizze</option>
                             <option value="perfectpay">💳 PerfectPay</option>
                         </select>
                         <select class="funnel-selector" id="globalDateFilter" onchange="onGlobalFilterChange()" title="Filtrar por período" style="min-width: 150px;">
@@ -589,98 +594,124 @@
                             <button class="btn-secondary" onclick="loadPlatformComparison()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
                         </div>
                         <div id="platformComparisonContent" style="padding: 20px;">
-                            <!-- Shared Funnel Data -->
-                            <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                                <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-align: center;">🌐 Funil Compartilhado (todos os leads passam pelo mesmo funil antes do checkout)</div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                        <span style="font-size: 12px; color: var(--text-muted);">Total Leads Capturados</span>
-                                        <span style="font-size: 18px; font-weight: 700;" id="cmpTotalLeads">-</span>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                        <span style="font-size: 12px; color: var(--text-muted);">Total Initiate Checkout</span>
-                                        <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpTotalCheckouts">-</span>
-                                    </div>
-                                </div>
+                            <!-- Reference: Total Funnel -->
+                            <div style="background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.12); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: center; gap: 32px; align-items: center;">
+                                <span style="font-size: 12px; color: var(--text-muted);">Total Geral do Funil:</span>
+                                <span style="font-size: 12px; color: var(--text-muted);">Leads: <strong style="color: #e2e8f0; font-size: 14px;" id="cmpTotalLeads">-</strong></span>
+                                <span style="font-size: 12px; color: var(--text-muted);">Checkouts: <strong style="color: #06b6d4; font-size: 14px;" id="cmpTotalCheckouts">-</strong></span>
                             </div>
-                            <!-- Platform Comparison -->
-                            <div style="display: grid; grid-template-columns: 1fr 80px 1fr; gap: 16px; align-items: start;">
+                            <!-- Platform Comparison - Side by Side -->
+                            <div style="display: grid; grid-template-columns: 1fr 60px 1fr; gap: 16px; align-items: start;">
                                 <!-- Monetizze Column -->
-                                <div id="platformMonetizze" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px;">
+                                <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px;">
                                     <div style="text-align: center; margin-bottom: 16px;">
                                         <div style="font-size: 18px; font-weight: 700; color: #3b82f6;">🏠 Monetizze</div>
                                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Principal + Afiliados</div>
                                     </div>
-                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(99,102,241,0.08); border-radius: 8px; border-left: 3px solid #6366f1;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Leads Vinculados</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #e2e8f0;" id="cmpMonetizzeLeads">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(6,182,212,0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Checkouts Vinculados</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeCheckouts">-</span>
+                                        </div>
+                                        <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0;"></div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Total Transações</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeTx">-</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #94a3b8;" id="cmpMonetizzeTx">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(16,185,129,0.08); border-radius: 8px; border-left: 3px solid #10b981;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Vendas Aprovadas</span>
                                             <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpMonetizzeSales">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Faturamento (BRL)</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpMonetizzeRevenue">-</span>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(16,185,129,0.12); border-radius: 8px; border-left: 3px solid #10b981;">
+                                            <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Faturamento (BRL)</span>
+                                            <span style="font-size: 20px; font-weight: 800; color: #10b981;" id="cmpMonetizzeRevenue">-</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Reembolsos</span>
                                             <span style="font-size: 18px; font-weight: 700; color: #f59e0b;" id="cmpMonetizzeRefunds">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Aprovação</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #8b5cf6;" id="cmpMonetizzeConvRate">-</span>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Taxa Aprovação</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #8b5cf6;" id="cmpMonetizzeApprovalRate">-</div>
+                                            </div>
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Taxa Reembolso</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #ef4444;" id="cmpMonetizzeRefundRate">-</div>
+                                            </div>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Reembolso</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #ef4444;" id="cmpMonetizzeRefundRate">-</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Ticket Médio</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeTicket">-</span>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Conversão Lead→Venda</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #06b6d4;" id="cmpMonetizzeConvRate">-</div>
+                                            </div>
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Ticket Médio</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #f59e0b;" id="cmpMonetizzeTicket">-</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <!-- VS Column -->
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 40px;">
-                                    <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(245, 158, 11, 0.2)); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #fff; border: 2px solid rgba(255,255,255,0.1);">VS</div>
-                                    <div id="cmpWinner" style="margin-top: 16px; text-align: center; font-size: 11px; color: var(--text-muted);"></div>
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px;">
+                                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(245, 158, 11, 0.3)); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; border: 2px solid rgba(255,255,255,0.1);">VS</div>
+                                    <div id="cmpWinner" style="margin-top: 12px; text-align: center; font-size: 10px; color: var(--text-muted);"></div>
                                 </div>
                                 <!-- PerfectPay Column -->
-                                <div id="platformPerfectPay" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 20px;">
+                                <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 20px;">
                                     <div style="text-align: center; margin-bottom: 16px;">
                                         <div style="font-size: 18px; font-weight: 700; color: #f59e0b;">💳 PerfectPay</div>
                                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Checkout direto USD</div>
                                     </div>
-                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(99,102,241,0.08); border-radius: 8px; border-left: 3px solid #6366f1;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Leads Vinculados</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #e2e8f0;" id="cmpPerfectPayLeads">-</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(6,182,212,0.08); border-radius: 8px; border-left: 3px solid #06b6d4;">
+                                            <span style="font-size: 12px; color: var(--text-muted);">Checkouts Vinculados</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayCheckouts">-</span>
+                                        </div>
+                                        <div style="height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0;"></div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Total Transações</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayTx">-</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: #94a3b8;" id="cmpPerfectPayTx">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(16,185,129,0.08); border-radius: 8px; border-left: 3px solid #10b981;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Vendas Aprovadas</span>
                                             <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpPerfectPaySales">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Faturamento (BRL)</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #10b981;" id="cmpPerfectPayRevenue">-</span>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(16,185,129,0.12); border-radius: 8px; border-left: 3px solid #10b981;">
+                                            <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Faturamento (BRL)</span>
+                                            <span style="font-size: 20px; font-weight: 800; color: #10b981;" id="cmpPerfectPayRevenue">-</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                                             <span style="font-size: 12px; color: var(--text-muted);">Reembolsos</span>
                                             <span style="font-size: 18px; font-weight: 700; color: #f59e0b;" id="cmpPerfectPayRefunds">-</span>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Aprovação</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #8b5cf6;" id="cmpPerfectPayConvRate">-</span>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Taxa Aprovação</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #8b5cf6;" id="cmpPerfectPayApprovalRate">-</div>
+                                            </div>
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Taxa Reembolso</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #ef4444;" id="cmpPerfectPayRefundRate">-</div>
+                                            </div>
                                         </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Taxa Reembolso</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #ef4444;" id="cmpPerfectPayRefundRate">-</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                                            <span style="font-size: 12px; color: var(--text-muted);">Ticket Médio</span>
-                                            <span style="font-size: 18px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayTicket">-</span>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Conversão Lead→Venda</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #06b6d4;" id="cmpPerfectPayConvRate">-</div>
+                                            </div>
+                                            <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: center;">
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Ticket Médio</div>
+                                                <div style="font-size: 16px; font-weight: 700; color: #f59e0b;" id="cmpPerfectPayTicket">-</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -4492,7 +4523,8 @@ Estou aqui para esclarecer tudo! 😊`
             const globalLangFilter = document.getElementById('globalFunnelFilter')?.value || '';
             const globalDateFilter = document.getElementById('globalDateFilter')?.value || 'all';
             const globalSourceFilter = document.getElementById('globalSourceFilter')?.value || '';
-            console.log('📊 Language:', globalLangFilter, 'Date:', globalDateFilter, 'Source:', globalSourceFilter);
+            const globalPlatformFilter = document.getElementById('globalPlatformFilter')?.value || '';
+            console.log('📊 Language:', globalLangFilter, 'Date:', globalDateFilter, 'Source:', globalSourceFilter, 'Platform:', globalPlatformFilter);
             
             // Show/hide custom date inputs
             const showCustomDates = globalDateFilter === 'custom';
@@ -4519,18 +4551,79 @@ Estou aqui para esclarecer tudo! 😊`
             return document.getElementById('globalSourceFilter')?.value || '';
         }
         
+        // Get global platform filter value (Monetizze/PerfectPay)
+        function getGlobalPlatformFilter() {
+            return document.getElementById('globalPlatformFilter')?.value || '';
+        }
+        
         // Load overview stats for main KPI cards
         async function loadOverviewFunnelComparison() {
             try {
                 const dateRange = getGlobalDateRange();
                 const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const sourceFilter = document.getElementById('globalSourceFilter')?.value || '';
+                const platformFilter = getGlobalPlatformFilter();
                 
                 let dateParams = '';
                 if (dateRange) {
                     dateParams = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
                 }
                 
+                const headers = { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache, no-store, must-revalidate' };
+                
+                // If platform filter is active, use platform-comparison endpoint for isolated data
+                if (platformFilter) {
+                    let cmpParams = [];
+                    if (dateRange) cmpParams.push(`startDate=${dateRange.startDate}`, `endDate=${dateRange.endDate}`);
+                    if (langFilter) cmpParams.push(`language=${langFilter}`);
+                    const cmpUrl = `${API_URL}/api/admin/platform-comparison${cmpParams.length ? '?' + cmpParams.join('&') : ''}`;
+                    const cmpRes = await fetch(cmpUrl, { headers });
+                    if (cmpRes.status === 401 || cmpRes.status === 403) { logout(); return; }
+                    const cmpData = await cmpRes.json();
+                    const platData = platformFilter === 'monetizze' ? cmpData.monetizze : cmpData.perfectpay;
+                    const platLabel = platformFilter === 'monetizze' ? 'Monetizze' : 'PerfectPay';
+                    
+                    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                    
+                    // KPI Row 1 - Funnel Volume (isolated)
+                    setEl('overviewLeads', (platData.leads || 0).toLocaleString('pt-BR'));
+                    setEl('overviewLeadsInfo', `Vinculados ${platLabel}`);
+                    setEl('overviewInitiateCheckout', (platData.checkouts || 0).toLocaleString('pt-BR'));
+                    const initRate = platData.leads > 0 ? ((platData.checkouts / platData.leads) * 100) : 0;
+                    setEl('overviewInitiateCheckoutInfo', `${initRate.toFixed(1)}% dos leads`);
+                    setEl('overviewAbandoned', (platData.totalTx - platData.sales).toLocaleString('pt-BR'));
+                    setEl('overviewAbandonedInfo', `não aprovadas ${platLabel}`);
+                    const ckConv = platData.checkouts > 0 ? ((platData.sales / platData.checkouts) * 100) : 0;
+                    setEl('overviewCheckoutRate', ckConv.toFixed(1) + '%');
+                    setEl('overviewCheckoutRateInfo', `${platData.sales} de ${platData.checkouts} checkouts`);
+                    setEl('overviewSales', (platData.sales || 0).toLocaleString('pt-BR'));
+                    setEl('overviewSalesInfo', `aprovadas ${platLabel}`);
+                    setEl('overviewRevenue', 'R$ ' + (platData.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                    setEl('overviewRevenueInfo', `faturamento ${platLabel}`);
+                    
+                    // KPI Row 2 - Rates
+                    const convRate = platData.leads > 0 ? ((platData.sales / platData.leads) * 100) : 0;
+                    setEl('overviewConvRate', convRate.toFixed(1) + '%');
+                    setEl('overviewConvRateInfo', `${platData.sales} de ${platData.leads} leads`);
+                    setEl('overviewApprovalRate', (platData.approvalRate || 0).toFixed(1) + '%');
+                    setEl('overviewApprovalRateInfo', `taxa aprovação ${platLabel}`);
+                    setEl('overviewLostSales', ((platData.totalTx || 0) - (platData.sales || 0)).toLocaleString('pt-BR'));
+                    setEl('overviewLostSalesInfo', `não aprovadas`);
+                    setEl('overviewLostRevenue', 'R$ 0,00');
+                    setEl('overviewLostRevenueInfo', `${platLabel}`);
+                    setEl('overviewRefunds', (platData.refunds || 0).toLocaleString('pt-BR'));
+                    setEl('overviewRefundsInfo', platLabel);
+                    setEl('overviewRefundRate', (platData.refundRate || 0).toFixed(1) + '%');
+                    setEl('overviewRefundRateInfo', `${platData.refunds} de ${platData.sales} vendas`);
+                    
+                    // Quick actions
+                    setEl('quickRecoveryText', `${(platData.totalTx - platData.sales)} não aprovadas`);
+                    setEl('quickLeadsText', `${platData.leads} leads ${platLabel}`);
+                    setEl('quickSalesText', 'R$ ' + (platData.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                    return;
+                }
+                
+                // Default: no platform filter - show all data combined
                 // Build URL with all filters
                 let leadsUrl = `${API_URL}/api/admin/leads?limit=10000`;
                 let salesUrl = `${API_URL}/api/admin/sales?`;
@@ -4551,7 +4644,6 @@ Estou aqui para esclarecer tudo! 😊`
                 }
                 
                 // Fetch all data in parallel - with no-cache headers for real-time updates
-                const headers = { 'Authorization': `Bearer ${authToken}`, 'Cache-Control': 'no-cache, no-store, must-revalidate' };
                 const [leadsRes, salesRes, mainSalesRes, affSalesRes, refundsRes] = await Promise.all([
                     fetch(leadsUrl, { headers }),
                     fetch(salesUrl, { headers }).catch(() => null),
@@ -5366,6 +5458,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const dateRange = getGlobalDateRange();
                 const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const sourceFilter = getGlobalSourceFilter();
+                const platformFilter = getGlobalPlatformFilter();
                 
                 let params = [];
                 if (dateRange) {
@@ -5374,6 +5467,8 @@ Estou aqui para esclarecer tudo! 😊`
                 }
                 if (langFilter) params.push(`language=${langFilter}`);
                 if (sourceFilter) params.push(`source=${sourceFilter}`);
+                // When platform filter is active, map it to source filter for sales/stats endpoints
+                if (platformFilter) params.push(`platform=${platformFilter}`);
                 const queryString = params.length > 0 ? '?' + params.join('&') : '';
                 
                 const [statsRes, salesRes] = await Promise.all([
@@ -5454,6 +5549,7 @@ Estou aqui para esclarecer tudo! 😊`
                 const dateRange = getGlobalDateRange();
                 const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const sourceFilter = getGlobalSourceFilter();
+                const platformFilter = getGlobalPlatformFilter();
                 
                 let params = [];
                 if (dateRange) {
@@ -5462,6 +5558,7 @@ Estou aqui para esclarecer tudo! 😊`
                 }
                 if (langFilter) params.push(`language=${langFilter}`);
                 if (sourceFilter) params.push(`source=${sourceFilter}`);
+                if (platformFilter) params.push(`platform=${platformFilter}`);
                 let url = `${API_URL}/api/admin/stats`;
                 if (params.length > 0) url += '?' + params.join('&');
                 
@@ -5498,12 +5595,14 @@ Estou aqui para esclarecer tudo! 😊`
             if (selectAllCheckbox) selectAllCheckbox.checked = false;
             
             const sourceFilter = getGlobalSourceFilter();
+            const platformFilter = getGlobalPlatformFilter();
             try {
                 let url = `${API_URL}/api/admin/leads?page=${page}&limit=${leadsPerPage || 10}`;
                 if (search) url += `&search=${encodeURIComponent(search)}`;
                 if (status) url += `&status=${status}`;
                 if (language) url += `&language=${language}`;
                 if (sourceFilter) url += `&source=${sourceFilter}`;
+                if (platformFilter) url += `&platform=${platformFilter}`;
                 if (whatsappFilter) url += `&whatsapp_verified=${whatsappFilter}`;
                 if (dateRange) {
                     url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
@@ -8355,12 +8454,14 @@ Estou aqui para esclarecer tudo! 😊`
             try {
                 const globalFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const sourceFilter = getGlobalSourceFilter();
+                const platformFilter = getGlobalPlatformFilter();
                 const dateRange = getGlobalDateRange();
                 
                 // Build query params
                 let params = [];
                 if (globalFilter) params.push(`language=${globalFilter}`);
                 if (sourceFilter) params.push(`source=${sourceFilter}`);
+                if (platformFilter) params.push(`platform=${platformFilter}`);
                 if (dateRange) {
                     params.push(`startDate=${dateRange.startDate}`);
                     params.push(`endDate=${dateRange.endDate}`);
@@ -15557,7 +15658,39 @@ Posso ajudar em algo mais? 😊`
                 const dateRange = getGlobalDateRange();
                 const langFilter = document.getElementById('globalFunnelFilter')?.value || '';
                 const sourceFilter = getGlobalSourceFilter();
+                const platformFilter = getGlobalPlatformFilter();
                 
+                const headers = { 'Authorization': `Bearer ${authToken}` };
+                
+                // If platform filter is active, use platform-comparison for isolated funnel
+                if (platformFilter) {
+                    let cmpParams = [];
+                    if (dateRange) cmpParams.push(`startDate=${dateRange.startDate}`, `endDate=${dateRange.endDate}`);
+                    if (langFilter) cmpParams.push(`language=${langFilter}`);
+                    const cmpUrl = `${API_URL}/api/admin/platform-comparison${cmpParams.length ? '?' + cmpParams.join('&') : ''}`;
+                    const cmpRes = await fetch(cmpUrl, { headers });
+                    if (!cmpRes.ok) {
+                        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Dados não disponíveis</div>';
+                        return;
+                    }
+                    const cmpData = await cmpRes.json();
+                    const platData = platformFilter === 'monetizze' ? cmpData.monetizze : cmpData.perfectpay;
+                    const platLabel = platformFilter === 'monetizze' ? 'Monetizze' : 'PerfectPay';
+                    
+                    // Build funnel data from platform-isolated metrics
+                    renderConversionFunnel({
+                        visitors: platData.leads,
+                        totalLeads: platData.leads,
+                        leads: platData.leads,
+                        checkouts: platData.checkouts,
+                        totalSales: platData.sales,
+                        sales: platData.sales,
+                        _platformLabel: platLabel
+                    });
+                    return;
+                }
+                
+                // Default: use funnel-stats endpoint
                 let params = [];
                 if (dateRange) {
                     params.push(`startDate=${dateRange.startDate}`);
@@ -15567,9 +15700,7 @@ Posso ajudar em algo mais? 😊`
                 if (sourceFilter) params.push(`source=${sourceFilter}`);
                 const queryString = params.length > 0 ? '?' + params.join('&') : '';
                 
-                const response = await fetch(`${API_URL}/api/admin/funnel-stats${queryString}`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
+                const response = await fetch(`${API_URL}/api/admin/funnel-stats${queryString}`, { headers });
                 
                 if (!response.ok) {
                     container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Dados não disponíveis</div>';
@@ -16200,41 +16331,54 @@ Posso ajudar em algo mais? 😊`
                 const fmt = (n) => (n || 0).toLocaleString('pt-BR');
                 const fmtR = (n) => 'R$ ' + (n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const fmtP = (n) => (n || 0).toFixed(1) + '%';
-                
-                // Update shared funnel data
-                const cmpTotalLeads = document.getElementById('cmpTotalLeads');
-                const cmpTotalCheckouts = document.getElementById('cmpTotalCheckouts');
-                if (cmpTotalLeads) cmpTotalLeads.textContent = fmt(f.totalLeads);
-                if (cmpTotalCheckouts) cmpTotalCheckouts.textContent = fmt(f.totalCheckouts);
-                
-                // Update Monetizze column
                 const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                
+                // Update total funnel reference
+                setEl('cmpTotalLeads', fmt(f.totalLeads));
+                setEl('cmpTotalCheckouts', fmt(f.totalCheckouts));
+                
+                // Update Monetizze column - isolated numbers
+                setEl('cmpMonetizzeLeads', fmt(m.leads));
+                setEl('cmpMonetizzeCheckouts', fmt(m.checkouts));
                 setEl('cmpMonetizzeTx', fmt(m.totalTx));
                 setEl('cmpMonetizzeSales', fmt(m.sales));
                 setEl('cmpMonetizzeRevenue', fmtR(m.revenue));
                 setEl('cmpMonetizzeRefunds', fmt(m.refunds));
-                setEl('cmpMonetizzeConvRate', fmtP(m.approvalRate));
+                setEl('cmpMonetizzeApprovalRate', fmtP(m.approvalRate));
                 setEl('cmpMonetizzeRefundRate', fmtP(m.refundRate));
+                setEl('cmpMonetizzeConvRate', fmtP(m.conversionRate));
                 setEl('cmpMonetizzeTicket', fmtR(m.ticket));
                 
-                // Update PerfectPay column
+                // Update PerfectPay column - isolated numbers
+                setEl('cmpPerfectPayLeads', fmt(pp.leads));
+                setEl('cmpPerfectPayCheckouts', fmt(pp.checkouts));
                 setEl('cmpPerfectPayTx', fmt(pp.totalTx));
                 setEl('cmpPerfectPaySales', fmt(pp.sales));
                 setEl('cmpPerfectPayRevenue', fmtR(pp.revenue));
                 setEl('cmpPerfectPayRefunds', fmt(pp.refunds));
-                setEl('cmpPerfectPayConvRate', fmtP(pp.approvalRate));
+                setEl('cmpPerfectPayApprovalRate', fmtP(pp.approvalRate));
                 setEl('cmpPerfectPayRefundRate', fmtP(pp.refundRate));
+                setEl('cmpPerfectPayConvRate', fmtP(pp.conversionRate));
                 setEl('cmpPerfectPayTicket', fmtR(pp.ticket));
                 
-                // Determine winner
+                // Determine winner with multiple criteria
                 const winnerEl = document.getElementById('cmpWinner');
                 if (winnerEl) {
-                    if (m.revenue > pp.revenue && m.revenue > 0) {
-                        winnerEl.innerHTML = '<div style="color: #3b82f6; font-weight: 700;">\ud83c\udfc6 Monetizze</div><div style="margin-top: 4px;">lidera em faturamento</div>';
-                    } else if (pp.revenue > m.revenue && pp.revenue > 0) {
-                        winnerEl.innerHTML = '<div style="color: #f59e0b; font-weight: 700;">\ud83c\udfc6 PerfectPay</div><div style="margin-top: 4px;">lidera em faturamento</div>';
+                    const mWins = (m.revenue > pp.revenue ? 1 : 0) + (m.conversionRate > pp.conversionRate ? 1 : 0) + (m.refundRate < pp.refundRate ? 1 : 0);
+                    const ppWins = (pp.revenue > m.revenue ? 1 : 0) + (pp.conversionRate > m.conversionRate ? 1 : 0) + (pp.refundRate < m.refundRate ? 1 : 0);
+                    if (mWins > ppWins) {
+                        winnerEl.innerHTML = '<div style="color: #3b82f6; font-weight: 700;">\ud83c\udfc6 Monetizze</div><div style="margin-top: 4px;">melhor performance</div>';
+                    } else if (ppWins > mWins) {
+                        winnerEl.innerHTML = '<div style="color: #f59e0b; font-weight: 700;">\ud83c\udfc6 PerfectPay</div><div style="margin-top: 4px;">melhor performance</div>';
                     } else {
-                        winnerEl.innerHTML = '<div style="color: var(--text-muted);">Empate</div>';
+                        // Tie-break by revenue
+                        if (pp.revenue > m.revenue) {
+                            winnerEl.innerHTML = '<div style="color: #f59e0b; font-weight: 700;">\ud83c\udfc6 PerfectPay</div><div style="margin-top: 4px;">lidera em faturamento</div>';
+                        } else if (m.revenue > pp.revenue) {
+                            winnerEl.innerHTML = '<div style="color: #3b82f6; font-weight: 700;">\ud83c\udfc6 Monetizze</div><div style="margin-top: 4px;">lidera em faturamento</div>';
+                        } else {
+                            winnerEl.innerHTML = '<div style="color: var(--text-muted);">Empate</div>';
+                        }
                     }
                 }
                 

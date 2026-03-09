@@ -683,7 +683,7 @@ router.get('/api/admin/refunds/:id/notes', authenticateToken, async (req, res) =
 // Get transactions with pagination
 router.get('/api/admin/transactions', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate, source, search, page = 1, limit = 10 } = req.query;
+        const { language, startDate, endDate, source, search, page = 1, limit = 10, platform } = req.query;
         
         const pageNum = parseInt(page) || 1;
         const limitNum = parseInt(limit) || 10;
@@ -718,6 +718,13 @@ router.get('/api/admin/transactions', authenticateToken, async (req, res) => {
             baseQuery += ` AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= $${paramIndex}::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date <= $${paramIndex + 1}::date`;
             params.push(startDate, endDate);
             paramIndex += 2;
+        }
+        
+        // Platform filter: monetizze = main+affiliate, perfectpay = perfectpay
+        if (platform === 'monetizze' && !source) {
+            baseQuery += ` AND (funnel_source IN ('main', 'affiliate') OR funnel_source IS NULL)`;
+        } else if (platform === 'perfectpay' && !source) {
+            baseQuery += ` AND funnel_source = 'perfectpay'`;
         }
         
         const countResult = await pool.query(`SELECT COUNT(*) ${baseQuery}`, params);
@@ -773,9 +780,9 @@ router.delete('/api/admin/transactions/:id', authenticateToken, async (req, res)
 // Get sales stats
 router.get('/api/admin/sales', authenticateToken, async (req, res) => {
     try {
-        const { language, startDate, endDate, source } = req.query;
+        const { language, startDate, endDate, source, platform } = req.query;
         
-        console.log('[Sales API] Params:', { language, startDate, endDate, source });
+        console.log('[Sales API] Params:', { language, startDate, endDate, source, platform });
         
         let langCondition = '';
         let langParams = [];
@@ -789,6 +796,14 @@ router.get('/api/admin/sales', authenticateToken, async (req, res) => {
             const sourceIdx = langParams.length + 1;
             sourceCondition = ` AND (funnel_source = $${sourceIdx} OR (funnel_source IS NULL AND $${sourceIdx} = 'main'))`;
             langParams.push(source);
+        }
+        
+        // Platform filter: monetizze = main+affiliate, perfectpay = perfectpay
+        if (platform === 'monetizze' && !source) {
+            const pIdx = langParams.length + 1;
+            sourceCondition = ` AND (funnel_source IN ('main', 'affiliate') OR (funnel_source IS NULL))`;
+        } else if (platform === 'perfectpay' && !source) {
+            sourceCondition = ` AND funnel_source = 'perfectpay'`;
         }
         
         let dateCondition = '';
