@@ -866,6 +866,11 @@ router.get('/api/admin/stats', authenticateToken, async (req, res) => {
     try {
         const { startDate, endDate, language, source } = req.query;
         
+        // Smart cache (2 min TTL)
+        const cacheKey = `stats-${startDate||''}-${endDate||''}-${language||''}-${source||''}`;
+        const cached = getCached(cacheKey, 2 * 60 * 1000);
+        if (cached) return res.json(cached);
+        
         // Build date filter (using Brazil timezone)
         let dateFilter = '';
         const params = [];
@@ -907,14 +912,16 @@ router.get('/api/admin/stats', authenticateToken, async (req, res) => {
             SELECT target_gender, COUNT(*) FROM leads WHERE 1=1${dateFilter} GROUP BY target_gender
         `, params);
         
-        res.json({
+        const response = {
             total: parseInt(totalResult.rows[0].count),
             today: parseInt(todayResult.rows[0].count),
             thisWeek: parseInt(weekResult.rows[0].count),
             byStatus: statusResult.rows,
             byDay: dailyResult.rows,
             byGender: genderResult.rows
-        });
+        };
+        setCache(cacheKey, response);
+        res.json(response);
         
     } catch (error) {
         console.error('Error fetching stats:', error);
@@ -1090,6 +1097,11 @@ router.get('/api/admin/stats/heatmap', authenticateToken, async (req, res) => {
     try {
         const { type = 'leads' } = req.query;
         
+        // Smart cache (5 min TTL - heatmap data changes slowly)
+        const cacheKey = `heatmap-${type}`;
+        const cached = getCached(cacheKey, 5 * 60 * 1000);
+        if (cached) return res.json(cached);
+        
         let query;
         if (type === 'leads') {
             query = `
@@ -1132,7 +1144,9 @@ router.get('/api/admin/stats/heatmap', authenticateToken, async (req, res) => {
         }
         
         const result = await pool.query(query);
-        res.json({ type, hourlyHeatmap: result.rows });
+        const response = { type, hourlyHeatmap: result.rows };
+        setCache(cacheKey, response);
+        res.json(response);
         
     } catch (error) {
         console.error('Error fetching heatmap data:', error);
@@ -1261,6 +1275,11 @@ router.get('/api/admin/stats/weekly-performance', authenticateToken, async (req,
 router.get('/api/admin/funnel-stats', authenticateToken, async (req, res) => {
     try {
         const { startDate, endDate, language, source } = req.query;
+        
+        // Smart cache (2 min TTL)
+        const cacheKey = `funnel-stats-${startDate||''}-${endDate||''}-${language||''}-${source||''}`;
+        const cached = getCached(cacheKey, 2 * 60 * 1000);
+        if (cached) return res.json(cached);
         let dateFilter = '';
         let dateFilterTx = '';
         let langFilter = '';
@@ -1362,14 +1381,16 @@ router.get('/api/admin/funnel-stats', authenticateToken, async (req, res) => {
         `, evtParams);
         const visitors = parseInt(visitorsRes.rows[0]?.count || 0);
         
-        res.json({
+        const response = {
             visitors: Math.max(visitors, totalLeads),
             leads: totalLeads,
             checkouts,
             sales: totalSales,
             totalLeads,
             totalSales
-        });
+        };
+        setCache(cacheKey, response);
+        res.json(response);
     } catch (error) {
         console.error('Error fetching funnel stats:', error);
         res.status(500).json({ error: 'Failed to fetch funnel stats' });
@@ -2041,6 +2062,11 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
     try {
         const { language, startDate, endDate } = req.query;
         
+        // Smart cache (2 min TTL)
+        const cacheKey = `platform-cmp-${startDate||''}-${endDate||''}-${language||''}`;
+        const cached = getCached(cacheKey, 2 * 60 * 1000);
+        if (cached) return res.json(cached);
+        
         // Build date condition
         let dateCondition = '';
         let feDateCondition = '';
@@ -2120,7 +2146,7 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const ppRefunds = parseInt(ppTxResult.rows[0].refunded) || 0;
         const ppRevenue = parseFloat(ppTxResult.rows[0].revenue) || 0;
         
-        res.json({
+        const response = {
             funnel: {
                 totalLeads,
                 totalCheckouts
@@ -2143,7 +2169,9 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 refundRate: ppSales > 0 ? ((ppRefunds / ppSales) * 100) : 0,
                 ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0
             }
-        });
+        };
+        setCache(cacheKey, response);
+        res.json(response);
         
     } catch (error) {
         console.error('Error fetching platform comparison:', error);
@@ -2155,6 +2183,11 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
 router.get('/api/admin/revenue-by-day', authenticateToken, async (req, res) => {
     try {
         const { language, source, startDate, endDate } = req.query;
+        
+        // Smart cache (2 min TTL)
+        const cacheKey = `rev-day-${startDate||''}-${endDate||''}-${language||''}-${source||''}`;
+        const cached = getCached(cacheKey, 2 * 60 * 1000);
+        if (cached) return res.json(cached);
         
         // Build date condition - default to last 30 days
         let dateCondition = '';
@@ -2203,17 +2236,291 @@ router.get('/api/admin/revenue-by-day', authenticateToken, async (req, res) => {
             allParams
         );
         
-        res.json({
+        const response = {
             days: result.rows.map(r => ({
                 day: r.day,
                 count: parseInt(r.sales_count),
                 revenue: parseFloat(r.revenue)
             }))
-        });
+        };
+        setCache(cacheKey, response);
+        res.json(response);
         
     } catch (error) {
         console.error('Error fetching revenue by day:', error);
         res.status(500).json({ error: 'Failed to fetch revenue by day' });
+    }
+});
+
+// ==================== SMART ALERTS ENDPOINT ====================
+// Compares current period metrics with previous period to detect anomalies
+router.get('/api/admin/alerts', authenticateToken, async (req, res) => {
+    try {
+        // Cache for 10 minutes (alerts don't need to be real-time)
+        const cacheKey = 'smart-alerts';
+        const cached = getCached(cacheKey, 10 * 60 * 1000);
+        if (cached) return res.json(cached);
+        
+        const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+        const valueBRL = `CASE WHEN funnel_source = 'perfectpay' THEN CAST(value AS DECIMAL) * ${usdToBrl.toFixed(2)} ELSE CAST(value AS DECIMAL) END`;
+        
+        // Compare last 7 days vs previous 7 days
+        const [currentLeads, prevLeads, currentSales, prevSales, currentRefunds, prevRefunds, currentRevenue, prevRevenue, todayLeads, yesterdayLeads, todaySales, yesterdaySales] = await Promise.all([
+            // Leads: current 7 days
+            pool.query(`SELECT COUNT(*) as count FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Leads: previous 7 days
+            pool.query(`SELECT COUNT(*) as count FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '14 days')::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Sales: current 7 days
+            pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Sales: previous 7 days
+            pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '14 days')::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Refunds: current 7 days
+            pool.query(`SELECT COUNT(*) as count FROM transactions WHERE status = 'refunded' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Refunds: previous 7 days
+            pool.query(`SELECT COUNT(*) as count FROM transactions WHERE status = 'refunded' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '14 days')::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Revenue: current 7 days
+            pool.query(`SELECT COALESCE(SUM(${valueBRL}), 0) as revenue FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Revenue: previous 7 days
+            pool.query(`SELECT COALESCE(SUM(${valueBRL}), 0) as revenue FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date >= (CURRENT_DATE - INTERVAL '14 days')::date AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date < (CURRENT_DATE - INTERVAL '7 days')::date`),
+            // Today leads
+            pool.query(`SELECT COUNT(*) as count FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date = CURRENT_DATE`),
+            // Yesterday leads
+            pool.query(`SELECT COUNT(*) as count FROM leads WHERE (created_at AT TIME ZONE 'America/Sao_Paulo')::date = CURRENT_DATE - 1`),
+            // Today sales
+            pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = CURRENT_DATE`),
+            // Yesterday sales
+            pool.query(`SELECT COUNT(DISTINCT email) as count FROM transactions WHERE status = 'approved' AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = CURRENT_DATE - 1`)
+        ]);
+        
+        // Calculate conversion rates
+        const curLeads = parseInt(currentLeads.rows[0].count);
+        const prvLeads = parseInt(prevLeads.rows[0].count);
+        const curSales = parseInt(currentSales.rows[0].count);
+        const prvSales = parseInt(prevSales.rows[0].count);
+        const curRefunds = parseInt(currentRefunds.rows[0].count);
+        const prvRefunds = parseInt(prevRefunds.rows[0].count);
+        const curRevenue = parseFloat(currentRevenue.rows[0].revenue);
+        const prvRevenue = parseFloat(prevRevenue.rows[0].revenue);
+        const todayL = parseInt(todayLeads.rows[0].count);
+        const yesterdayL = parseInt(yesterdayLeads.rows[0].count);
+        const todayS = parseInt(todaySales.rows[0].count);
+        const yesterdayS = parseInt(yesterdaySales.rows[0].count);
+        
+        const curConvRate = curLeads > 0 ? (curSales / curLeads * 100) : 0;
+        const prvConvRate = prvLeads > 0 ? (prvSales / prvLeads * 100) : 0;
+        const curRefundRate = curSales > 0 ? (curRefunds / curSales * 100) : 0;
+        const prvRefundRate = prvSales > 0 ? (prvRefunds / prvSales * 100) : 0;
+        
+        const alerts = [];
+        
+        // Alert: Conversion rate dropped significantly (>20%)
+        if (prvConvRate > 0 && curConvRate < prvConvRate * 0.8) {
+            const drop = ((prvConvRate - curConvRate) / prvConvRate * 100).toFixed(1);
+            alerts.push({
+                type: 'warning',
+                icon: '📉',
+                title: 'Queda na Taxa de Conversão',
+                message: `A taxa de conversão caiu ${drop}% nos últimos 7 dias (${curConvRate.toFixed(1)}%) comparado com a semana anterior (${prvConvRate.toFixed(1)}%).`,
+                metric: 'conversion_rate',
+                severity: drop > 40 ? 'critical' : 'warning'
+            });
+        }
+        
+        // Alert: Refund rate increased significantly (>30%)
+        if (prvRefundRate > 0 && curRefundRate > prvRefundRate * 1.3) {
+            const increase = ((curRefundRate - prvRefundRate) / prvRefundRate * 100).toFixed(1);
+            alerts.push({
+                type: 'danger',
+                icon: '🔴',
+                title: 'Aumento nos Reembolsos',
+                message: `A taxa de reembolso subiu ${increase}% nos últimos 7 dias (${curRefundRate.toFixed(1)}%) comparado com a semana anterior (${prvRefundRate.toFixed(1)}%).`,
+                metric: 'refund_rate',
+                severity: increase > 50 ? 'critical' : 'warning'
+            });
+        }
+        
+        // Alert: Revenue dropped significantly (>25%)
+        if (prvRevenue > 0 && curRevenue < prvRevenue * 0.75) {
+            const drop = ((prvRevenue - curRevenue) / prvRevenue * 100).toFixed(1);
+            alerts.push({
+                type: 'warning',
+                icon: '💰',
+                title: 'Queda no Faturamento',
+                message: `O faturamento caiu ${drop}% nos últimos 7 dias (R$ ${curRevenue.toFixed(2)}) comparado com a semana anterior (R$ ${prvRevenue.toFixed(2)}).`,
+                metric: 'revenue',
+                severity: drop > 50 ? 'critical' : 'warning'
+            });
+        }
+        
+        // Alert: Leads dropped significantly (>30%)
+        if (prvLeads > 0 && curLeads < prvLeads * 0.7) {
+            const drop = ((prvLeads - curLeads) / prvLeads * 100).toFixed(1);
+            alerts.push({
+                type: 'warning',
+                icon: '👥',
+                title: 'Queda na Captação de Leads',
+                message: `A captação de leads caiu ${drop}% nos últimos 7 dias (${curLeads}) comparado com a semana anterior (${prvLeads}).`,
+                metric: 'leads',
+                severity: drop > 50 ? 'critical' : 'warning'
+            });
+        }
+        
+        // Alert: Today is significantly below yesterday
+        if (yesterdayL > 10 && todayL < yesterdayL * 0.3) {
+            alerts.push({
+                type: 'info',
+                icon: '📊',
+                title: 'Leads Hoje Abaixo do Normal',
+                message: `Hoje temos apenas ${todayL} leads vs ${yesterdayL} ontem. Verifique se os anúncios estão rodando.`,
+                metric: 'today_leads',
+                severity: 'info'
+            });
+        }
+        
+        // Positive alert: Revenue growing
+        if (prvRevenue > 0 && curRevenue > prvRevenue * 1.2) {
+            const growth = ((curRevenue - prvRevenue) / prvRevenue * 100).toFixed(1);
+            alerts.push({
+                type: 'success',
+                icon: '🚀',
+                title: 'Faturamento em Alta',
+                message: `O faturamento cresceu ${growth}% nos últimos 7 dias (R$ ${curRevenue.toFixed(2)}) comparado com a semana anterior (R$ ${prvRevenue.toFixed(2)}).`,
+                metric: 'revenue_growth',
+                severity: 'positive'
+            });
+        }
+        
+        // Positive alert: Conversion rate improving
+        if (prvConvRate > 0 && curConvRate > prvConvRate * 1.15) {
+            const growth = ((curConvRate - prvConvRate) / prvConvRate * 100).toFixed(1);
+            alerts.push({
+                type: 'success',
+                icon: '📈',
+                title: 'Taxa de Conversão Melhorando',
+                message: `A taxa de conversão subiu ${growth}% nos últimos 7 dias (${curConvRate.toFixed(1)}%) comparado com a semana anterior (${prvConvRate.toFixed(1)}%).`,
+                metric: 'conversion_growth',
+                severity: 'positive'
+            });
+        }
+        
+        const response = {
+            alerts,
+            metrics: {
+                current: { leads: curLeads, sales: curSales, refunds: curRefunds, revenue: curRevenue, convRate: curConvRate, refundRate: curRefundRate },
+                previous: { leads: prvLeads, sales: prvSales, refunds: prvRefunds, revenue: prvRevenue, convRate: prvConvRate, refundRate: prvRefundRate },
+                today: { leads: todayL, sales: todayS },
+                yesterday: { leads: yesterdayL, sales: yesterdayS }
+            }
+        };
+        setCache(cacheKey, response);
+        res.json(response);
+        
+    } catch (error) {
+        console.error('Error fetching alerts:', error);
+        res.status(500).json({ error: 'Failed to fetch alerts' });
+    }
+});
+
+// ==================== LEAD JOURNEY TRACKING ====================
+// Shows how leads flow through the funnel and which payment platform they end up on
+router.get('/api/admin/lead-journey', authenticateToken, async (req, res) => {
+    try {
+        const cacheKey = 'lead-journey';
+        const cached = getCached(cacheKey, 5 * 60 * 1000);
+        if (cached) return res.json(cached);
+        
+        const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+        
+        // Get lead-to-transaction matching stats
+        const [journeyStats, conversionBySource, recentJourneys] = await Promise.all([
+            // How many leads have matching transactions (by email)
+            pool.query(`
+                SELECT 
+                    COUNT(DISTINCT l.id) as total_leads,
+                    COUNT(DISTINCT CASE WHEN t.id IS NOT NULL THEN l.id END) as leads_with_purchase,
+                    COUNT(DISTINCT CASE WHEN t.status = 'approved' THEN l.id END) as leads_with_approved,
+                    COUNT(DISTINCT CASE WHEN t.funnel_source = 'perfectpay' AND t.status = 'approved' THEN l.id END) as leads_bought_perfectpay,
+                    COUNT(DISTINCT CASE WHEN t.funnel_source IN ('main','affiliate') AND t.status = 'approved' THEN l.id END) as leads_bought_monetizze
+                FROM leads l
+                LEFT JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+                WHERE l.created_at >= NOW() - INTERVAL '30 days'
+            `),
+            // Conversion rate by funnel_source of the lead
+            pool.query(`
+                SELECT 
+                    l.funnel_source as lead_source,
+                    COUNT(DISTINCT l.id) as total_leads,
+                    COUNT(DISTINCT CASE WHEN t.status = 'approved' THEN l.id END) as converted,
+                    COALESCE(SUM(CASE WHEN t.status = 'approved' THEN 
+                        CASE WHEN t.funnel_source = 'perfectpay' THEN CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}
+                        ELSE CAST(t.value AS DECIMAL) END
+                    ELSE 0 END), 0) as revenue
+                FROM leads l
+                LEFT JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+                WHERE l.created_at >= NOW() - INTERVAL '30 days'
+                GROUP BY l.funnel_source
+                ORDER BY total_leads DESC
+            `),
+            // Recent lead journeys (last 20 conversions)
+            pool.query(`
+                SELECT 
+                    l.email,
+                    l.name,
+                    l.funnel_source as lead_source,
+                    l.funnel_language,
+                    l.created_at as lead_date,
+                    t.funnel_source as payment_platform,
+                    t.status as tx_status,
+                    t.value,
+                    t.created_at as tx_date,
+                    EXTRACT(EPOCH FROM (t.created_at - l.created_at)) / 3600 as hours_to_convert
+                FROM leads l
+                INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+                WHERE t.status = 'approved'
+                    AND l.created_at >= NOW() - INTERVAL '30 days'
+                ORDER BY t.created_at DESC
+                LIMIT 20
+            `)
+        ]);
+        
+        const stats = journeyStats.rows[0];
+        const response = {
+            summary: {
+                totalLeads30d: parseInt(stats.total_leads),
+                leadsWithPurchase: parseInt(stats.leads_with_purchase),
+                leadsWithApproved: parseInt(stats.leads_with_approved),
+                boughtPerfectPay: parseInt(stats.leads_bought_perfectpay),
+                boughtMonetizze: parseInt(stats.leads_bought_monetizze),
+                overallConvRate: stats.total_leads > 0 ? (parseInt(stats.leads_with_approved) / parseInt(stats.total_leads) * 100).toFixed(1) : 0
+            },
+            bySource: conversionBySource.rows.map(r => ({
+                source: r.lead_source,
+                totalLeads: parseInt(r.total_leads),
+                converted: parseInt(r.converted),
+                convRate: r.total_leads > 0 ? (parseInt(r.converted) / parseInt(r.total_leads) * 100).toFixed(1) : 0,
+                revenue: parseFloat(r.revenue).toFixed(2)
+            })),
+            recentConversions: recentJourneys.rows.map(r => ({
+                email: r.email,
+                name: r.name,
+                leadSource: r.lead_source,
+                language: r.funnel_language,
+                leadDate: r.lead_date,
+                paymentPlatform: r.payment_platform === 'perfectpay' ? 'PerfectPay' : 'Monetizze',
+                status: r.tx_status,
+                value: r.payment_platform === 'perfectpay' ? 
+                    'R$ ' + (parseFloat(r.value) * usdToBrl).toFixed(2) : 
+                    'R$ ' + parseFloat(r.value).toFixed(2),
+                txDate: r.tx_date,
+                hoursToConvert: parseFloat(r.hours_to_convert).toFixed(1)
+            }))
+        };
+        
+        setCache(cacheKey, response);
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching lead journey:', error);
+        res.status(500).json({ error: 'Failed to fetch lead journey data' });
     }
 });
 

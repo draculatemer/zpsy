@@ -1946,6 +1946,17 @@
                         <!-- Pagination container for Journeys -->
                         <div id="journeysPaginationContainer"></div>
                     </div>
+                    
+                    <!-- Lead Journey Tracking Section -->
+                    <div class="chart-card" style="margin-top: 24px;">
+                        <div class="chart-header">
+                            <span class="chart-title">📍 Rastreamento de Jornada do Lead</span>
+                            <button class="btn-secondary" onclick="loadLeadJourney()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
+                        </div>
+                        <div id="leadJourneyContent" style="padding: 16px;">
+                            <div class="loading"><div class="spinner"></div>Carregando...</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Tab: Sales -->
@@ -2835,6 +2846,7 @@
                                             <option value="sales">💰 Vendas</option>
                                             <option value="refunds">💸 Reembolsos</option>
                                             <option value="funnel">📈 Métricas do Funil</option>
+                                            <option value="platform">⚔️ Comparação Monetizze vs PerfectPay</option>
                                         </select>
                                     </div>
                                     <div class="export-form-group">
@@ -4470,6 +4482,7 @@ Estou aqui para esclarecer tudo! 😊`
             loadWeeklyPerformanceChart();
             loadConversionFunnel();
             loadPlatformComparison();
+            loadSmartAlerts();
             loadClients(1);
         }
         
@@ -7303,6 +7316,9 @@ Estou aqui para esclarecer tudo! 😊`
                 // Add language to journeys for display
                 const journeysWithLang = (data.journeys || []).map(j => ({ ...j, language: langFilter || 'all' }));
                 renderJourneys(journeysWithLang, true);
+                
+                // Load lead journey tracking
+                loadLeadJourney();
                 
             } catch (error) {
                 console.error('Error loading funnel:', error);
@@ -12173,6 +12189,10 @@ Posso ajudar em algo mais? 😊`
                     const res = await fetch(`${API_URL}/api/admin/stats`, { headers });
                     data.funnel = await res.json();
                 }
+                if (type === 'platform' || type === 'all') {
+                    const res = await fetch(`${API_URL}/api/admin/platform-comparison`, { headers });
+                    data.platform = await res.json();
+                }
                 return data;
             } catch (error) {
                 console.error('Error fetching export data:', error);
@@ -12250,6 +12270,39 @@ Posso ajudar em algo mais? 😊`
                     const ws = XLSX.utils.json_to_sheet(funnelData);
                     ws['!cols'] = [{wch:25},{wch:20}];
                     XLSX.utils.book_append_sheet(wb, ws, 'Métricas');
+                }
+                
+                if (data.platform) {
+                    const p = data.platform;
+                    const f = p.funnel || {};
+                    const m = p.monetizze || {};
+                    const pp = p.perfectpay || {};
+                    const usdToBrl = 1 / 0.18;
+                    
+                    // Funnel overview sheet
+                    const funnelOverview = [
+                        { 'Métrica': 'Total de Leads', 'Valor': f.totalLeads || 0 },
+                        { 'Métrica': 'Checkouts Iniciados', 'Valor': f.totalCheckouts || 0 },
+                        { 'Métrica': 'Taxa Lead → Checkout', 'Valor': f.totalLeads > 0 ? ((f.totalCheckouts / f.totalLeads) * 100).toFixed(1) + '%' : '0%' }
+                    ];
+                    const wsFunnel = XLSX.utils.json_to_sheet(funnelOverview);
+                    wsFunnel['!cols'] = [{wch:25},{wch:20}];
+                    XLSX.utils.book_append_sheet(wb, wsFunnel, 'Funil Compartilhado');
+                    
+                    // Platform comparison sheet
+                    const platformData = [
+                        { 'Métrica': 'Total Transações', 'Monetizze': m.totalTx || 0, 'PerfectPay': pp.totalTx || 0 },
+                        { 'Métrica': 'Vendas Aprovadas', 'Monetizze': m.sales || 0, 'PerfectPay': pp.sales || 0 },
+                        { 'Métrica': 'Faturamento (BRL)', 'Monetizze': `R$ ${parseFloat(m.revenue || 0).toFixed(2)}`, 'PerfectPay': `R$ ${parseFloat(pp.revenue || 0).toFixed(2)}` },
+                        { 'Métrica': 'Reembolsos', 'Monetizze': m.refunds || 0, 'PerfectPay': pp.refunds || 0 },
+                        { 'Métrica': 'Taxa de Conversão', 'Monetizze': m.totalTx > 0 ? ((m.sales / m.totalTx) * 100).toFixed(1) + '%' : '0%', 'PerfectPay': pp.totalTx > 0 ? ((pp.sales / pp.totalTx) * 100).toFixed(1) + '%' : '0%' },
+                        { 'Métrica': 'Taxa de Reembolso', 'Monetizze': m.sales > 0 ? ((m.refunds / m.sales) * 100).toFixed(1) + '%' : '0%', 'PerfectPay': pp.sales > 0 ? ((pp.refunds / pp.sales) * 100).toFixed(1) + '%' : '0%' },
+                        { 'Métrica': 'Ticket Médio', 'Monetizze': m.sales > 0 ? `R$ ${(parseFloat(m.revenue || 0) / m.sales).toFixed(2)}` : 'R$ 0', 'PerfectPay': pp.sales > 0 ? `R$ ${(parseFloat(pp.revenue || 0) / pp.sales).toFixed(2)}` : 'R$ 0' },
+                        { 'Métrica': 'Clientes Únicos', 'Monetizze': m.uniqueCustomers || 0, 'PerfectPay': pp.uniqueCustomers || 0 }
+                    ];
+                    const wsPlatform = XLSX.utils.json_to_sheet(platformData);
+                    wsPlatform['!cols'] = [{wch:25},{wch:20},{wch:20}];
+                    XLSX.utils.book_append_sheet(wb, wsPlatform, 'Comparação Plataformas');
                 }
                 
                 const fileName = type === 'all' ? `relatorio-completo-${today}.xlsx` : `${type}-${today}.xlsx`;
@@ -12401,6 +12454,53 @@ Posso ajudar em algo mais? 😊`
                     ];
                     drawTable(['Métrica', 'Valor'], metricsTable, 35);
                     hasContent = true;
+                    if (type === 'all' && data.platform) { doc.addPage(); currentPage++; }
+                }
+                
+                // Platform comparison
+                if (data.platform) {
+                    const p = data.platform;
+                    const f = p.funnel || {};
+                    const m = p.monetizze || {};
+                    const pp = p.perfectpay || {};
+                    
+                    addHeader('Compara\u00e7\u00e3o: Monetizze vs PerfectPay');
+                    
+                    // Funnel shared data
+                    doc.setFontSize(13);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(59, 130, 246);
+                    doc.text('Funil Compartilhado', 14, 35);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    const funnelTable = [
+                        ['Total de Leads', String(f.totalLeads || 0)],
+                        ['Checkouts Iniciados', String(f.totalCheckouts || 0)],
+                        ['Taxa Lead \u2192 Checkout', f.totalLeads > 0 ? ((f.totalCheckouts / f.totalLeads) * 100).toFixed(1) + '%' : '0%']
+                    ];
+                    let y = drawTable(['M\u00e9trica', 'Valor'], funnelTable, 40);
+                    
+                    // Platform comparison table
+                    y += 10;
+                    doc.setFontSize(13);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(245, 158, 11);
+                    doc.text('Compara\u00e7\u00e3o por Plataforma', 14, y);
+                    doc.setTextColor(0, 0, 0);
+                    y += 5;
+                    
+                    const compTable = [
+                        ['Total Transa\u00e7\u00f5es', String(m.totalTx || 0), String(pp.totalTx || 0)],
+                        ['Vendas Aprovadas', String(m.sales || 0), String(pp.sales || 0)],
+                        ['Faturamento', 'R$ ' + parseFloat(m.revenue || 0).toFixed(2), 'R$ ' + parseFloat(pp.revenue || 0).toFixed(2)],
+                        ['Reembolsos', String(m.refunds || 0), String(pp.refunds || 0)],
+                        ['Taxa Convers\u00e3o', m.totalTx > 0 ? ((m.sales/m.totalTx)*100).toFixed(1)+'%' : '0%', pp.totalTx > 0 ? ((pp.sales/pp.totalTx)*100).toFixed(1)+'%' : '0%'],
+                        ['Taxa Reembolso', m.sales > 0 ? ((m.refunds/m.sales)*100).toFixed(1)+'%' : '0%', pp.sales > 0 ? ((pp.refunds/pp.sales)*100).toFixed(1)+'%' : '0%'],
+                        ['Ticket M\u00e9dio', m.sales > 0 ? 'R$ '+(parseFloat(m.revenue||0)/m.sales).toFixed(2) : 'R$ 0', pp.sales > 0 ? 'R$ '+(parseFloat(pp.revenue||0)/pp.sales).toFixed(2) : 'R$ 0'],
+                        ['Clientes \u00danicos', String(m.uniqueCustomers || 0), String(pp.uniqueCustomers || 0)]
+                    ];
+                    drawTable(['M\u00e9trica', 'Monetizze', 'PerfectPay'], compTable, y);
+                    hasContent = true;
                 }
                 
                 // Check if we have any content
@@ -12451,6 +12551,26 @@ Posso ajudar em algo mais? 😊`
                         csvContent += `"${r.protocol}","${r.full_name}","${r.email}","${r.phone || ''}","${r.reason}","${r.status}","${r.purchase_date}","${formatDateTime(r.created_at)}","${(r.details || '').replace(/"/g, '""')}"\n`;
                     });
                     fileName = `reembolsos-${new Date().toISOString().split('T')[0]}.csv`;
+                }
+                
+                if (type === 'platform' && data.platform) {
+                    const p = data.platform;
+                    const f = p.funnel || {};
+                    const m = p.monetizze || {};
+                    const pp = p.perfectpay || {};
+                    csvContent = 'Métrica,Monetizze,PerfectPay\n';
+                    csvContent += `"Total Transações","${m.totalTx || 0}","${pp.totalTx || 0}"\n`;
+                    csvContent += `"Vendas Aprovadas","${m.sales || 0}","${pp.sales || 0}"\n`;
+                    csvContent += `"Faturamento (BRL)","R$ ${parseFloat(m.revenue || 0).toFixed(2)}","R$ ${parseFloat(pp.revenue || 0).toFixed(2)}"\n`;
+                    csvContent += `"Reembolsos","${m.refunds || 0}","${pp.refunds || 0}"\n`;
+                    csvContent += `"Taxa Conversão","${m.totalTx > 0 ? ((m.sales/m.totalTx)*100).toFixed(1)+'%' : '0%'}","${pp.totalTx > 0 ? ((pp.sales/pp.totalTx)*100).toFixed(1)+'%' : '0%'}"\n`;
+                    csvContent += `"Taxa Reembolso","${m.sales > 0 ? ((m.refunds/m.sales)*100).toFixed(1)+'%' : '0%'}","${pp.sales > 0 ? ((pp.refunds/pp.sales)*100).toFixed(1)+'%' : '0%'}"\n`;
+                    csvContent += `"Ticket Médio","${m.sales > 0 ? 'R$ '+(parseFloat(m.revenue||0)/m.sales).toFixed(2) : 'R$ 0'}","${pp.sales > 0 ? 'R$ '+(parseFloat(pp.revenue||0)/pp.sales).toFixed(2) : 'R$ 0'}"\n`;
+                    csvContent += `"Clientes Únicos","${m.uniqueCustomers || 0}","${pp.uniqueCustomers || 0}"\n`;
+                    csvContent += `\n"Funil Compartilhado"\n`;
+                    csvContent += `"Total Leads","${f.totalLeads || 0}"\n`;
+                    csvContent += `"Checkouts Iniciados","${f.totalCheckouts || 0}"\n`;
+                    fileName = `comparacao-plataformas-${new Date().toISOString().split('T')[0]}.csv`;
                 }
                 
                 // Create download
@@ -16120,6 +16240,212 @@ Posso ajudar em algo mais? 😊`
                 
             } catch (error) {
                 console.error('Error loading platform comparison:', error);
+            }
+        }
+        
+        // ==================== SMART ALERTS ====================
+        async function loadSmartAlerts() {
+            try {
+                const headers = { 'Authorization': `Bearer ${authToken}` };
+                const res = await fetch(`${API_URL}/api/admin/alerts`, { headers });
+                const data = await res.json();
+                
+                const panel = document.getElementById('alertsPanel');
+                const content = document.getElementById('alertsContent');
+                
+                if (!panel || !content) return;
+                
+                if (data.alerts && data.alerts.length > 0) {
+                    panel.style.display = 'block';
+                    
+                    const colorMap = {
+                        'warning': { bg: 'rgba(245, 158, 11, 0.12)', border: '#f59e0b', text: '#f59e0b' },
+                        'danger': { bg: 'rgba(239, 68, 68, 0.12)', border: '#ef4444', text: '#ef4444' },
+                        'success': { bg: 'rgba(16, 185, 129, 0.12)', border: '#10b981', text: '#10b981' },
+                        'info': { bg: 'rgba(59, 130, 246, 0.12)', border: '#3b82f6', text: '#3b82f6' }
+                    };
+                    
+                    content.innerHTML = data.alerts.map(a => {
+                        const colors = colorMap[a.type] || colorMap['info'];
+                        return `
+                            <div style="padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; background: ${colors.bg}; border-left: 3px solid ${colors.border}; display: flex; align-items: flex-start; gap: 12px;">
+                                <span style="font-size: 20px; line-height: 1;">${a.icon}</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: ${colors.text}; margin-bottom: 4px; font-size: 13px;">${a.title}</div>
+                                    <div style="color: var(--text-secondary); font-size: 12px; line-height: 1.5;">${a.message}</div>
+                                </div>
+                                ${a.severity === 'critical' ? '<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">CR\u00cdTICO</span>' : ''}
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Add metrics summary
+                    const m = data.metrics;
+                    content.innerHTML += `
+                        <div style="margin-top: 12px; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 11px;">
+                            <div style="text-align: center;">
+                                <div style="color: var(--text-muted);">Leads (7d)</div>
+                                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${m.current.leads.toLocaleString()}</div>
+                                <div style="color: ${m.current.leads >= m.previous.leads ? '#10b981' : '#ef4444'}; font-size: 10px;">
+                                    ${m.previous.leads > 0 ? ((m.current.leads - m.previous.leads) / m.previous.leads * 100).toFixed(1) : '0'}% vs anterior
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: var(--text-muted);">Vendas (7d)</div>
+                                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">${m.current.sales.toLocaleString()}</div>
+                                <div style="color: ${m.current.sales >= m.previous.sales ? '#10b981' : '#ef4444'}; font-size: 10px;">
+                                    ${m.previous.sales > 0 ? ((m.current.sales - m.previous.sales) / m.previous.sales * 100).toFixed(1) : '0'}% vs anterior
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: var(--text-muted);">Faturamento (7d)</div>
+                                <div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">R$ ${m.current.revenue.toLocaleString('pt-BR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                                <div style="color: ${m.current.revenue >= m.previous.revenue ? '#10b981' : '#ef4444'}; font-size: 10px;">
+                                    ${m.previous.revenue > 0 ? ((m.current.revenue - m.previous.revenue) / m.previous.revenue * 100).toFixed(1) : '0'}% vs anterior
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: var(--text-muted);">Reembolsos (7d)</div>
+                                <div style="font-weight: 700; color: ${m.current.refunds > m.previous.refunds ? '#ef4444' : 'var(--text-primary)'}; font-size: 14px;">${m.current.refunds}</div>
+                                <div style="color: ${m.current.refunds <= m.previous.refunds ? '#10b981' : '#ef4444'}; font-size: 10px;">
+                                    ${m.previous.refunds > 0 ? ((m.current.refunds - m.previous.refunds) / m.previous.refunds * 100).toFixed(1) : '0'}% vs anterior
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // No alerts - show a positive message
+                    panel.style.display = 'block';
+                    panel.querySelector('.chart-card').style.borderLeftColor = '#10b981';
+                    panel.querySelector('.chart-title').textContent = '\u2705 Tudo Normal';
+                    content.innerHTML = `
+                        <div style="padding: 8px 0; color: var(--text-secondary); font-size: 13px;">
+                            Nenhuma anomalia detectada. Todas as m\u00e9tricas est\u00e3o dentro do esperado comparado com a semana anterior.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading smart alerts:', error);
+            }
+        }
+        
+        function dismissAlerts() {
+            const panel = document.getElementById('alertsPanel');
+            if (panel) panel.style.display = 'none';
+        }
+        
+        // ==================== LEAD JOURNEY TRACKING ====================
+        async function loadLeadJourney() {
+            try {
+                const container = document.getElementById('leadJourneyContent');
+                if (!container) return;
+                container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+                
+                const headers = { 'Authorization': `Bearer ${authToken}` };
+                const res = await fetch(`${API_URL}/api/admin/lead-journey`, { headers });
+                const data = await res.json();
+                
+                const s = data.summary;
+                const bySource = data.bySource || [];
+                const recent = data.recentConversions || [];
+                
+                let html = '';
+                
+                // Summary cards
+                html += `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <div style="background: rgba(59,130,246,0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 4px;">Leads (30d)</div>
+                            <div style="font-size: 22px; font-weight: 700; color: #3b82f6;">${(s.totalLeads30d || 0).toLocaleString()}</div>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 4px;">Compraram</div>
+                            <div style="font-size: 22px; font-weight: 700; color: #10b981;">${(s.leadsWithApproved || 0).toLocaleString()}</div>
+                            <div style="color: var(--text-muted); font-size: 10px;">${s.overallConvRate}% convers\u00e3o</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 4px;">Via PerfectPay</div>
+                            <div style="font-size: 22px; font-weight: 700; color: #f59e0b;">${(s.boughtPerfectPay || 0).toLocaleString()}</div>
+                        </div>
+                        <div style="background: rgba(139,92,246,0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 4px;">Via Monetizze</div>
+                            <div style="font-size: 22px; font-weight: 700; color: #8b5cf6;">${(s.boughtMonetizze || 0).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Conversion by source table
+                if (bySource.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: var(--text-primary); margin: 0 0 12px 0; font-size: 14px;">Convers\u00e3o por Origem do Lead</h4>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--border-color);">
+                                        <th style="text-align: left; padding: 8px; color: var(--text-muted);">Origem</th>
+                                        <th style="text-align: right; padding: 8px; color: var(--text-muted);">Leads</th>
+                                        <th style="text-align: right; padding: 8px; color: var(--text-muted);">Convertidos</th>
+                                        <th style="text-align: right; padding: 8px; color: var(--text-muted);">Taxa Conv.</th>
+                                        <th style="text-align: right; padding: 8px; color: var(--text-muted);">Receita</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bySource.map(s => `
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 8px;"><span style="background: ${s.source === 'main' ? '#3b82f6' : s.source === 'affiliate' ? '#8b5cf6' : '#f59e0b'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${s.source || 'N/A'}</span></td>
+                                            <td style="text-align: right; padding: 8px; font-weight: 600;">${parseInt(s.totalLeads).toLocaleString()}</td>
+                                            <td style="text-align: right; padding: 8px; color: #10b981; font-weight: 600;">${parseInt(s.converted).toLocaleString()}</td>
+                                            <td style="text-align: right; padding: 8px; font-weight: 700; color: ${parseFloat(s.convRate) > 5 ? '#10b981' : parseFloat(s.convRate) > 2 ? '#f59e0b' : '#ef4444'};">${s.convRate}%</td>
+                                            <td style="text-align: right; padding: 8px; color: #10b981;">R$ ${parseFloat(s.revenue).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
+                // Recent conversions
+                if (recent.length > 0) {
+                    html += `
+                        <div>
+                            <h4 style="color: var(--text-primary); margin: 0 0 12px 0; font-size: 14px;">\u00daltimas Convers\u00f5es (Jornada Completa)</h4>
+                            <div style="max-height: 350px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border-color); position: sticky; top: 0; background: var(--card-bg);">
+                                            <th style="text-align: left; padding: 6px; color: var(--text-muted);">Lead</th>
+                                            <th style="text-align: left; padding: 6px; color: var(--text-muted);">Origem</th>
+                                            <th style="text-align: left; padding: 6px; color: var(--text-muted);">Plataforma</th>
+                                            <th style="text-align: right; padding: 6px; color: var(--text-muted);">Valor</th>
+                                            <th style="text-align: right; padding: 6px; color: var(--text-muted);">Tempo p/ Converter</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${recent.map(r => `
+                                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                                <td style="padding: 6px;">
+                                                    <div style="font-weight: 600; color: var(--text-primary);">${r.name || 'N/A'}</div>
+                                                    <div style="font-size: 10px; color: var(--text-muted);">${r.email}</div>
+                                                </td>
+                                                <td style="padding: 6px;"><span style="background: ${r.leadSource === 'main' ? '#3b82f6' : r.leadSource === 'affiliate' ? '#8b5cf6' : '#f59e0b'}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${r.leadSource || 'N/A'}</span></td>
+                                                <td style="padding: 6px;"><span style="background: ${r.paymentPlatform === 'PerfectPay' ? '#f59e0b' : '#8b5cf6'}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${r.paymentPlatform}</span></td>
+                                                <td style="text-align: right; padding: 6px; color: #10b981; font-weight: 600;">${r.value}</td>
+                                                <td style="text-align: right; padding: 6px; color: var(--text-muted);">${parseFloat(r.hoursToConvert) < 1 ? (parseFloat(r.hoursToConvert) * 60).toFixed(0) + ' min' : parseFloat(r.hoursToConvert).toFixed(1) + 'h'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading lead journey:', error);
+                const container = document.getElementById('leadJourneyContent');
+                if (container) container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">Erro ao carregar dados da jornada</div>';
             }
         }
     </script>
