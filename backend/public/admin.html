@@ -4586,40 +4586,54 @@ Estou aqui para esclarecer tudo! 😊`
                     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
                     
                     // KPI Row 1 - Funnel Volume (isolated)
-                    setEl('overviewLeads', (platData.leads || 0).toLocaleString('pt-BR'));
+                    const pLeads = platData.leads || 0;
+                    const pCheckouts = platData.checkouts || 0;
+                    const pSales = platData.sales || 0;
+                    const pTotalTx = platData.totalTx || 0;
+                    const pRevenue = platData.revenue || 0;
+                    const pRefunds = platData.refunds || 0;
+                    
+                    // Use max(checkouts, sales) for funnel consistency
+                    const effectiveCheckouts = Math.max(pCheckouts, pSales);
+                    const notApproved = pTotalTx - pSales;
+                    const abandoned = effectiveCheckouts - pSales; // real abandoned = entered checkout but didn't buy
+                    
+                    setEl('overviewLeads', pLeads.toLocaleString('pt-BR'));
                     setEl('overviewLeadsInfo', `Vinculados ${platLabel}`);
-                    setEl('overviewInitiateCheckout', (platData.checkouts || 0).toLocaleString('pt-BR'));
-                    const initRate = platData.leads > 0 ? ((platData.checkouts / platData.leads) * 100) : 0;
+                    setEl('overviewInitiateCheckout', effectiveCheckouts.toLocaleString('pt-BR'));
+                    const initRate = pLeads > 0 ? ((effectiveCheckouts / pLeads) * 100) : 0;
                     setEl('overviewInitiateCheckoutInfo', `${initRate.toFixed(1)}% dos leads`);
-                    setEl('overviewAbandoned', (platData.totalTx - platData.sales).toLocaleString('pt-BR'));
+                    setEl('overviewAbandoned', Math.max(0, notApproved).toLocaleString('pt-BR'));
                     setEl('overviewAbandonedInfo', `não aprovadas ${platLabel}`);
-                    const ckConv = platData.checkouts > 0 ? ((platData.sales / platData.checkouts) * 100) : 0;
+                    const ckConv = effectiveCheckouts > 0 ? Math.min(((pSales / effectiveCheckouts) * 100), 100) : 0;
                     setEl('overviewCheckoutRate', ckConv.toFixed(1) + '%');
-                    setEl('overviewCheckoutRateInfo', `${platData.sales} de ${platData.checkouts} checkouts`);
-                    setEl('overviewSales', (platData.sales || 0).toLocaleString('pt-BR'));
+                    setEl('overviewCheckoutRateInfo', `${pSales} de ${effectiveCheckouts} checkouts`);
+                    setEl('overviewSales', pSales.toLocaleString('pt-BR'));
                     setEl('overviewSalesInfo', `aprovadas ${platLabel}`);
-                    setEl('overviewRevenue', 'R$ ' + (platData.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                    setEl('overviewRevenue', 'R$ ' + pRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                     setEl('overviewRevenueInfo', `faturamento ${platLabel}`);
                     
                     // KPI Row 2 - Rates
-                    const convRate = platData.leads > 0 ? ((platData.sales / platData.leads) * 100) : 0;
+                    const convRate = pLeads > 0 ? ((pSales / pLeads) * 100) : 0;
                     setEl('overviewConvRate', convRate.toFixed(1) + '%');
-                    setEl('overviewConvRateInfo', `${platData.sales} de ${platData.leads} leads`);
+                    setEl('overviewConvRateInfo', `${pSales} de ${pLeads} leads`);
                     setEl('overviewApprovalRate', (platData.approvalRate || 0).toFixed(1) + '%');
                     setEl('overviewApprovalRateInfo', `taxa aprovação ${platLabel}`);
-                    setEl('overviewLostSales', ((platData.totalTx || 0) - (platData.sales || 0)).toLocaleString('pt-BR'));
-                    setEl('overviewLostSalesInfo', `não aprovadas`);
-                    setEl('overviewLostRevenue', 'R$ 0,00');
-                    setEl('overviewLostRevenueInfo', `${platLabel}`);
-                    setEl('overviewRefunds', (platData.refunds || 0).toLocaleString('pt-BR'));
+                    setEl('overviewLostSales', Math.max(0, notApproved).toLocaleString('pt-BR'));
+                    setEl('overviewLostSalesInfo', `não aprovadas ${platLabel}`);
+                    // Calculate lost revenue from non-approved transactions
+                    const lostRev = platData.lostRevenue || 0;
+                    setEl('overviewLostRevenue', 'R$ ' + lostRev.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    setEl('overviewLostRevenueInfo', `não convertido ${platLabel}`);
+                    setEl('overviewRefunds', pRefunds.toLocaleString('pt-BR'));
                     setEl('overviewRefundsInfo', platLabel);
                     setEl('overviewRefundRate', (platData.refundRate || 0).toFixed(1) + '%');
-                    setEl('overviewRefundRateInfo', `${platData.refunds} de ${platData.sales} vendas`);
+                    setEl('overviewRefundRateInfo', `${pRefunds} de ${pSales} vendas`);
                     
                     // Quick actions
-                    setEl('quickRecoveryText', `${(platData.totalTx - platData.sales)} não aprovadas`);
-                    setEl('quickLeadsText', `${platData.leads} leads ${platLabel}`);
-                    setEl('quickSalesText', 'R$ ' + (platData.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                    setEl('quickRecoveryText', `${Math.max(0, notApproved)} não aprovadas`);
+                    setEl('quickLeadsText', `${pLeads} leads ${platLabel}`);
+                    setEl('quickSalesText', 'R$ ' + pRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
                     return;
                 }
                 
@@ -15678,11 +15692,13 @@ Posso ajudar em algo mais? 😊`
                     const platLabel = platformFilter === 'monetizze' ? 'Monetizze' : 'PerfectPay';
                     
                     // Build funnel data from platform-isolated metrics
+                    // Ensure funnel stages never invert: checkouts >= sales
+                    const effectiveCheckouts = Math.max(platData.checkouts || 0, platData.sales || 0);
                     renderConversionFunnel({
                         visitors: platData.leads,
                         totalLeads: platData.leads,
                         leads: platData.leads,
-                        checkouts: platData.checkouts,
+                        checkouts: effectiveCheckouts,
                         totalSales: platData.sales,
                         sales: platData.sales,
                         _platformLabel: platLabel
@@ -15718,11 +15734,22 @@ Posso ajudar em algo mais? 😊`
             const container = document.getElementById('conversionFunnelChart');
             if (!container) return;
             
+            // Ensure funnel stages are always in descending order
+            const rawVisitors = data.visitors || data.totalLeads || 0;
+            const rawLeads = data.leads || data.totalLeads || 0;
+            const rawSales = data.sales || data.totalSales || 0;
+            const rawCheckouts = data.checkouts || Math.round((data.totalLeads || 0) * 0.3);
+            // Ensure: visitors >= leads >= checkouts >= sales
+            const fSales = rawSales;
+            const fCheckouts = Math.max(rawCheckouts, fSales);
+            const fLeads = Math.max(rawLeads, fCheckouts);
+            const fVisitors = Math.max(rawVisitors, fLeads);
+            
             const stages = [
-                { name: 'Visitantes', value: data.visitors || data.totalLeads || 0, color: '#6366f1', icon: '👁️' },
-                { name: 'Leads Capturados', value: data.leads || data.totalLeads || 0, color: '#3b82f6', icon: '👥' },
-                { name: 'Checkout Iniciado', value: data.checkouts || Math.round((data.totalLeads || 0) * 0.3), color: '#f59e0b', icon: '🛒' },
-                { name: 'Compra Finalizada', value: data.sales || data.totalSales || 0, color: '#10b981', icon: '✅' }
+                { name: data._platformLabel ? `Leads ${data._platformLabel}` : 'Visitantes', value: fVisitors, color: '#6366f1', icon: data._platformLabel ? '👥' : '👁️' },
+                { name: data._platformLabel ? `Checkout ${data._platformLabel}` : 'Leads Capturados', value: data._platformLabel ? fCheckouts : fLeads, color: '#3b82f6', icon: data._platformLabel ? '🛒' : '👥' },
+                ...(!data._platformLabel ? [{ name: 'Checkout Iniciado', value: fCheckouts, color: '#f59e0b', icon: '🛒' }] : []),
+                { name: 'Compra Finalizada', value: fSales, color: '#10b981', icon: '✅' }
             ];
             
             const maxValue = Math.max(...stages.map(s => s.value), 1);

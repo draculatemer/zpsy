@@ -2131,7 +2131,8 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE t.status = 'approved') as approved,
                 COUNT(*) FILTER (WHERE t.status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(CAST(t.value AS DECIMAL)) FILTER (WHERE t.status = 'approved'), 0) as revenue
+                COALESCE(SUM(CAST(t.value AS DECIMAL)) FILTER (WHERE t.status = 'approved'), 0) as revenue,
+                COALESCE(SUM(CAST(t.value AS DECIMAL)) FILTER (WHERE t.status NOT IN ('approved', 'refunded', 'chargeback')), 0) as lost_revenue
             FROM transactions t
             WHERE t.funnel_source IN ('main', 'affiliate')${txDateCond}${txLangCond}`
         );
@@ -2160,7 +2161,8 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE t.status = 'approved') as approved,
                 COUNT(*) FILTER (WHERE t.status IN ('refunded', 'chargeback')) as refunded,
-                COALESCE(SUM(CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}) FILTER (WHERE t.status = 'approved'), 0) as revenue
+                COALESCE(SUM(CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}) FILTER (WHERE t.status = 'approved'), 0) as revenue,
+                COALESCE(SUM(CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}) FILTER (WHERE t.status NOT IN ('approved', 'refunded', 'chargeback')), 0) as lost_revenue
             FROM transactions t
             WHERE t.funnel_source = 'perfectpay'${txDateCond}${txLangCond}`
         );
@@ -2175,6 +2177,7 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const mSales = parseInt(mTxResult.rows[0].approved) || 0;
         const mRefunds = parseInt(mTxResult.rows[0].refunded) || 0;
         const mRevenue = parseFloat(mTxResult.rows[0].revenue) || 0;
+        const mLostRevenue = parseFloat(mTxResult.rows[0].lost_revenue) || 0;
         
         const ppLeads = parseInt(ppLeadsResult.rows[0].count) || 0;
         const ppCheckouts = parseInt(ppCheckoutsResult.rows[0].count) || 0;
@@ -2182,6 +2185,7 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const ppSales = parseInt(ppTxResult.rows[0].approved) || 0;
         const ppRefunds = parseInt(ppTxResult.rows[0].refunded) || 0;
         const ppRevenue = parseFloat(ppTxResult.rows[0].revenue) || 0;
+        const ppLostRevenue = parseFloat(ppTxResult.rows[0].lost_revenue) || 0;
         
         const response = {
             funnel: {
@@ -2198,7 +2202,8 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 approvalRate: mTotal > 0 ? ((mSales / mTotal) * 100) : 0,
                 refundRate: mSales > 0 ? ((mRefunds / mSales) * 100) : 0,
                 ticket: mSales > 0 ? (mRevenue / mSales) : 0,
-                conversionRate: mLeads > 0 ? ((mSales / mLeads) * 100) : 0
+                conversionRate: mLeads > 0 ? ((mSales / mLeads) * 100) : 0,
+                lostRevenue: mLostRevenue
             },
             perfectpay: {
                 leads: ppLeads,
@@ -2210,7 +2215,8 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 approvalRate: ppTotal > 0 ? ((ppSales / ppTotal) * 100) : 0,
                 refundRate: ppSales > 0 ? ((ppRefunds / ppSales) * 100) : 0,
                 ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0,
-                conversionRate: ppLeads > 0 ? ((ppSales / ppLeads) * 100) : 0
+                conversionRate: ppLeads > 0 ? ((ppSales / ppLeads) * 100) : 0,
+                lostRevenue: ppLostRevenue
             }
         };
         setCache(cacheKey, response);
