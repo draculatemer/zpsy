@@ -90,6 +90,9 @@ async function _initDatabaseCore() {
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS fbc VARCHAR(255);`);
         await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS fbp VARCHAR(255);`);
         
+        // Google Ads gclid column (for conversion attribution)
+        await pool.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS gclid VARCHAR(255);`);
+        
         // Create funnel_events table for tracking
         await pool.query(`
             CREATE TABLE IF NOT EXISTS funnel_events (
@@ -195,6 +198,7 @@ async function _initDatabaseCore() {
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS fbc VARCHAR(500);`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS fbp VARCHAR(255);`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(255);`);
+        await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS gclid VARCHAR(255);`);
         
         // Add match_method column to capi_purchase_logs for attribution monitoring
         await pool.query(`ALTER TABLE capi_purchase_logs ADD COLUMN IF NOT EXISTS match_method VARCHAR(50);`);
@@ -455,6 +459,37 @@ async function _initDatabaseCore() {
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_date ON financial_costs(cost_date);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_category ON financial_costs(category);`);
+        
+        // Create Google Ads conversion config table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gads_config (
+                id SERIAL PRIMARY KEY,
+                language VARCHAR(10) NOT NULL UNIQUE,
+                conversion_id VARCHAR(50) NOT NULL,
+                conversion_label VARCHAR(100) NOT NULL,
+                is_active BOOLEAN DEFAULT true,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
+        // Create Google Ads purchase logs table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gads_purchase_logs (
+                id SERIAL PRIMARY KEY,
+                transaction_id VARCHAR(255),
+                conversion_id VARCHAR(50),
+                conversion_label VARCHAR(100),
+                email VARCHAR(255),
+                value DECIMAL(10,2),
+                currency VARCHAR(10) DEFAULT 'USD',
+                funnel_language VARCHAR(10),
+                success BOOLEAN DEFAULT false,
+                error_message TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gads_purchase_logs_tx ON gads_purchase_logs(transaction_id);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_gads_purchase_logs_created ON gads_purchase_logs(created_at DESC);`);
         
         // Add missing columns to admin_users if they don't exist (for existing tables)
         // Support both 'name' and 'full_name' columns for compatibility

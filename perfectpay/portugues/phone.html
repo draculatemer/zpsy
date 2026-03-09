@@ -58,6 +58,7 @@
     <script src="js/tracking-utils.js"></script>
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
+    <script src="js/google-ads-loader.js" async></script>
     
     <!-- Matrix Effect -->
     <script src="js/matrix.js"></script>
@@ -2806,6 +2807,9 @@
                 data.utm_campaign = utms.utm_campaign || null;
                 data.utm_content = utms.utm_content || null;
                 data.utm_term = utms.utm_term || null;
+                data.gclid = TrackingUtils.getGclid();
+            } else {
+                data.gclid = localStorage.getItem('gclid') || null;
             }
             
             // Use TrackingUtils retry logic if available

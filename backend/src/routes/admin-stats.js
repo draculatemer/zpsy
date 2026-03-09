@@ -2619,4 +2619,80 @@ router.get('/api/admin/lead-journey', authenticateToken, async (req, res) => {
     }
 });
 
+// ==================== GOOGLE ADS CONVERSION CONFIG ====================
+
+const { invalidateConfigCache } = require('../services/google-ads-conversion');
+
+// Get all Google Ads conversion configs
+router.get('/api/admin/gads-config', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, language, conversion_id, conversion_label, is_active, updated_at FROM gads_config ORDER BY language`
+        );
+        res.json({ configs: result.rows });
+    } catch (error) {
+        console.error('Error loading Google Ads config:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create or update Google Ads conversion config for a language
+router.put('/api/admin/gads-config', authenticateToken, async (req, res) => {
+    try {
+        const { language, conversion_id, conversion_label, is_active } = req.body;
+
+        if (!language || !conversion_id || !conversion_label) {
+            return res.status(400).json({ error: 'language, conversion_id and conversion_label are required' });
+        }
+
+        if (!['en', 'es', 'pt'].includes(language)) {
+            return res.status(400).json({ error: 'language must be en, es, or pt' });
+        }
+
+        const result = await pool.query(`
+            INSERT INTO gads_config (language, conversion_id, conversion_label, is_active, updated_at)
+            VALUES ($1, $2, $3, $4, NOW())
+            ON CONFLICT (language) DO UPDATE SET
+                conversion_id = EXCLUDED.conversion_id,
+                conversion_label = EXCLUDED.conversion_label,
+                is_active = EXCLUDED.is_active,
+                updated_at = NOW()
+            RETURNING *
+        `, [language, conversion_id.trim(), conversion_label.trim(), is_active !== false]);
+
+        invalidateConfigCache();
+
+        console.log(`✅ Google Ads config updated: ${language} -> ${conversion_id} / ${conversion_label} (active: ${is_active !== false})`);
+        res.json({ success: true, config: result.rows[0] });
+    } catch (error) {
+        console.error('Error saving Google Ads config:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get Google Ads purchase logs
+router.get('/api/admin/gads-purchase-logs', authenticateToken, async (req, res) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+        const language = req.query.language;
+
+        let query = `SELECT * FROM gads_purchase_logs`;
+        const params = [];
+
+        if (language && language !== 'all') {
+            query += ` WHERE funnel_language = $1`;
+            params.push(language);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
+        params.push(limit);
+
+        const result = await pool.query(query, params);
+        res.json({ logs: result.rows });
+    } catch (error) {
+        console.error('Error loading Google Ads logs:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

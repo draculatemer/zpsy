@@ -74,6 +74,9 @@
 </head>
 <body>
     <p>Redirecting...</p>
+    <script src="js/tracking-utils.js"></script>
+    <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
+    <script src="js/google-ads-loader.js" async></script>
     <script src="js/facebook-capi.js"></script>
     <script>
     if (typeof FacebookCAPI !== 'undefined') {

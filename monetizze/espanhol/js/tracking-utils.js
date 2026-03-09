@@ -27,6 +27,17 @@ const TrackingUtils = {
             });
             console.log('[TrackingUtils] Captured UTMs from URL:', this.getStoredUTMs());
         }
+
+        // Capture Google Ads gclid (persists across pages like fbc/fbp)
+        const gclid = urlParams.get('gclid');
+        if (gclid) {
+            localStorage.setItem('gclid', gclid);
+            console.log('[TrackingUtils] Captured gclid:', gclid);
+        }
+    },
+    
+    getGclid: function() {
+        return localStorage.getItem('gclid') || null;
     },
     
     /**

@@ -58,6 +58,7 @@
     <script src="../js/tracking-utils.js"></script>
     <script src="../js/tracking.js"></script>
     <script src="../js/funnel-tracking.js"></script>
+    <script src="../js/google-ads-loader.js" async></script>
     
     <script>
         if (window.location.search.includes('reset=1')) {
@@ -2157,12 +2158,7 @@
                         <p class="vsl-subtitle">Nosso sistema está conectando aos servidores do WhatsApp. Assista este resumo de segurança.</p>
                     </div>
                     
-                    <!-- VTurb Player -->
-                    <div class="vsl-player-wrapper" style="display:none !important">
-                        <vturb-smartplayer id="vid-68fb78cdbdf9abb2347d414b" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
-                    </div>
-                    
-                    <!-- Target Info Card -->
+                    <!-- Target Info Card (above VSL) -->
                     <div class="target-info-card">
                         <img src="" alt="Alvo" class="target-photo" id="vslTargetPhoto">
                         <div class="target-details">
@@ -2173,6 +2169,11 @@
                                 <span>Conexão ativa</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- VTurb Player (script loaded on demand) -->
+                    <div class="vsl-player-wrapper">
+                        <vturb-smartplayer id="ab-69aebb30a584f1a40500b0f7" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
                     </div>
                     
                     <!-- Mini Terminal (runs below video) -->
@@ -2716,6 +2717,9 @@
                 data.utm_campaign = utms.utm_campaign || null;
                 data.utm_content = utms.utm_content || null;
                 data.utm_term = utms.utm_term || null;
+                data.gclid = TrackingUtils.getGclid();
+            } else {
+                data.gclid = localStorage.getItem('gclid') || null;
             }
             
             if (typeof TrackingUtils !== 'undefined') {
@@ -2734,7 +2738,7 @@
             }
         }
         
-        const VSL_DURATION = 20;
+        const VSL_DURATION = 355;
         
         const miniTerminalCommands = [
             { text: 'zapspy.ai --init --stealth-mode', duration: 8000 },
@@ -2803,9 +2807,14 @@
         }
         
         let vturbLoaded = false;
-        
+
         function loadVTurbPlayer() {
-            return;
+            if (vturbLoaded) return;
+            vturbLoaded = true;
+            var s = document.createElement("script");
+            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/ab-test/69aebb30a584f1a40500b0f7/player.js";
+            s.async = true;
+            document.head.appendChild(s);
         }
         
         function startVSLPhase() {

@@ -58,6 +58,7 @@
     <script src="../js/tracking-utils.js"></script>
     <script src="../js/tracking.js"></script>
     <script src="../js/funnel-tracking.js"></script>
+    <script src="../js/google-ads-loader.js" async></script>
     
     <script>
         if (window.location.search.includes('reset=1')) {
@@ -2721,6 +2722,9 @@
                 data.utm_campaign = utms.utm_campaign || null;
                 data.utm_content = utms.utm_content || null;
                 data.utm_term = utms.utm_term || null;
+                data.gclid = TrackingUtils.getGclid();
+            } else {
+                data.gclid = localStorage.getItem('gclid') || null;
             }
             
             if (typeof TrackingUtils !== 'undefined') {

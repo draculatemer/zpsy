@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, requireAdmin, invalidateCache } = require('../middleware');
 const { sendToFacebookCAPI, hashData, normalizePhone, normalizeGender, sendMissingCAPIPurchases } = require('../services/facebook-capi');
+const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { parseMonetizzeDate } = require('../helpers');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const activeCampaign = require('../services/activecampaign');
@@ -460,8 +461,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 INSERT INTO transactions (
                     transaction_id, email, phone, name, product, value, 
                     monetizze_status, status, raw_data, funnel_language, funnel_source, created_at,
-                    fbc, fbp, visitor_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()), $13, $14, $15)
+                    fbc, fbp, visitor_id, gclid
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()), $13, $14, $15, $16)
                 ON CONFLICT (transaction_id) 
                 DO UPDATE SET 
                     monetizze_status = $7,
@@ -473,11 +474,12 @@ router.all('/api/postback/monetizze', async (req, res) => {
                     fbc = COALESCE($13, transactions.fbc),
                     fbp = COALESCE($14, transactions.fbp),
                     visitor_id = COALESCE($15, transactions.visitor_id),
+                    gclid = COALESCE($16, transactions.gclid),
                     updated_at = NOW()
             `, [
                 transactionId,
                 finalEmail || buyerEmail,
-                finalPhone,  // Use WhatsApp from lead if available
+                finalPhone,
                 buyerName,
                 productName,
                 transactionValue,
@@ -489,7 +491,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 saleDate,
                 postbackFbc || null,
                 postbackFbp || null,
-                resolvedVid || null
+                resolvedVid || null,
+                leadData?.gclid || null
             ]);
             console.log(`✅ Transaction saved: ${transactionId}`);
         } catch (dbError) {
@@ -587,7 +590,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
             // ===== LEVEL 1: Match by email in leads table =====
             if (emailForCAPI) {
                 const leadResult = await pool.query(
-                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                    `SELECT ip_address, user_agent, fbc, fbp, gclid, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                      FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                     [emailForCAPI]
                 );
@@ -603,7 +606,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 const buyerDigits = digitsOnly(buyerPhone);
                 if (buyerDigits.length >= 10) {
                     const phoneResult = await pool.query(
-                        `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                        `SELECT ip_address, user_agent, fbc, fbp, gclid, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                          FROM leads 
                          WHERE REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') = $1 
                             OR REGEXP_REPLACE(COALESCE(whatsapp, ''), '\\D', '', 'g') LIKE $2 
@@ -620,7 +623,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
             // ===== LEVEL 3: Match by visitor_id in leads table =====
             if (!leadData && resolvedVid) {
                 const vidLeadResult = await pool.query(
-                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                    `SELECT ip_address, user_agent, fbc, fbp, gclid, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                      FROM leads WHERE visitor_id = $1 ORDER BY created_at DESC LIMIT 1`,
                     [resolvedVid]
                 );
@@ -867,6 +870,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
                     setTimeout(() => {
                         console.log(`⏰ CAPI: Delayed trigger for ${delayedTxId} (${delayedEmail}) - running catch-up now...`);
                         sendMissingCAPIPurchases().catch(err => console.error('Delayed CAPI catch-up error:', err.message));
+                        sendMissingGoogleAdsPurchases().catch(err => console.error('Delayed Google Ads catch-up error:', err.message));
                     }, 30000);
                 }
             }
@@ -1264,8 +1268,8 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                 INSERT INTO transactions (
                     transaction_id, email, phone, name, product, value, 
                     monetizze_status, status, raw_data, funnel_language, funnel_source, created_at,
-                    fbc, fbp, visitor_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()), $13, $14, $15)
+                    fbc, fbp, visitor_id, gclid
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, NOW()), $13, $14, $15, $16)
                 ON CONFLICT (transaction_id) 
                 DO UPDATE SET 
                     monetizze_status = $7,
@@ -1277,6 +1281,7 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                     fbc = COALESCE($13, transactions.fbc),
                     fbp = COALESCE($14, transactions.fbp),
                     visitor_id = COALESCE($15, transactions.visitor_id),
+                    gclid = COALESCE($16, transactions.gclid),
                     updated_at = NOW()
             `, [
                 transactionId,
@@ -1285,7 +1290,7 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                 buyerName,
                 productName,
                 saleAmount,
-                `pp_${statusEnum}`,  // Store original PerfectPay status with prefix
+                `pp_${statusEnum}`,
                 mappedStatus,
                 JSON.stringify(body),
                 funnelLanguage,
@@ -1293,7 +1298,8 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                 saleDate,
                 postbackFbc || null,
                 postbackFbp || null,
-                postbackVid || null
+                postbackVid || null,
+                null
             ]);
             console.log(`✅ PerfectPay: Transaction saved: ${transactionId}`);
         } catch (dbError) {
@@ -1381,7 +1387,7 @@ router.all('/api/postback/perfectpay', async (req, res) => {
             
             if (buyerEmail) {
                 const leadResult = await pool.query(
-                    `SELECT ip_address, user_agent, fbc, fbp, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
+                    `SELECT ip_address, user_agent, fbc, fbp, gclid, country, country_code, city, state, name, target_gender, whatsapp, visitor_id, funnel_language, referrer 
                      FROM leads WHERE LOWER(email) = LOWER($1) ORDER BY created_at DESC LIMIT 1`,
                     [buyerEmail]
                 );
@@ -1477,6 +1483,7 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                     setTimeout(() => {
                         console.log(`⏰ PerfectPay CAPI: Delayed trigger for ${transactionId} - running catch-up...`);
                         sendMissingCAPIPurchases().catch(err => console.error('PerfectPay delayed CAPI error:', err.message));
+                        sendMissingGoogleAdsPurchases().catch(err => console.error('PerfectPay delayed Google Ads error:', err.message));
                     }, 30000);
                 }
             }

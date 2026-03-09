@@ -3442,6 +3442,97 @@
                     </div>
                     
                     <div class="config-box">
+                        <h3>📊 Google Ads - Conversion Tracking</h3>
+                        <p>Configure os IDs de conversao do Google Ads por idioma. Quando uma conta cair, basta atualizar aqui — sem necessidade de alterar codigo ou fazer deploy.</p>
+                        <div style="margin-top: 16px;">
+                            <div id="gadsConfigList">
+                                <div style="display: grid; gap: 16px;">
+                                    <!-- EN -->
+                                    <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <strong>🇺🇸 English (EN)</strong>
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                                                <input type="checkbox" id="gadsActiveEN" checked> Ativo
+                                            </label>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion ID</label>
+                                                <input type="text" class="form-input" id="gadsConversionIdEN" placeholder="AW-123456789">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion Label</label>
+                                                <input type="text" class="form-input" id="gadsConversionLabelEN" placeholder="AbCdEfGhIjKl">
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary" onclick="saveGadsConfig('en')" style="margin-top: 10px; width: 100%;">Salvar EN</button>
+                                    </div>
+                                    <!-- ES -->
+                                    <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <strong>🇪🇸 Espanol (ES)</strong>
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                                                <input type="checkbox" id="gadsActiveES" checked> Ativo
+                                            </label>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion ID</label>
+                                                <input type="text" class="form-input" id="gadsConversionIdES" placeholder="AW-123456789">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion Label</label>
+                                                <input type="text" class="form-input" id="gadsConversionLabelES" placeholder="AbCdEfGhIjKl">
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary" onclick="saveGadsConfig('es')" style="margin-top: 10px; width: 100%;">Salvar ES</button>
+                                    </div>
+                                    <!-- PT -->
+                                    <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                            <strong>🇧🇷 Portugues (PT)</strong>
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                                                <input type="checkbox" id="gadsActivePT" checked> Ativo
+                                            </label>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion ID</label>
+                                                <input type="text" class="form-input" id="gadsConversionIdPT" placeholder="AW-123456789">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label class="form-label">Conversion Label</label>
+                                                <input type="text" class="form-input" id="gadsConversionLabelPT" placeholder="AbCdEfGhIjKl">
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary" onclick="saveGadsConfig('pt')" style="margin-top: 10px; width: 100%;">Salvar PT</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="btn-secondary" onclick="loadGadsLogs()">📋 Ver Logs de Conversao</button>
+                        </div>
+                        <div id="gadsLogsContainer" style="margin-top: 12px; display: none;">
+                            <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--border); max-height: 300px; overflow-y: auto;">
+                                <table style="width: 100%; font-size: 12px;">
+                                    <thead>
+                                        <tr style="text-align: left; color: var(--text-muted);">
+                                            <th style="padding: 4px 8px;">Data</th>
+                                            <th style="padding: 4px 8px;">TX ID</th>
+                                            <th style="padding: 4px 8px;">Email</th>
+                                            <th style="padding: 4px 8px;">Valor</th>
+                                            <th style="padding: 4px 8px;">Idioma</th>
+                                            <th style="padding: 4px 8px;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gadsLogsBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-box">
                         <h3>🔄 Sincronizar Vendas da Monetizze</h3>
                         <p>Importe vendas diretamente da API da Monetizze para o painel. Útil para recuperar vendas que não foram capturadas automaticamente.</p>
                         <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
@@ -4832,10 +4923,10 @@ Estou aqui para esclarecer tudo! 😊`
             else if (tabName === 'settings') {
                 document.getElementById('postbackUrl').textContent = `${API_URL}/api/postback/monetizze`;
                 document.getElementById('perfectpayWebhookUrl').textContent = `${API_URL}/api/postback/perfectpay`;
-                // Initialize sync dates with today (local timezone)
                 const today = getLocalDateString();
                 document.getElementById('syncStartDate').value = today;
                 document.getElementById('syncEndDate').value = today;
+                loadGadsConfig();
             }
             else if (tabName === 'users') loadUsers();
             else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); }
@@ -12736,6 +12827,94 @@ Posso ajudar em algo mais? 😊`
         function copyPerfectPayWebhookUrl() {
             navigator.clipboard.writeText(document.getElementById('perfectpayWebhookUrl').textContent);
             showToast('Copiado!', 'URL PerfectPay na área de transferência', 'success');
+        }
+
+        async function loadGadsConfig() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/gads-config`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                });
+                const data = await response.json();
+                if (data.configs) {
+                    for (const cfg of data.configs) {
+                        const lang = cfg.language.toUpperCase();
+                        const idEl = document.getElementById(`gadsConversionId${lang}`);
+                        const labelEl = document.getElementById(`gadsConversionLabel${lang}`);
+                        const activeEl = document.getElementById(`gadsActive${lang}`);
+                        if (idEl) idEl.value = cfg.conversion_id || '';
+                        if (labelEl) labelEl.value = cfg.conversion_label || '';
+                        if (activeEl) activeEl.checked = cfg.is_active;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading Google Ads config:', err);
+            }
+        }
+
+        async function saveGadsConfig(language) {
+            const lang = language.toUpperCase();
+            const conversionId = document.getElementById(`gadsConversionId${lang}`).value.trim();
+            const conversionLabel = document.getElementById(`gadsConversionLabel${lang}`).value.trim();
+            const isActive = document.getElementById(`gadsActive${lang}`).checked;
+
+            if (!conversionId || !conversionLabel) {
+                showToast('Erro', 'Preencha o Conversion ID e o Conversion Label', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/gads-config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({
+                        language: language,
+                        conversion_id: conversionId,
+                        conversion_label: conversionLabel,
+                        is_active: isActive
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Salvo!', `Google Ads ${lang} configurado com sucesso`, 'success');
+                } else {
+                    showToast('Erro', data.error || 'Falha ao salvar', 'error');
+                }
+            } catch (err) {
+                showToast('Erro', 'Falha na conexao com o servidor', 'error');
+            }
+        }
+
+        async function loadGadsLogs() {
+            const container = document.getElementById('gadsLogsContainer');
+            const tbody = document.getElementById('gadsLogsBody');
+            container.style.display = 'block';
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:8px;color:var(--text-muted);">Carregando...</td></tr>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/gads-purchase-logs?limit=30`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                });
+                const data = await response.json();
+                if (!data.logs || data.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="padding:8px;color:var(--text-muted);">Nenhum log encontrado</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.logs.map(log => `
+                    <tr>
+                        <td style="padding:4px 8px;">${new Date(log.created_at).toLocaleString('pt-BR')}</td>
+                        <td style="padding:4px 8px;max-width:120px;overflow:hidden;text-overflow:ellipsis;" title="${log.transaction_id}">${log.transaction_id || '-'}</td>
+                        <td style="padding:4px 8px;">${log.email || '-'}</td>
+                        <td style="padding:4px 8px;">$${parseFloat(log.value || 0).toFixed(2)}</td>
+                        <td style="padding:4px 8px;">${(log.funnel_language || '').toUpperCase()}</td>
+                        <td style="padding:4px 8px;">${log.success ? '<span style="color:#10b981;">OK</span>' : '<span style="color:#ef4444;">FAIL</span>'}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:8px;color:#ef4444;">Erro ao carregar logs</td></tr>';
+            }
         }
         
         async function testPerfectPayWebhook() {

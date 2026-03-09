@@ -180,6 +180,18 @@
             }
         })();
     </script>
+    <script src="../../js/tracking-utils.js"></script>
+    <script src="../../js/google-ads-loader.js"></script>
+    <script>
+    // Fire Google Ads Purchase conversion on thank-you page
+    if (typeof GoogleAdsLoader !== 'undefined') {
+        setTimeout(function() {
+            if (GoogleAdsLoader.config) {
+                GoogleAdsLoader.sendConversion('', 0, 'USD');
+            }
+        }, 2000);
+    }
+    </script>
     <script src="../upsell-tracking.js?v=1.0"></script>
 </body>
 </html>

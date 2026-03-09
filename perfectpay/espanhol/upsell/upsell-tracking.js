@@ -427,8 +427,10 @@ const UpsellTracker = {
         const fbIds = this.getFacebookIds();
         const visitorId = this.getVisitorId();
         
-        if (!fbIds.fbc && !fbIds.fbp && !visitorId) {
-            console.log('📊 Enrich: No fbc/fbp/vid found, skipping');
+        const gclid = (typeof TrackingUtils !== 'undefined') ? TrackingUtils.getGclid() : (localStorage.getItem('gclid') || null);
+        
+        if (!fbIds.fbc && !fbIds.fbp && !gclid && !visitorId) {
+            console.log('📊 Enrich: No fbc/fbp/gclid/vid found, skipping');
             return;
         }
         
@@ -436,12 +438,13 @@ const UpsellTracker = {
             email: email,
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
+            gclid: gclid,
             visitorId: visitorId,
-            ip: null, // Will be detected server-side
+            ip: null,
             userAgent: navigator.userAgent
         };
         
-        console.log(`📊 Enriching purchase for ${email}: fbc=${fbIds.fbc ? 'Yes' : 'No'}, fbp=${fbIds.fbp ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
+        console.log(`📊 Enriching purchase for ${email}: fbc=${fbIds.fbc ? 'Yes' : 'No'}, fbp=${fbIds.fbp ? 'Yes' : 'No'}, gclid=${gclid ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
         
         fetch(`${this.API_URL}/api/enrich-purchase`, {
             method: 'POST',

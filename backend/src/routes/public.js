@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, requireAdmin, leadLimiter, apiLimiter, invalidateCache } = require('../middleware');
 const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransactionFbcFbp } = require('../services/facebook-capi');
+const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { getCountryFromIP } = require('../services/geolocation');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const activeCampaign = require('../services/activecampaign');
@@ -133,6 +134,7 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
             funnelLanguage,  // 'en' or 'es' - funnel language for pixel selection
             visitorId,  // Funnel visitor ID for journey tracking
             funnelSource,  // 'main' or 'affiliate' - source of the lead
+            gclid,  // Google Ads click ID for conversion attribution
             // UTM parameters for campaign tracking
             utm_source,
             utm_medium,
@@ -204,20 +206,21 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
                     state = COALESCE($21, state),
                     ab_test_id = COALESCE($22, ab_test_id),
                     ab_variant = COALESCE($23, ab_variant),
+                    gclid = COALESCE($24, gclid),
                     last_visit_at = NOW(),
                     updated_at = NOW()
                 WHERE id = $13
                 RETURNING id, created_at`,
-                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, geoData.state || null, ab_test_id || null, ab_variant || null]
+                [name || null, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, currentVisitCount + 1, geoData.country, geoData.country_code, geoData.city, visitorId || null, source, existingLead.rows[0].id, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, geoData.state || null, ab_test_id || null, ab_variant || null, gclid || null]
             );
             console.log(`Returning lead [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${geoData.country || 'Unknown'} (visit #${currentVisitCount + 1})`);
         } else {
             // Insert new lead
             result = await pool.queryRetry(
-                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, ab_test_id, ab_variant, created_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
+                `INSERT INTO leads (name, email, whatsapp, target_phone, target_gender, ip_address, referrer, user_agent, funnel_language, funnel_source, visit_count, country, country_code, city, state, visitor_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, fbc, fbp, ab_test_id, ab_variant, gclid, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW())
                  RETURNING id, created_at`,
-                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, geoData.state || null, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, ab_test_id || null, ab_variant || null]
+                [name || null, email, whatsapp, targetPhone || null, targetGender || null, ipAddress, referrer || null, ua || null, language, source, geoData.country, geoData.country_code, geoData.city, geoData.state || null, visitorId || null, utm_source || null, utm_medium || null, utm_campaign || null, utm_content || null, utm_term || null, fbc || null, fbp || null, ab_test_id || null, ab_variant || null, gclid || null]
             );
             isNewLead = true;
             console.log(`New lead captured [${language.toUpperCase()}/${source}]: ${name || 'No name'} - ${email} - ${whatsapp} - ${geoData.country || 'Unknown'}${utm_source ? ` [UTM: ${utm_source}]` : ''}`);
@@ -526,9 +529,10 @@ router.post('/api/track', async (req, res) => {
 
 router.post('/api/admin/capi-catchup', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        console.log('🔄 Manual CAPI catch-up triggered by admin...');
+        console.log('🔄 Manual CAPI + Google Ads catch-up triggered by admin...');
         await sendMissingCAPIPurchases();
-        res.json({ success: true, message: 'CAPI catch-up executado. Verifique os logs de Purchase.' });
+        await sendMissingGoogleAdsPurchases();
+        res.json({ success: true, message: 'CAPI + Google Ads catch-up executado. Verifique os logs de Purchase.' });
     } catch (error) {
         console.error('CAPI catch-up error:', error.message);
         res.status(500).json({ success: false, error: error.message });
@@ -537,35 +541,36 @@ router.post('/api/admin/capi-catchup', authenticateToken, requireAdmin, async (r
 
 router.post('/api/enrich-purchase', async (req, res) => {
     try {
-        const { email, fbc, fbp, visitorId, ip, userAgent } = req.body;
+        const { email, fbc, fbp, gclid, visitorId, ip, userAgent } = req.body;
         
         if (!email) {
             return res.status(400).json({ success: false, error: 'email required' });
         }
         
-        if (!fbc && !fbp && !visitorId) {
+        if (!fbc && !fbp && !gclid && !visitorId) {
             return res.status(200).json({ success: true, message: 'no enrichment data' });
         }
         
-        console.log(`📊 ENRICH-PURCHASE: ${email} - fbc=${fbc ? 'Yes' : 'No'}, fbp=${fbp ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
+        console.log(`📊 ENRICH-PURCHASE: ${email} - fbc=${fbc ? 'Yes' : 'No'}, fbp=${fbp ? 'Yes' : 'No'}, gclid=${gclid ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
         
-        // Update ALL recent transactions for this email that are missing fbc/fbp
+        // Update ALL recent transactions for this email that are missing fbc/fbp/gclid
         const result = await pool.query(`
             UPDATE transactions SET
                 fbc = COALESCE(transactions.fbc, $2),
                 fbp = COALESCE(transactions.fbp, $3),
                 visitor_id = COALESCE(transactions.visitor_id, $4),
+                gclid = COALESCE(transactions.gclid, $5),
                 updated_at = NOW()
             WHERE LOWER(email) = LOWER($1)
               AND created_at >= NOW() - INTERVAL '24 hours'
-              AND (fbc IS NULL OR fbp IS NULL OR visitor_id IS NULL)
-        `, [email, fbc || null, fbp || null, visitorId || null]);
+              AND (fbc IS NULL OR fbp IS NULL OR visitor_id IS NULL OR gclid IS NULL)
+        `, [email, fbc || null, fbp || null, visitorId || null, gclid || null]);
         
         const updated = result.rowCount || 0;
         console.log(`📊 ENRICH-PURCHASE: Updated ${updated} transactions for ${email}`);
         
-        // Also update the lead record with fbc/fbp if missing
-        if (fbc || fbp) {
+        // Also update the lead record with fbc/fbp/gclid if missing
+        if (fbc || fbp || gclid) {
             try {
                 await pool.query(`
                     UPDATE leads SET
@@ -574,10 +579,11 @@ router.post('/api/enrich-purchase', async (req, res) => {
                         visitor_id = COALESCE(leads.visitor_id, $4),
                         ip_address = COALESCE(leads.ip_address, $5),
                         user_agent = COALESCE(leads.user_agent, $6),
+                        gclid = COALESCE(leads.gclid, $7),
                         updated_at = NOW()
                     WHERE LOWER(email) = LOWER($1)
-                      AND (fbc IS NULL OR fbp IS NULL)
-                `, [email, fbc || null, fbp || null, visitorId || null, ip || null, userAgent || null]);
+                      AND (fbc IS NULL OR fbp IS NULL OR gclid IS NULL)
+                `, [email, fbc || null, fbp || null, visitorId || null, ip || null, userAgent || null, gclid || null]);
             } catch (leadErr) { /* non-blocking */ }
         }
         
@@ -625,8 +631,8 @@ router.post('/api/enrich-purchase', async (req, res) => {
             }
             
             if (triggerCatchup) {
-                // Trigger catch-up asynchronously (don't block the response)
                 sendMissingCAPIPurchases().catch(err => console.error('CAPI catch-up error:', err.message));
+                sendMissingGoogleAdsPurchases().catch(err => console.error('Google Ads catch-up error:', err.message));
             }
         }
         
@@ -652,9 +658,10 @@ router.post('/api/admin/capi-clear-resend', authenticateToken, requireAdmin, asy
         
         // First backfill fbc/fbp from raw_data into transactions columns
         await backfillTransactionFbcFbp();
-        
+
         // Then run catch-up to resend them with correct fbc/fbp
         await sendMissingCAPIPurchases();
+        await sendMissingGoogleAdsPurchases();
         
         res.json({ success: true, message: `${deleted} eventos limpos e reenviados com FBC/FBP.`, deleted });
     } catch (error) {
@@ -964,6 +971,31 @@ router.post('/api/social-scan', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Social scan error:', error.message);
         res.status(200).json({ success: false, fallback: true });
+    }
+});
+
+// Public endpoint: Get active Google Ads Conversion ID for a language (for gtag.js loading)
+router.get('/api/gads-config/:language', async (req, res) => {
+    try {
+        const lang = req.params.language;
+        if (!['en', 'es', 'pt'].includes(lang)) {
+            return res.json({ active: false });
+        }
+        const result = await pool.query(
+            `SELECT conversion_id, conversion_label FROM gads_config WHERE language = $1 AND is_active = true LIMIT 1`,
+            [lang]
+        );
+        if (result.rows.length === 0) {
+            return res.json({ active: false });
+        }
+        res.json({
+            active: true,
+            conversion_id: result.rows[0].conversion_id,
+            conversion_label: result.rows[0].conversion_label
+        });
+    } catch (err) {
+        console.error('Error fetching gads config:', err.message);
+        res.json({ active: false });
     }
 });
 
