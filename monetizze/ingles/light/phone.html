@@ -2807,7 +2807,13 @@
         let vturbLoaded = false;
         
         function loadVTurbPlayer() {
-            return;
+            if (vturbLoaded) return;
+            vturbLoaded = true;
+            var s = document.createElement("script");
+            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/players/68fb78cdbdf9abb2347d414b/v4/player.js";
+            s.async = true;
+            document.head.appendChild(s);
+            console.log('[VSL] VTurb player loaded');
         }
         
         function startVSLPhase() {

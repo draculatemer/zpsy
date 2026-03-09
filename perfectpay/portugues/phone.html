@@ -2184,7 +2184,7 @@
                     
                     <!-- VTurb Player -->
                     <div class="vsl-player-wrapper" style="display:none !important">
-                        <vturb-smartplayer id="vid-68fb78cdbdf9abb2347d414b" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
+                        <vturb-smartplayer id="vid-69000cd9ebbcac2e8cb89ca0" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
                     </div>
                     
                     <!-- Target Info Card -->
@@ -2918,8 +2918,13 @@
         let vturbLoaded = false;
         
         function loadVTurbPlayer() {
-            // VSL removed - do not load player
-            return;
+            if (vturbLoaded) return;
+            vturbLoaded = true;
+            var s = document.createElement("script");
+            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/players/69000cd9ebbcac2e8cb89ca0/v4/player.js";
+            s.async = true;
+            document.head.appendChild(s);
+            console.log('[VSL] VTurb player loaded');
         }
         
         function startVSLPhase() {
