@@ -2099,6 +2099,14 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         // PerfectPay stores values in USD; convert to BRL
         const usdToBrl = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
         
+        // ===== DOMAIN-BASED PLATFORM ATTRIBUTION =====
+        // PerfectPay domains: perfect.zappdetect.com, gbperfect.zappdetect.com
+        // Monetizze domains: monetizze.zappdetect.com, ingles.zappdetect.com, espanhol.zappdetect.com, ingles2.zappdetect.com, espanhol2.zappdetect.com
+        // Affiliate domains: afiliado.whatstalker.com
+        
+        const ppDomains = `('perfect.zappdetect.com', 'gbperfect.zappdetect.com')`;
+        const mDomains = `('monetizze.zappdetect.com', 'ingles.zappdetect.com', 'espanhol.zappdetect.com', 'ingles2.zappdetect.com', 'espanhol2.zappdetect.com')`;
+        
         // ===== TOTAL FUNNEL DATA (for reference) =====
         const totalLeadsResult = await pool.query(
             `SELECT COUNT(*) as count FROM leads l WHERE 1=1${leadLangCond}${leadDateCond}`
@@ -2107,22 +2115,17 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
             `SELECT COUNT(DISTINCT fe.visitor_id) as count FROM funnel_events fe WHERE fe.event = 'checkout_clicked'${feLangCond}${feDateCond}`
         );
         
-        // ===== MONETIZZE: Isolated leads (leads whose email appears in Monetizze transactions) =====
+        // ===== MONETIZZE: Leads from Monetizze funnel domains (via referrer) =====
         const mLeadsResult = await pool.query(
-            `SELECT COUNT(DISTINCT l.id) as count
-            FROM leads l
-            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
-            WHERE t.funnel_source IN ('main', 'affiliate')${leadDateCond}${leadLangCond}`
+            `SELECT COUNT(*) as count FROM leads l
+            WHERE split_part(split_part(COALESCE(l.referrer, ''), '://', 2), '/', 1) IN ${mDomains}${leadDateCond}${leadLangCond}`
         );
         
-        // MONETIZZE: Isolated checkouts (checkout events from visitors who later bought on Monetizze)
+        // MONETIZZE: Checkouts from Monetizze funnel domains (via metadata->url)
         const mCheckoutsResult = await pool.query(
-            `SELECT COUNT(DISTINCT fe.visitor_id) as count
-            FROM funnel_events fe
-            INNER JOIN leads l ON fe.visitor_id = l.visitor_id
-            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count FROM funnel_events fe
             WHERE fe.event = 'checkout_clicked'
-            AND t.funnel_source IN ('main', 'affiliate')${feDateCond}${feLangCond}`
+            AND split_part(split_part(COALESCE(fe.metadata->>'url', ''), '://', 2), '/', 1) IN ${mDomains}${feDateCond}${feLangCond}`
         );
         
         // MONETIZZE: Transaction metrics
@@ -2137,22 +2140,17 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
             WHERE t.funnel_source IN ('main', 'affiliate')${txDateCond}${txLangCond}`
         );
         
-        // ===== PERFECTPAY: Isolated leads (leads whose email appears in PerfectPay transactions) =====
+        // ===== PERFECTPAY: Leads from PerfectPay funnel domains (via referrer) =====
         const ppLeadsResult = await pool.query(
-            `SELECT COUNT(DISTINCT l.id) as count
-            FROM leads l
-            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
-            WHERE t.funnel_source = 'perfectpay'${leadDateCond}${leadLangCond}`
+            `SELECT COUNT(*) as count FROM leads l
+            WHERE split_part(split_part(COALESCE(l.referrer, ''), '://', 2), '/', 1) IN ${ppDomains}${leadDateCond}${leadLangCond}`
         );
         
-        // PERFECTPAY: Isolated checkouts (checkout events from visitors who later bought on PerfectPay)
+        // PERFECTPAY: Checkouts from PerfectPay funnel domains (via metadata->url)
         const ppCheckoutsResult = await pool.query(
-            `SELECT COUNT(DISTINCT fe.visitor_id) as count
-            FROM funnel_events fe
-            INNER JOIN leads l ON fe.visitor_id = l.visitor_id
-            INNER JOIN transactions t ON LOWER(l.email) = LOWER(t.email)
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count FROM funnel_events fe
             WHERE fe.event = 'checkout_clicked'
-            AND t.funnel_source = 'perfectpay'${feDateCond}${feLangCond}`
+            AND split_part(split_part(COALESCE(fe.metadata->>'url', ''), '://', 2), '/', 1) IN ${ppDomains}${feDateCond}${feLangCond}`
         );
         
         // PERFECTPAY: Transaction metrics (with USD→BRL conversion)
@@ -2165,6 +2163,24 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 COALESCE(SUM(CAST(t.value AS DECIMAL) * ${usdToBrl.toFixed(2)}) FILTER (WHERE t.status NOT IN ('approved', 'refunded', 'chargeback')), 0) as lost_revenue
             FROM transactions t
             WHERE t.funnel_source = 'perfectpay'${txDateCond}${txLangCond}`
+        );
+        
+        // ===== AFFILIATE: Leads from affiliate domains =====
+        const affDomains = `('afiliado.whatstalker.com')`;
+        const affLeadsResult = await pool.query(
+            `SELECT COUNT(*) as count FROM leads l
+            WHERE split_part(split_part(COALESCE(l.referrer, ''), '://', 2), '/', 1) IN ${affDomains}${leadDateCond}${leadLangCond}`
+        );
+        const affCheckoutsResult = await pool.query(
+            `SELECT COUNT(DISTINCT fe.visitor_id) as count FROM funnel_events fe
+            WHERE fe.event = 'checkout_clicked'
+            AND split_part(split_part(COALESCE(fe.metadata->>'url', ''), '://', 2), '/', 1) IN ${affDomains}${feDateCond}${feLangCond}`
+        );
+        
+        // Leads without referrer (direct or unknown)
+        const unknownLeadsResult = await pool.query(
+            `SELECT COUNT(*) as count FROM leads l
+            WHERE (l.referrer IS NULL OR l.referrer = '')${leadDateCond}${leadLangCond}`
         );
         
         // Parse results
@@ -2187,10 +2203,23 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         const ppRevenue = parseFloat(ppTxResult.rows[0].revenue) || 0;
         const ppLostRevenue = parseFloat(ppTxResult.rows[0].lost_revenue) || 0;
         
+        const affLeads = parseInt(affLeadsResult.rows[0].count) || 0;
+        const affCheckouts = parseInt(affCheckoutsResult.rows[0].count) || 0;
+        const unknownLeads = parseInt(unknownLeadsResult.rows[0].count) || 0;
+        
+        // Attribution summary: how many leads are accounted for
+        const attributedLeads = mLeads + ppLeads + affLeads;
+        const unattributedLeads = totalLeads - attributedLeads;
+        
         const response = {
+            attributionMethod: 'domain-based',
             funnel: {
                 totalLeads,
-                totalCheckouts
+                totalCheckouts,
+                attributedLeads,
+                unattributedLeads,
+                unknownReferrer: unknownLeads,
+                attributionRate: totalLeads > 0 ? ((attributedLeads / totalLeads) * 100) : 0
             },
             monetizze: {
                 leads: mLeads,
@@ -2203,7 +2232,8 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 refundRate: mSales > 0 ? ((mRefunds / mSales) * 100) : 0,
                 ticket: mSales > 0 ? (mRevenue / mSales) : 0,
                 conversionRate: mLeads > 0 ? ((mSales / mLeads) * 100) : 0,
-                lostRevenue: mLostRevenue
+                lostRevenue: mLostRevenue,
+                leadShare: totalLeads > 0 ? ((mLeads / totalLeads) * 100) : 0
             },
             perfectpay: {
                 leads: ppLeads,
@@ -2216,7 +2246,13 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
                 refundRate: ppSales > 0 ? ((ppRefunds / ppSales) * 100) : 0,
                 ticket: ppSales > 0 ? (ppRevenue / ppSales) : 0,
                 conversionRate: ppLeads > 0 ? ((ppSales / ppLeads) * 100) : 0,
-                lostRevenue: ppLostRevenue
+                lostRevenue: ppLostRevenue,
+                leadShare: totalLeads > 0 ? ((ppLeads / totalLeads) * 100) : 0
+            },
+            affiliates: {
+                leads: affLeads,
+                checkouts: affCheckouts,
+                leadShare: totalLeads > 0 ? ((affLeads / totalLeads) * 100) : 0
             }
         };
         setCache(cacheKey, response);
