@@ -460,17 +460,23 @@ async function _initDatabaseCore() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_date ON financial_costs(cost_date);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_financial_costs_category ON financial_costs(category);`);
         
-        // Create Google Ads conversion config table
+        // Create Google Ads conversion config table (multiple accounts per language)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS gads_config (
                 id SERIAL PRIMARY KEY,
-                language VARCHAR(10) NOT NULL UNIQUE,
+                name VARCHAR(100) DEFAULT '',
+                language VARCHAR(10) NOT NULL,
                 conversion_id VARCHAR(50) NOT NULL,
                 conversion_label VARCHAR(100) NOT NULL,
                 is_active BOOLEAN DEFAULT true,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        // Migration: drop old UNIQUE constraint on language (allows multiple accounts per language)
+        await pool.query(`ALTER TABLE gads_config ADD COLUMN IF NOT EXISTS name VARCHAR(100) DEFAULT '';`);
+        try {
+            await pool.query(`ALTER TABLE gads_config DROP CONSTRAINT IF EXISTS gads_config_language_key;`);
+        } catch (e) { /* constraint may not exist */ }
         
         // Create Google Ads purchase logs table
         await pool.query(`
@@ -488,7 +494,11 @@ async function _initDatabaseCore() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gads_purchase_logs_tx ON gads_purchase_logs(transaction_id);`);
+        // Unique per transaction+conversion_id pair (multiple conversions per transaction allowed)
+        try {
+            await pool.query(`DROP INDEX IF EXISTS idx_gads_purchase_logs_tx;`);
+        } catch (e) { /* index may not exist */ }
+        await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gads_purchase_logs_tx_conv ON gads_purchase_logs(transaction_id, conversion_id);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_gads_purchase_logs_created ON gads_purchase_logs(created_at DESC);`);
         
         // Add missing columns to admin_users if they don't exist (for existing tables)

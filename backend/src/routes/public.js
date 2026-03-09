@@ -974,28 +974,29 @@ router.post('/api/social-scan', apiLimiter, async (req, res) => {
     }
 });
 
-// Public endpoint: Get active Google Ads Conversion ID for a language (for gtag.js loading)
+// Public endpoint: Get active Google Ads Conversion IDs for a language (supports multiple accounts)
 router.get('/api/gads-config/:language', async (req, res) => {
     try {
         const lang = req.params.language;
         if (!['en', 'es', 'pt'].includes(lang)) {
-            return res.json({ active: false });
+            return res.json({ active: false, configs: [] });
         }
         const result = await pool.query(
-            `SELECT conversion_id, conversion_label FROM gads_config WHERE language = $1 AND is_active = true LIMIT 1`,
+            `SELECT conversion_id, conversion_label FROM gads_config WHERE language = $1 AND is_active = true ORDER BY id`,
             [lang]
         );
         if (result.rows.length === 0) {
-            return res.json({ active: false });
+            return res.json({ active: false, configs: [] });
         }
         res.json({
             active: true,
+            configs: result.rows,
             conversion_id: result.rows[0].conversion_id,
             conversion_label: result.rows[0].conversion_label
         });
     } catch (err) {
         console.error('Error fetching gads config:', err.message);
-        res.json({ active: false });
+        res.json({ active: false, configs: [] });
     }
 });
 

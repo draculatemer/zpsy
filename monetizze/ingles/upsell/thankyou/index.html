@@ -186,7 +186,7 @@
     // Fire Google Ads Purchase conversion on thank-you page
     if (typeof GoogleAdsLoader !== 'undefined') {
         setTimeout(function() {
-            if (GoogleAdsLoader.config) {
+            if (GoogleAdsLoader.configs && GoogleAdsLoader.configs.length) {
                 GoogleAdsLoader.sendConversion('', 0, 'USD');
             }
         }, 2000);

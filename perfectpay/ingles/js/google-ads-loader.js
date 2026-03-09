@@ -1,15 +1,13 @@
 /**
  * Google Ads Dynamic Loader
- * Loads gtag.js with the active Conversion ID from the backend.
- * This allows changing Google Ads accounts without code changes.
+ * Loads gtag.js with ALL active Conversion IDs from the backend.
+ * Supports multiple Google Ads accounts per language.
  */
 
 const GoogleAdsLoader = {
     API_URL: window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app',
     loaded: false,
-    config: null,
-
-    detectLanguageFromPage: null,
+    configs: [],
 
     getLanguage: function() {
         const path = window.location.pathname.toLowerCase();
@@ -21,49 +19,63 @@ const GoogleAdsLoader = {
     load: function() {
         if (this.loaded) return;
 
-        const lang = this.getLanguage();
+        var self = this;
+        var lang = this.getLanguage();
 
-        fetch(`${this.API_URL}/api/gads-config/${lang}`)
-            .then(r => r.json())
-            .then(data => {
-                if (!data.active || !data.conversion_id) {
+        fetch(this.API_URL + '/api/gads-config/' + lang)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.active) {
                     console.log('[GoogleAds] No active config for', lang);
                     return;
                 }
 
-                this.config = data;
-                this.loaded = true;
+                var cfgs = data.configs || [];
+                if (cfgs.length === 0 && data.conversion_id) {
+                    cfgs = [{ conversion_id: data.conversion_id, conversion_label: data.conversion_label }];
+                }
+                if (cfgs.length === 0) return;
 
-                const conversionId = data.conversion_id;
+                self.configs = cfgs;
+                self.loaded = true;
 
-                const gtagScript = document.createElement('script');
+                // Load gtag.js once with the first conversion ID
+                var firstId = cfgs[0].conversion_id;
+                var gtagScript = document.createElement('script');
                 gtagScript.async = true;
-                gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${conversionId}`;
+                gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + firstId;
                 document.head.appendChild(gtagScript);
 
                 window.dataLayer = window.dataLayer || [];
                 window.gtag = function() { window.dataLayer.push(arguments); };
                 window.gtag('js', new Date());
-                window.gtag('config', conversionId);
 
-                console.log('[GoogleAds] gtag.js loaded with', conversionId);
+                // Configure ALL conversion IDs
+                for (var i = 0; i < cfgs.length; i++) {
+                    window.gtag('config', cfgs[i].conversion_id);
+                }
+
+                console.log('[GoogleAds] gtag.js loaded with', cfgs.length, 'account(s):', cfgs.map(function(c) { return c.conversion_id; }).join(', '));
             })
-            .catch(err => {
+            .catch(function(err) {
                 console.log('[GoogleAds] Config fetch error:', err.message);
             });
     },
 
     sendConversion: function(transactionId, value, currency) {
-        if (!this.config || !window.gtag) return;
+        if (!this.configs.length || !window.gtag) return;
 
-        const sendTo = `${this.config.conversion_id}/${this.config.conversion_label}`;
-        window.gtag('event', 'conversion', {
-            send_to: sendTo,
-            value: value || 0,
-            currency: currency || 'USD',
-            transaction_id: transactionId || ''
-        });
-        console.log('[GoogleAds] Conversion sent:', sendTo, 'value:', value, currency);
+        for (var i = 0; i < this.configs.length; i++) {
+            var cfg = this.configs[i];
+            var sendTo = cfg.conversion_id + '/' + cfg.conversion_label;
+            window.gtag('event', 'conversion', {
+                send_to: sendTo,
+                value: value || 0,
+                currency: currency || 'USD',
+                transaction_id: transactionId || ''
+            });
+            console.log('[GoogleAds] Conversion sent to', sendTo);
+        }
     }
 };
 

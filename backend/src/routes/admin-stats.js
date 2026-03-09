@@ -2623,11 +2623,11 @@ router.get('/api/admin/lead-journey', authenticateToken, async (req, res) => {
 
 const { invalidateConfigCache } = require('../services/google-ads-conversion');
 
-// Get all Google Ads conversion configs
+// Get all Google Ads conversion configs (multiple accounts per language)
 router.get('/api/admin/gads-config', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT id, language, conversion_id, conversion_label, is_active, updated_at FROM gads_config ORDER BY language`
+            `SELECT id, name, language, conversion_id, conversion_label, is_active, updated_at FROM gads_config ORDER BY language, name`
         );
         res.json({ configs: result.rows });
     } catch (error) {
@@ -2636,10 +2636,10 @@ router.get('/api/admin/gads-config', authenticateToken, async (req, res) => {
     }
 });
 
-// Create or update Google Ads conversion config for a language
+// Create or update a Google Ads conversion config
 router.put('/api/admin/gads-config', authenticateToken, async (req, res) => {
     try {
-        const { language, conversion_id, conversion_label, is_active } = req.body;
+        const { id, name, language, conversion_id, conversion_label, is_active } = req.body;
 
         if (!language || !conversion_id || !conversion_label) {
             return res.status(400).json({ error: 'language, conversion_id and conversion_label are required' });
@@ -2649,23 +2649,43 @@ router.put('/api/admin/gads-config', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'language must be en, es, or pt' });
         }
 
-        const result = await pool.query(`
-            INSERT INTO gads_config (language, conversion_id, conversion_label, is_active, updated_at)
-            VALUES ($1, $2, $3, $4, NOW())
-            ON CONFLICT (language) DO UPDATE SET
-                conversion_id = EXCLUDED.conversion_id,
-                conversion_label = EXCLUDED.conversion_label,
-                is_active = EXCLUDED.is_active,
-                updated_at = NOW()
-            RETURNING *
-        `, [language, conversion_id.trim(), conversion_label.trim(), is_active !== false]);
+        let result;
+        if (id) {
+            result = await pool.query(`
+                UPDATE gads_config SET name = $1, language = $2, conversion_id = $3, conversion_label = $4, is_active = $5, updated_at = NOW()
+                WHERE id = $6 RETURNING *
+            `, [name || '', language, conversion_id.trim(), conversion_label.trim(), is_active !== false, id]);
+        } else {
+            result = await pool.query(`
+                INSERT INTO gads_config (name, language, conversion_id, conversion_label, is_active, updated_at)
+                VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *
+            `, [name || '', language, conversion_id.trim(), conversion_label.trim(), is_active !== false]);
+        }
 
         invalidateConfigCache();
 
-        console.log(`✅ Google Ads config updated: ${language} -> ${conversion_id} / ${conversion_label} (active: ${is_active !== false})`);
+        const action = id ? 'updated' : 'created';
+        console.log(`✅ Google Ads config ${action}: ${name || language} -> ${conversion_id} / ${conversion_label} (active: ${is_active !== false})`);
         res.json({ success: true, config: result.rows[0] });
     } catch (error) {
         console.error('Error saving Google Ads config:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a Google Ads conversion config
+router.delete('/api/admin/gads-config/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`DELETE FROM gads_config WHERE id = $1 RETURNING *`, [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Config not found' });
+        }
+        invalidateConfigCache();
+        console.log(`🗑️ Google Ads config deleted: id=${id} (${result.rows[0].conversion_id})`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting Google Ads config:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
