@@ -27,7 +27,7 @@ const FB_PIXELS_BY_LANGUAGE = {
 };
 
 const FB_PIXELS = FB_PIXELS_BY_LANGUAGE.en;
-const FB_API_VERSION = 'v21.0';
+const FB_API_VERSION = 'v24.0';
 
 const ALLOWED_ORIGINS = [
     'https://ingles.zappdetect.com',

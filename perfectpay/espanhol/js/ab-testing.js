@@ -4,13 +4,11 @@
  * 
  * Usage:
  *   await ABTesting.init('ingles');  // Initialize on page load
- *   ABTesting.shouldShowVSL();       // Check if should show VSL (for VSL tests)
  *   ABTesting.getConfig();           // Get current variant config
  *   ABTesting.applyConfig('cta');    // Apply config to page (cta or phone)
  *   ABTesting.trackConversion('lead', 47);  // Track conversion
  * 
  * Test Types:
- *   - vsl: Show/hide VSL video
  *   - price: Different prices and checkout URLs
  *   - headline: Different headlines and subheadlines
  *   - page: Redirect to different page URLs
@@ -86,7 +84,7 @@ const ABTesting = {
             if (savedConfig) {
                 try {
                     this._currentConfig = JSON.parse(savedConfig);
-                    this._currentTestType = savedTestType || 'vsl';
+                    this._currentTestType = savedTestType || null;
                 } catch (e) {
                     this._currentConfig = null;
                 }
@@ -176,22 +174,6 @@ const ABTesting = {
         return localStorage.getItem('ab_test_id');
     },
     
-    // Check if should show VSL (Variant B = test = with VSL)
-    shouldShowVSL: function() {
-        const variant = this.getCurrentVariant();
-        // If no test running (variant is null), default to showing VSL
-        if (!variant) return true;
-        // Variant B = test version = with VSL
-        return variant === 'B';
-    },
-    
-    // Check if should skip VSL (Variant A = control = without VSL)
-    shouldSkipVSL: function() {
-        const variant = this.getCurrentVariant();
-        // Only skip if explicitly assigned to variant A
-        return variant === 'A';
-    },
-    
     // Check if there's an active test
     hasActiveTest: function() {
         return !!localStorage.getItem('ab_test_id');
@@ -233,7 +215,7 @@ const ABTesting = {
         if (this._currentTestType) {
             return this._currentTestType;
         }
-        return localStorage.getItem('ab_test_type') || 'vsl';
+        return localStorage.getItem('ab_test_type') || null;
     },
     
     // Get price from config (for price tests)
@@ -303,11 +285,6 @@ const ABTesting = {
         console.log('🧪 A/B: Applying config for', pageType, 'page. Type:', testType);
         
         switch (testType) {
-            case 'vsl':
-                // VSL handling is done in phone.html startHacking function
-                console.log('🧪 A/B: VSL test - show_vsl:', config.show_vsl);
-                break;
-                
             case 'price':
                 this._applyPriceConfig(config);
                 break;
@@ -410,7 +387,7 @@ const ABTesting = {
             console.log('   Funnel:', funnel || this.getFunnelName());
             console.log('   Variant:', result.variant);
             console.log('   Test ID:', result.test_id);
-            console.log('   Test Type:', result.test_type || 'vsl');
+            console.log('   Test Type:', result.test_type);
             console.log('   Config:', result.config);
             
             // Auto-apply config if page type is provided

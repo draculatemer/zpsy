@@ -194,6 +194,12 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
     const retryDelayMs = 500;
 
     for (const pixel of pixels) {
+        if (!pixel.token || pixel.token.length < 10) {
+            console.error(`❌ CAPI [${pixel.name}] ${eventName}: TOKEN MISSING OR EMPTY! Set FB_PIXEL_TOKEN_${(options.language || 'en').toUpperCase()} in environment variables.`);
+            results.push({ pixel: pixel.id, success: false, error: 'Access token is missing or empty. Configure FB_PIXEL_TOKEN in environment variables.' });
+            continue;
+        }
+        
         const url = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}/events?access_token=${pixel.token}`;
         const requestBody = {
             data: [eventPayload]
@@ -227,10 +233,19 @@ async function sendToFacebookCAPI(eventName, userData, customData = {}, eventSou
                     success = true;
                 } else {
                     lastError = lastResult;
+                    const fbError = lastResult?.error || {};
+                    const errorMsg = fbError.message || JSON.stringify(lastResult).substring(0, 200);
+                    const errorCode = fbError.code || response.status;
+                    const errorSubcode = fbError.error_subcode || '';
+                    console.error(`❌ CAPI [${pixel.name}] ${eventName}: HTTP ${response.status} - code=${errorCode} subcode=${errorSubcode} - ${errorMsg}`);
+                    
+                    if (errorCode === 190 || errorSubcode === 463 || errorSubcode === 467) {
+                        console.error(`🔑 CAPI [${pixel.name}]: ACCESS TOKEN EXPIRED OR INVALID! Regenerate at: https://business.facebook.com/events_manager2/list/dataset/${pixel.id}/settings`);
+                    }
+                    
                     const isRetryable = response.status >= 500 || response.status === 429;
                     if (!isRetryable || attempt === maxRetries) {
-                        console.error(`❌ CAPI [${pixel.name}] ${eventName}: error`, lastResult);
-                        results.push({ pixel: pixel.id, success: false, error: lastResult });
+                        results.push({ pixel: pixel.id, success: false, error: lastResult, httpStatus: response.status });
                         break;
                     }
                 }

@@ -1202,76 +1202,6 @@
             display: block;
         }
         
-        /* ===== VSL + HACKING STYLES ===== */
-        .vsl-hacking-container {
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .vsl-section {
-            max-width: 450px;
-            margin: 0 auto;
-        }
-        
-        .vsl-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .vsl-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #ff4444, #cc0000);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            animation: badgePulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes badgePulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.3); }
-            50% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
-        }
-        
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: #fff;
-            border-radius: 50%;
-            animation: pulseDot 1s ease-in-out infinite;
-        }
-        
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-        }
-        
-        .vsl-title {
-            color: #25D366;
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .vsl-subtitle {
-            color: #6c757d;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-        
-        .vsl-player-wrapper {
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            margin-bottom: 20px;
-        }
-        
         /* Target Info Card */
         .target-info-card {
             display: flex;
@@ -2143,68 +2073,10 @@
             </button>
         </div>
 
-        <!-- Pantalla 3: VSL + Hackeo -->
+        <!-- Pantalla 3: Hackeo -->
         <div class="screen" id="screen3">
-            <div class="vsl-hacking-container">
-                <!-- Sección VSL -->
-                <div class="vsl-section" id="vslSection">
-                    <div class="vsl-header">
-                        <div class="vsl-badge">
-                            <span class="pulse-dot"></span>
-                            ACCESO EN VIVO EN PROGRESO
-                        </div>
-                        <h2 class="vsl-title">Importante: Mira Mientras Accedemos</h2>
-                        <p class="vsl-subtitle">Nuestro sistema se está conectando a los servidores de WhatsApp. Mira esta información de seguridad.</p>
-                    </div>
-                    
-                    <!-- VTurb Player -->
-                    <div class="vsl-player-wrapper" style="display:none !important">
-                        <vturb-smartplayer id="vid-68ffbd09ebbcac2e8cb83b23" style="display: block; margin: 0 auto; width: 100%; max-width: 400px;"></vturb-smartplayer>
-                    </div>
-                    
-                    <!-- Target Info Card -->
-                    <div class="target-info-card">
-                        <img src="" alt="Target" class="target-photo" id="vslTargetPhoto">
-                        <div class="target-details">
-                            <div class="target-label">Accediendo al objetivo</div>
-                            <div class="target-phone" id="vslTargetPhone">+52 (555) 123-4567</div>
-                            <div class="target-status">
-                                <span class="status-dot"></span>
-                                <span>Conexión activa</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Mini Terminal -->
-                    <div class="mini-terminal-section">
-                        <div class="mini-terminal-header">
-                            <div class="terminal-dots">
-                                <span class="dot red"></span>
-                                <span class="dot yellow"></span>
-                                <span class="dot green"></span>
-                            </div>
-                            <span class="terminal-title">zapspy@servidor-seguro</span>
-                        </div>
-                        <div class="mini-terminal" id="miniTerminal">
-                            <div class="terminal-line">
-                                <span class="prefix">root@zapspy:~#</span>
-                                <span class="command typing" id="typingCommand">inicializando...</span>
-                            </div>
-                        </div>
-                        <div class="mini-progress">
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="miniProgressFill"></div>
-                            </div>
-                            <div class="mini-progress-info">
-                                <span id="miniProgressText">Conectando a servidores...</span>
-                                <span id="miniProgressPercent">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Pantalla de Hackeo Completa -->
-                <div class="hacking-screen" id="hackingScreen" style="display: none;">
+            <div class="hacking-container">
+                <div class="hacking-screen" id="hackingScreen">
                     <div class="hacking-header">
                         <div class="icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2722,7 +2594,7 @@
                 data.utm_campaign = utms.utm_campaign || null;
                 data.utm_content = utms.utm_content || null;
                 data.utm_term = utms.utm_term || null;
-                data.gclid = TrackingUtils.getGclid();
+                data.gclid = typeof TrackingUtils.getGclid === 'function' ? TrackingUtils.getGclid() : (localStorage.getItem('gclid') || null);
             } else {
                 data.gclid = localStorage.getItem('gclid') || null;
             }
@@ -2743,196 +2615,24 @@
             }
         }
         
-        const VSL_DURATION = 20;
-        
-        const miniTerminalCommands = [
-            { text: 'zapspy.ai --init --modo-oculto', duration: 8000 },
-            { text: 'conectando a servidores seguros...', duration: 12000 },
-            { text: 'cargando módulos de encriptación...', duration: 10000 },
-            { text: 'estableciendo circuito TOR...', duration: 15000 },
-            { text: 'evadiendo firewall...', duration: 12000 },
-            { text: 'escaneando red de whatsapp...', duration: 18000 },
-            { text: 'localizando dispositivo objetivo...', duration: 15000 },
-            { text: 'analizando protocolo signal...', duration: 20000 },
-            { text: 'extrayendo claves de sesión...', duration: 25000 },
-            { text: 'desencriptando flujos de datos...', duration: 20000 },
-            { text: 'accediendo a base de mensajes...', duration: 18000 },
-            { text: 'recuperando contenido eliminado...', duration: 22000 },
-            { text: 'sincronizando datos de respaldo...', duration: 20000 },
-            { text: 'escaneando archivos multimedia...', duration: 15000 },
-            { text: 'analizando patrones de conversación...', duration: 18000 },
-            { text: 'detectando actividad sospechosa...', duration: 15000 },
-            { text: 'compilando informe final...', duration: 20000 },
-            { text: 'preparando acceso al panel...', duration: 15000 },
-            { text: 'ACCESO LISTO - FINALIZANDO...', duration: 10000 }
-        ];
-        
-        const miniProgressMessages = [
-            { percent: 0, text: 'Conectando a servidores...' },
-            { percent: 10, text: 'Estableciendo túnel seguro...' },
-            { percent: 20, text: 'Evadiendo encriptación...' },
-            { percent: 30, text: 'Localizando dispositivo...' },
-            { percent: 40, text: 'Extrayendo claves de sesión...' },
-            { percent: 50, text: 'Accediendo a base de WhatsApp...' },
-            { percent: 60, text: 'Recuperando mensajes eliminados...' },
-            { percent: 70, text: 'Escaneando archivos multimedia...' },
-            { percent: 80, text: 'Analizando conversaciones...' },
-            { percent: 90, text: 'Preparando panel...' },
-            { percent: 100, text: '¡Acceso completado!' }
-        ];
-        
-        let vturbLoaded = false;
-        
-        function loadVTurbPlayer() {
-            if (vturbLoaded) return;
-            vturbLoaded = true;
-            var s = document.createElement("script");
-            s.src = "https://scripts.converteai.net/d331dfa7-f65a-427e-934f-2c0eb96fde35/players/68ffbd09ebbcac2e8cb83b23/v4/player.js";
-            s.async = true;
-            document.head.appendChild(s);
-            console.log('[VSL] VTurb player loaded');
-        }
-        
         function startHacking() {
             showScreen('screen3');
-            
-            let showVSL = true;
             
             if (typeof ABTesting !== 'undefined') {
                 const testType = ABTesting.getTestType();
                 const config = ABTesting.getConfig();
                 
-                if (testType === 'vsl' && config) {
-                    showVSL = config.show_vsl !== false;
-                } else if (testType === 'page' && config && config.redirect_url) {
+                if (testType === 'page' && config && config.redirect_url) {
                     window.location.href = config.redirect_url;
                     return;
                 }
             }
             
-            if (!showVSL) {
-                document.getElementById('vslSection').style.display = 'none';
-                document.getElementById('hackingScreen').style.display = 'block';
-                startFinalHacking();
-            } else {
-                startVSLPhase();
-            }
+            startFinalHacking();
             
             if (typeof ABTesting !== 'undefined' && localStorage.getItem('ab_test_id')) {
                 ABTesting.trackConversion('phone_verify', 0);
             }
-        }
-        
-        function updateTargetInfoCard() {
-            const targetPhoto = document.getElementById('vslTargetPhoto');
-            const targetPhone = document.getElementById('vslTargetPhone');
-            
-            const savedAvatar = localStorage.getItem('targetAvatar');
-            const savedPhone = localStorage.getItem('targetPhone');
-            
-            if (savedAvatar) {
-                targetPhoto.src = savedAvatar;
-            } else {
-                targetPhoto.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23128C7E" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="white" font-size="40">?</text></svg>';
-            }
-            
-            if (savedPhone) {
-                targetPhone.textContent = savedPhone;
-            } else if (currentPhone) {
-                targetPhone.textContent = formatPhoneNumber(currentPhone, currentCountry);
-            }
-        }
-        
-        function startVSLPhase() {
-            const vslSection = document.getElementById('vslSection');
-            const hackingScreen = document.getElementById('hackingScreen');
-            
-            vslSection.style.display = 'block';
-            hackingScreen.style.display = 'none';
-            
-            updateTargetInfoCard();
-            loadVTurbPlayer();
-            startMiniTerminal();
-            startMiniProgress();
-            
-            setTimeout(() => {
-                transitionToHacking();
-            }, VSL_DURATION * 1000);
-        }
-        
-        function startMiniTerminal() {
-            const typingCommand = document.getElementById('typingCommand');
-            let cmdIndex = 0;
-            
-            function typeNextCommand() {
-                if (cmdIndex >= miniTerminalCommands.length) {
-                    cmdIndex = 0;
-                }
-                
-                const cmd = miniTerminalCommands[cmdIndex];
-                typingCommand.textContent = '';
-                
-                let charIndex = 0;
-                const typeInterval = setInterval(() => {
-                    if (charIndex < cmd.text.length) {
-                        typingCommand.textContent += cmd.text[charIndex];
-                        charIndex++;
-                    } else {
-                        clearInterval(typeInterval);
-                        cmdIndex++;
-                        setTimeout(typeNextCommand, cmd.duration);
-                    }
-                }, 50);
-            }
-            
-            typeNextCommand();
-        }
-        
-        function startMiniProgress() {
-            const progressFill = document.getElementById('miniProgressFill');
-            const progressText = document.getElementById('miniProgressText');
-            const progressPercent = document.getElementById('miniProgressPercent');
-            
-            let startTime = Date.now();
-            let msgIndex = 0;
-            
-            const progressInterval = setInterval(() => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                const percent = Math.min(100, (elapsed / VSL_DURATION) * 100);
-                
-                progressFill.style.width = percent + '%';
-                progressPercent.textContent = Math.floor(percent) + '%';
-                
-                while (msgIndex < miniProgressMessages.length - 1 && 
-                       percent >= miniProgressMessages[msgIndex + 1].percent) {
-                    msgIndex++;
-                    progressText.textContent = miniProgressMessages[msgIndex].text;
-                }
-                
-                if (percent >= 100) {
-                    clearInterval(progressInterval);
-                }
-            }, 500);
-        }
-        
-        function transitionToHacking() {
-            const vslSection = document.getElementById('vslSection');
-            const hackingScreen = document.getElementById('hackingScreen');
-            
-            vslSection.style.transition = 'opacity 0.5s';
-            vslSection.style.opacity = '0';
-            
-            setTimeout(() => {
-                vslSection.style.display = 'none';
-                hackingScreen.style.display = 'block';
-                hackingScreen.style.opacity = '0';
-                hackingScreen.style.transition = 'opacity 0.5s';
-                
-                setTimeout(() => {
-                    hackingScreen.style.opacity = '1';
-                    startFinalHacking();
-                }, 50);
-            }, 500);
         }
         
         function startFinalHacking() {

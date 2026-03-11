@@ -380,7 +380,7 @@ async function _initDatabaseCore() {
             DO $$ 
             BEGIN
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='test_type') THEN
-                    ALTER TABLE ab_tests ADD COLUMN test_type VARCHAR(20) DEFAULT 'vsl';
+                    ALTER TABLE ab_tests ADD COLUMN test_type VARCHAR(20) DEFAULT 'page';
                 END IF;
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='ab_tests' AND column_name='config_a') THEN
                     ALTER TABLE ab_tests ADD COLUMN config_a JSONB DEFAULT '{}';

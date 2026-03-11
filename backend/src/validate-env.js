@@ -26,6 +26,7 @@ function validateEnv() {
         { name: 'MONETIZZE_CONSUMER_KEY', desc: 'Monetizze API key (sync disabled without it)' },
         { name: 'FB_PIXEL_TOKEN_EN', desc: 'Facebook Pixel token for English funnel' },
         { name: 'FB_PIXEL_TOKEN_ES', desc: 'Facebook Pixel token for Spanish funnel' },
+        { name: 'FB_PIXEL_TOKEN_PT', desc: 'Facebook Pixel token for Portuguese funnel' },
         { name: 'ZAPI_INSTANCE_ID', desc: 'Z-API instance for WhatsApp (using fallback)' },
         { name: 'ZAPI_TOKEN', desc: 'Z-API token (using fallback)' },
         { name: 'FRONTEND_URL', desc: 'Allowed CORS origins (using defaults)' },

@@ -3247,6 +3247,7 @@
                                 <span class="lead-count" id="purchaseLogCount">0 eventos</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
+                                <button class="btn-secondary" onclick="checkCAPITokens()" style="font-size: 12px; padding: 6px 12px; background: #f59e0b; border-color: #f59e0b;" id="capiTokenCheckBtn">🔑 Verificar Tokens</button>
                                 <button class="btn-secondary" onclick="runCAPIClearResend()" style="font-size: 12px; padding: 6px 12px; background: #dc2626; border-color: #dc2626;" id="capiClearResendBtn">🔁 Limpar e Reenviar sem FBC</button>
                                 <button class="btn-secondary" onclick="runCAPICatchup()" style="font-size: 12px; padding: 6px 12px;" id="capiCatchupBtn">🚀 Enviar Faltantes</button>
                                 <button class="btn-secondary" onclick="loadPurchaseCAPILogs()" style="font-size: 12px; padding: 6px 12px;">🔄 Atualizar</button>
@@ -10825,9 +10826,20 @@ Estou aqui para esclarecer tudo! 😊`
                         if (log.has_external_id) params.push('ext_id');
                         if (log.has_country) params.push('country');
                         if (log.has_phone) params.push('ph');
-                        const statusBadge = log.capi_success 
-                            ? '<span class="status-badge approved">✅ Enviado</span>' 
-                            : '<span class="status-badge refunded">❌ Falhou</span>';
+                        let statusBadge;
+                        if (log.capi_success) {
+                            statusBadge = '<span class="status-badge approved">✅ Enviado</span>';
+                        } else {
+                            let errHint = '';
+                            try {
+                                const r = typeof log.capi_response === 'string' ? JSON.parse(log.capi_response) : log.capi_response;
+                                if (Array.isArray(r) && r[0]?.error) {
+                                    const e = r[0].error?.error || r[0].error;
+                                    errHint = (e?.message || (typeof e === 'string' ? e : JSON.stringify(e))).substring(0, 60);
+                                }
+                            } catch(e) {}
+                            statusBadge = `<span class="status-badge refunded" ${errHint ? `title="${errHint.replace(/"/g,'&quot;')}" style="cursor:help"` : ''}>❌ Falhou</span>`;
+                        }
                         return `<tr><td style="font-size: 12px;">${dateStr}</td><td><span class="status-badge approved">Purchase</span></td><td style="font-size: 11px;">${pixelName}</td><td style="font-size: 12px;">${log.email ? log.email.substring(0, 20) + (log.email.length > 20 ? '...' : '') : '-'}</td><td><code style="font-size: 10px; background: var(--bg-tertiary); padding: 2px 4px; border-radius: 3px;">${params.join(', ')}</code></td><td>${statusBadge}</td></tr>`;
                     }).join('');
                 }
@@ -10864,6 +10876,60 @@ Estou aqui para esclarecer tudo! 😊`
         }
         
         // ==================== CAPI CATCH-UP (MANUAL TRIGGER) ====================
+        async function checkCAPITokens() {
+            const btn = document.getElementById('capiTokenCheckBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Verificando...';
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_URL}/api/admin/capi-token-check`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                
+                let html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)this.remove()">';
+                html += '<div style="background:var(--bg-primary);border-radius:12px;padding:24px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">';
+                html += `<h3 style="margin:0 0 16px;">🔑 Status dos Tokens CAPI (API ${data.apiVersion || 'v24.0'})</h3>`;
+                
+                const langNames = { en: '🇺🇸 Inglês', es: '🇪🇸 Espanhol', pt: '🇧🇷 Português' };
+                for (const [lang, pixels] of Object.entries(data.results || {})) {
+                    for (const p of pixels) {
+                        const statusColor = p.tokenValid ? '#22c55e' : (p.tokenConfigured ? '#ef4444' : '#f59e0b');
+                        const statusIcon = p.tokenValid ? '✅' : (p.tokenConfigured ? '❌' : '⚠️');
+                        const statusText = p.tokenValid ? 'Token válido' : (p.tokenConfigured ? 'Token INVÁLIDO/EXPIRADO' : 'Token NÃO CONFIGURADO');
+                        
+                        html += `<div style="border:1px solid ${statusColor};border-radius:8px;padding:12px;margin-bottom:8px;background:${statusColor}11;">`;
+                        html += `<div style="font-weight:600;margin-bottom:4px;">${statusIcon} ${langNames[lang] || lang} - ${p.name || p.pixelId}</div>`;
+                        html += `<div style="font-size:12px;color:var(--text-muted);">Pixel ID: ${p.pixelId}</div>`;
+                        html += `<div style="font-size:13px;font-weight:500;color:${statusColor};margin-top:4px;">${statusText}</div>`;
+                        if (p.error) html += `<div style="font-size:11px;color:#ef4444;margin-top:4px;word-break:break-all;">${p.error}</div>`;
+                        if (p.pixelName) html += `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Nome no Facebook: ${p.pixelName}</div>`;
+                        html += '</div>';
+                    }
+                }
+                
+                if (!data.allTokensValid) {
+                    html += '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-top:12px;">';
+                    html += '<strong>⚠️ Como resolver:</strong><br>';
+                    html += '1. Acesse o <a href="https://business.facebook.com/events_manager2" target="_blank">Gerenciador de Eventos do Meta</a><br>';
+                    html += '2. Selecione o pixel/dataset correto<br>';
+                    html += '3. Vá em Configurações → API de Conversões<br>';
+                    html += '4. Gere um novo token de acesso<br>';
+                    html += '5. Atualize a variável <code>FB_PIXEL_TOKEN_XX</code> no Railway</div>';
+                }
+                
+                html += '<button onclick="this.closest(\'div[style*=position\\:fixed]\').remove()" style="margin-top:16px;padding:8px 24px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Fechar</button>';
+                html += '</div></div>';
+                document.body.insertAdjacentHTML('beforeend', html);
+                
+                btn.textContent = data.allTokensValid ? '✅ Tokens OK' : '❌ Tokens com problema';
+            } catch (err) {
+                btn.textContent = '❌ Erro';
+                console.error('Token check error:', err);
+            }
+            setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 5000);
+        }
+        
         async function runCAPICatchup() {
             const btn = document.getElementById('capiCatchupBtn');
             const originalText = btn.textContent;
@@ -11001,12 +11067,27 @@ Estou aqui para esclarecer tudo! 😊`
                         attrs.push(`<span style="background: ${mColor}20; color: ${mColor}; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600;" title="Match: ${log.match_method}">${log.match_method.replace('_', ' ').toUpperCase().slice(0, 8)}</span>`);
                     }
                     
-                    // CAPI status
+                    // CAPI status with error details
                     let capiStatus;
+                    let capiErrorDetail = '';
                     if (log.capi_success) {
                         capiStatus = `<span class="status-badge approved">✅ Enviado (${log.fb_events_received || 0})</span>`;
                     } else {
-                        capiStatus = `<span class="status-badge refunded">❌ Falhou</span>`;
+                        let errorHint = '';
+                        try {
+                            const resp = typeof log.capi_response === 'string' ? JSON.parse(log.capi_response) : log.capi_response;
+                            if (Array.isArray(resp) && resp[0]?.error) {
+                                const fbErr = resp[0].error?.error || resp[0].error;
+                                if (fbErr?.message) errorHint = fbErr.message.substring(0, 80);
+                                else if (typeof fbErr === 'string') errorHint = fbErr.substring(0, 80);
+                                else errorHint = JSON.stringify(fbErr).substring(0, 80);
+                            } else if (resp?.error) {
+                                errorHint = (resp.error?.message || JSON.stringify(resp.error)).substring(0, 80);
+                            }
+                        } catch(e) {}
+                        const tooltip = errorHint ? ` title="${errorHint.replace(/"/g, '&quot;')}"` : '';
+                        capiStatus = `<span class="status-badge refunded" style="cursor:${errorHint ? 'help' : 'default'}"${tooltip}>❌ Falhou</span>`;
+                        if (errorHint) capiErrorDetail = `<div style="font-size:9px;color:#ef4444;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${errorHint.replace(/"/g, '&quot;')}">${errorHint}</div>`;
                     }
                     
                     return `<tr>
@@ -11017,7 +11098,7 @@ Estou aqui para esclarecer tudo! 😊`
                         <td style="font-size: 12px; text-align: center;">${pixelLabel}</td>
                         <td style="font-size: 10px; color: var(--text-muted);" title="${log.event_source_url || ''}">${domainDisplay}</td>
                         <td style="font-size: 10px; display: flex; flex-wrap: wrap; gap: 2px;">${attrs.join('')}</td>
-                        <td>${capiStatus}</td>
+                        <td>${capiStatus}${capiErrorDetail}</td>
                     </tr>`;
                 }).join('');
                 

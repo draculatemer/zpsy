@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, getCached, setCache } = require('../middleware');
 const { buildDateFilter } = require('../helpers');
-const { UPSELL_SQL } = require('../config');
+const { UPSELL_SQL, FB_PIXELS_BY_LANGUAGE, FB_API_VERSION } = require('../config');
 
 // Real-time active users tracking (protected)
 router.get('/api/admin/active-users', authenticateToken, async (req, res) => {
@@ -223,7 +223,7 @@ router.get('/api/admin/capi-purchase-logs', authenticateToken, async (req, res) 
         const params = [];
         let paramIdx = 1;
         
-        if (language === 'en' || language === 'es') {
+        if (language === 'en' || language === 'es' || language === 'pt') {
             conditions.push(`funnel_language = $${paramIdx}`);
             params.push(language);
             paramIdx++;
@@ -281,6 +281,57 @@ router.get('/api/admin/capi-purchase-logs', authenticateToken, async (req, res) 
         }
         console.error('Error fetching CAPI purchase logs:', error);
         res.status(500).json({ error: 'Failed to fetch CAPI purchase logs' });
+    }
+});
+
+// Verify Facebook CAPI token validity for all languages
+router.get('/api/admin/capi-token-check', authenticateToken, async (req, res) => {
+    try {
+        const results = {};
+        for (const [lang, pixels] of Object.entries(FB_PIXELS_BY_LANGUAGE)) {
+            results[lang] = [];
+            for (const pixel of pixels) {
+                const entry = { pixelId: pixel.id, name: pixel.name, tokenConfigured: false, tokenValid: false, error: null };
+                
+                if (!pixel.token || pixel.token.length < 10) {
+                    entry.error = `Token not configured. Set FB_PIXEL_TOKEN_${lang.toUpperCase()} in environment variables.`;
+                    results[lang].push(entry);
+                    continue;
+                }
+                entry.tokenConfigured = true;
+                
+                try {
+                    const testUrl = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}?fields=name&access_token=${pixel.token}`;
+                    const response = await fetch(testUrl);
+                    const data = await response.json();
+                    if (response.ok && data.name) {
+                        entry.tokenValid = true;
+                        entry.pixelName = data.name;
+                    } else {
+                        const fbErr = data.error || {};
+                        entry.error = fbErr.message || 'Unknown error';
+                        entry.errorCode = fbErr.code;
+                        entry.errorSubcode = fbErr.error_subcode;
+                        if (fbErr.code === 190) {
+                            entry.error = `TOKEN EXPIRED! ${fbErr.message}. Regenerate at Facebook Events Manager.`;
+                        }
+                    }
+                } catch (fetchErr) {
+                    entry.error = `Network error: ${fetchErr.message}`;
+                }
+                results[lang].push(entry);
+            }
+        }
+        
+        const allValid = Object.values(results).flat().every(r => r.tokenValid);
+        res.json({ 
+            success: true, 
+            allTokensValid: allValid,
+            apiVersion: FB_API_VERSION,
+            results 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
