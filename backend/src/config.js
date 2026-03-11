@@ -6,21 +6,21 @@ const FB_PIXELS_BY_LANGUAGE = {
     en: [
         {
             id: '726299943423075',
-            token: process.env.FB_PIXEL_TOKEN_EN || '',
+            token: process.env.FB_PIXEL_TOKEN_EN || 'EAALZCphpZCmcIBQodgl2fJ81kKfOWRmhYmJPBVQSfOuBBbxfjOxg3HH6y03bqp8fAbZCoghz8d9HglfpbBeZBl7wTaBGvIWRqtNgoJCFz5lts434LKD5EhF26KZCFjICN9jwsEdDu4afDUYH8Ld5ZC9D8gRFq3Y884qotjlqIszrQAzZAju7qkt9OgMhX7X093PNQZDZD',
             name: '[PABLO NOVO] - [SPY INGLES] - [2025]'
         }
     ],
     es: [
         {
             id: '534495082571779',
-            token: process.env.FB_PIXEL_TOKEN_ES || '',
+            token: process.env.FB_PIXEL_TOKEN_ES || 'EAALZCphpZCmcIBQh5zHSNNj666RUi8XybMe3ZBRE31J9czSE04LBY4nZC9PBNG8SFNL4yCJf6zb9V88JkjNz55nTaIZC2wKSW22OhohIBY0IyYPYXTBFQTBVWUUIYDHhgZBf1CDVye724ekcSA6UbwSqJQPK8XYLEkvUfoJtXq7ktPv7qMOjloAx3jXdjUdJM3TgZDZD',
             name: 'PIXEL SPY ESPANHOL'
         }
     ],
     pt: [
         {
             id: '820651673268238',
-            token: process.env.FB_PIXEL_TOKEN_PT || '',
+            token: process.env.FB_PIXEL_TOKEN_PT || 'EAALZCphpZCmcIBQ8cg9hswdI4uIXKLSil7qKGG3lY7tpz40BKqA0JYNay9qKon7SpOEFS7UxmvtizBaSzSiXZBNfXRHGFp0LW5rO4rhiYfS5C9UvoZAWDrW4A8RgwQOxFr011oCtMcyvRIwIUGci1yZAtd4iFaG7UUQh9pfBEbt129yMT4KUNRN9EsHmj7fEZAiAZDZD',
             name: 'PIXEL SPY PORTUGUES'
         }
     ]
