@@ -643,18 +643,25 @@ router.post('/api/enrich-purchase', async (req, res) => {
     }
 });
 
-// Clear CAPI logs missing FBC so they can be resent with correct data
+// Clear failed CAPI logs so they can be resent
 router.post('/api/admin/capi-clear-resend', authenticateToken, requireAdmin, async (req, res) => {
     try {
-        console.log('🗑️ Admin requested: clear CAPI logs without FBC for resend...');
+        console.log('🗑️ Admin requested: clear failed CAPI logs for resend...');
         
-        // Delete logs that were sent without fbc (these will be resent by catch-up with raw_data extraction)
-        const result = await pool.query(
+        // Delete ALL failed logs (capi_success = false) so catch-up can resend them
+        const failedResult = await pool.query(
+            `DELETE FROM capi_purchase_logs WHERE capi_success = false`
+        );
+        const deletedFailed = failedResult.rowCount || 0;
+        
+        // Also delete logs without fbc (legacy behavior)
+        const noFbcResult = await pool.query(
             `DELETE FROM capi_purchase_logs WHERE has_fbc = false`
         );
-        const deleted = result.rowCount || 0;
+        const deletedNoFbc = noFbcResult.rowCount || 0;
         
-        console.log(`🗑️ Deleted ${deleted} CAPI logs without FBC. Running backfill + catch-up to resend...`);
+        const totalDeleted = deletedFailed + deletedNoFbc;
+        console.log(`🗑️ Deleted ${deletedFailed} failed + ${deletedNoFbc} without FBC CAPI logs. Running backfill + catch-up...`);
         
         // First backfill fbc/fbp from raw_data into transactions columns
         await backfillTransactionFbcFbp();
@@ -663,7 +670,7 @@ router.post('/api/admin/capi-clear-resend', authenticateToken, requireAdmin, asy
         await sendMissingCAPIPurchases();
         await sendMissingGoogleAdsPurchases();
         
-        res.json({ success: true, message: `${deleted} eventos limpos e reenviados com FBC/FBP.`, deleted });
+        res.json({ success: true, message: `${totalDeleted} eventos limpos e reenviados.`, deleted: totalDeleted, deletedFailed, deletedNoFbc });
     } catch (error) {
         console.error('CAPI clear-resend error:', error.message);
         res.status(500).json({ success: false, error: error.message });
