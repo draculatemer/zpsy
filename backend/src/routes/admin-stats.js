@@ -291,7 +291,7 @@ router.get('/api/admin/capi-token-check', authenticateToken, async (req, res) =>
         for (const [lang, pixels] of Object.entries(FB_PIXELS_BY_LANGUAGE)) {
             results[lang] = [];
             for (const pixel of pixels) {
-                const entry = { pixelId: pixel.id, name: pixel.name, tokenConfigured: false, tokenValid: false, error: null };
+                const entry = { pixelId: pixel.id, name: pixel.name, tokenConfigured: false, tokenValid: false, canSendEvents: false, error: null };
                 
                 if (!pixel.token || pixel.token.length < 10) {
                     entry.error = `Token not configured. Set FB_PIXEL_TOKEN_${lang.toUpperCase()} in environment variables.`;
@@ -299,7 +299,9 @@ router.get('/api/admin/capi-token-check', authenticateToken, async (req, res) =>
                     continue;
                 }
                 entry.tokenConfigured = true;
+                entry.tokenPreview = pixel.token.substring(0, 10) + '...' + pixel.token.substring(pixel.token.length - 6);
                 
+                // Test 1: Can we read the pixel?
                 try {
                     const testUrl = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}?fields=name&access_token=${pixel.token}`;
                     const response = await fetch(testUrl);
@@ -319,11 +321,48 @@ router.get('/api/admin/capi-token-check', authenticateToken, async (req, res) =>
                 } catch (fetchErr) {
                     entry.error = `Network error: ${fetchErr.message}`;
                 }
+                
+                // Test 2: Can we send events? (test with a dummy event using test_event_code)
+                if (entry.tokenValid || entry.tokenConfigured) {
+                    try {
+                        const eventsUrl = `https://graph.facebook.com/${FB_API_VERSION}/${pixel.id}/events?access_token=${pixel.token}`;
+                        const testPayload = {
+                            data: [{
+                                event_name: 'PageView',
+                                event_time: Math.floor(Date.now() / 1000),
+                                event_id: `token_test_${Date.now()}`,
+                                action_source: 'website',
+                                event_source_url: 'https://perfect.zappdetect.com/',
+                                user_data: { em: [require('crypto').createHash('sha256').update('tokentest@test.com').digest('hex')] }
+                            }],
+                            test_event_code: `TOKENCHECK${Date.now()}`
+                        };
+                        const evResponse = await fetch(eventsUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(testPayload)
+                        });
+                        const evData = await evResponse.json();
+                        if (evResponse.ok && evData.events_received >= 1) {
+                            entry.canSendEvents = true;
+                            entry.eventsTest = 'OK - events endpoint accessible';
+                        } else {
+                            const evErr = evData.error || {};
+                            entry.canSendEvents = false;
+                            entry.eventsError = evErr.message || JSON.stringify(evData).substring(0, 200);
+                            entry.eventsErrorCode = evErr.code;
+                            if (!entry.error) entry.error = `Token can read pixel but CANNOT send events: ${entry.eventsError}`;
+                        }
+                    } catch (evFetchErr) {
+                        entry.eventsError = `Network error: ${evFetchErr.message}`;
+                    }
+                }
+                
                 results[lang].push(entry);
             }
         }
         
-        const allValid = Object.values(results).flat().every(r => r.tokenValid);
+        const allValid = Object.values(results).flat().every(r => r.canSendEvents);
         res.json({ 
             success: true, 
             allTokensValid: allValid,

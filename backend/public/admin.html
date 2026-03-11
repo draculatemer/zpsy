@@ -10894,16 +10894,24 @@ Estou aqui para esclarecer tudo! 😊`
                 const langNames = { en: '🇺🇸 Inglês', es: '🇪🇸 Espanhol', pt: '🇧🇷 Português' };
                 for (const [lang, pixels] of Object.entries(data.results || {})) {
                     for (const p of pixels) {
-                        const statusColor = p.tokenValid ? '#22c55e' : (p.tokenConfigured ? '#ef4444' : '#f59e0b');
-                        const statusIcon = p.tokenValid ? '✅' : (p.tokenConfigured ? '❌' : '⚠️');
-                        const statusText = p.tokenValid ? 'Token válido' : (p.tokenConfigured ? 'Token INVÁLIDO/EXPIRADO' : 'Token NÃO CONFIGURADO');
+                        const isFullyWorking = p.canSendEvents;
+                        const statusColor = isFullyWorking ? '#22c55e' : (p.tokenConfigured ? '#ef4444' : '#f59e0b');
+                        const statusIcon = isFullyWorking ? '✅' : (p.tokenConfigured ? '❌' : '⚠️');
+                        let statusText;
+                        if (isFullyWorking) statusText = 'Token válido - pode enviar eventos';
+                        else if (!p.tokenConfigured) statusText = 'Token NÃO CONFIGURADO';
+                        else if (p.tokenValid && !p.canSendEvents) statusText = 'Token pode ler pixel mas NÃO pode enviar eventos (permissão faltando)';
+                        else statusText = 'Token INVÁLIDO/EXPIRADO';
                         
                         html += `<div style="border:1px solid ${statusColor};border-radius:8px;padding:12px;margin-bottom:8px;background:${statusColor}11;">`;
                         html += `<div style="font-weight:600;margin-bottom:4px;">${statusIcon} ${langNames[lang] || lang} - ${p.name || p.pixelId}</div>`;
                         html += `<div style="font-size:12px;color:var(--text-muted);">Pixel ID: ${p.pixelId}</div>`;
+                        if (p.tokenPreview) html += `<div style="font-size:11px;color:var(--text-muted);">Token: ${p.tokenPreview}</div>`;
                         html += `<div style="font-size:13px;font-weight:500;color:${statusColor};margin-top:4px;">${statusText}</div>`;
-                        if (p.error) html += `<div style="font-size:11px;color:#ef4444;margin-top:4px;word-break:break-all;">${p.error}</div>`;
                         if (p.pixelName) html += `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Nome no Facebook: ${p.pixelName}</div>`;
+                        if (p.eventsTest) html += `<div style="font-size:11px;color:#22c55e;margin-top:2px;">Teste envio: ${p.eventsTest}</div>`;
+                        if (p.error) html += `<div style="font-size:11px;color:#ef4444;margin-top:4px;word-break:break-all;">Erro: ${p.error}</div>`;
+                        if (p.eventsError && p.eventsError !== p.error) html += `<div style="font-size:11px;color:#ef4444;margin-top:2px;word-break:break-all;">Erro envio: ${p.eventsError}</div>`;
                         html += '</div>';
                     }
                 }
