@@ -20,6 +20,7 @@ router.get('/api/health', (req, res) => {
 });
 
 router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
     try {
         const phone = req.params.phone.replace(/\D/g, '');
         if (!phone || phone.length < 8) {
@@ -29,11 +30,14 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         const zapiHeaders = {};
         if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
 
+        console.log(`📱 WhatsApp check: ${phone} → ${ZAPI_BASE_URL}/phone-exists/${phone}`);
+
         const verifyResponse = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
             method: 'GET',
             headers: zapiHeaders
         });
         const verifyData = await verifyResponse.json();
+        console.log(`📱 WhatsApp check result for ${phone}:`, JSON.stringify(verifyData));
         const isRegistered = verifyData.exists === true;
 
         let picture = null;
@@ -43,14 +47,19 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
                     headers: zapiHeaders
                 });
                 const picData = await picResponse.json();
+                console.log(`📱 Profile picture result for ${phone}:`, JSON.stringify(picData));
                 if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
                     picture = picData.link;
                 }
-            } catch (e) { /* ignore pic errors */ }
+            } catch (e) {
+                console.log(`📱 Profile picture error for ${phone}:`, e.message);
+            }
         }
 
+        console.log(`📱 WhatsApp check response: ${phone} → registered=${isRegistered}, picture=${picture ? 'YES' : 'NO'}`);
         res.json({ registered: isRegistered, picture });
     } catch (e) {
+        console.log(`📱 WhatsApp check error:`, e.message);
         res.json({ registered: false, picture: null });
     }
 });
