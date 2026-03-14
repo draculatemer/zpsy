@@ -60,7 +60,7 @@ const FunnelTracker = {
             const abVariant = params.get('abv');
             if (abTestId) {
                 localStorage.setItem('ab_test_id', abTestId);
-                console.log('📊 AB Test detected: test=' + abTestId + ' variant=' + (abVariant || 'unknown'));
+
             }
             if (abVariant) {
                 localStorage.setItem('ab_variant', abVariant);
@@ -116,8 +116,6 @@ const FunnelTracker = {
             }).catch(err => console.log('Tracking error:', err));
         }
         
-        // Also log to console for debugging
-        console.log('📊 Funnel Event:', event, data);
     },
     
     // Pre-defined events

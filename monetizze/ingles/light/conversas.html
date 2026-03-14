@@ -104,12 +104,31 @@
 
         html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-primary);
+            background-color: var(--bg-primary);
+            background-image: url('../imagens/whatsapp-wallpaper-light.png');
+            background-size: 420px auto;
+            background-repeat: repeat;
             color: var(--text-primary);
             min-height: 100vh;
             min-height: -webkit-fill-available;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(240, 242, 245, 0.85);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
         }
 
         /* Status Bar - iOS Style Light */

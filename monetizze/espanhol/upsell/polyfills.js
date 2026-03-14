@@ -2,6 +2,15 @@
  * Polyfills para compatibilidad con IE11
  */
 
+// AbortSignal.timeout polyfill (Chrome 100+, Safari 16+, Firefox 100+)
+if (typeof AbortSignal !== 'undefined' && !AbortSignal.timeout) {
+    AbortSignal.timeout = function(ms) {
+        var c = new AbortController();
+        setTimeout(function() { c.abort(); }, ms);
+        return c.signal;
+    };
+}
+
 // Array.prototype.forEach polyfill
 if (!Array.prototype.forEach) {
     Array.prototype.forEach = function(callback, thisArg) {

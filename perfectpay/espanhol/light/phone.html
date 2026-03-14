@@ -91,9 +91,7 @@
                     if (!localStorage.getItem('userCountryCode')) {
                         localStorage.setItem('userCountryCode', this.userCountry);
                     }
-                } catch(e) {
-                    console.log('Error de geolocalización:', e);
-                }
+                } catch(e) {}
             },
             getDistance: function() {
                 return (Math.random() * 15 + 2).toFixed(1);
@@ -114,17 +112,11 @@
 
     <!-- Cliente Facebook CAPI -->
     <script src="../js/facebook-capi.js"></script>
-    <!-- A/B Testing -->
-    <script src="../js/ab-testing.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Phone Capture');
                 FacebookCAPI.trackViewContent('Phone Capture', 'Funnel - Lead Step', 39);
-            }
-            
-            if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('espanhol');
             }
         });
     </script>
@@ -139,7 +131,10 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
+            background-color: #efeae2;
+            background-image: url('../imagens/whatsapp-wallpaper-light.png');
+            background-size: 420px auto;
+            background-repeat: repeat;
             color: #1a1a1a;
             min-height: 100vh;
             display: flex;
@@ -150,6 +145,19 @@
             padding-top: 25px;
             padding-bottom: 40px;
             overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(239, 234, 226, 0.4);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
         }
 
         .container {
@@ -688,313 +696,281 @@
             color: #495057;
         }
 
-        /* Pantalla de Hackeo */
-        .hacking-screen {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 28px 20px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .hacking-header {
+        /* Profile Banner in Screen 3 */
+        .profile-banner {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .hacking-header .icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: pulse 1.5s infinite;
-        }
-
-        .hacking-header .icon svg {
-            width: 26px;
-            height: 26px;
-            color: #ef4444;
-        }
-
-        .hacking-header h2 {
-            font-size: 20px;
-            color: #ef4444;
-        }
-
-        .terminal {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            text-align: left;
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid #2d2d44;
-        }
-
-        .terminal-line {
-            margin-bottom: 6px;
-            opacity: 0;
-            animation: terminalType 0.3s ease forwards;
-        }
-
-        @keyframes terminalType {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .terminal-line .prefix {
-            color: #25D366;
-        }
-
-        .terminal-line .command {
-            color: #8b949e;
-        }
-
-        .terminal-line .success {
-            color: #3fb950;
-        }
-
-        .terminal-line .warning {
-            color: #ffaa00;
-        }
-        
-        .terminal-line .info {
-            color: #00bcd4;
-        }
-        
-        .terminal-line .error {
-            color: #ff4444;
-        }
-
-        .terminal-line .highlight {
-            color: #58a6ff;
-        }
-
-        /* Sección de Progreso */
-        .progress-section {
-            margin-bottom: 20px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .progress-label span:first-child {
-            color: #6c757d;
-        }
-
-        .progress-label span:last-child {
-            color: #25D366;
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
+            gap: 14px;
+            background: linear-gradient(135deg, rgba(37,211,102,0.06) 0%, #ffffff 60%);
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 1px solid rgba(37,211,102,0.1);
+            position: relative;
             overflow: hidden;
         }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #25D366, #128C7E);
-            border-radius: 4px;
-            transition: width 0.3s ease;
+        .profile-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(37,211,102,0.04), transparent);
+            animation: bannerShimmer 3s infinite;
         }
-
-        /* Caja SMS Interceptado */
-        .sms-box {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03));
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 20px;
-            animation: softPulse 2s infinite;
+        @keyframes bannerShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
-
-        @keyframes softPulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.1); }
-            50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.2); }
+        .profile-banner-avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
-
-        .sms-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
+        .profile-banner-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            position: relative;
+            z-index: 1;
         }
-
-        .sms-header svg {
-            width: 22px;
-            height: 22px;
-            color: #ef4444;
+        .profile-banner-ring {
+            position: absolute;
+            top: -3px; left: -3px;
+            width: 58px; height: 58px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            border-top-color: #25D366;
+            border-right-color: #25D366;
+            border-bottom-color: rgba(37,211,102,0.2);
+            border-left-color: rgba(37,211,102,0.2);
+            animation: avatarSpin 2s linear infinite;
         }
-
-        .sms-header span {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ef4444;
+        @keyframes avatarSpin {
+            to { transform: rotate(360deg); }
         }
-
-        .sms-code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 28px;
+        .profile-banner-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .profile-banner-number {
+            font-size: 15px;
             font-weight: 700;
             color: #1a1a1a;
-            letter-spacing: 4px;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .profile-banner-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: #25D366;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+        .profile-banner-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #25D366;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            animation: livePulse 2s ease-in-out infinite;
+        }
+        .profile-banner-live-dot {
+            width: 5px; height: 5px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Analysis Container */
+        .analysis-container {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 22px 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .analysis-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .analysis-progress-bar {
+            flex: 1;
+            height: 10px;
+            background: #eef0f2;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .analysis-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #25D366, #20BD5A, #128C7E);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        .analysis-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            animation: shimmer 1.8s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -50%; }
+            100% { left: 150%; }
+        }
+        .analysis-percent {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            background: #25D366;
+            padding: 3px 10px;
+            border-radius: 20px;
+            min-width: 44px;
             text-align: center;
+            flex-shrink: 0;
         }
-
-        /* Caja Recuperación de Respaldo */
-        .backup-box {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.03));
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            animation: softPulse 2s infinite;
-        }
-
-        .backup-header {
+        .analysis-status {
+            font-size: 12.5px;
+            color: #6c757d;
+            margin-bottom: 16px;
+            text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 2px;
+        }
+        .analysis-status-dots {
+            display: inline-flex;
+            gap: 2px;
+            margin-left: 1px;
+        }
+        .analysis-status-dots span {
+            width: 3px; height: 3px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+        .analysis-status-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .analysis-status-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotPulse {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1.2); }
+        }
+        .analysis-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             margin-bottom: 16px;
         }
-
-        .backup-header svg {
-            width: 28px;
-            height: 28px;
-            color: #ef4444;
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-5deg); }
-            75% { transform: rotate(5deg); }
-        }
-
-        .backup-header span {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ef4444;
-        }
-
-        .backup-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .backup-stat {
-            background: #f8f9fa;
-            border: 1px solid #e5e7eb;
-            padding: 14px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .backup-stat .number {
-            font-size: 26px;
-            font-weight: 800;
-            color: #ef4444;
-        }
-
-        .backup-stat .label {
-            font-size: 11px;
-            color: #6c757d;
-            margin-top: 4px;
-        }
-
-        /* Sección Datos Encontrados */
-        .data-found {
-            background: #f8f9fa;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 20px;
-        }
-
-        .data-found h4 {
-            font-size: 14px;
-            color: #6c757d;
-            margin-bottom: 14px;
-            text-align: center;
-        }
-
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+        .analysis-step {
+            display: flex;
+            align-items: center;
             gap: 10px;
-        }
-
-        .data-item {
-            text-align: center;
-            padding: 12px 8px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            background: #f8f9fa;
             border-radius: 10px;
+            font-size: 13px;
+            color: #9ca3af;
+            transition: all 0.4s cubic-bezier(.4,0,.2,1);
+            border-left: 3px solid transparent;
         }
-
-        .data-item .icon {
+        .analysis-step.active {
+            background: rgba(37,211,102,0.06);
+            color: #1a1a1a;
+            font-weight: 500;
+            border-left-color: #25D366;
+        }
+        .analysis-step.done {
+            background: rgba(37,211,102,0.06);
+            color: #16a34a;
+            border-left-color: #25D366;
+        }
+        .analysis-step.found {
+            background: rgba(239,68,68,0.05);
+            color: #dc2626;
+            font-weight: 600;
+            border-left-color: #ef4444;
+        }
+        .astep-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .astep-icon svg { width: 18px; height: 18px; }
+        .astep-icon .spinner-svg {
+            animation: spinIcon 1s linear infinite;
+        }
+        @keyframes spinIcon {
+            to { transform: rotate(360deg); }
+        }
+        .analysis-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding-top: 14px;
+            border-top: 1px solid #f0f0f0;
+            animation: statsReveal 0.5s ease-out;
+        }
+        @keyframes statsReveal {
+            from { opacity: 0; transform: translateY(10px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .astat {
+            text-align: center;
+            padding: 10px 4px;
+            background: rgba(248,249,250,0.8);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .astat-icon {
+            display: block;
+            margin: 0 auto 4px;
+        }
+        .astat-icon svg { width: 16px; height: 16px; }
+        .astat-num {
+            display: block;
             font-size: 20px;
-            margin-bottom: 6px;
-        }
-
-        .data-item .count {
-            font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
             color: #1a1a1a;
         }
-
-        .data-item .count.red {
+        .astat-num.red {
             color: #ef4444;
+            text-shadow: 0 0 12px rgba(239,68,68,0.25);
         }
-
-        .data-item .label {
+        .astat-label {
+            display: block;
             font-size: 10px;
             color: #6c757d;
             margin-top: 2px;
-        }
-
-        /* Alerta de Advertencia */
-        .warning-alert {
-            background: rgba(239, 68, 68, 0.06);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .warning-alert svg {
-            width: 24px;
-            height: 24px;
-            color: #ef4444;
-            flex-shrink: 0;
-        }
-
-        .warning-alert p {
-            font-size: 13px;
-            color: #ef4444;
-            text-align: left;
-            line-height: 1.4;
+            font-weight: 500;
         }
 
         /* Responsive */
@@ -1049,6 +1025,24 @@
             }
             .data-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .analysis-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .capture-country-select {
+                min-width: 80px;
+                width: 80px;
+            }
+            .step-line {
+                width: 24px;
+            }
+            .step-circle {
+                width: 24px;
+                height: 24px;
+                font-size: 10px;
+            }
+            .step-label {
+                font-size: 9px;
             }
             h1 {
                 font-size: 20px;
@@ -1393,7 +1387,70 @@
             color: #25D366;
             font-weight: 600;
         }
+
+        /* Progress Stepper */
+        .progress-stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 20px;
+            padding: 0 16px;
+        }
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .step-circle.active {
+            background: #25D366;
+            color: white;
+        }
+        .step-circle.done {
+            background: #16a34a;
+            color: white;
+        }
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: #e5e7eb;
+            transition: background 0.3s;
+        }
+        .step-line.active { background: #25D366; }
+        .step-label {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 4px;
+            text-align: center;
+        }
+        .step-label.active { color: #25D366; font-weight: 600; }
+        .step-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
     </style>
+    <!-- VTurb AB Test - Speed Optimization -->
+    <script>!function(i,n){i._plt=i._plt||[];(n&&n.timeOrigin?n.timeOrigin+n.now():Date.now())}(window,performance);</script>
 </head>
 <body>
     <div class="container">
@@ -1412,6 +1469,24 @@
             <div class="stats-badge">
                 <div class="dot"></div>
                 <span id="suspiciousCount">3,892 actividades sospechosas detectadas hoy</span>
+            </div>
+
+            <!-- Progress Stepper -->
+            <div class="progress-stepper" id="progressStepper">
+                <div class="step-group">
+                    <div class="step-circle done">✓</div>
+                    <div class="step-label active">Género</div>
+                </div>
+                <div class="step-line active"></div>
+                <div class="step-group">
+                    <div class="step-circle active">2</div>
+                    <div class="step-label active">Número</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-group">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Acceso</div>
+                </div>
             </div>
 
             <div class="phone-section">
@@ -2074,105 +2149,58 @@
         </div>
 
         <div class="screen" id="screen3">
-            <div class="hacking-container">
-                <div class="hacking-screen" id="hackingScreen">
-                    <div class="hacking-header">
-                        <div class="icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                <path d="M12 8v4M12 16h.01"/>
-                            </svg>
-                        </div>
-                        <h2>Accediendo a WhatsApp...</h2>
+            <!-- Profile Banner -->
+            <div class="profile-banner">
+                <div class="profile-banner-avatar-wrap">
+                    <img class="profile-banner-avatar" id="screen3Avatar" src="../imagens/default-avatar.png" alt="Perfil">
+                    <div class="profile-banner-ring"></div>
+                </div>
+                <div class="profile-banner-info">
+                    <div class="profile-banner-number" id="screen3Phone">+1 (555) 123-4567</div>
+                    <div class="profile-banner-status">
+                        <span class="profile-banner-live"><span class="profile-banner-live-dot"></span>LIVE</span>
+                        Monitoreo activo
                     </div>
+                </div>
+            </div>
 
-                    <div class="terminal" id="terminal">
+            <!-- Analysis Progress -->
+            <div class="analysis-container">
+                <div class="analysis-progress">
+                    <div class="analysis-progress-bar">
+                        <div class="analysis-progress-fill" id="analysisProgressFill" style="width: 0%"></div>
                     </div>
+                    <span class="analysis-percent" id="analysisPercent">0%</span>
+                </div>
 
-                    <div class="progress-section">
-                        <div class="progress-label">
-                            <span id="progressText">Inicializando...</span>
-                            <span id="progressPercent">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                        </div>
+                <p class="analysis-status" id="analysisStatus"><span id="analysisStatusText">Iniciando análisis</span><span class="analysis-status-dots"><span></span><span></span><span></span></span></p>
+
+                <div class="analysis-steps" id="analysisSteps">
+                    <div class="analysis-step" id="astep1"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Conectando a los servidores</span></div>
+                    <div class="analysis-step" id="astep2"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Verificando cuenta</span></div>
+                    <div class="analysis-step" id="astep3"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Escaneando historial de mensajes</span></div>
+                    <div class="analysis-step" id="astep4"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Recuperando datos eliminados</span></div>
+                    <div class="analysis-step" id="astep5"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Analizando conversaciones</span></div>
+                    <div class="analysis-step" id="astep6"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Detectando actividad sospechosa</span></div>
+                    <div class="analysis-step" id="astep7"><span class="astep-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg></span><span>Preparando reporte</span></div>
+                </div>
+
+                <div class="analysis-stats" id="analysisStats" style="display:none;">
+                    <div class="astat">
+                        <span class="astat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M4 4h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 3v-13a2 2 0 012-2z" stroke="#25D366" stroke-width="1.5"/></svg></span>
+                        <span class="astat-num" id="astatMsgs">0</span><span class="astat-label">Mensajes</span>
                     </div>
-
-                    <div class="sms-box" id="smsBox" style="display: none;">
-                        <div class="sms-header">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
-                            </svg>
-                            <span>SMS INTERCEPTADO</span>
-                        </div>
-                        <div class="sms-code" id="smsCode">██-███</div>
+                    <div class="astat">
+                        <span class="astat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="#ef4444" stroke-width="1.5"/></svg></span>
+                        <span class="astat-num red" id="astatDeleted">0</span><span class="astat-label">Eliminados</span>
                     </div>
-
-                    <div class="backup-box" id="backupBox" style="display: none;">
-                        <div class="backup-header">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                <line x1="10" y1="11" x2="10" y2="17"/>
-                                <line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
-                            <span>¡DATOS ELIMINADOS ENCONTRADOS!</span>
-                        </div>
-                        <div class="backup-stats">
-                            <div class="backup-stat">
-                                <div class="number" id="deletedMsgsCount">47</div>
-                                <div class="label">Mensajes Eliminados</div>
-                            </div>
-                            <div class="backup-stat">
-                                <div class="number" id="deletedMediaCount">23</div>
-                                <div class="label">Fotos/Videos Eliminados</div>
-                            </div>
-                        </div>
+                    <div class="astat">
+                        <span class="astat-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="#25D366" stroke-width="1.5"/><circle cx="7.5" cy="7.5" r="1.5" fill="#25D366"/><path d="M3 13l4-4 3 3 4-5 3 3" stroke="#25D366" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <span class="astat-num" id="astatMedia">0</span><span class="astat-label">Media</span>
                     </div>
-
-                    <div class="data-found" id="dataFound" style="display: none;">
-                        <h4>Datos recuperados del respaldo</h4>
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <div class="icon">💬</div>
-                                <div class="count" id="msgCount">0</div>
-                                <div class="label">Mensajes</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="icon">🗑️</div>
-                                <div class="count red" id="deletedCountFinal">0</div>
-                                <div class="label">Eliminados</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="icon">📷</div>
-                                <div class="count" id="mediaCount">0</div>
-                                <div class="label">Multimedia</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="icon">👤</div>
-                                <div class="count" id="contactCount">0</div>
-                                <div class="label">Contactos</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="icon">🔴</div>
-                                <div class="count red" id="suspiciousCountData">0</div>
-                                <div class="label">Sospechosos</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="icon">📍</div>
-                                <div class="count" id="locationCount">0</div>
-                                <div class="label">Ubicaciones</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="warning-alert" id="warningAlert" style="display: none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        <p><strong>Advertencia:</strong> Conversaciones sospechosas detectadas. Se eliminaron mensajes para ocultar evidencia.</p>
+                    <div class="astat">
+                        <span class="astat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M10 3l1.5 5H17l-4 3.5 1.5 5.5L10 14l-4.5 3 1.5-5.5L3 8h5.5z" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+                        <span class="astat-num red" id="astatSuspicious">0</span><span class="astat-label">Sospechosos</span>
                     </div>
                 </div>
             </div>
@@ -2284,16 +2312,14 @@
             return `${country} ${formatted}`;
         }
 
-        const ZAPI_INSTANCE = '3E7938F228CBB0978267A6F61CAAA8C7';
-        const ZAPI_TOKEN = '983F7A4EF1F159FAD3C42B05';
-        const ZAPI_CLIENT_TOKEN = 'F0f2cc62f6c4f46088783537c957b7fd6S';
-
         function startSpy() {
-            const phone = document.getElementById('phoneInput').value.replace(/\D/g, '');
+            const phoneEl = document.getElementById('phoneInput');
+            const phone = phoneEl.value.replace(/\D/g, '');
             const country = document.getElementById('countryCode').value;
-            
+
             if (phone.length < 8) {
-                alert('Por favor ingresa un número de teléfono válido');
+                phoneEl.style.animation = 'shake 0.5s';
+                setTimeout(function() { phoneEl.style.animation = ''; }, 500);
                 return;
             }
 
@@ -2379,37 +2405,18 @@
                     lastStepId = step.stepId;
                 }
 
-                if (i === 2) {
+                // Make API call to verify WhatsApp at step 2
+                if (i === 2 && !isRegistered) {
                     try {
-                        const response = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/phone-exists/${fullPhone}`, {
-                            headers: { 'client-token': ZAPI_CLIENT_TOKEN }
-                        });
-                        const data = await response.json();
-                        isRegistered = data.exists === true;
-                    } catch (e) {
-                        console.log('Error de API:', e);
-                        isRegistered = true;
-                    }
-                    
-                    if (!isRegistered) {
-                        const formattedPhone = formatPhoneNumber(phone, country);
-                        document.getElementById('errorPhone').textContent = formattedPhone;
-                        showScreen('screenError');
-                        return;
-                    }
-                }
-
-                if (i === 4 && isRegistered) {
-                    try {
-                        const response = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/profile-picture?phone=${fullPhone}`, {
-                            headers: { 'client-token': ZAPI_CLIENT_TOKEN }
-                        });
-                        const data = await response.json();
-                        if (data.link && data.link !== 'null' && data.link !== null && data.link.startsWith('http')) {
-                            profilePictureUrl = data.link;
+                        const ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
+                        const checkResponse = await fetch(ZAPSPY_API_URL + '/api/whatsapp-check/' + fullPhone);
+                        const checkData = await checkResponse.json();
+                        isRegistered = checkData.registered === true;
+                        if (checkData.picture) {
+                            profilePictureUrl = checkData.picture;
                         }
                     } catch (e) {
-                        console.log('Error al obtener foto de perfil:', e);
+                        isRegistered = true;
                     }
                 }
 
@@ -2494,7 +2501,7 @@
             localStorage.setItem('userName', name);
             localStorage.setItem('userEmail', email);
             localStorage.setItem('userWhatsApp', country + whatsapp);
-            localStorage.setItem('userCountryCode', country);
+            localStorage.setItem('userPhoneCountry', country);
             localStorage.setItem('userPhoneNumber', whatsapp);
             
             let visitorId = localStorage.getItem('funnelVisitorId');
@@ -2600,8 +2607,7 @@
             
             if (typeof TrackingUtils !== 'undefined') {
                 TrackingUtils.sendWithRetry(`${ZAPSPY_API_URL}/api/leads`, data)
-                    .then(result => console.log('Lead guardado:', result))
-                    .catch(error => console.log('Error al guardar lead:', error));
+                    .catch(function() {});
             } else {
                 fetch(`${ZAPSPY_API_URL}/api/leads`, {
                     method: 'POST',
@@ -2609,177 +2615,135 @@
                     body: JSON.stringify(data)
                 })
                 .then(response => response.json())
-                .then(result => console.log('Lead guardado:', result))
-                .catch(error => console.log('Error al guardar lead:', error));
+                .catch(function() {});
             }
         }
         
         function startHacking() {
             showScreen('screen3');
-            
-            if (typeof ABTesting !== 'undefined') {
-                const testType = ABTesting.getTestType();
-                const config = ABTesting.getConfig();
-                
-                if (testType === 'page' && config && config.redirect_url) {
-                    window.location.href = config.redirect_url;
-                    return;
-                }
-            }
+
+            var s2avatar = document.getElementById('profileAvatar');
+            var s3avatar = document.getElementById('screen3Avatar');
+            if (s2avatar && s3avatar) s3avatar.src = s2avatar.src;
+            var s2phone = document.getElementById('profileNumber');
+            var s3phone = document.getElementById('screen3Phone');
+            if (s2phone && s3phone) s3phone.textContent = s2phone.textContent;
             
             startFinalHacking();
-            
-            if (typeof ABTesting !== 'undefined' && localStorage.getItem('ab_test_id')) {
-                ABTesting.trackConversion('phone_verify', 0);
-            }
         }
         
+        var svgPending = '<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#d1d5db" stroke-width="2"/></svg>';
+        var svgSpinner = '<svg class="spinner-svg" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#e5e7eb" stroke-width="2"/><path d="M10 3a7 7 0 0 1 7 7" stroke="#25D366" stroke-width="2" stroke-linecap="round"/></svg>';
+        var svgCheck = '<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#25D366"/><path d="M6.5 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var svgAlert = '<svg viewBox="0 0 20 20" fill="none"><path d="M10 2L1 18h18L10 2z" fill="#ef4444"/><path d="M10 8v4M10 14.5v.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
+        var dotsHtml = '<span class="analysis-status-dots"><span></span><span></span><span></span></span>';
+
         function startFinalHacking() {
-            const terminal = document.getElementById('terminal');
-            terminal.innerHTML = '';
-            
-            let commandIndex = 0;
-            let progress = 0;
+            var totalDuration = 20;
+            var startTime = Date.now();
+            var deletedMsgs = Math.floor(Math.random() * 50) + 40;
+            var deletedMedia = Math.floor(Math.random() * 30) + 15;
+            var totalMsgs = Math.floor(Math.random() * 800) + 1200;
+            var suspicious = Math.floor(Math.random() * 8) + 5;
 
-            const deletedMsgs = Math.floor(Math.random() * 50) + 40;
-            const deletedMedia = Math.floor(Math.random() * 30) + 15;
-
-            document.getElementById('smsBox').style.display = 'none';
-            document.getElementById('backupBox').style.display = 'none';
-            document.getElementById('dataFound').style.display = 'none';
-            document.getElementById('warningAlert').style.display = 'none';
-
-            const fastCommands = [
-                { text: '$ zapspy.ai --finalizar --exportar', type: 'command', delay: 400 },
-                { text: '[OK] Todos los datos sincronizados', type: 'success', delay: 300 },
-                { text: '[OK] Claves de encriptación verificadas', type: 'success', delay: 300 },
-                { text: '[ALERTA] ¡SMS INTERCEPTADO!', type: 'error', delay: 500 },
-                { text: '[ALERTA] ¡Código de verificación capturado!', type: 'error', delay: 400 },
-                { text: '$ respaldo --verificar', type: 'command', delay: 400 },
-                { text: '[OK] Respaldo desencriptado: 847.3 MB', type: 'success', delay: 300 },
-                { text: '[ALERTA] ¡' + deletedMsgs + ' MENSAJES ELIMINADOS ENCONTRADOS!', type: 'error', delay: 500 },
-                { text: '[ALERTA] ¡' + deletedMedia + ' ARCHIVOS MULTIMEDIA ELIMINADOS!', type: 'error', delay: 400 },
-                { text: '$ analizar --sospechoso', type: 'command', delay: 400 },
-                { text: '[ADVERTENCIA] ¡Actividad sospechosa detectada!', type: 'warning', delay: 400 },
-                { text: '[ALERTA] Conversaciones nocturnas: 23 encontradas', type: 'error', delay: 300 },
-                { text: '[ALERTA] Contactos ocultos: 3 encontrados', type: 'error', delay: 300 },
-                { text: '$ exportar --panel', type: 'command', delay: 400 },
-                { text: '[OK] 1,847 mensajes listos', type: 'success', delay: 250 },
-                { text: '[OK] 234 archivos multimedia listos', type: 'success', delay: 250 },
-                { text: '[OK] 12 conversaciones sospechosas marcadas', type: 'success', delay: 250 },
-                { text: '', type: 'spacer', delay: 300 },
-                { text: '═══════════════════════════════════════', type: 'success', delay: 200 },
-                { text: '   ACCESO CONCEDIDO - CARGANDO DATOS...', type: 'success', delay: 500 },
-                { text: '═══════════════════════════════════════', type: 'success', delay: 300 }
+            var steps = [
+                { id: 'astep1', doneAt: 2, type: 'done' },
+                { id: 'astep2', doneAt: 5, type: 'done' },
+                { id: 'astep3', doneAt: 8, type: 'done' },
+                { id: 'astep4', doneAt: 11, type: 'found' },
+                { id: 'astep5', doneAt: 14, type: 'found' },
+                { id: 'astep6', doneAt: 17, type: 'found' },
+                { id: 'astep7', doneAt: 19, type: 'done' }
             ];
 
-            function addTerminalLine() {
-                if (commandIndex >= fastCommands.length) {
-                    setTimeout(() => {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const gender = urlParams.get('gender');
-                        const genderParam = gender ? '&gender=' + gender : '';
-                        window.location.href = 'conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
+            var statusTexts = {
+                en: ['Starting analysis','Connecting to servers','Verifying account registration','Scanning message history','Recovering deleted data','Analyzing conversation patterns','Suspicious activity detected','Preparing your report','Analysis complete!'],
+                es: ['Iniciando análisis','Conectando a los servidores','Verificando registro de cuenta','Escaneando historial de mensajes','Recuperando datos eliminados','Analizando patrones de conversación','Actividad sospechosa detectada','Preparando tu reporte','¡Análisis completo!'],
+                pt: ['Iniciando análise','Conectando aos servidores','Verificando registro da conta','Escaneando histórico de mensagens','Recuperando dados apagados','Analisando padrões de conversas','Atividade suspeita detectada','Preparando seu relatório','Análise completa!']
+            };
+
+            var lang = 'en';
+            var p = window.location.pathname;
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+            var texts = statusTexts[lang];
+
+            var stepsCompleted = 0;
+            var statusEl = document.getElementById('analysisStatus');
+
+            function setStatus(text, showDots) {
+                if (!statusEl) return;
+                var txt = '<span id="analysisStatusText">' + text + '</span>';
+                statusEl.innerHTML = showDots ? txt + dotsHtml : txt;
+            }
+
+            function updateAnalysis() {
+                var elapsed = (Date.now() - startTime) / 1000;
+                var pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+
+                document.getElementById('analysisProgressFill').style.width = pct + '%';
+                document.getElementById('analysisPercent').textContent = pct + '%';
+
+                for (var i = 0; i < steps.length; i++) {
+                    var step = steps[i];
+                    var el = document.getElementById(step.id);
+                    if (!el) continue;
+
+                    if (elapsed >= step.doneAt && i >= stepsCompleted) {
+                        el.className = 'analysis-step ' + step.type;
+                        el.querySelector('.astep-icon').innerHTML = step.type === 'found' ? svgAlert : svgCheck;
+                        stepsCompleted = i + 1;
+
+                        if (i === 3) {
+                            document.getElementById('analysisStats').style.display = 'grid';
+                            animateCounter('astatMsgs', totalMsgs);
+                            animateCounter('astatDeleted', deletedMsgs);
+                            animateCounter('astatMedia', deletedMedia);
+                            animateCounter('astatSuspicious', suspicious);
+                        }
+                    } else if (elapsed >= (i === 0 ? 0 : steps[i-1].doneAt) && elapsed < step.doneAt && !el.classList.contains('done') && !el.classList.contains('found')) {
+                        el.className = 'analysis-step active';
+                        el.querySelector('.astep-icon').innerHTML = svgSpinner;
+                    }
+                }
+
+                if (elapsed < 2) setStatus(texts[1], true);
+                else if (elapsed < 5) setStatus(texts[2], true);
+                else if (elapsed < 8) setStatus(texts[3], true);
+                else if (elapsed < 11) setStatus(texts[4], true);
+                else if (elapsed < 14) setStatus(texts[5], true);
+                else if (elapsed < 17) setStatus(texts[6], true);
+                else if (elapsed < 19) setStatus(texts[7], true);
+                else setStatus(texts[8], false);
+
+                if (elapsed >= totalDuration) {
+                    clearInterval(analysisInterval);
+                    setTimeout(function() {
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var gender = urlParams.get('gender');
+                        var genderParam = gender ? '&gender=' + gender : '';
+                        window.location.href = 'cta-unified.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
                     }, 1500);
                     return;
                 }
-
-                const cmd = fastCommands[commandIndex];
-                
-                if (cmd.type === 'spacer') {
-                    commandIndex++;
-                    setTimeout(addTerminalLine, cmd.delay || 300);
-                    return;
-                }
-
-                const line = document.createElement('div');
-                line.className = 'terminal-line';
-                line.style.animationDelay = '0s';
-
-                let text = cmd.text
-                    .replace(/{PHONE}/g, currentCountry.replace('+','') + currentPhone);
-                
-                if (cmd.type === 'command') {
-                    line.innerHTML = `<span class="prefix">root@zapspy:~#</span> <span class="command">${text}</span>`;
-                } else if (cmd.type === 'success') {
-                    line.innerHTML = `<span class="success">${text}</span>`;
-                } else if (cmd.type === 'warning') {
-                    line.innerHTML = `<span class="warning">${text}</span>`;
-                } else if (cmd.type === 'error') {
-                    line.innerHTML = `<span class="error blink">${text}</span>`;
-                } else if (cmd.type === 'info') {
-                    line.innerHTML = `<span class="info">${text}</span>`;
-                }
-
-                terminal.appendChild(line);
-                terminal.scrollTop = terminal.scrollHeight;
-
-                progress = Math.min(100, Math.floor((commandIndex / fastCommands.length) * 100));
-                document.getElementById('progressFill').style.width = progress + '%';
-                document.getElementById('progressPercent').textContent = progress + '%';
-
-                if (commandIndex < 5) {
-                    document.getElementById('progressText').textContent = 'Verificando acceso...';
-                } else if (commandIndex < 10) {
-                    document.getElementById('progressText').textContent = 'Cargando datos recuperados...';
-                } else if (commandIndex < 15) {
-                    document.getElementById('progressText').textContent = 'Analizando conversaciones...';
-                } else {
-                    document.getElementById('progressText').textContent = 'Preparando panel...';
-                }
-
-                if (commandIndex === 3) {
-                    document.getElementById('smsBox').style.display = 'block';
-                    document.getElementById('smsBox').classList.add('pulse');
-                    const code = Math.floor(Math.random() * 90 + 10) + '-' + Math.floor(Math.random() * 900 + 100);
-                    document.getElementById('smsCode').textContent = code.charAt(0) + '█-███';
-                    VibrationSystem.alert();
-                }
-
-                if (commandIndex === 7) {
-                    document.getElementById('backupBox').style.display = 'block';
-                    document.getElementById('backupBox').classList.add('pulse');
-                    document.getElementById('deletedMsgsCount').textContent = deletedMsgs;
-                    document.getElementById('deletedMediaCount').textContent = deletedMedia;
-                    VibrationSystem.notification();
-                }
-
-                if (commandIndex === 10) {
-                    document.getElementById('warningAlert').style.display = 'flex';
-                    document.getElementById('warningAlert').classList.add('pulse');
-                    VibrationSystem.alert();
-                }
-
-                if (commandIndex === 14) {
-                    document.getElementById('dataFound').style.display = 'block';
-                    animateCounter('msgCount', 1847);
-                    animateCounter('deletedCountFinal', deletedMsgs);
-                    animateCounter('mediaCount', 234);
-                    animateCounter('contactCount', 127);
-                    animateCounter('suspiciousCountData', 12);
-                    animateCounter('locationCount', 7);
-                }
-
-                commandIndex++;
-                
-                const delay = cmd.delay || 300;
-                setTimeout(addTerminalLine, delay);
             }
 
-            setTimeout(addTerminalLine, 500);
+            var analysisInterval = setInterval(updateAnalysis, 500);
+            updateAnalysis();
         }
 
         function animateCounter(elementId, target) {
-            const element = document.getElementById(elementId);
-            let current = 0;
-            const increment = Math.ceil(target / 20);
-            const interval = setInterval(() => {
+            var element = document.getElementById(elementId);
+            if (!element) return;
+            var current = 0;
+            var increment = Math.ceil(target / 30);
+            var interval = setInterval(function() {
                 current += increment;
                 if (current >= target) {
                     current = target;
                     clearInterval(interval);
                 }
-                element.textContent = current.toLocaleString('es-ES');
+                element.textContent = current.toLocaleString();
             }, 50);
         }
 

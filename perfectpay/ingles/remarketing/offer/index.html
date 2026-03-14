@@ -219,13 +219,13 @@
 
     <div class="rmk-social-proof">
         <span class="rmk-live-dot"></span>
-        <span id="liveCount">2,134</span> people unlocked full access today
+        <span id="liveCount">340</span> people unlocked full access today
     </div>
 
     <div class="rmk-footer">
         ZapSpy.ai - Secure Intelligence Platform<br>
         Secure payment processed by PerfectPay.<br>
-        &copy; 2025 ZapSpy.ai. All rights reserved.
+        &copy; <script>document.write(new Date().getFullYear())</script> ZapSpy.ai. All rights reserved.
     </div>
 
     <!-- Bottom spacer for sticky footer -->
@@ -252,25 +252,25 @@
         document.getElementById('targetAvatar').textContent = target.gender === 'female' ? '\uD83D\uDC69' : '\uD83D\uDC68';
     }
 
-    // Countdown timer - 15 minutes
+    // Countdown timer - 15 minutes (persistent with localStorage)
     startTimer('countdown', 900, function() {
         document.getElementById('countdown').textContent = 'EXPIRED';
-    });
+    }, 'rmk_countdown_offer');
 
     // Live counter variation
     var liveEl = document.getElementById('liveCount');
     setInterval(function() {
-        var n = 1900 + Math.floor(Math.random() * 400);
+        var n = 340 + Math.floor(Math.random() * 60);
         liveEl.textContent = n.toLocaleString();
     }, 5000);
 
     // Activity Feed
     startActivityFeed([
-        { emoji: '\uD83D\uDC69', name: 'Maria from California', action: 'just unlocked full access with 50% off', time: '1 min ago' },
-        { emoji: '\uD83D\uDC68', name: 'John from Texas', action: 'recovered 89 deleted messages', time: '3 min ago' },
-        { emoji: '\uD83D\uDC69', name: 'Rachel from Florida', action: 'used the exclusive link just now', time: '2 min ago' },
-        { emoji: '\uD83D\uDC68', name: 'Alex from New York', action: 'found evidence in hidden chats', time: '5 min ago' },
-        { emoji: '\uD83D\uDC69', name: 'Sophia from Ohio', action: 'saved $24.50 with the special offer', time: '4 min ago' }
+        { emoji: '\uD83D\uDC69', name: 'user_***2k from Europe', action: 'just unlocked full access with 50% off', time: '1 min ago' },
+        { emoji: '\uD83D\uDC68', name: 'anon_***91 from Asia', action: 'recovered 89 deleted messages', time: '3 min ago' },
+        { emoji: '\uD83D\uDC69', name: 'user_***7x from Americas', action: 'used the exclusive link just now', time: '2 min ago' },
+        { emoji: '\uD83D\uDC68', name: 'anon_***4r from Africa', action: 'found evidence in hidden chats', time: '5 min ago' },
+        { emoji: '\uD83D\uDC69', name: 'user_***m3 from Oceania', action: 'saved $24.50 with the special offer', time: '4 min ago' }
     ], 10000);
 
     // Tab title urgency

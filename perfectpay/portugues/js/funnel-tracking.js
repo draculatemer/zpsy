@@ -56,11 +56,11 @@ const FunnelTracker = {
     detectABParams: function() {
         try {
             const params = new URLSearchParams(window.location.search);
-            const abTestId = params.get('ab');
-            const abVariant = params.get('abv');
+            const abTestId = params.get('ab_test');
+            const abVariant = params.get('variant');
             if (abTestId) {
                 localStorage.setItem('ab_test_id', abTestId);
-                console.log('📊 AB Test detected: test=' + abTestId + ' variant=' + (abVariant || 'unknown'));
+
             }
             if (abVariant) {
                 localStorage.setItem('ab_variant', abVariant);
@@ -84,7 +84,12 @@ const FunnelTracker = {
             page,
             targetPhone,
             targetGender,
-            funnelLanguage: 'pt',
+            funnelLanguage: (function() {
+                var p = window.location.pathname;
+                if (p.indexOf('/portugues/') !== -1) return 'pt';
+                if (p.indexOf('/espanhol/') !== -1) return 'es';
+                return 'en';
+            })(),
             funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
@@ -116,8 +121,6 @@ const FunnelTracker = {
             }).catch(err => console.log('Tracking error:', err));
         }
         
-        // Also log to console for debugging
-        console.log('📊 Funnel Event:', event, data);
     },
     
     // Pre-defined events

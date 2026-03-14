@@ -14,11 +14,11 @@ const recentPostbacks = [];
 
 const recentPerfectPayWebhooks = [];
 
-// Simple test endpoint for postback (no DB)
-router.post('/api/postback/test', (req, res) => {
+// Simple test endpoint for postback (no DB) - protected
+router.post('/api/postback/test', authenticateToken, requireAdmin, (req, res) => {
     console.log('🧪 Test postback received:', req.body);
-    res.json({ 
-        status: 'ok', 
+    res.json({
+        status: 'ok',
         received: req.body,
         keys: Object.keys(req.body || {})
     });
@@ -1106,7 +1106,8 @@ router.all('/api/postback/perfectpay', async (req, res) => {
         // ==================== VALIDATE TOKEN ====================
         const perfectPayToken = process.env.PERFECTPAY_WEBHOOK_TOKEN;
         if (perfectPayToken && webhookToken && webhookToken !== perfectPayToken) {
-            console.log('⚠️ PerfectPay token mismatch - processing anyway');
+            console.warn('🚫 PerfectPay token mismatch - rejecting webhook');
+            return res.status(403).json({ error: 'Invalid webhook token' });
         }
         
         // ==================== MAP STATUS ====================

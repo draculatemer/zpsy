@@ -374,7 +374,12 @@ const EmailCapture = {
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
                 visitorId: visitorId,
-                funnelLanguage: 'pt',
+                funnelLanguage: (function() {
+                    var p = window.location.pathname;
+                    if (p.indexOf('/portugues/') !== -1) return 'pt';
+                    if (p.indexOf('/espanhol/') !== -1) return 'es';
+                    return 'en';
+                })(),
                 funnelSource: 'main',
                 fbc: localStorage.getItem('_fbc') || '',
                 fbp: localStorage.getItem('_fbp') || '',
@@ -391,7 +396,7 @@ const EmailCapture = {
             
             // Track CAPI Lead event
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: name });
+                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: email.split('@')[0] });
             }
             
             // Track event

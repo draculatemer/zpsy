@@ -54,7 +54,7 @@
     <script src="../js/tracking.js"></script>
     
     <!-- Facebook CAPI Client -->
-    <script src="../js/facebook-capi.js"></script>
+    <script src="../js/facebook-capi.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             (function() {
@@ -65,7 +65,7 @@
                         if (data.country_code && !localStorage.getItem('userCountryCode')) {
                             localStorage.setItem('userCountryCode', data.country_code);
                         }
-                    }).catch(function(e) { console.log('Geo detection error:', e); });
+                    }).catch(function() {});
                 }
             })();
 
@@ -77,8 +77,8 @@
     </script>
     
     <!-- Enhanced Tracking -->
-    <script src="../js/tracking-utils.js"></script>
-    <script src="../js/funnel-tracking.js"></script>
+    <script src="../js/tracking-utils.js" defer></script>
+    <script src="../js/funnel-tracking.js" defer></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -103,10 +103,26 @@
 
         html, body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-light);
+            background-color: #efeae2;
+            background-image: url('../imagens/whatsapp-wallpaper-light.png');
+            background-size: 420px auto;
+            background-repeat: repeat;
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(239, 234, 226, 0.4);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
         }
 
         /* Main Container */
@@ -176,6 +192,7 @@
             max-width: 380px;
             margin: 0 auto;
             line-height: 1.5;
+            overflow-wrap: break-word;
         }
 
         .headline p strong {
@@ -212,6 +229,7 @@
             font-size: 13px;
             color: var(--red-alert);
             font-weight: 500;
+            overflow-wrap: break-word;
         }
 
         @keyframes blink {
@@ -489,6 +507,62 @@
                 font-size: 20px;
             }
         }
+
+        @media (max-width: 340px) {
+            .stats-badge {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .scarcity-timer {
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+            .trust-badges {
+                gap: 6px;
+            }
+            .trust-badge {
+                font-size: 10px;
+                padding: 5px 8px;
+            }
+            .gender-btn {
+                padding: 12px 14px;
+                gap: 10px;
+            }
+        }
+        /* Scarcity Timer */
+        .scarcity-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .scarcity-timer-dot {
+            width: 8px;
+            height: 8px;
+            background: #dc2626;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        /* Micro Testimonial */
+        .micro-testimonial {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: rgba(37, 211, 102, 0.06);
+            border-left: 3px solid #25D366;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+        .micro-testimonial strong { color: #1a1a1a; }
     </style>
 </head>
 <body>
@@ -511,7 +585,7 @@
         <!-- Stats Badge -->
         <div class="stats-badge">
             <div class="dot"></div>
-            <span id="statsCounter">3.412 atividades suspeitas detectadas hoje</span>
+            <span id="statsCounter">480 atividades suspeitas detectadas hoje</span>
         </div>
 
         <!-- Main Card -->
@@ -574,6 +648,17 @@
             </div>
         </div>
 
+        <!-- Scarcity Timer -->
+        <div class="scarcity-timer">
+            <span class="scarcity-timer-dot"></span>
+            <span>Preço especial expira em <strong id="scarcityTimer">14:59</strong></span>
+        </div>
+
+        <!-- Micro Testimonial -->
+        <div class="micro-testimonial">
+            "Encontrei tudo em 3 minutos. Conversas, fotos apagadas... estava tudo lá." — <strong>user_***8k</strong> ★★★★★
+        </div>
+
         <!-- Users Counter -->
         <div class="users-counter">
             <div class="users-avatars">
@@ -583,7 +668,7 @@
                 <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
                 <div class="avatar avatar-more">+2k</div>
             </div>
-            <p><strong id="liveUsersCount">2.156 pessoas</strong> estão usando o ZapSpy agora</p>
+            <p><strong id="liveUsersCount">189 pessoas</strong> estão usando o ZapSpy agora</p>
         </div>
     </div>
 
@@ -603,7 +688,6 @@
                         localStorage.setItem(param, value);
                     }
                 });
-                console.log('[UTM] Captured UTMs from URL:', Object.fromEntries(utmParams.map(p => [p, urlParams.get(p)])));
             }
         })();
         
@@ -653,16 +737,16 @@
         }
 
         function updateStats() {
-            const base = 3412;
-            const random = Math.floor(Math.random() * 150);
+            const base = 480;
+            const random = Math.floor(Math.random() * 61) - 30;
             document.getElementById('statsCounter').textContent = 
                 (base + random).toLocaleString('pt-BR') + ' atividades suspeitas detectadas hoje';
         }
         setInterval(updateStats, 5000);
 
         function updateLiveUsers() {
-            const base = 2156;
-            const random = Math.floor(Math.random() * 200) - 100;
+            const base = 189;
+            const random = Math.floor(Math.random() * 41) - 20;
             const el = document.getElementById('liveUsersCount');
             if (el) el.textContent = (base + random).toLocaleString('pt-BR') + ' pessoas';
         }
@@ -677,6 +761,34 @@
             }
         `;
         document.head.appendChild(style);
+
+        // Scarcity Timer (persistent with localStorage)
+        (function() {
+            var COUNTDOWN_KEY = 'landing_countdown_end';
+            var timeLeft = 899;
+            var el = document.getElementById('scarcityTimer');
+            if (!el) return;
+            var savedEnd = localStorage.getItem(COUNTDOWN_KEY);
+            var now = Date.now();
+            if (savedEnd && parseInt(savedEnd) > now) {
+                timeLeft = Math.floor((parseInt(savedEnd) - now) / 1000);
+            } else {
+                localStorage.setItem(COUNTDOWN_KEY, (now + timeLeft * 1000).toString());
+            }
+            var m = Math.floor(timeLeft / 60);
+            var s = timeLeft % 60;
+            el.textContent = m + ':' + String(s).padStart(2, '0');
+            var iv = setInterval(function() {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    clearInterval(iv);
+                }
+                var m = Math.floor(timeLeft / 60);
+                var s = timeLeft % 60;
+                el.textContent = m + ':' + String(s).padStart(2, '0');
+            }, 1000);
+        })();
     </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Account Enhancement - ZappDetect V2</title>
+    <title>Account Enhancement - ZapSpy V2</title>
     
     <!-- Meta Pixel Code -->
     <script>
@@ -62,7 +62,7 @@
         });
     </script>
     
-    <meta name="description" content="Additional service available for your ZappDetect account.">
+    <meta name="description" content="Additional service available for your ZapSpy account.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔓</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -189,22 +189,29 @@
                 <div class="cta-card">
                     <h3 class="cta-title">WhatsApp Is Just The Surface — See Everything</h3>
                     
-                    <p class="price-tag" style="margin-bottom: 24px;">Service activation fee: $45</p>
-                    
+                    <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Service activation fee: $41</p>
                     <a href='#monetizzeCompra' data-upsell='9b81209eb794e41391115f4ba99e8efd' class="btn btn-primary btn-upgrade btn-pulse btn-mega" aria-label="Unlock all social networks and GPS monitoring now" role="button">Yes, Add Social Networks + GPS to My Account</a>
+                    <a href="../up3/" class="decline-link">No thanks</a>
                 </div>
             </section>
 
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> ZappDetect. All rights reserved.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. All rights reserved.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell3-script.js?v=9.0"></script>
-    <!-- geo-restriction.js removed - prices always visible -->
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script src="../upsell-tracking.js?v=1.0"></script>
     <script>
     (function(){

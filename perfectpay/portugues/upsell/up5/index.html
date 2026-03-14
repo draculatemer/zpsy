@@ -252,10 +252,10 @@
                     <p class="cta-text">Sua conta já tem acesso a mensagens e localizações armazenadas. Agora adicione o feed ao vivo. Ouça as conversas e veja o ambiente em tempo real.</p>
                     
                     <div class="cta-buttons">
-                        <p class="price-tag" style="margin-bottom: 24px;">Taxa de ativação do serviço: $39</p>
                         
+                        <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Taxa de ativação do serviço: R$39</p>
                         <a href='https://go.centerpag.com/PPU38CQ7TCH?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Obter Acesso Ao Vivo agora" role="button">Sim, Adicionar Acesso Ao Vivo à Minha Conta</a>
-                        
+                        <a href="../up6/" class="decline-link">Não, obrigado</a>
                     </div>
                 </div>
             </section>
@@ -263,13 +263,21 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> Live Surveillance Systems. Todos os direitos reservados.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. Todos os direitos reservados.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell1-script.js?v=9.0"></script>
     <script src="../upsell-tracking.js?v=2.0"></script>
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script>
     (function(){
         var o=document.getElementById('liveOverlay'),m=document.getElementById('mainPage'),

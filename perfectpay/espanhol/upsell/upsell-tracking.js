@@ -76,7 +76,7 @@ const UpsellTracker = {
             page,
             targetPhone,
             targetGender,
-            funnelLanguage: 'en',
+            funnelLanguage: 'es',
             funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,
@@ -189,7 +189,7 @@ const UpsellTracker = {
         if (path.includes('/up5/')) return 5;
         if (path.includes('/up6/')) return 6;
         if (path.includes('/up7/')) return 7;
-        if (path.includes('/thankyou/')) return 'thankyou';
+        if (path.includes('/thankyou/') || path.includes('/gracias/')) return 'thankyou';
         return null;
     },
     
@@ -267,9 +267,10 @@ const UpsellTracker = {
         };
         
         // Use sendBeacon for reliable delivery (page is about to navigate away)
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         const beaconSent = navigator.sendBeacon(
             `${this.API_URL}/api/track`,
-            JSON.stringify(data)
+            blob
         );
         
         console.log('📊 Upsell Accept Event (sendBeacon):', event, beaconSent ? '✅ sent' : '❌ failed', data);

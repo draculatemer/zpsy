@@ -19,7 +19,43 @@ router.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-router.get('/api/capi/status', async (req, res) => {
+router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
+    try {
+        const phone = req.params.phone.replace(/\D/g, '');
+        if (!phone || phone.length < 8) {
+            return res.json({ registered: false, picture: null });
+        }
+
+        const zapiHeaders = {};
+        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+
+        const verifyResponse = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
+            method: 'GET',
+            headers: zapiHeaders
+        });
+        const verifyData = await verifyResponse.json();
+        const isRegistered = verifyData.exists === true;
+
+        let picture = null;
+        if (isRegistered) {
+            try {
+                const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
+                    headers: zapiHeaders
+                });
+                const picData = await picResponse.json();
+                if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
+                    picture = picData.link;
+                }
+            } catch (e) { /* ignore pic errors */ }
+        }
+
+        res.json({ registered: isRegistered, picture });
+    } catch (e) {
+        res.json({ registered: false, picture: null });
+    }
+});
+
+router.get('/api/capi/status', authenticateToken, async (req, res) => {
     try {
         // Get recent transaction counts
         const last24h = await pool.query(`
@@ -978,6 +1014,106 @@ router.post('/api/social-scan', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Social scan error:', error.message);
         res.status(200).json({ success: false, fallback: true });
+    }
+});
+
+// ==================== A/B TESTING PUBLIC API ====================
+
+// Get variant for a visitor (called by frontend ab-testing.js)
+router.get('/api/ab/variant', async (req, res) => {
+    try {
+        const { funnel, visitor_id } = req.query;
+        
+        if (!funnel || !visitor_id) {
+            return res.json({ variant: null, test_id: null, config: null });
+        }
+        
+        const activeTest = await pool.query(
+            `SELECT id, name, funnel, variant_a_name, variant_a_param, variant_b_name, variant_b_param,
+                    traffic_split, test_type, config_a, config_b, url_a, url_b
+             FROM ab_tests 
+             WHERE funnel = $1 AND status = 'running' 
+             ORDER BY created_at DESC LIMIT 1`,
+            [funnel]
+        );
+        
+        if (activeTest.rows.length === 0) {
+            return res.json({ variant: null, test_id: null, config: null });
+        }
+        
+        const test = activeTest.rows[0];
+        const testId = test.id;
+        
+        const existingVisitor = await pool.query(
+            `SELECT variant FROM ab_test_visitors WHERE test_id = $1 AND visitor_id = $2`,
+            [testId, visitor_id]
+        );
+        
+        let variant;
+        if (existingVisitor.rows.length > 0) {
+            variant = existingVisitor.rows[0].variant;
+        } else {
+            const random = Math.random() * 100;
+            variant = random < Number(test.traffic_split) ? 'A' : 'B';
+            
+            const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+            const userAgent = req.headers['user-agent'] || '';
+            
+            pool.query(
+                `INSERT INTO ab_test_visitors (test_id, visitor_id, variant, ip_address, user_agent)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (test_id, visitor_id) DO NOTHING`,
+                [testId, visitor_id, variant, ipAddress, userAgent]
+            ).catch(err => console.error('AB visitor insert error:', err.message));
+        }
+        
+        const config = variant === 'A' ? (test.config_a || {}) : (test.config_b || {});
+        const param = variant === 'A' ? test.variant_a_param : test.variant_b_param;
+        
+        res.json({
+            variant,
+            test_id: testId,
+            param,
+            test_type: test.test_type || 'page',
+            config,
+            test_name: test.name
+        });
+        
+    } catch (error) {
+        console.error('AB variant error:', error);
+        res.json({ variant: null, test_id: null, config: null });
+    }
+});
+
+// Track A/B test conversion (called by frontend ab-testing.js)
+router.post('/api/ab/convert', async (req, res) => {
+    try {
+        const { test_id, visitor_id, event_type, value, metadata } = req.body;
+        
+        if (!test_id || !visitor_id || !event_type) {
+            return res.status(400).json({ error: 'test_id, visitor_id and event_type are required' });
+        }
+        
+        const visitorResult = await pool.query(
+            `SELECT variant FROM ab_test_visitors WHERE test_id = $1 AND visitor_id = $2`,
+            [test_id, visitor_id]
+        );
+        
+        const variant = visitorResult.rows.length > 0
+            ? visitorResult.rows[0].variant
+            : (req.body.variant || 'A');
+        
+        await pool.query(
+            `INSERT INTO ab_test_conversions (test_id, visitor_id, variant, event_type, value, metadata)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [test_id, visitor_id, variant, event_type, value || 0, JSON.stringify(metadata || {})]
+        );
+        
+        res.json({ success: true, variant, event_type });
+        
+    } catch (error) {
+        console.error('AB conversion error:', error);
+        res.status(500).json({ error: 'Failed to track conversion' });
     }
 });
 

@@ -188,16 +188,35 @@ const RmkTracking = {
     }
 };
 
-// Timer utility
-function startTimer(elementId, totalSeconds, onExpire) {
+// Timer utility - supports localStorage persistence when storageKey is provided
+function startTimer(elementId, totalSeconds, onExpire, storageKey) {
     var el = document.getElementById(elementId);
     if (!el) return;
     var remaining = totalSeconds;
+    var expireTs = null;
+
+    if (storageKey) {
+        try {
+            var saved = localStorage.getItem(storageKey);
+            if (saved) {
+                expireTs = parseInt(saved, 10);
+                var now = Date.now();
+                remaining = Math.max(0, Math.floor((expireTs - now) / 1000));
+            } else {
+                expireTs = Date.now() + totalSeconds * 1000;
+                localStorage.setItem(storageKey, String(expireTs));
+            }
+        } catch (e) {}
+    }
+
     function update() {
         var m = Math.floor(remaining / 60);
         var s = remaining % 60;
         el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
         if (remaining <= 0) {
+            if (storageKey) {
+                try { localStorage.removeItem(storageKey); } catch (e) {}
+            }
             if (onExpire) onExpire();
             return;
         }

@@ -1,11 +1,11 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
     <!-- UTMify tracking -->
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Servicio Adicional - ZappDetect V2</title>
+    <title>Servicio Adicional - ZapSpy V2</title>
     
     <!-- Meta Pixel Code -->
     <script>
@@ -62,7 +62,7 @@
         });
     </script>
     
-    <meta name="description" content="Servicio adicional disponible para tu cuenta ZappDetect.">
+    <meta name="description" content="Servicio adicional disponible para tu cuenta ZapSpy.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔓</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -187,8 +187,7 @@
                 <div class="cta-card">
                     <h3 class="cta-title">WhatsApp Es Solo La Superficie — Ve Todo</h3>
                     
-                    <p class="price-tag" style="margin-bottom: 24px;">Tarifa de activación del servicio: $31</p>
-                    
+                    <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Tarifa de activación del servicio: $31</p>
                     <a href='https://go.centerpag.com/PPU38CQ82HO?upsell=true' class="btn btn-primary btn-upgrade btn-pulse btn-mega" aria-label="Desbloquear todas las redes sociales y monitoreo GPS ahora" role="button">Sí, Agregar Redes Sociales + GPS a Mi Cuenta</a>
                 <a href="../up3/" class="decline-link">No gracias, no necesito redes sociales + GPS</a>
                 </div>
@@ -197,13 +196,20 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> ZappDetect. Todos los derechos reservados.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. Todos los derechos reservados.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell3-script.js?v=9.0"></script>
-    <!-- geo-restriction.js removed - prices always visible -->
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script src="../upsell-tracking.js?v=1.0"></script>
     <script>
     (function(){

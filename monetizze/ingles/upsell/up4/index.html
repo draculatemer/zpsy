@@ -254,11 +254,11 @@
                     <p class="cta-text">Your account is set up for monitoring. Now make sure they never find out. The Invisibility Cloak is your protection against detection.</p>
                     
                     <div class="cta-buttons">
-                        <p class="price-tag" style="margin-bottom: 24px;">Service activation fee: $41</p>
-                        
                         <!-- MONETIZZE: Replace hash below with your Invisibility Cloak product hash -->
+                        <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Service activation fee: $37</p>
                         <a href='#monetizzeCompra' data-upsell='bd97710b0721d28c219ebdc1010eb0af' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Activate Invisibility Cloak now" role="button">Yes, Add Invisibility Cloak to My Account</a>
-                        
+                        <a href="../up5/" class="decline-link">No thanks</a>
+
                     </div>
                 </div>
             </section>
@@ -266,13 +266,21 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> Stealth Security Suite. All rights reserved.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. All rights reserved.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell1-script.js?v=9.0"></script>
     <script src="../upsell-tracking.js?v=2.0"></script>
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script>
     (function(){
         var o=document.getElementById('stealthOverlay'),m=document.getElementById('mainPage'),

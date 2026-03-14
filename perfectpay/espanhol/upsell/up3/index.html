@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
     <!-- UTMify tracking -->
@@ -241,8 +241,7 @@
                     <h2 class="cta-title">3 Días es Demasiado Tiempo Para Esperar la Verdad</h2>
                     
                     <div class="cta-buttons">
-                        <p class="price-tag" style="margin-bottom: 24px;">Tarifa de activación del servicio: $29</p>
-                        
+                        <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Tarifa de activación del servicio: $29</p>
                         <a href='https://go.centerpag.com/PPU38CQ82HR?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Agregar procesamiento prioritario VIP a tu cuenta" role="button">Sí, Agregar Prioridad VIP a Mi Cuenta</a>
                 <a href="../up4/" class="decline-link">No gracias, no necesito prioridad VIP</a>
                     </div>
@@ -252,13 +251,20 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> Priority Access. Todos los derechos reservados.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. Todos los derechos reservados.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell4-script.js?v=9.0"></script>
-    <!-- geo-restriction.js removed - prices always visible -->
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script src="../upsell-tracking.js?v=1.0"></script>
     <script>
     (function(){

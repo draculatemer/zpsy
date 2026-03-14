@@ -178,22 +178,35 @@ router.get('/api/admin/recovery/segments', authenticateToken, async (req, res) =
     try {
         const { language, startDate, endDate } = req.query;
         
-        let dateParams = [];
-        let feDateFilter = '';
-        let plainDateFilter = '';
-        if (startDate && endDate) {
-            dateParams = [startDate, endDate + ' 23:59:59'];
-            feDateFilter = `AND fe.created_at >= $1 AND fe.created_at <= $2`;
-            plainDateFilter = `AND created_at >= $1 AND created_at <= $2`;
+        const allowedLanguages = ['en', 'es', 'pt', 'pt-BR'];
+        const safeLanguage = (language && allowedLanguages.includes(language)) ? language : null;
+        
+        function buildParams(baseParams, addLang, langPrefix, addDate, datePrefix) {
+            const params = [];
+            let langFilter = '';
+            let dateFilter = '';
+            let idx = 1;
+            if (addLang && safeLanguage) {
+                langFilter = `AND ${langPrefix}funnel_language = $${idx}`;
+                params.push(safeLanguage);
+                idx++;
+            }
+            if (addDate && startDate && endDate) {
+                dateFilter = `AND ${datePrefix}created_at >= $${idx} AND ${datePrefix}created_at <= $${idx + 1}`;
+                params.push(startDate, endDate + ' 23:59:59');
+                idx += 2;
+            }
+            return { params, langFilter, dateFilter, nextIdx: idx };
         }
         
-        // 1. Lost Visitors - Entered funnel but never reached checkout (exclude already contacted)
+        // 1. Lost Visitors
+        const lv = buildParams([], true, 'l.', true, 'fe.');
         const lostVisitors = await pool.query(`
             SELECT COUNT(DISTINCT fe.visitor_id) as count
             FROM funnel_events fe
             LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
             WHERE fe.event IN ('page_view', 'landing_visit', 'phone_submitted', 'cta_clicked')
-            ${language ? `AND l.funnel_language = '${language}'` : ''}
+            ${lv.langFilter}
             AND NOT EXISTS (
                 SELECT 1 FROM funnel_events fe2
                 WHERE fe2.visitor_id = fe.visitor_id
@@ -209,16 +222,17 @@ router.get('/api/admin/recovery/segments', authenticateToken, async (req, res) =
                 WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                 AND rc.lead_email != ''
             )
-            ${feDateFilter}
-        `, dateParams);
+            ${lv.dateFilter}
+        `, lv.params);
         
-        // 2. Checkout Abandoned - Clicked checkout but didn't buy (exclude already contacted)
+        // 2. Checkout Abandoned
+        const ca = buildParams([], true, 'l.', true, 'fe.');
         const checkoutAbandoned = await pool.query(`
             SELECT COUNT(DISTINCT fe.visitor_id) as count
             FROM funnel_events fe
             LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
             WHERE fe.event = 'checkout_clicked'
-            ${language ? `AND l.funnel_language = '${language}'` : ''}
+            ${ca.langFilter}
             AND NOT EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
@@ -229,10 +243,11 @@ router.get('/api/admin/recovery/segments', authenticateToken, async (req, res) =
                 WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                 AND rc.lead_email != ''
             )
-            ${feDateFilter}
-        `, dateParams);
+            ${ca.dateFilter}
+        `, ca.params);
         
-        // 3. Payment Failed - Only FRONT product failures (exclude upsells, already contacted, and already purchased)
+        // 3. Payment Failed
+        const pf = buildParams([], true, 't.', true, '');
         const paymentFailed = await pool.query(`
             SELECT COUNT(*) as count, COALESCE(SUM(value_brl), 0) as total_value
             FROM (
@@ -244,7 +259,7 @@ router.get('/api/admin/recovery/segments', authenticateToken, async (req, res) =
                 FROM transactions t
                 WHERE t.status IN ('cancelled', 'refused')
                 AND t.email IS NOT NULL AND t.email != ''
-                ${language ? `AND t.funnel_language = '${language}'` : ''}
+                ${pf.langFilter}
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%vault%'
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%360%'
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%tracker%'
@@ -261,34 +276,36 @@ router.get('/api/admin/recovery/segments', authenticateToken, async (req, res) =
                     SELECT 1 FROM recovery_contacts rc
                     WHERE LOWER(rc.lead_email) = LOWER(t.email)
                 )
-                ${plainDateFilter}
+                ${pf.dateFilter}
                 ORDER BY LOWER(t.email), t.created_at DESC
             ) sub
-        `, dateParams);
+        `, pf.params);
         
-        // 4. Refund Requests - Pending refund requests
+        // 4. Refund Requests
+        const rr = buildParams([], true, '', true, '');
         const refundRequests = await pool.query(`
             SELECT COUNT(*) as count, COALESCE(SUM(CAST(value AS DECIMAL)), 0) as total_value
             FROM refund_requests
             WHERE status IN ('pending', 'handling', 'processing')
-            ${language ? `AND funnel_language = '${language}'` : ''}
-            ${plainDateFilter}
-        `, dateParams);
+            ${rr.langFilter}
+            ${rr.dateFilter}
+        `, rr.params);
         
-        // 5. Upsell Declined - Bought front-end but declined upsells
+        // 5. Upsell Declined
+        const ud = buildParams([], true, 'l.', true, 'fe.');
         const upsellDeclined = await pool.query(`
             SELECT COUNT(DISTINCT fe.visitor_id) as count
             FROM funnel_events fe
             INNER JOIN leads l ON fe.visitor_id = l.visitor_id
             WHERE fe.event LIKE '%_declined'
-            ${language ? `AND l.funnel_language = '${language}'` : ''}
+            ${ud.langFilter}
             AND EXISTS (
                 SELECT 1 FROM transactions t 
                 WHERE LOWER(t.email) = LOWER(l.email)
                 AND t.status = 'approved'
             )
-            ${feDateFilter}
-        `, dateParams);
+            ${ud.dateFilter}
+        `, ud.params);
         
         // USD to BRL rate from env (inverse of BRL_TO_USD)
         const USD_TO_BRL = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
@@ -383,17 +400,8 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
         let leads = [];
         let totalCount = 0;
         
-        // Build date filters with table prefixes to avoid ambiguity in JOINs
-        let feDateFilter = '';   // for funnel_events queries (prefix: fe.)
-        let tDateFilter = '';    // for transactions queries (prefix: t.)
-        let rDateFilter = '';    // for refund_requests queries (prefix: r.)
-        let plainDateFilter = ''; // for single-table/count queries
-        if (startDate && endDate) {
-            feDateFilter = `AND fe.created_at >= '${startDate}' AND fe.created_at <= '${endDate} 23:59:59'`;
-            tDateFilter = `AND t.created_at >= '${startDate}' AND t.created_at <= '${endDate} 23:59:59'`;
-            rDateFilter = `AND r.created_at >= '${startDate}' AND r.created_at <= '${endDate} 23:59:59'`;
-            plainDateFilter = `AND created_at >= '${startDate}' AND created_at <= '${endDate} 23:59:59'`;
-        }
+        const allowedLanguages = ['en', 'es', 'pt', 'pt-BR'];
+        const safeLanguage = (language && allowedLanguages.includes(language)) ? language : null;
         
         // Ensure recovery_contacts table exists before queries
         await pool.query(`
@@ -410,8 +418,28 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
             );
         `);
         
+        function buildSegmentFilters(langCol, dateCol) {
+            const params = [];
+            let langFilter = '';
+            let dateFilter = '';
+            let idx = 1;
+            if (safeLanguage) {
+                langFilter = `AND ${langCol} = $${idx}`;
+                params.push(safeLanguage);
+                idx++;
+            }
+            if (startDate && endDate) {
+                dateFilter = `AND ${dateCol} >= $${idx} AND ${dateCol} <= $${idx + 1}`;
+                params.push(startDate, endDate + ' 23:59:59');
+                idx += 2;
+            }
+            return { params, langFilter, dateFilter, nextIdx: idx };
+        }
+        
         if (segment === 'lost_visitors') {
-            // Lost visitors - entered funnel but never reached checkout
+            const f = buildSegmentFilters('l.funnel_language', 'fe.created_at');
+            const limitIdx = f.nextIdx;
+            const offsetIdx = f.nextIdx + 1;
             const result = await pool.query(`
                 SELECT DISTINCT ON (COALESCE(l.email, fe.visitor_id))
                     COALESCE(l.id, 0) as id,
@@ -432,7 +460,7 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 FROM funnel_events fe
                 LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event IN ('page_view', 'landing_visit', 'phone_submitted', 'cta_clicked')
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND NOT EXISTS (
                     SELECT 1 FROM funnel_events fe2
                     WHERE fe2.visitor_id = fe.visitor_id
@@ -448,10 +476,10 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                     AND rc.lead_email != ''
                 )
-                ${feDateFilter}
+                ${f.dateFilter}
                 ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
-                LIMIT $1 OFFSET $2
-            `, [parseInt(limit), offset]);
+                LIMIT $${limitIdx} OFFSET $${offsetIdx}
+            `, [...f.params, parseInt(limit), offset]);
             
             leads = result.rows;
             
@@ -460,7 +488,7 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 FROM funnel_events fe
                 LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event IN ('page_view', 'landing_visit', 'phone_submitted', 'cta_clicked')
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND NOT EXISTS (
                     SELECT 1 FROM funnel_events fe2
                     WHERE fe2.visitor_id = fe.visitor_id
@@ -476,12 +504,14 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                     AND rc.lead_email != ''
                 )
-                ${feDateFilter}
-            `);
+                ${f.dateFilter}
+            `, f.params);
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'checkout_abandoned') {
-            // Checkout abandoned leads
+            const f = buildSegmentFilters('l.funnel_language', 'fe.created_at');
+            const limitIdx = f.nextIdx;
+            const offsetIdx = f.nextIdx + 1;
             const result = await pool.query(`
                 SELECT DISTINCT ON (COALESCE(l.email, fe.visitor_id))
                     COALESCE(l.id, 0) as id,
@@ -502,7 +532,7 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 FROM funnel_events fe
                 LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event = 'checkout_clicked'
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND NOT EXISTS (
                     SELECT 1 FROM transactions t 
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
@@ -513,20 +543,19 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                     AND rc.lead_email != ''
                 )
-                ${feDateFilter}
+                ${f.dateFilter}
                 ORDER BY COALESCE(l.email, fe.visitor_id), fe.created_at DESC
-                LIMIT $1 OFFSET $2
-            `, [parseInt(limit), offset]);
+                LIMIT $${limitIdx} OFFSET $${offsetIdx}
+            `, [...f.params, parseInt(limit), offset]);
             
             leads = result.rows;
             
-            // Get total count
             const countResult = await pool.query(`
                 SELECT COUNT(DISTINCT COALESCE(l.email, fe.visitor_id)) as count
                 FROM funnel_events fe
                 LEFT JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event = 'checkout_clicked'
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND NOT EXISTS (
                     SELECT 1 FROM transactions t 
                     WHERE LOWER(t.email) = LOWER(COALESCE(l.email, ''))
@@ -537,13 +566,13 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     WHERE LOWER(rc.lead_email) = LOWER(COALESCE(l.email, ''))
                     AND rc.lead_email != ''
                 )
-                ${feDateFilter}
-            `);
+                ${f.dateFilter}
+            `, f.params);
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'payment_failed') {
-            // Payment failed leads - only FRONT product failures, exclude upsells and already purchased
             const usdToBrlRate = 1 / parseFloat(process.env.CONVERSION_BRL_TO_USD || '0.18');
+            const f = buildSegmentFilters('t.funnel_language', 't.created_at');
             const result = await pool.query(`
                 SELECT DISTINCT ON (LOWER(t.email))
                     t.id,
@@ -568,7 +597,7 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 LEFT JOIN leads l ON LOWER(t.email) = LOWER(l.email)
                 WHERE t.status IN ('cancelled', 'refused')
                 AND t.email IS NOT NULL AND t.email != ''
-                ${language ? `AND t.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%vault%'
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%360%'
                 AND LOWER(COALESCE(t.product, '')) NOT LIKE '%tracker%'
@@ -585,16 +614,17 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     SELECT 1 FROM recovery_contacts rc
                     WHERE LOWER(rc.lead_email) = LOWER(t.email)
                 )
-                ${tDateFilter}
+                ${f.dateFilter}
                 ORDER BY LOWER(t.email), t.created_at DESC
-            `, []);
+            `, f.params);
             
-            // Apply pagination in JS since DISTINCT ON + ORDER BY + LIMIT is tricky
             totalCount = result.rows.length;
             leads = result.rows.slice(offset, offset + parseInt(limit));
             
         } else if (segment === 'refund_requests') {
-            // Refund requests - simplified query
+            const f = buildSegmentFilters('r.funnel_language', 'r.created_at');
+            const limitIdx = f.nextIdx;
+            const offsetIdx = f.nextIdx + 1;
             const result = await pool.query(`
                 SELECT 
                     r.id,
@@ -616,24 +646,27 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                     r.protocol
                 FROM refund_requests r
                 WHERE r.status IN ('pending', 'handling', 'processing')
-                ${language ? `AND r.funnel_language = '${language}'` : ''}
-                ${rDateFilter}
+                ${f.langFilter}
+                ${f.dateFilter}
                 ORDER BY r.created_at DESC
-                LIMIT $1 OFFSET $2
-            `, [parseInt(limit), offset]);
+                LIMIT $${limitIdx} OFFSET $${offsetIdx}
+            `, [...f.params, parseInt(limit), offset]);
             
             leads = result.rows;
             
+            const fc = buildSegmentFilters('funnel_language', 'created_at');
             const countResult = await pool.query(`
                 SELECT COUNT(*) as count FROM refund_requests
                 WHERE status IN ('pending', 'handling', 'processing')
-                ${language ? `AND funnel_language = '${language}'` : ''}
-                ${plainDateFilter}
-            `);
+                ${fc.langFilter}
+                ${fc.dateFilter}
+            `, fc.params);
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else if (segment === 'upsell_declined') {
-            // Upsell declined - simplified query
+            const f = buildSegmentFilters('l.funnel_language', 'fe.created_at');
+            const limitIdx = f.nextIdx;
+            const offsetIdx = f.nextIdx + 1;
             const result = await pool.query(`
                 SELECT DISTINCT ON (l.email)
                     l.id,
@@ -659,16 +692,16 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 FROM funnel_events fe
                 INNER JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event LIKE '%_declined'
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND EXISTS (
                     SELECT 1 FROM transactions t 
                     WHERE LOWER(t.email) = LOWER(l.email)
                     AND t.status = 'approved'
                 )
-                ${feDateFilter}
+                ${f.dateFilter}
                 ORDER BY l.email, fe.created_at DESC
-                LIMIT $1 OFFSET $2
-            `, [parseInt(limit), offset]);
+                LIMIT $${limitIdx} OFFSET $${offsetIdx}
+            `, [...f.params, parseInt(limit), offset]);
             
             leads = result.rows;
             
@@ -677,14 +710,14 @@ router.get('/api/admin/recovery/:segment', authenticateToken, async (req, res, n
                 FROM funnel_events fe
                 INNER JOIN leads l ON fe.visitor_id = l.visitor_id
                 WHERE fe.event LIKE '%_declined'
-                ${language ? `AND l.funnel_language = '${language}'` : ''}
+                ${f.langFilter}
                 AND EXISTS (
                     SELECT 1 FROM transactions t 
                     WHERE LOWER(t.email) = LOWER(l.email)
                     AND t.status = 'approved'
                 )
-                ${feDateFilter}
-            `);
+                ${f.dateFilter}
+            `, f.params);
             totalCount = parseInt(countResult.rows[0]?.count || 0);
             
         } else {
@@ -970,11 +1003,10 @@ router.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req,
             sendResult = { sent: false, error: 'Número de telefone inválido ou ausente' };
         }
         
-        // Record the contact with send status
         const contactStatus = sendResult.sent ? 'sent' : 'failed';
         await pool.query(
-            `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, $4, $5, '${contactStatus}')`,
-            [email, segment, `step_${nextStep}`, step.channel || 'whatsapp', message]
+            `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, $4, $5, $6)`,
+            [email, segment, `step_${nextStep}`, step.channel || 'whatsapp', message, contactStatus]
         );
         
         res.json({
@@ -1089,8 +1121,8 @@ router.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async 
                 
                 const contactStatus = sent ? 'sent' : 'failed';
                 await pool.query(
-                    `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, 'whatsapp', $4, '${contactStatus}')`,
-                    [lead.email, segment, `step_${nextStep}`, message]
+                    `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status) VALUES ($1, $2, $3, 'whatsapp', $4, $5)`,
+                    [lead.email, segment, `step_${nextStep}`, message, contactStatus]
                 );
                 
                 results.push({

@@ -6295,7 +6295,7 @@ Estou aqui para esclarecer tudo! 😊`
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url, clientToken: 'F221fdbff74cc4d998046c12b9e0a65ddS' })
+                    body: JSON.stringify({ url })
                 });
                 const data = await response.json();
                 

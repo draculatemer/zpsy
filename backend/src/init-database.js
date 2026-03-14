@@ -517,10 +517,13 @@ async function _initDatabaseCore() {
         
         // Insert default admin user if not exists (using env vars)
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@zapspy.ai';
-        const adminPassword = process.env.ADMIN_PASSWORD || 'zapspy2024';
+        if (!process.env.ADMIN_PASSWORD && process.env.NODE_ENV === 'production') {
+            console.error('🚨 ADMIN_PASSWORD environment variable is required in production! Set it in Railway.');
+        }
+        const adminPassword = process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? undefined : 'zapspy2024');
         const existingAdmin = await pool.query('SELECT id FROM admin_users WHERE role = $1', ['admin']);
         
-        if (existingAdmin.rows.length === 0) {
+        if (existingAdmin.rows.length === 0 && adminPassword) {
             const hashedPassword = await bcrypt.hash(adminPassword, 10);
             await pool.query(`
                 INSERT INTO admin_users (username, email, password_hash, name, role, is_active)

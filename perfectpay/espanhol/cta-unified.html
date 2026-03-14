@@ -55,45 +55,16 @@
     <!-- End Meta Pixel Code -->
 
     <!-- Enhanced Tracking -->
-    <script src="js/tracking-utils.js"></script>
+    <script src="js/tracking-utils.js" defer></script>
     <script src="js/tracking.js"></script>
-    <script src="js/funnel-tracking.js"></script>
-    <script src="js/facebook-capi.js"></script>
-    <script src="js/ab-testing.js"></script>
+    <script src="js/funnel-tracking.js" defer></script>
+    <script src="js/facebook-capi.js" defer></script>
     <script>
-        // Valor del producto por defecto (puede ser modificado por A/B testing)
+        // Valor del producto por defecto
         window.productValue = 37;
         window.checkoutCode = 'PPU38CQ82HJ';
         
         document.addEventListener('DOMContentLoaded', async function() {
-            // Inicializar A/B Testing y aplicar config
-            if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('espanhol');
-                
-                // Aplicar config A/B a la página CTA (actualiza precios, headlines, etc.)
-                ABTesting.applyConfig('cta');
-                
-                // Actualizar productValue si el test A/B lo cambió
-                const abPrice = ABTesting.getPrice();
-                if (abPrice) {
-                    window.productValue = abPrice;
-                    
-                    // También actualizar texto de ahorro
-                    const originalPrice = ABTesting.getOriginalPrice() || 197;
-                    const savings = originalPrice - abPrice;
-                    const savingsEl = document.querySelector('.price-savings, [data-ab-savings]');
-                    if (savingsEl) {
-                        savingsEl.textContent = `¡Ahorras $${savings} hoy!`;
-                    }
-                }
-                
-                // Actualizar checkout code si el test A/B lo provee
-                const abCheckoutCode = ABTesting.getCheckoutCode();
-                if (abCheckoutCode) {
-                    window.checkoutCode = abCheckoutCode;
-                }
-            }
-            
             // Inicializar Facebook CAPI con el valor actual del producto
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('CTA Page');
@@ -108,62 +79,6 @@
     <!-- Matrix Effect -->
     <script src="js/matrix.js"></script>
 
-    <script>
-        // ========== BLOQUEADOR DE CAPTURA DE PANTALLA ==========
-        let screenshotWarningShown = false;
-        
-        // Detectar intento de captura de pantalla via teclado
-        document.addEventListener('keydown', function(e) {
-            // PrintScreen, Ctrl+P, Ctrl+Shift+S, Command+Shift+4 (Mac)
-            if (e.key === 'PrintScreen' || 
-                (e.ctrlKey && e.key === 'p') || 
-                (e.ctrlKey && e.shiftKey && e.key === 's') ||
-                (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4'))) {
-                e.preventDefault();
-                showScreenshotWarning();
-            }
-        });
-
-        function showScreenshotWarning() {
-            if (screenshotWarningShown) return;
-            screenshotWarningShown = true;
-            
-            // Vibrar si es posible
-            if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-            
-            const warning = document.createElement('div');
-            warning.id = 'screenshotWarning';
-            warning.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,0,0,0.95); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
-                    <div style="font-size: 80px; margin-bottom: 20px; animation: pulse 1s infinite;">⚠️</div>
-                    <h2 style="color: white; font-size: 24px; margin-bottom: 16px; font-weight: 800;">¡CAPTURA DE PANTALLA DETECTADA!</h2>
-                    <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin-bottom: 24px; max-width: 300px;">Por razones de seguridad, esta sesión se cerrará en <span id="screenshotCountdown" style="font-weight: 800; font-size: 24px;">30</span> segundos.</p>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 24px;">¡Completa tu compra AHORA para guardar tu acceso!</p>
-                    <button onclick="handlePurchase(); document.getElementById('screenshotWarning').remove();" style="padding: 16px 40px; background: white; color: #ff0000; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; animation: pulse 1s infinite;">🔒 DESBLOQUEAR ACCESO AHORA</button>
-                    <button onclick="document.getElementById('screenshotWarning').remove(); screenshotWarningShown = false;" style="margin-top: 16px; padding: 10px 20px; background: transparent; color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; cursor: pointer;">Continuar sin guardar</button>
-                </div>
-            `;
-            document.body.appendChild(warning);
-            
-            // Cuenta regresiva
-            let countdown = 30;
-            const countdownEl = document.getElementById('screenshotCountdown');
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                if (countdownEl) countdownEl.textContent = countdown;
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    const warningEl = document.getElementById('screenshotWarning');
-                    if (warningEl) warningEl.remove();
-                    screenshotWarningShown = false;
-                }
-            }, 1000);
-        }
-
-    </script>
-    
     <!-- Shared Audio & Vibration Systems -->
     <script src="js/audio-vibration.js"></script>
 
@@ -194,7 +109,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.08;
+            display: none;
             pointer-events: none;
             z-index: 0;
         }
@@ -238,56 +153,6 @@
         .live-counter-bar span {
             color: #FF9500;
             font-weight: 600;
-        }
-
-        /* Timer Bar */
-        .timer-bar {
-            position: fixed;
-            top: 36px;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(18, 140, 126, 0.1));
-            backdrop-filter: blur(10px);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            border-bottom: 1px solid rgba(37, 211, 102, 0.2);
-            z-index: 100;
-        }
-
-        .timer-info {
-            flex: 1;
-        }
-
-        .timer-info p {
-            font-size: 11px;
-            color: #8696A0;
-            line-height: 1.4;
-        }
-
-        .timer-info strong {
-            color: #E9EDEF;
-            font-weight: 700;
-        }
-
-        .timer-btn {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            animation: btn-glow 2s infinite;
-        }
-
-        @keyframes btn-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(37, 211, 102, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(37, 211, 102, 0.6); }
         }
 
         /* Container */
@@ -469,6 +334,7 @@
 
         .profile-stats {
             display: flex;
+            flex-wrap: wrap;
             gap: 16px;
         }
 
@@ -800,6 +666,9 @@
             font-weight: 600;
             color: #E9EDEF;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .frequent-contact-name .hidden {
@@ -1234,135 +1103,93 @@
             color: #E9EDEF;
         }
 
+        /* Conv List */
+        .conv-list { margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }
+        .conv-list-title { font-size: 11px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .conv-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.06); position: relative; overflow: hidden; }
+        .conv-item.suspicious { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.15); }
+        .conv-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; object-fit: cover; filter: blur(3px) brightness(0.95); user-select: none; pointer-events: none; }
+        .conv-body { flex: 1; min-width: 0; }
+        .conv-name { font-size: 13px; font-weight: 600; color: #e9edef; filter: blur(3px); user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .conv-msg { font-size: 12px; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; filter: blur(3px); user-select: none; }
+        .conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+        .conv-badge { font-size: 9px; font-weight: 700; color: #fff; background: #ef4444; padding: 1px 6px; border-radius: 8px; }
+        .conv-tags { display: flex; gap: 4px; margin-top: 3px; }
+        .conv-tag { font-size: 8px; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.3px; }
+        .conv-tag.deleted { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .conv-tag.suspicious { background: rgba(245,158,11,0.1); color: #d97706; }
+        .conv-tag.evidence { background: rgba(139,92,246,0.1); color: #7c3aed; }
+        .conv-audio { display: flex; align-items: center; gap: 6px; background: rgba(37,211,102,0.08); border-radius: 16px; padding: 4px 10px; filter: blur(1px); user-select: none; }
+        .conv-audio-bar { display: flex; align-items: end; gap: 1.5px; height: 14px; }
+        .conv-audio-bar span { width: 2.5px; background: #25D366; border-radius: 1px; }
+
+        /* Activity Timeline */
+        .activity-timeline { background: rgba(20,20,20,0.95); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 0; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+        .timeline-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; }
+        .timeline-header svg { width: 16px; height: 16px; color: #4ade80; }
+        .timeline-header span { font-size: 12px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+        .timeline-live-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; animation: pulse-dot 1.5s infinite; margin-left: auto; box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+        .timeline-counter { font-size: 10px; color: #94a3b8; margin-left: 4px; }
+        .timeline-items { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
+        .timeline-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; opacity: 0; transform: translateY(8px); animation: timeline-appear 0.35s forwards; position: relative; transition: background 0.2s; }
+        .timeline-item:not(:last-child)::after { content: ''; position: absolute; bottom: 0; left: 52px; right: 16px; height: 1px; background: rgba(255,255,255,0.05); }
+        @keyframes timeline-appear { to { opacity: 1; transform: translateY(0); } }
+        .timeline-item:nth-child(1) { animation-delay: 0.15s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.35s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.55s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.75s; }
+        .timeline-item:nth-child(5) { animation-delay: 0.95s; }
+        .timeline-item:nth-child(6) { animation-delay: 1.15s; }
+        .timeline-item-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+        .timeline-item-icon.tl-delete { background: rgba(254,242,242,0.15); }
+        .timeline-item-icon.tl-msg { background: rgba(240,253,244,0.15); }
+        .timeline-item-icon.tl-call { background: rgba(239,246,255,0.15); }
+        .timeline-item-icon.tl-location { background: rgba(254,252,232,0.15); }
+        .timeline-item-icon.tl-online { background: rgba(245,243,255,0.15); }
+        .timeline-item-icon.tl-contact { background: rgba(255,247,237,0.15); }
+        .timeline-item-content { flex: 1; min-width: 0; }
+        .timeline-item-text { font-size: 12.5px; color: #a0aec0; line-height: 1.45; }
+        .timeline-item-text .tl-highlight { color: #ef4444; font-weight: 600; }
+        .timeline-item-text .tl-name { filter: blur(3px); user-select: none; font-weight: 500; }
+        .timeline-item-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+        .timeline-item-time { font-size: 10px; color: #94a3b8; }
+        .tl-tag { font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .tl-tag.danger { background: rgba(254,242,242,0.15); color: #ef4444; }
+        .tl-tag.warn { background: rgba(255,251,235,0.15); color: #d97706; }
+        .tl-tag.info { background: rgba(239,246,255,0.15); color: #60a5fa; }
+
         /* Testimonials */
-        .testimonials-section {
-            margin-bottom: 28px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #E9EDEF;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        .testimonials-stats {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .testimonials-stars-row {
-            display: flex;
-            gap: 2px;
-        }
-
-        .testimonials-stars-row span {
-            color: #FFCC00;
-            font-size: 16px;
-        }
-
-        .testimonials-rating {
-            font-size: 14px;
-            font-weight: 600;
-            color: #E9EDEF;
-        }
-
-        .testimonials-count {
-            font-size: 12px;
-            color: #8696A0;
-        }
-
-        .testimonials-metrics {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 18px;
-            font-size: 12px;
-            color: #8696A0;
-        }
-
-        .testimonials-metrics strong {
-            color: #25D366;
-        }
-
-        .testimonial-item {
-            background: linear-gradient(135deg, rgba(31, 44, 51, 0.7), rgba(31, 44, 51, 0.4));
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-left: 3px solid #25D366;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 10px;
-            transition: transform 0.2s ease;
-        }
-
-        .testimonial-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .testimonial-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667781, #3B4A54);
-            overflow: hidden;
-            border: 2px solid rgba(37, 211, 102, 0.3);
-            flex-shrink: 0;
-        }
-
-        .testimonial-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .testimonial-info {
-            flex: 1;
-        }
-
-        .testimonial-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #E9EDEF;
-        }
-
-        .testimonial-verified {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            color: #25D366;
-        }
-
-        .testimonial-verified svg {
-            width: 12px;
-            height: 12px;
-        }
-
-        .testimonial-stars {
-            color: #FFCC00;
-            font-size: 13px;
-            letter-spacing: 1px;
-        }
-
-        .testimonial-text {
-            font-size: 13px;
-            color: #adb5bd;
-            line-height: 1.6;
-        }
-
-        .testimonial-time {
-            font-size: 10px;
-            color: #667781;
-            margin-top: 8px;
-            text-align: right;
-        }
+        .testimonials-section { margin-bottom: 18px; }
+        .section-title { font-size: 18px; font-weight: 700; color: #e9edef; margin-bottom: 12px; text-align: center; }
+        .testimonials-header-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 14px 14px 0 0; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .testimonials-header-left { display: flex; align-items: center; gap: 8px; }
+        .testimonials-header-left svg { width: 16px; height: 16px; }
+        .testimonials-header-title { font-size: 12px; font-weight: 600; color: #fff; letter-spacing: 0.3px; }
+        .testimonials-header-right { display: flex; align-items: center; gap: 10px; }
+        .testimonials-rating-pill { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.12); padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #fbbf24; }
+        .testimonials-count-pill { font-size: 10px; color: #94a3b8; }
+        .testimonials-body { background: rgba(20,20,20,0.95); border: 1px solid rgba(255,255,255,0.06); border-top: none; border-radius: 0 0 14px 14px; overflow: hidden; }
+        .testimonial-item { padding: 14px 16px; position: relative; transition: background 0.2s; }
+        .testimonial-item:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .testimonial-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .testimonial-avatar-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+        .testimonial-avatar-icon.tav-1 { background: rgba(219,234,254,0.15); }
+        .testimonial-avatar-icon.tav-2 { background: rgba(252,231,243,0.15); }
+        .testimonial-avatar-icon.tav-3 { background: rgba(220,252,231,0.15); }
+        .testimonial-avatar-icon.tav-4 { background: rgba(254,243,199,0.15); }
+        .testimonial-avatar-icon.tav-5 { background: rgba(237,233,254,0.15); }
+        .testimonial-info { flex: 1; min-width: 0; }
+        .testimonial-name { font-size: 12.5px; font-weight: 600; color: #e9edef; }
+        .testimonial-meta-row { display: flex; align-items: center; gap: 6px; }
+        .testimonial-verified { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: #16a34a; font-weight: 500; }
+        .testimonial-verified svg { width: 10px; height: 10px; }
+        .testimonial-stars { color: #fbbf24; font-size: 10px; letter-spacing: 0.5px; }
+        .testimonial-text { font-size: 12.5px; color: #a0aec0; line-height: 1.55; margin-bottom: 6px; }
+        .testimonial-text em { font-style: normal; color: #ef4444; font-weight: 500; }
+        .testimonial-footer { display: flex; align-items: center; justify-content: space-between; }
+        .testimonial-time { font-size: 10px; color: #94a3b8; }
+        .testimonial-helpful { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #94a3b8; }
+        .testimonial-helpful svg { width: 11px; height: 11px; }
 
         /* FAQ */
         .faq-section {
@@ -1644,6 +1471,10 @@
             .fixed-cta button {
                 width: 100%;
             }
+            .live-counter-bar {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
@@ -1654,7 +1485,7 @@
     <!-- Live Counter Bar -->
     <div class="live-counter-bar">
         <div class="live-dot"></div>
-        <span id="liveViewers">247</span> personas viendo esta página ahora mismo
+        <span id="liveViewers">213</span> personas viendo esta página ahora mismo
     </div>
 
     <!-- Timer bar removido -->
@@ -1775,8 +1606,8 @@
             </div>
             <div class="frequent-contact-info">
                 <div class="frequent-contact-label">🔥 Contacto Más Frecuente</div>
-                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">Jessica</span><span class="hidden">Smith</span></div>
-                <div class="frequent-contact-stats">247 mensajes este mes • <strong>89 ELIMINADOS</strong></div>
+                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J***</span><span class="hidden">S***</span></div>
+                <div class="frequent-contact-stats">213 mensajes este mes • <strong>89 ELIMINADOS</strong></div>
             </div>
             <div class="frequent-contact-badge">
                 <span>🔒</span>
@@ -1835,6 +1666,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="conv-list" id="convList"></div>
                 </div>
             </div>
 
@@ -1962,79 +1795,122 @@
 
         <!-- Benefits List - Removido -->
 
+        <!-- Activity Timeline -->
+        <div class="activity-timeline">
+            <div class="timeline-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                <span>Monitor de Actividad</span>
+                <div class="timeline-live-dot"></div>
+                <span class="timeline-counter" id="tlCounter">6 alertas</span>
+            </div>
+            <div class="timeline-items" id="timelineItems">
+            </div>
+        </div>
+
         <!-- Testimonials -->
         <div class="testimonials-section">
-            <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
-            <div class="testimonials-stats">
-                <div class="testimonials-stars-row">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            <div class="testimonials-header-card">
+                <div class="testimonials-header-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <span class="testimonials-header-title">Opiniones de usuarios</span>
                 </div>
-                <span class="testimonials-rating">4.9/5</span>
-                <span class="testimonials-count">basado en 4,283 reseñas</span>
+                <div class="testimonials-header-right">
+                    <span class="testimonials-rating-pill">★ 4.9</span>
+                    <span class="testimonials-count-pill">2.847 opiniones</span>
+                </div>
             </div>
-            <div class="testimonials-metrics">
-                <span><strong>127</strong> compras hoy</span>
-                <span><strong>98%</strong> satisfacción</span>
-            </div>
-            
+            <div class="testimonials-body">
+
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="imagens/avatar-depoimento-1.jpg" alt="Testimonio de Carlos Mendoza" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-1">🔍</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@carlos_mendoza</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Compra Verificada
+                        <div class="testimonial-name">user_8***2k</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verificado</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">Pensé que era una estafa pero lo probé de todos modos. Pagué, y en 3 min tenía acceso. Todo estaba ahí: conversaciones, fotos que él eliminó, incluso la ubicación funcionaba. Valió cada centavo.</p>
-                <div class="testimonial-time">hace 2 días</div>
+                <p class="testimonial-text">Tenía un presentimiento desde hace meses. Siempre escondía el celular, salía del cuarto para escribir. Encontré <em>conversaciones eliminadas con el mismo contacto</em> de semanas atrás. Mensajes que juró que nunca envió. Por fin tuve la prueba de lo que ya sentía.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">hace 2 días</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 124 útil</span>
+                </div>
             </div>
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="imagens/avatar-depoimento-2.jpg" alt="Testimonio de María García" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-2">💔</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@maria_garcia</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Compra Verificada
+                        <div class="testimonial-name">anon_***91</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verificado</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">El acceso fue súper rápido. Pagué con tarjeta y en menos de 2 min estaba viendo todo. Los estados que él publicaba ocultos de mí. El sistema realmente funciona.</p>
-                <div class="testimonial-time">hace 5 horas</div>
+                <p class="testimonial-text">Ella decía "es solo un compañero del trabajo." Vi <em>fotos que intercambiaron y borraron</em>, llamadas de madrugada, y un contacto guardado con nombre falso. Todo lo que necesitaba estaba ahí. Doloroso pero necesario.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">hace 8 horas</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 89 útil</span>
+                </div>
             </div>
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="imagens/avatar-depoimento-3.jpg" alt="Testimonio de Roberto Sánchez" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-3">📱</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@roberto_sanchez</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Compra Verificada
+                        <div class="testimonial-name">user_***7x</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verificado</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">En la versión completa probé con el número de mi pareja y vi mucho. Ubicación, fotos ocultas, incluso conversaciones eliminadas. Fue exactamente como lo mostraban.</p>
-                <div class="testimonial-time">hace 1 día</div>
+                <p class="testimonial-text">Pagué y tuve acceso en menos de 2 minutos. Sin instalar nada. Vi <em>estados ocultos</em>, <em>chats secretos</em> que creía borrados, y hasta su ubicación en tiempo real. Respondió cada pregunta que tenía miedo de hacer en voz alta.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">hace 1 día</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 67 útil</span>
+                </div>
+            </div>
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-4">🔒</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">anon_***4r</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verificado</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">Casi no lo compro. Tenía miedo de lo que iba a encontrar. Resultó que tenía <em>una vida secreta entera en WhatsApp</em> — contactos bloqueados, audios borrados, fotos que nunca debí haber visto. Duele, pero al menos ahora sé la verdad.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">hace 3 días</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 156 útil</span>
+                </div>
+            </div>
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-5">✅</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">user_***m3</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verificado</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">Mis amigos decían que era paranoica. Usé esto solo para demostrarme que estaba equivocada. En cambio encontré <em>fotos borradas, un contacto oculto guardado como "Entrenador del gym"</em>, y mensajes que hicieron que todo encajara. No era paranoia — tenía razón.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">hace 12 horas</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 203 útil</span>
+                </div>
+            </div>
+
             </div>
         </div>
 
@@ -2161,7 +2037,7 @@
         if (gender === 'female') {
             // User spying on female, show male photos
             frequentContactImg.src = 'imagens/homem1.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">Miguel</span><span class="hidden">Rodríguez</span>';
+            frequentContactName.innerHTML = '<span class="hidden">M***</span><span class="hidden">R***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/blocked-male-1.png" alt="">
@@ -2212,7 +2088,7 @@
         } else {
             // User spying on male (default), show female photos
             frequentContactImg.src = 'imagens/mulher1.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">Jessica</span><span class="hidden">López</span>';
+            frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">L***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/blocked-female-1.png" alt="">
@@ -2342,7 +2218,7 @@
         function proceedToCheckout() {
             if (checkoutLocked) return;
             checkoutLocked = true;
-            // Obtener valor actual del producto (puede ser modificado por A/B testing)
+            // Obtener valor actual del producto
             const currentValue = window.productValue || 37;
             const currentCheckoutCode = window.checkoutCode || 'PPU38CQ82HJ';
             
@@ -2367,11 +2243,6 @@
             // Track checkout click in funnel
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
-            }
-            
-            // Track A/B test conversion if active
-            if (typeof ABTesting !== 'undefined' && ABTesting.hasActiveTest()) {
-                ABTesting.trackConversion('checkout_click', currentValue);
             }
             
             // Build checkout URL with user data
@@ -2434,6 +2305,76 @@
                 window.location.href = checkoutUrl;
             }, 400);
         }
+
+        // Activity Timeline
+        function buildTimeline() {
+            var p = window.location.pathname;
+            var lang = 'en';
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+
+            var g = (typeof gender !== 'undefined') ? gender : 'male';
+            var isFemale = (g === 'female');
+
+            var contactName = isFemale
+                ? '<span class="tl-name">Jordan M.</span>'
+                : '<span class="tl-name">Ashley R.</span>';
+
+            var eventsEN = [
+                { icon: '\u{1F5D1}', cls: 'tl-delete', text: 'Deleted <span class="tl-highlight">7 messages</span> from chat with ' + contactName, tag: 'danger', tagText: 'deleted', mins: 1 },
+                { icon: '\u{1F4F1}', cls: 'tl-call', text: 'Missed call from ' + contactName + ' \u2014 <span class="tl-highlight">3rd call today</span>', tag: 'warn', tagText: 'frequent', mins: 4 },
+                { icon: '\u{1F4F7}', cls: 'tl-msg', text: 'Received <span class="tl-highlight">2 photos</span> \u2014 opened and deleted in 8 seconds', tag: 'danger', tagText: 'auto-delete', mins: 12 },
+                { icon: '\u{1F4CD}', cls: 'tl-location', text: 'Moved to a <span class="tl-highlight">new location</span> \u2014 <span class="tl-name">3.8 km</span> from usual area', tag: 'warn', tagText: 'unusual', mins: 28 },
+                { icon: '\u{1F7E3}', cls: 'tl-online', text: 'Was <span class="tl-highlight">online for 23 min</span> without sending any visible messages', tag: 'info', tagText: 'ghost mode', mins: 45 },
+                { icon: '\u{1F512}', cls: 'tl-contact', text: 'Contact ' + contactName + ' renamed to <span class="tl-name">Work - IT</span>', tag: 'danger', tagText: 'hidden', mins: 58 }
+            ];
+
+            var eventsES = [
+                { icon: '\u{1F5D1}', cls: 'tl-delete', text: 'Elimin\u00f3 <span class="tl-highlight">7 mensajes</span> del chat con ' + contactName, tag: 'danger', tagText: 'eliminado', mins: 1 },
+                { icon: '\u{1F4F1}', cls: 'tl-call', text: 'Llamada perdida de ' + contactName + ' \u2014 <span class="tl-highlight">3ra llamada hoy</span>', tag: 'warn', tagText: 'frecuente', mins: 4 },
+                { icon: '\u{1F4F7}', cls: 'tl-msg', text: 'Recibi\u00f3 <span class="tl-highlight">2 fotos</span> \u2014 abri\u00f3 y elimin\u00f3 en 8 segundos', tag: 'danger', tagText: 'auto-borrado', mins: 12 },
+                { icon: '\u{1F4CD}', cls: 'tl-location', text: 'Se movi\u00f3 a una <span class="tl-highlight">nueva ubicaci\u00f3n</span> \u2014 <span class="tl-name">3.8 km</span> de la zona habitual', tag: 'warn', tagText: 'inusual', mins: 28 },
+                { icon: '\u{1F7E3}', cls: 'tl-online', text: 'Estuvo <span class="tl-highlight">en l\u00ednea 23 min</span> sin enviar mensajes visibles', tag: 'info', tagText: 'modo oculto', mins: 45 },
+                { icon: '\u{1F512}', cls: 'tl-contact', text: 'Contacto ' + contactName + ' renombrado a <span class="tl-name">Trabajo - TI</span>', tag: 'danger', tagText: 'oculto', mins: 58 }
+            ];
+
+            var eventsPT = [
+                { icon: '\u{1F5D1}', cls: 'tl-delete', text: 'Apagou <span class="tl-highlight">7 mensagens</span> da conversa com ' + contactName, tag: 'danger', tagText: 'apagado', mins: 1 },
+                { icon: '\u{1F4F1}', cls: 'tl-call', text: 'Chamada perdida de ' + contactName + ' \u2014 <span class="tl-highlight">3\u00aa liga\u00e7\u00e3o hoje</span>', tag: 'warn', tagText: 'frequente', mins: 4 },
+                { icon: '\u{1F4F7}', cls: 'tl-msg', text: 'Recebeu <span class="tl-highlight">2 fotos</span> \u2014 abriu e apagou em 8 segundos', tag: 'danger', tagText: 'auto-apagado', mins: 12 },
+                { icon: '\u{1F4CD}', cls: 'tl-location', text: 'Moveu-se para <span class="tl-highlight">nova localiza\u00e7\u00e3o</span> \u2014 <span class="tl-name">3.8 km</span> da \u00e1rea habitual', tag: 'warn', tagText: 'incomum', mins: 28 },
+                { icon: '\u{1F7E3}', cls: 'tl-online', text: 'Ficou <span class="tl-highlight">online por 23 min</span> sem enviar mensagens vis\u00edveis', tag: 'info', tagText: 'modo fantasma', mins: 45 },
+                { icon: '\u{1F512}', cls: 'tl-contact', text: 'Contato ' + contactName + ' renomeado para <span class="tl-name">Trabalho - TI</span>', tag: 'danger', tagText: 'oculto', mins: 58 }
+            ];
+
+            var events = lang === 'es' ? eventsES : (lang === 'pt' ? eventsPT : eventsEN);
+            var alertsLabel = lang === 'es' ? 'alertas' : (lang === 'pt' ? 'alertas' : 'alerts');
+
+            var container = document.getElementById('timelineItems');
+            var counterEl = document.getElementById('tlCounter');
+            if (!container) return;
+            if (counterEl) counterEl.textContent = events.length + ' ' + alertsLabel;
+
+            container.innerHTML = events.map(function(e) {
+                var agoText;
+                if (e.mins <= 1) {
+                    agoText = lang === 'es' ? 'Ahora' : (lang === 'pt' ? 'Agora' : 'Just now');
+                } else {
+                    agoText = lang === 'es' ? 'hace ' + e.mins + ' min' : (lang === 'pt' ? 'h\u00e1 ' + e.mins + ' min' : e.mins + ' min ago');
+                }
+                return '<div class="timeline-item">' +
+                    '<div class="timeline-item-icon ' + e.cls + '">' + e.icon + '</div>' +
+                    '<div class="timeline-item-content">' +
+                        '<div class="timeline-item-text">' + e.text + '</div>' +
+                        '<div class="timeline-item-meta">' +
+                            '<span class="timeline-item-time">' + agoText + '</span>' +
+                            '<span class="tl-tag ' + e.tag + '">' + e.tagText + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+        buildTimeline();
 
         // Initialize
         localStorage.setItem('funnelProgress', 'cta');

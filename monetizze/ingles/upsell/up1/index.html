@@ -413,22 +413,29 @@
                     
                     <p class="final-cta-subtitle">Every second counts. Deleted messages contain the answers you need — but once they're gone, they're gone forever. Add this service to your account now.</p>
                     
-                    <p class="price-tag" style="margin-bottom: 24px;">Service activation fee: $47</p>
-                    
+                    <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Service activation fee: $43</p>
                     <a href='#monetizzeCompra' data-upsell='95dd7ae010bf4934f5fe4c853659833c' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Recover deleted WhatsApp conversations now" role="button">Yes, Add Message Recovery to My Account</a>
+                    <a href="../up2/" class="decline-link">No thanks</a>
                 </div>
             </section>
 
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> Secure Recovery Suite. All rights reserved.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. All rights reserved.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell2-script.js?v=9.0"></script>
-    <!-- geo-restriction.js removed - prices always visible -->
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script src="../upsell-tracking.js?v=1.0"></script>
 
     <script>

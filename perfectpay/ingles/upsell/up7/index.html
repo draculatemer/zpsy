@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
     <!-- UTMify tracking -->
@@ -254,7 +254,7 @@
                     
                     
                     <div class="cta-buttons">
-                        <p class="price-tag" style="margin-bottom: 24px;">Service activation fee: $31</p>
+                        <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Service activation fee: $31</p>
                         <a href='https://go.centerpag.com/PPU38CQ7TCN?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Activate AI Behavior Analyst now" role="button">Yes, Add AI Behavior Analyst to My Account</a>
                 <a href="../thankyou/" class="decline-link">No thanks, I don't need AI behavior analysis</a>
                     </div>
@@ -264,13 +264,21 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> AI Behavior Analysis. All rights reserved.</div>
+            <div class="smallprint">© <span id="year"></span> ZapSpy. All rights reserved.</div>
         </footer>
     </div>
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell1-script.js?v=9.0"></script>
     <script src="../upsell-tracking.js?v=2.0"></script>
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
+    var el = document.getElementById('geoPrice');
+    if (el) el.style.display = '';
+})();
+</script>
     <script>
     (function(){
         var o=document.getElementById('scanOverlay'),m=document.getElementById('mainPage'),

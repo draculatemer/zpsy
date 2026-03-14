@@ -281,7 +281,7 @@ router.get('/api/admin/whatsapp/diagnostics', authenticateToken, async (req, res
 // ---- Z-API Custom URL Test ----
 router.post('/api/admin/whatsapp/test-url', authenticateToken, async (req, res) => {
     try {
-        const { url, clientToken } = req.body;
+        const { url } = req.body;
         if (!url) return res.status(400).json({ error: 'URL is required' });
         
         // Extract base URL (remove /send-text or other endpoints)
@@ -292,10 +292,10 @@ router.post('/api/admin/whatsapp/test-url', authenticateToken, async (req, res) 
         // Test status endpoint
         const statusUrl = `${baseUrl}/status`;
         const headers = {};
-        if (clientToken) headers['Client-Token'] = clientToken;
+        if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
         
         console.log(`📱 Custom URL test: ${statusUrl}`);
-        console.log(`📱 Client-Token: ${clientToken ? 'SET' : 'NOT SET'}`);
+        console.log(`📱 Client-Token: ${ZAPI_CLIENT_TOKEN ? 'SET' : 'NOT SET'}`);
         
         try {
             const resp = await fetch(statusUrl, { method: 'GET', headers });

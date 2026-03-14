@@ -172,8 +172,8 @@
         <div class="retry-solution">
             <div class="retry-solution-number">2</div>
             <div>
-                <div class="retry-solution-title">Use Someone Else's Card</div>
-                <div class="retry-solution-text">You can safely use a friend's or family member's card. The access is linked to your account, not the card. 100% secure and anonymous.</div>
+                <div class="retry-solution-title">Try a Different Payment Method</div>
+                <div class="retry-solution-text">Use PayPal, a debit card, or a virtual card. Alternative payment methods often have higher approval rates than credit cards for online purchases.</div>
             </div>
         </div>
         <div class="retry-solution">
@@ -258,9 +258,9 @@
         </div>
 
         <div class="rmk-faq-item">
-            <div class="rmk-faq-question">Can I use someone else's card?</div>
+            <div class="rmk-faq-question">Can I use PayPal or a debit card?</div>
             <div class="rmk-faq-answer">
-                Yes, you can use any valid credit or debit card with the cardholder's permission. The access is linked to your ZapSpy account, not to the payment method used.
+                Yes. PayPal, debit cards, and virtual cards are accepted and often have higher approval rates for online purchases. The access is linked to your ZapSpy account, not to the payment method used.
             </div>
         </div>
     </div>
@@ -275,13 +275,13 @@
 
     <div class="rmk-social-proof">
         <span class="rmk-live-dot"></span>
-        <span id="liveCount">3,412</span> successful payments processed today
+        <span id="liveCount">280</span> successful payments processed today
     </div>
 
     <div class="rmk-footer">
         ZapSpy.ai - Secure Intelligence Platform<br>
         Secure payment processed by PerfectPay.<br>
-        &copy; 2025 ZapSpy.ai. All rights reserved.
+        &copy; <script>document.write(new Date().getFullYear())</script> ZapSpy.ai. All rights reserved.
     </div>
 </div>
 
@@ -298,25 +298,25 @@
         document.getElementById('targetAvatar').textContent = target.gender === 'female' ? '\uD83D\uDC69' : '\uD83D\uDC68';
     }
 
-    // Countdown timer - 30 minutes
+    // Countdown timer - 30 minutes (persistent with localStorage)
     startTimer('countdown', 1800, function() {
         document.getElementById('countdown').textContent = 'EXPIRED';
-    });
+    }, 'rmk_countdown_retry');
 
     // Live counter
     var liveEl = document.getElementById('liveCount');
     setInterval(function() {
-        var n = 3200 + Math.floor(Math.random() * 400);
+        var n = 280 + Math.floor(Math.random() * 40);
         liveEl.textContent = n.toLocaleString();
     }, 5000);
 
     // Activity Feed - success stories
     startActivityFeed([
-        { emoji: '\u2705', name: 'Michael from Texas', action: 'payment approved on 2nd attempt!', time: '1 min ago' },
-        { emoji: '\u2705', name: 'Anna from Florida', action: 'used a different card - success!', time: '3 min ago' },
-        { emoji: '\u2705', name: 'Robert from Ohio', action: 'resolved payment and unlocked access', time: '2 min ago' },
-        { emoji: '\u2705', name: 'Lisa from California', action: 'got approved with the 50% off link', time: '5 min ago' },
-        { emoji: '\u2705', name: 'Jason from NY', action: 'called bank, payment went through!', time: '4 min ago' }
+        { emoji: '\u2705', name: 'user_***2k from Europe', action: 'payment approved on 2nd attempt!', time: '1 min ago' },
+        { emoji: '\u2705', name: 'anon_***91 from Asia', action: 'used a different card - success!', time: '3 min ago' },
+        { emoji: '\u2705', name: 'user_***7x from Americas', action: 'resolved payment and unlocked access', time: '2 min ago' },
+        { emoji: '\u2705', name: 'anon_***4r from Africa', action: 'got approved with the 50% off link', time: '5 min ago' },
+        { emoji: '\u2705', name: 'user_***m3 from Oceania', action: 'called bank, payment went through!', time: '4 min ago' }
     ], 10000);
 
     // Tab title

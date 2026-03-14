@@ -56,45 +56,16 @@
     <!-- End Meta Pixel Code -->
 
     <!-- Enhanced Tracking -->
-    <script src="../js/tracking-utils.js"></script>
+    <script src="../js/tracking-utils.js" defer></script>
     <script src="../js/tracking.js"></script>
-    <script src="../js/funnel-tracking.js"></script>
-    <script src="../js/facebook-capi.js"></script>
-    <script src="../js/ab-testing.js"></script>
+    <script src="../js/funnel-tracking.js" defer></script>
+    <script src="../js/facebook-capi.js" defer></script>
     <script>
-        // Default product value (can be overridden by A/B testing)
+        // Default product value
         window.productValue = 47;
         window.checkoutCode = 'PPU38CQ7KHI';
         
         document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize A/B Testing and apply config
-            if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('ingles');
-                
-                // Apply A/B config to CTA page (updates prices, headlines, etc.)
-                ABTesting.applyConfig('cta');
-                
-                // Update productValue if A/B test changed it
-                const abPrice = ABTesting.getPrice();
-                if (abPrice) {
-                    window.productValue = abPrice;
-                    
-                    // Also update savings text
-                    const originalPrice = ABTesting.getOriginalPrice() || 197;
-                    const savings = originalPrice - abPrice;
-                    const savingsEl = document.querySelector('.price-savings, [data-ab-savings]');
-                    if (savingsEl) {
-                        savingsEl.textContent = `You save $${savings} today!`;
-                    }
-                }
-                
-                // Update checkout code if A/B test provides one
-                const abCheckoutCode = ABTesting.getCheckoutCode();
-                if (abCheckoutCode) {
-                    window.checkoutCode = abCheckoutCode;
-                }
-            }
-            
             // Initialize Facebook CAPI with current product value
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('CTA Page');
@@ -109,61 +80,9 @@
     <!-- Matrix Effect -->
     <script src="../js/matrix.js"></script>
 
-    <script>
-        // ========== SCREENSHOT BLOCKER ==========
-        let screenshotWarningShown = false;
-        
-        // Detect screenshot attempt via keyboard
-        document.addEventListener('keydown', function(e) {
-            // PrintScreen, Ctrl+P, Ctrl+Shift+S, Command+Shift+4 (Mac)
-            if (e.key === 'PrintScreen' || 
-                (e.ctrlKey && e.key === 'p') || 
-                (e.ctrlKey && e.shiftKey && e.key === 's') ||
-                (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4'))) {
-                e.preventDefault();
-                showScreenshotWarning();
-            }
-        });
 
-        function showScreenshotWarning() {
-            if (screenshotWarningShown) return;
-            screenshotWarningShown = true;
-            
-            // Vibrate if possible
-            if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-            
-            const warning = document.createElement('div');
-            warning.id = 'screenshotWarning';
-            warning.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(220,38,38,0.97); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
-                    <div style="font-size: 80px; margin-bottom: 20px; animation: pulse 1s infinite;">⚠️</div>
-                    <h2 style="color: white; font-size: 24px; margin-bottom: 16px; font-weight: 800;">SCREENSHOT DETECTED!</h2>
-                    <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin-bottom: 24px; max-width: 300px;">For security reasons, this session will be terminated in <span id="screenshotCountdown" style="font-weight: 800; font-size: 24px;">30</span> seconds.</p>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 24px;">Complete your purchase NOW to save your access!</p>
-                    <button onclick="handlePurchase(); document.getElementById('screenshotWarning').remove();" style="padding: 16px 40px; background: white; color: #dc2626; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; animation: pulse 1s infinite;">🔒 UNLOCK ACCESS NOW</button>
-                    <button onclick="document.getElementById('screenshotWarning').remove(); screenshotWarningShown = false;" style="margin-top: 16px; padding: 10px 20px; background: transparent; color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; cursor: pointer;">Continue without saving</button>
-                </div>
-            `;
-            document.body.appendChild(warning);
-            
-            // Countdown
-            let countdown = 30;
-            const countdownEl = document.getElementById('screenshotCountdown');
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                if (countdownEl) countdownEl.textContent = countdown;
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    const warningEl = document.getElementById('screenshotWarning');
-                    if (warningEl) warningEl.remove();
-                    screenshotWarningShown = false;
-                }
-            }, 1000);
-        }
 
-    </script>
+
     
     <!-- Shared Audio & Vibration Systems -->
     <script src="../js/audio-vibration.js"></script>
@@ -182,22 +101,38 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
+            background-color: #efeae2;
+            background-image: url('../imagens/whatsapp-wallpaper-light.png');
+            background-size: 420px auto;
+            background-repeat: repeat;
             color: #1a1a1a;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(239, 234, 226, 0.4);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+        #toastContainer,
+        #socialProofContainer,
+        .exit-overlay {
+            z-index: auto;
+        }
+        #toastContainer { position: fixed; z-index: 99995; }
+        #socialProofContainer { position: fixed; z-index: 99994; }
 
         /* Matrix Canvas - hidden on light theme */
         #matrix-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.03;
-            pointer-events: none;
-            z-index: 0;
+            display: none;
         }
 
         /* Live Counter Bar */
@@ -240,55 +175,6 @@
         .live-counter-bar span {
             color: #dc2626;
             font-weight: 600;
-        }
-
-        /* Timer Bar */
-        .timer-bar {
-            position: fixed;
-            top: 36px;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            z-index: 100;
-        }
-
-        .timer-info {
-            flex: 1;
-        }
-
-        .timer-info p {
-            font-size: 11px;
-            color: #6c757d;
-            line-height: 1.4;
-        }
-
-        .timer-info strong {
-            color: #1a1a1a;
-            font-weight: 700;
-        }
-
-        .timer-btn {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            animation: btn-glow 2s infinite;
-        }
-
-        @keyframes btn-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(37, 211, 102, 0.2); }
-            50% { box-shadow: 0 0 15px rgba(37, 211, 102, 0.4); }
         }
 
         /* Container */
@@ -472,6 +358,7 @@
 
         .profile-stats {
             display: flex;
+            flex-wrap: wrap;
             gap: 16px;
         }
 
@@ -535,7 +422,7 @@
 
         /* Features */
         .features-section {
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
         .feature-item {
@@ -675,6 +562,124 @@
             user-select: none;
         }
 
+        .conv-list {
+            margin-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+        .conv-list-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .conv-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 10px;
+            background: #fff;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .conv-item.suspicious {
+            background: rgba(239,68,68,0.03);
+            border-color: rgba(239,68,68,0.12);
+        }
+        .conv-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            object-fit: cover;
+            filter: blur(3px) brightness(0.95);
+            user-select: none;
+            pointer-events: none;
+        }
+        .conv-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .conv-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            filter: blur(3px);
+            user-select: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .conv-msg {
+            font-size: 12px;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            filter: blur(3px);
+            user-select: none;
+        }
+        .conv-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        .conv-badge {
+            font-size: 9px;
+            font-weight: 700;
+            color: #fff;
+            background: #ef4444;
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+        .conv-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 3px;
+        }
+        .conv-tag {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 1px 5px;
+            border-radius: 3px;
+            letter-spacing: 0.3px;
+        }
+        .conv-tag.deleted { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .conv-tag.suspicious { background: rgba(245,158,11,0.1); color: #d97706; }
+        .conv-tag.evidence { background: rgba(139,92,246,0.1); color: #7c3aed; }
+        .conv-audio {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37,211,102,0.08);
+            border-radius: 16px;
+            padding: 4px 10px;
+            filter: blur(1px);
+            user-select: none;
+        }
+        .conv-audio-bar {
+            display: flex;
+            align-items: end;
+            gap: 1.5px;
+            height: 14px;
+        }
+        .conv-audio-bar span {
+            width: 2.5px;
+            background: #25D366;
+            border-radius: 1px;
+        }
+
         /* Suspicion Detector */
         .suspicion-detector {
             background: #ffffff;
@@ -809,6 +814,9 @@
             font-weight: 600;
             color: #1a1a1a;
             margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .frequent-contact-name .hidden {
@@ -1070,6 +1078,20 @@
             100% { left: 200%; }
         }
 
+        @keyframes ctaShake {
+            0%, 100% { transform: translateX(0); }
+            15% { transform: translateX(-6px) rotate(-1deg); }
+            30% { transform: translateX(5px) rotate(1deg); }
+            45% { transform: translateX(-4px) rotate(-0.5deg); }
+            60% { transform: translateX(3px) rotate(0.5deg); }
+            75% { transform: translateX(-2px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         .cta-subtext {
             font-size: 11px;
             color: #9ca3af;
@@ -1085,30 +1107,13 @@
             color: #25D366;
         }
 
-        /* Payment Methods */
-        .payment-methods {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .payment-method {
-            background: #f3f4f6;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 10px;
-            color: #6c757d;
-        }
-
         /* Bonus Section */
         .bonus-section {
             background: #ffffff;
             border: 2px solid #fbbf24;
             border-radius: 20px;
             padding: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
@@ -1214,165 +1219,170 @@
             font-weight: 600;
         }
 
-        /* Benefits List */
-        .benefits-list {
-            margin-bottom: 24px;
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .benefit-item svg {
-            width: 18px;
-            height: 18px;
-            color: #25D366;
-            flex-shrink: 0;
-        }
-
-        .benefit-item span {
-            font-size: 13px;
-            color: #1a1a1a;
-        }
-
         /* Testimonials */
         .testimonials-section {
-            margin-bottom: 28px;
+            margin-bottom: 18px;
         }
 
         .section-title {
             font-size: 18px;
             font-weight: 700;
             color: #1a1a1a;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
-        .testimonials-stats {
+        .testimonials-header-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 14px 14px 0 0;
+            padding: 14px 16px;
             display: flex;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .testimonials-header-left {
+            display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
         }
-
-        .testimonials-stars-row {
-            display: flex;
-            gap: 2px;
-        }
-
-        .testimonials-stars-row span {
-            color: #FFCC00;
-            font-size: 16px;
-        }
-
-        .testimonials-rating {
-            font-size: 14px;
+        .testimonials-header-left svg { width: 16px; height: 16px; }
+        .testimonials-header-title {
+            font-size: 12px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #fff;
+            letter-spacing: 0.3px;
         }
-
-        .testimonials-count {
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .testimonials-metrics {
+        .testimonials-header-right {
             display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 18px;
-            font-size: 12px;
-            color: #6c757d;
+            align-items: center;
+            gap: 10px;
+        }
+        .testimonials-rating-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.12);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .testimonials-count-pill {
+            font-size: 10px;
+            color: #94a3b8;
         }
 
-        .testimonials-metrics strong {
-            color: #16a34a;
+        .testimonials-body {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            overflow: hidden;
         }
 
         .testimonial-item {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-left: 3px solid #25D366;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 10px;
-            transition: transform 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            padding: 14px 16px;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .testimonial-item:not(:last-child) {
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .testimonial-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
-        .testimonial-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            overflow: hidden;
-            border: 2px solid rgba(37, 211, 102, 0.3);
+        .testimonial-avatar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+            font-size: 15px;
         }
-
-        .testimonial-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .testimonial-avatar-icon.tav-1 { background: #dbeafe; }
+        .testimonial-avatar-icon.tav-2 { background: #fce7f3; }
+        .testimonial-avatar-icon.tav-3 { background: #dcfce7; }
+        .testimonial-avatar-icon.tav-4 { background: #fef3c7; }
+        .testimonial-avatar-icon.tav-5 { background: #ede9fe; }
 
         .testimonial-info {
             flex: 1;
+            min-width: 0;
         }
 
         .testimonial-name {
-            font-size: 14px;
+            font-size: 12.5px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1e293b;
+        }
+
+        .testimonial-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .testimonial-verified {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 4px;
-            font-size: 11px;
+            gap: 3px;
+            font-size: 10px;
             color: #16a34a;
+            font-weight: 500;
         }
 
         .testimonial-verified svg {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
         }
 
         .testimonial-stars {
-            color: #FFCC00;
-            font-size: 13px;
-            letter-spacing: 1px;
+            color: #fbbf24;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
 
         .testimonial-text {
-            font-size: 13px;
-            color: #4b5563;
-            line-height: 1.6;
+            font-size: 12.5px;
+            color: #475569;
+            line-height: 1.55;
+            margin-bottom: 6px;
+        }
+        .testimonial-text em {
+            font-style: normal;
+            color: #dc2626;
+            font-weight: 500;
         }
 
+        .testimonial-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
         .testimonial-time {
             font-size: 10px;
-            color: #9ca3af;
-            margin-top: 8px;
-            text-align: right;
+            color: #94a3b8;
         }
+        .testimonial-helpful {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .testimonial-helpful svg { width: 11px; height: 11px; }
 
         /* FAQ */
         .faq-section {
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
         .faq-item {
@@ -1540,61 +1550,6 @@
             white-space: nowrap;
         }
 
-        /* Activity Notification */
-        .activity-notification {
-            position: fixed;
-            bottom: 80px;
-            left: 16px;
-            right: 16px;
-            max-width: 380px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.97);
-            backdrop-filter: blur(10px);
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 99;
-            transform: translateY(150%);
-            transition: transform 0.4s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .activity-notification.show {
-            transform: translateY(0);
-        }
-
-        .activity-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-text {
-            font-size: 13px;
-            color: #1a1a1a;
-        }
-
-        .activity-text strong {
-            color: #16a34a;
-        }
-
-        .activity-time {
-            font-size: 11px;
-            color: #9ca3af;
-        }
-
         /* Security Badges */
         .security-badges {
             display: flex;
@@ -1655,8 +1610,337 @@
             .fixed-cta button {
                 width: 100%;
             }
+            .live-counter-bar {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
         }
+
+        /* === TOAST NOTIFICATIONS === */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #dc2626;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            z-index: 99995;
+            max-width: 360px;
+            width: calc(100% - 32px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+        .toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .toast-icon.alert { background: #fee2e2; }
+        .toast-icon.warning { background: #fef3c7; }
+        .toast-icon.info { background: #e0f2fe; }
+        .toast-body { flex: 1; }
+        .toast-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #dc2626;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .toast-message {
+            font-size: 13px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+        .toast-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        /* === ACCESS EXPIRY BAR === */
+        .access-expiry-bar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 102;
+        }
+        .access-expiry-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #25D366, #25D366);
+            transition: width 1s linear, background 1s ease;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* === ACTIVITY TIMELINE === */
+        .activity-timeline {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 0;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+        }
+        .timeline-header svg { width: 16px; height: 16px; color: #4ade80; }
+        .timeline-header span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+        .timeline-live-dot {
+            width: 7px; height: 7px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+            margin-left: auto;
+            box-shadow: 0 0 6px rgba(74,222,128,0.6);
+        }
+        .timeline-counter {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+        .timeline-items { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 16px;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: timeline-appear 0.35s forwards;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 52px;
+            right: 16px;
+            height: 1px;
+            background: #f1f5f9;
+        }
+        @keyframes timeline-appear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .timeline-item:nth-child(1) { animation-delay: 0.15s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.35s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.55s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.75s; }
+        .timeline-item:nth-child(5) { animation-delay: 0.95s; }
+        .timeline-item:nth-child(6) { animation-delay: 1.15s; }
+        .timeline-item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+        .timeline-item-icon.tl-delete { background: #fef2f2; }
+        .timeline-item-icon.tl-msg { background: #f0fdf4; }
+        .timeline-item-icon.tl-call { background: #eff6ff; }
+        .timeline-item-icon.tl-location { background: #fefce8; }
+        .timeline-item-icon.tl-online { background: #f5f3ff; }
+        .timeline-item-icon.tl-contact { background: #fff7ed; }
+        .timeline-item-content { flex: 1; min-width: 0; }
+        .timeline-item-text {
+            font-size: 12.5px;
+            color: #334155;
+            line-height: 1.45;
+        }
+        .timeline-item-text .tl-highlight { color: #dc2626; font-weight: 600; }
+        .timeline-item-text .tl-name { filter: blur(3px); user-select: none; font-weight: 500; }
+        .timeline-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+        }
+        .timeline-item-time {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .tl-tag {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .tl-tag.danger { background: #fef2f2; color: #dc2626; }
+        .tl-tag.warn { background: #fffbeb; color: #d97706; }
+        .tl-tag.info { background: #eff6ff; color: #2563eb; }
+
+        /* === SOCIAL PROOF POPUP === */
+        .social-proof {
+            position: fixed;
+            bottom: 20px;
+            left: 16px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            z-index: 99995;
+            max-width: calc(100vw - 32px);
+            transform: translateY(120px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .social-proof.show {
+            transform: translateY(0);
+        }
+        .social-proof-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #dcfce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .social-proof-body { flex: 1; }
+        .social-proof-text {
+            font-size: 12px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+        .social-proof-text strong { color: #16a34a; }
+        .social-proof-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 1px;
+        }
+
+        /* === EXIT INTENT POPUP === */
+        .exit-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .exit-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .exit-popup {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px 24px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .exit-overlay.show .exit-popup {
+            transform: scale(1);
+        }
+        .exit-close {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #6c757d;
+        }
+        .exit-icon { font-size: 48px; margin-bottom: 16px; }
+        .exit-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        .exit-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .exit-timer {
+            font-size: 36px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        .exit-cta {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+            animation: megaPulse 2s ease-in-out infinite;
+        }
+        .exit-dismiss {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+
     </style>
+
 </head>
 <body>
     <!-- Matrix Canvas -->
@@ -1665,8 +1949,19 @@
     <!-- Live Counter Bar -->
     <div class="live-counter-bar">
         <div class="live-dot"></div>
-        <span id="liveViewers">247</span> people viewing this page right now
+        <span id="liveViewers">213</span> people viewing this page right now
     </div>
+
+    <!-- Access Expiry Bar -->
+    <div class="access-expiry-bar">
+        <div class="access-expiry-fill" id="accessExpiryFill"></div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Social Proof Container -->
+    <div id="socialProofContainer"></div>
 
     <!-- Timer Bar -->
     <!-- Timer bar removido -->
@@ -1733,7 +2028,7 @@
                 </div>
                 <div class="profile-info">
                     <div class="profile-name">Target Person</div>
-                    <div class="profile-phone" id="targetPhone">+1 (555) 123-4567</div>
+                    <div class="profile-phone" id="targetPhone">+** (***) ***-4567</div>
                     <div class="profile-stats">
                         <span class="profile-stat"><strong id="convCount">47</strong> conversations</span>
                         <span class="profile-stat"><strong id="msgCount">1.2k</strong> messages</span>
@@ -1780,6 +2075,18 @@
             </div>
         </div>
 
+        <!-- Activity Timeline -->
+        <div class="activity-timeline">
+            <div class="timeline-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                <span>Activity Monitor</span>
+                <div class="timeline-live-dot"></div>
+                <span class="timeline-counter" id="tlCounter">6 alerts</span>
+            </div>
+            <div class="timeline-items" id="timelineItems">
+            </div>
+        </div>
+
         <!-- Frequent Contact (dynamically set based on gender) -->
         <div class="frequent-contact">
             <div class="frequent-contact-avatar">
@@ -1787,7 +2094,7 @@
             </div>
             <div class="frequent-contact-info">
                 <div class="frequent-contact-label">🔥 Most Frequent Contact</div>
-                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">Jessica</span><span class="hidden">Smith</span></div>
+                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J***</span><span class="hidden">S***</span></div>
                 <div class="frequent-contact-stats">247 messages this month • <strong>89 DELETED</strong></div>
             </div>
             <div class="frequent-contact-badge">
@@ -1847,6 +2154,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="conv-list" id="convList"></div>
                 </div>
             </div>
 
@@ -1976,77 +2285,108 @@
 
         <!-- Testimonials -->
         <div class="testimonials-section">
-            <h2 class="section-title">What our users say</h2>
-            <div class="testimonials-stats">
-                <div class="testimonials-stars-row">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            <div class="testimonials-header-card">
+                <div class="testimonials-header-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <span class="testimonials-header-title">User Reviews</span>
                 </div>
-                <span class="testimonials-rating">4.9/5</span>
-                <span class="testimonials-count">based on 4,283 reviews</span>
+                <div class="testimonials-header-right">
+                    <span class="testimonials-rating-pill">★ 4.9</span>
+                    <span class="testimonials-count-pill">2,847 reviews</span>
+                </div>
             </div>
-            <div class="testimonials-metrics">
-                <span><strong>127</strong> purchases today</span>
-                <span><strong>98%</strong> satisfaction</span>
-            </div>
-            
+            <div class="testimonials-body">
+
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="../imagens/avatar-depoimento-1.jpg" alt="Marcus Viana testimonial" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-1">🔍</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@marcus_viana</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Verified Purchase
+                        <div class="testimonial-name">user_8***2k</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">I thought it was a scam but tested it anyway. Paid, and in 3 min I had access. Everything was there: conversations, photos he deleted, even the location worked. Worth every penny.</p>
-                <div class="testimonial-time">2 days ago</div>
+                <p class="testimonial-text">I had a gut feeling something was off for months. He was always hiding his phone, leaving the room to text. I found <em>deleted conversations with the same contact</em> going back weeks. Messages he swore he never sent. I finally had proof of what I already felt inside.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">2 days ago</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 124 helpful</span>
+                </div>
             </div>
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="../imagens/avatar-depoimento-2.jpg" alt="Gisele Ferreira testimonial" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-2">💔</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@gisele_ferreira</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Verified Purchase
+                        <div class="testimonial-name">anon_***91</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">Access was super fast. Paid via card and in less than 2 min I was seeing everything. The status he posted hidden from me. The system really works.</p>
-                <div class="testimonial-time">5 hours ago</div>
+                <p class="testimonial-text">She kept saying "it's just a coworker." I saw <em>photos they exchanged and deleted</em>, late night calls at 1 AM, and a contact saved under a fake name. Everything I needed was right there. Painful but necessary.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">8 hours ago</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 89 helpful</span>
+                </div>
             </div>
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar">
-                        <img src="../imagens/avatar-depoimento-3.jpg" alt="Rodrigo Prozin testimonial" loading="lazy">
-                    </div>
+                    <div class="testimonial-avatar-icon tav-3">📱</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">@rodrigo_prozin</div>
-                        <div class="testimonial-verified">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            Verified Purchase
+                        <div class="testimonial-name">user_***7x</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</span>
+                            <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
-                    <div class="testimonial-stars">★★★★★</div>
                 </div>
-                <p class="testimonial-text">In the full version I tested with my partner's number and saw a lot. Location, hidden photos, even deleted conversations. It was exactly as shown.</p>
-                <div class="testimonial-time">1 day ago</div>
+                <p class="testimonial-text">Paid and had access in under 2 minutes. No apps to install, nothing. I saw <em>hidden status updates</em>, <em>secret chats</em> he thought were gone, and even his real-time location. Answered every question I was afraid to ask out loud.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">1 day ago</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 67 helpful</span>
+                </div>
+            </div>
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-4">🔒</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">anon_***4r</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">I almost didn't buy it. I was scared of what I'd find. Turns out he had <em>a whole second life on WhatsApp</em> — blocked contacts, deleted voice messages, pictures I was never supposed to see. It hurts, but at least now I know the truth.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">3 days ago</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 156 helpful</span>
+                </div>
+            </div>
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-5">✅</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">user_***m3</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Verified</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">My friends told me I was being paranoid. I used this just to prove myself wrong. Instead, I found <em>deleted photos, a hidden contact saved as "Gym Trainer"</em>, and messages that made everything click. I wasn't paranoid — I was right.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">12 hours ago</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 203 helpful</span>
+                </div>
+            </div>
+
             </div>
         </div>
 
@@ -2135,15 +2475,24 @@
         </div>
     </div>
 
-    <!-- Fixed CTA removido -->
+    <!-- Exit Intent Popup -->
+    <div class="exit-overlay" id="exitOverlay">
+        <div class="exit-popup">
+            <button class="exit-close" id="exitClose">&times;</button>
+            <div class="exit-icon">⚠️</div>
+            <div class="exit-title">Wait! Your data will be lost</div>
+            <div class="exit-subtitle">The monitoring session for this number will expire and all captured data will be permanently deleted.</div>
+            <div class="exit-timer" id="exitTimer">04:59</div>
+            <button class="exit-cta" onclick="handlePurchase()">🔓 Unlock Access Before It Expires</button>
+            <button class="exit-dismiss" id="exitDismiss">No thanks, I'll lose the data</button>
+        </div>
+    </div>
 
-    <!-- Activity Notification - Removido -->
 
-    <!-- Matrix Effect - Initialized from shared module -->
+    <!-- Matrix Effect - disabled on light theme -->
     <script>
-        // Initialize Matrix Effect from shared module
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof MatrixEffect !== 'undefined') {
+            if (typeof MatrixEffect !== 'undefined' && !window.location.pathname.includes('/light/')) {
                 MatrixEffect.init('matrix-canvas', { chars: '01', frameInterval: 100 });
             }
         });
@@ -2173,7 +2522,7 @@
         if (gender === 'female') {
             // User spying on female, show male photos
             frequentContactImg.src = '../imagens/homem1.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">Michael</span><span class="hidden">Johnson</span>';
+            frequentContactName.innerHTML = '<span class="hidden">M***</span><span class="hidden">J***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="../imagens/blocked-male-1.png" alt="">
@@ -2224,7 +2573,7 @@
         } else {
             // User spying on male (default), show female photos
             frequentContactImg.src = '../imagens/mulher1.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">Jessica</span><span class="hidden">Smith</span>';
+            frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">S***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="../imagens/blocked-female-1.png" alt="">
@@ -2274,8 +2623,78 @@
             `;
         }
 
+        // Populate suspicious conversations based on gender
+        (function() {
+            var cl = document.getElementById('convList');
+            if (!cl) return;
+            var p = window.location.pathname;
+            var lang = 'en';
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+
+            var labels = {
+                en: { title: 'Suspicious conversations detected', deleted: 'deleted', suspicious: 'suspicious', evidence: 'evidence' },
+                es: { title: 'Conversaciones sospechosas detectadas', deleted: 'eliminado', suspicious: 'sospechoso', evidence: 'evidencia' },
+                pt: { title: 'Conversas suspeitas detectadas', deleted: 'apagado', suspicious: 'suspeito', evidence: 'evidência' }
+            }[lang];
+
+            var audioBars = '';
+            var heights = [4,8,12,6,14,9,5,11,7,13,4,10,8,6,12,3,9,14,5,11];
+            for (var h = 0; h < heights.length; h++) audioBars += '<span style="height:' + heights[h] + 'px"></span>';
+
+            var convsFemale = [
+                { img: 'mulher1.jpg', name: 'Jes***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
+                { img: 'mulher3.jpg', name: 'Ash***', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
+                { img: 'mulher5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
+                { img: 'mulher7.jpg', name: 'Sam***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
+                { img: 'mulher9.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+            ];
+            var convsMale = [
+                { img: 'homem1.jpg', name: 'Mic***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
+                { img: 'homem3.jpg', name: 'Kev** (Work)', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
+                { img: 'homem5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
+                { img: 'homem2.jpg', name: 'Dan***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
+                { img: 'homem4.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+            ];
+
+            if (lang === 'es') {
+                convsFemale[0].msg = 'Borra esto después de le***...'; convsFemale[1].msg = 'Todavía pien** en nosotr**...';
+                convsFemale[2].msg = 'Te extrañ** much**...'; convsFemale[4].msg = 'Nadie tiene que sab***...';
+                convsMale[0].msg = 'Borra esto después de le***...'; convsMale[1].msg = 'Todavía pien** en nosotr**...';
+                convsMale[2].msg = 'Te extrañ** much**...'; convsMale[4].msg = 'Nadie tiene que sab***...';
+            } else if (lang === 'pt') {
+                convsFemale[0].msg = 'Apaga isso depois de l***...'; convsFemale[1].msg = 'Ainda pen** em nós doi**...';
+                convsFemale[2].msg = 'Sinto sua fal** demais...'; convsFemale[4].msg = 'Ninguém precisa sab***...';
+                convsMale[0].msg = 'Apaga isso depois de l***...'; convsMale[1].msg = 'Ainda pen** em nós doi**...';
+                convsMale[2].msg = 'Sinto sua fal** demais...'; convsMale[4].msg = 'Ninguém precisa sab***...';
+            }
+
+            var convs = gender === 'female' ? convsMale : convsFemale;
+
+            var html = '<div class="conv-list-title"><svg viewBox="0 0 16 16" fill="#ef4444" width="12" height="12"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a1 1 0 011 1v4a1 1 0 01-2 0V4a1 1 0 011-1zm0 8a1 1 0 110-2 1 1 0 010 2z"/></svg> ' + labels.title + '</div>';
+
+            for (var i = 0; i < convs.length; i++) {
+                var c = convs[i];
+                var isSusp = c.tags.indexOf('evidence') !== -1 || c.tags.indexOf('suspicious') !== -1;
+                html += '<div class="conv-item' + (isSusp ? ' suspicious' : '') + '">';
+                html += '<img class="conv-avatar" src="../imagens/' + c.img + '" alt="">';
+                html += '<div class="conv-body"><div class="conv-name">' + c.name + '</div>';
+                if (c.msg === 'audio') {
+                    html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#25D366" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
+                } else {
+                    html += '<div class="conv-msg">' + c.msg + '</div>';
+                }
+                html += '<div class="conv-tags">';
+                for (var t = 0; t < c.tags.length; t++) html += '<span class="conv-tag ' + c.tags[t] + '">' + labels[c.tags[t]] + '</span>';
+                html += '</div></div>';
+                html += '<div class="conv-meta"><span class="conv-badge">' + c.unread + '</span></div>';
+                html += '</div>';
+            }
+            cl.innerHTML = html;
+        })();
+
         // Load target phone from localStorage
-        const targetPhone = localStorage.getItem('targetPhone') || '+1 (555) 123-4567';
+        const targetPhone = localStorage.getItem('targetPhone') || '+** (***) ***-4567';
         document.getElementById('targetPhone').textContent = targetPhone;
 
         // Load target avatar from localStorage
@@ -2354,7 +2773,7 @@
         function proceedToCheckout() {
             if (checkoutLocked) return;
             checkoutLocked = true;
-            // Get current product value (may be modified by A/B testing)
+            // Get current product value
             const currentValue = window.productValue || 47;
             const currentCheckoutCode = window.checkoutCode || 'PPU38CQ7KHI';
             
@@ -2377,11 +2796,6 @@
             // Track checkout click in funnel
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
-            }
-            
-            // Track A/B test conversion if active
-            if (typeof ABTesting !== 'undefined' && ABTesting.hasActiveTest()) {
-                ABTesting.trackConversion('checkout_click', currentValue);
             }
             
             // Build checkout URL with user data
@@ -2460,6 +2874,432 @@
             if (Math.random() > 0.5) showTypingIndicator();
         }, 15000);
         setTimeout(showTypingIndicator, 5000);
+
+        // ============================================================
+        // 1) TOAST NOTIFICATIONS - Live target activity alerts
+        // ============================================================
+        const toastAlerts = [
+            { icon: '🗑️', type: 'alert', title: 'Message Deleted', msg: 'Target just deleted <strong>3 messages</strong> from a conversation' },
+            { icon: '📸', type: 'alert', title: 'Photo Deleted', msg: 'A photo was <strong>sent and immediately deleted</strong>' },
+            { icon: '🌙', type: 'warning', title: 'Late Activity', msg: 'Target is <strong>online right now</strong> at unusual hours' },
+            { icon: '👤', type: 'alert', title: 'New Contact', msg: 'A <strong>new unsaved contact</strong> was just added' },
+            { icon: '📍', type: 'info', title: 'Location Changed', msg: 'Target moved to a <strong>new location</strong> 12 min ago' },
+            { icon: '🔇', type: 'warning', title: 'Status Hidden', msg: 'Target set status to <strong>hidden from you</strong>' },
+            { icon: '💬', type: 'alert', title: 'Secret Chat', msg: 'New conversation with an <strong>unknown contact</strong> detected' },
+            { icon: '🚫', type: 'alert', title: 'Blocked Contact', msg: 'Target <strong>blocked a contact</strong> in the last hour' },
+            { icon: '📱', type: 'info', title: 'Device Change', msg: 'WhatsApp Web session <strong>opened from new device</strong>' },
+            { icon: '🔔', type: 'warning', title: 'Notifications Off', msg: 'Target <strong>muted a conversation</strong> just now' }
+        ];
+        let toastIndex = 0;
+        function showToast() {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const alert = toastAlerts[toastIndex % toastAlerts.length];
+            toastIndex++;
+            const times = ['Just now', '1 min ago', '2 min ago', 'Moments ago'];
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-icon ${alert.type}">${alert.icon}</div>
+                <div class="toast-body">
+                    <div class="toast-title">${alert.title}</div>
+                    <div class="toast-message">${alert.msg}</div>
+                    <div class="toast-time">${times[Math.floor(Math.random() * times.length)]}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { toast.classList.add('show'); });
+            });
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+        setTimeout(showToast, 8000);
+        function scheduleNextToast() { setTimeout(function() { showToast(); scheduleNextToast(); }, 20000 + Math.random() * 15000); }
+        scheduleNextToast();
+
+        // ============================================================
+        // 2) ACTIVITY TIMELINE - Recent target events
+        // ============================================================
+        function buildTimeline() {
+            var p = window.location.pathname;
+            var lang = 'en';
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+
+            var g = (typeof gender !== 'undefined') ? gender : 'male';
+            var isFemale = (g === 'female');
+
+            var contactName = isFemale
+                ? '<span class="tl-name">Jordan M.</span>'
+                : '<span class="tl-name">Ashley R.</span>';
+
+            var eventsEN = [
+                { icon: '🗑', cls: 'tl-delete', text: 'Deleted <span class="tl-highlight">7 messages</span> from chat with ' + contactName, tag: 'danger', tagText: 'deleted', mins: 1 },
+                { icon: '📱', cls: 'tl-call', text: 'Missed call from ' + contactName + ' — <span class="tl-highlight">3rd call today</span>', tag: 'warn', tagText: 'frequent', mins: 4 },
+                { icon: '📷', cls: 'tl-msg', text: 'Received <span class="tl-highlight">2 photos</span> — opened and deleted in 8 seconds', tag: 'danger', tagText: 'auto-delete', mins: 12 },
+                { icon: '📍', cls: 'tl-location', text: 'Moved to a <span class="tl-highlight">new location</span> — <span class="tl-name">3.8 km</span> from usual area', tag: 'warn', tagText: 'unusual', mins: 28 },
+                { icon: '🟣', cls: 'tl-online', text: 'Was <span class="tl-highlight">online for 23 min</span> without sending any visible messages', tag: 'info', tagText: 'ghost mode', mins: 45 },
+                { icon: '🔒', cls: 'tl-contact', text: 'Contact ' + contactName + ' renamed to <span class="tl-name">Work - IT</span>', tag: 'danger', tagText: 'hidden', mins: 58 }
+            ];
+
+            var eventsES = [
+                { icon: '🗑', cls: 'tl-delete', text: 'Eliminó <span class="tl-highlight">7 mensajes</span> del chat con ' + contactName, tag: 'danger', tagText: 'eliminado', mins: 1 },
+                { icon: '📱', cls: 'tl-call', text: 'Llamada perdida de ' + contactName + ' — <span class="tl-highlight">3ra llamada hoy</span>', tag: 'warn', tagText: 'frecuente', mins: 4 },
+                { icon: '📷', cls: 'tl-msg', text: 'Recibió <span class="tl-highlight">2 fotos</span> — abrió y eliminó en 8 segundos', tag: 'danger', tagText: 'auto-borrado', mins: 12 },
+                { icon: '📍', cls: 'tl-location', text: 'Se movió a una <span class="tl-highlight">nueva ubicación</span> — <span class="tl-name">3.8 km</span> de la zona habitual', tag: 'warn', tagText: 'inusual', mins: 28 },
+                { icon: '🟣', cls: 'tl-online', text: 'Estuvo <span class="tl-highlight">en línea 23 min</span> sin enviar mensajes visibles', tag: 'info', tagText: 'modo oculto', mins: 45 },
+                { icon: '🔒', cls: 'tl-contact', text: 'Contacto ' + contactName + ' renombrado a <span class="tl-name">Trabajo - TI</span>', tag: 'danger', tagText: 'oculto', mins: 58 }
+            ];
+
+            var eventsPT = [
+                { icon: '🗑', cls: 'tl-delete', text: 'Apagou <span class="tl-highlight">7 mensagens</span> da conversa com ' + contactName, tag: 'danger', tagText: 'apagado', mins: 1 },
+                { icon: '📱', cls: 'tl-call', text: 'Chamada perdida de ' + contactName + ' — <span class="tl-highlight">3ª ligação hoje</span>', tag: 'warn', tagText: 'frequente', mins: 4 },
+                { icon: '📷', cls: 'tl-msg', text: 'Recebeu <span class="tl-highlight">2 fotos</span> — abriu e apagou em 8 segundos', tag: 'danger', tagText: 'auto-apagado', mins: 12 },
+                { icon: '📍', cls: 'tl-location', text: 'Moveu-se para <span class="tl-highlight">nova localização</span> — <span class="tl-name">3.8 km</span> da área habitual', tag: 'warn', tagText: 'incomum', mins: 28 },
+                { icon: '🟣', cls: 'tl-online', text: 'Ficou <span class="tl-highlight">online por 23 min</span> sem enviar mensagens visíveis', tag: 'info', tagText: 'modo fantasma', mins: 45 },
+                { icon: '🔒', cls: 'tl-contact', text: 'Contato ' + contactName + ' renomeado para <span class="tl-name">Trabalho - TI</span>', tag: 'danger', tagText: 'oculto', mins: 58 }
+            ];
+
+            var events = lang === 'es' ? eventsES : (lang === 'pt' ? eventsPT : eventsEN);
+            var alertsLabel = lang === 'es' ? 'alertas' : (lang === 'pt' ? 'alertas' : 'alerts');
+
+            var container = document.getElementById('timelineItems');
+            var counterEl = document.getElementById('tlCounter');
+            if (!container) return;
+            if (counterEl) counterEl.textContent = events.length + ' ' + alertsLabel;
+
+            var agoLabel = { en: [' min ago', 'Just now'], es: ['hace ', ' min', 'Ahora'], pt: ['há ', ' min', 'Agora'] };
+
+            container.innerHTML = events.map(function(e) {
+                var agoText;
+                if (e.mins <= 1) {
+                    agoText = lang === 'es' ? 'Ahora' : (lang === 'pt' ? 'Agora' : 'Just now');
+                } else {
+                    agoText = lang === 'es' ? 'hace ' + e.mins + ' min' : (lang === 'pt' ? 'há ' + e.mins + ' min' : e.mins + ' min ago');
+                }
+                return '<div class="timeline-item">' +
+                    '<div class="timeline-item-icon ' + e.cls + '">' + e.icon + '</div>' +
+                    '<div class="timeline-item-content">' +
+                        '<div class="timeline-item-text">' + e.text + '</div>' +
+                        '<div class="timeline-item-meta">' +
+                            '<span class="timeline-item-time">' + agoText + '</span>' +
+                            '<span class="tl-tag ' + e.tag + '">' + e.tagText + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+        buildTimeline();
+
+        // ============================================================
+        // 3) ACCESS EXPIRY BAR - Visual urgency (green → red)
+        // ============================================================
+        (function initExpiryBar() {
+            const fill = document.getElementById('accessExpiryFill');
+            if (!fill) return;
+            const totalDuration = 600;
+            let elapsed = 0;
+            function updateBar() {
+                elapsed++;
+                const pct = Math.max(0, 100 - (elapsed / totalDuration) * 100);
+                fill.style.width = pct + '%';
+                if (pct > 60) {
+                    fill.style.background = 'linear-gradient(90deg, #25D366, #25D366)';
+                } else if (pct > 30) {
+                    fill.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
+                } else {
+                    fill.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)';
+                }
+                if (pct > 0) setTimeout(updateBar, 1000);
+            }
+            updateBar();
+        })();
+
+        // ============================================================
+        // 4) SOCIAL PROOF - Recent purchases from global cities
+        // ============================================================
+        const socialProofData = [
+            { name: 'Sarah M.', city: 'London, UK' },
+            { name: 'Carlos R.', city: 'Mexico City, MX' },
+            { name: 'Priya K.', city: 'Mumbai, IN' },
+            { name: 'Ahmed H.', city: 'Dubai, UAE' },
+            { name: 'Lisa W.', city: 'Toronto, CA' },
+            { name: 'Juan P.', city: 'Madrid, ES' },
+            { name: 'Yuki T.', city: 'Tokyo, JP' },
+            { name: 'Fatima A.', city: 'Riyadh, SA' },
+            { name: 'Emily R.', city: 'Sydney, AU' },
+            { name: 'Marco B.', city: 'Milan, IT' },
+            { name: 'Nina S.', city: 'Berlin, DE' },
+            { name: 'David L.', city: 'New York, US' },
+            { name: 'Ana C.', city: 'Buenos Aires, AR' },
+            { name: 'Ravi P.', city: 'Singapore, SG' },
+            { name: 'Chloe D.', city: 'Paris, FR' },
+            { name: 'Omar M.', city: 'Istanbul, TR' },
+            { name: 'Kim J.', city: 'Seoul, KR' },
+            { name: 'Grace N.', city: 'Lagos, NG' },
+            { name: 'Lena V.', city: 'Stockholm, SE' },
+            { name: 'Chen W.', city: 'Taipei, TW' },
+            { name: 'Sofia G.', city: 'Bogota, CO' },
+            { name: 'James O.', city: 'Dublin, IE' },
+            { name: 'Mia K.', city: 'Amsterdam, NL' },
+            { name: 'Hassan B.', city: 'Cairo, EG' }
+        ];
+        let spIndex = 0;
+        function showSocialProof() {
+            const container = document.getElementById('socialProofContainer');
+            if (!container) return;
+            const person = socialProofData[spIndex % socialProofData.length];
+            spIndex++;
+            const mins = Math.floor(Math.random() * 12) + 1;
+            const popup = document.createElement('div');
+            popup.className = 'social-proof';
+            popup.innerHTML = `
+                <div class="social-proof-icon">✅</div>
+                <div class="social-proof-body">
+                    <div class="social-proof-text"><strong>${person.name}</strong> from ${person.city} just unlocked full access</div>
+                    <div class="social-proof-time">${mins} min ago</div>
+                </div>
+            `;
+            container.appendChild(popup);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { popup.classList.add('show'); });
+            });
+            setTimeout(() => {
+                popup.classList.remove('show');
+                setTimeout(() => popup.remove(), 500);
+            }, 5000);
+        }
+        setTimeout(showSocialProof, 12000);
+        function scheduleNextProof() { setTimeout(function() { showSocialProof(); scheduleNextProof(); }, 30000 + Math.random() * 20000); }
+        scheduleNextProof();
+
+        // === EXIT INTENT POPUP ===
+        (function() {
+            const overlay = document.getElementById('exitOverlay');
+            if (!overlay) return;
+            let shown = false;
+            let timerSec = 299;
+
+            function showExit() {
+                if (shown) return;
+                shown = true;
+                overlay.classList.add('show');
+                const timerEl = document.getElementById('exitTimer');
+                const iv = setInterval(() => {
+                    timerSec--;
+                    if (timerSec <= 0) { clearInterval(iv); timerSec = 0; }
+                    const m = Math.floor(timerSec / 60);
+                    const s = timerSec % 60;
+                    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+                }, 1000);
+            }
+
+            function hideExit() { overlay.classList.remove('show'); }
+
+            document.addEventListener('mouseout', function(e) {
+                if (e.clientY < 5 && e.relatedTarget === null) showExit();
+            });
+
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) { touchStartY = e.touches[0].clientY; });
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches[0].clientY - touchStartY > 80 && window.scrollY < 10) showExit();
+            });
+
+            document.getElementById('exitClose').addEventListener('click', hideExit);
+            document.getElementById('exitDismiss').addEventListener('click', hideExit);
+        })();
+
+
+        // === AUDIO NOTIFICATION ===
+        (function() {
+            var audioCtx = null;
+            function getAudioCtx() {
+                if (!audioCtx) {
+                    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                }
+                return audioCtx;
+            }
+            window._playWhatsAppPop = function() {
+                try {
+                    var ctx = getAudioCtx();
+                    if (!ctx) return;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(900, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.15);
+                } catch(e) {}
+            };
+
+            const origShowToast = window.showToast;
+            if (origShowToast) {
+                window.showToast = function() {
+                    origShowToast.apply(this, arguments);
+                    window._playWhatsAppPop();
+                };
+            }
+
+            const origShowSP = window.showSocialProof;
+            if (origShowSP) {
+                const wrappedSP = function() {
+                    origShowSP.apply(this, arguments);
+                    window._playWhatsAppPop();
+                };
+                window.showSocialProof = wrappedSP;
+            }
+        })();
+
+
+        // === TYPING EFFECT ON DELETED MESSAGE ===
+        (function() {
+            const el = document.getElementById('deletedMessageContent');
+            if (!el) return;
+            const fullHTML = el.innerHTML;
+            const textParts = fullHTML.split(/<span class="blocked">|<\/span>/);
+            let displayed = '';
+            let partIdx = 0, charIdx = 0;
+            let isBlocked = false;
+            el.innerHTML = '';
+            el.style.minHeight = '40px';
+
+            function typeNext() {
+                if (partIdx >= textParts.length) return;
+                const part = textParts[partIdx];
+                if (charIdx < part.length) {
+                    if (isBlocked) {
+                        if (charIdx === 0) displayed += '<span class="blocked">';
+                        displayed += part[charIdx];
+                        charIdx++;
+                        if (charIdx >= part.length) {
+                            displayed += '</span>';
+                        }
+                    } else {
+                        displayed += part[charIdx];
+                        charIdx++;
+                    }
+                    el.innerHTML = displayed + '<span style="border-right:2px solid #dc2626;animation:blink 0.7s infinite;">&#8203;</span>';
+                    setTimeout(typeNext, 30 + Math.random() * 50);
+                } else {
+                    partIdx++;
+                    charIdx = 0;
+                    isBlocked = !isBlocked;
+                    setTimeout(typeNext, 100);
+                }
+            }
+
+            const obs = new IntersectionObserver(function(entries) {
+                if (entries[0].isIntersecting) {
+                    obs.disconnect();
+                    setTimeout(typeNext, 800);
+                }
+            });
+            obs.observe(el);
+        })();
+
+
+        // === SHAKE CTA ON SCROLL PAST PRICING ===
+        (function() {
+            const ctaBtn = document.querySelector('.cta-button');
+            const pricing = document.getElementById('pricing');
+            if (!ctaBtn || !pricing) return;
+            let shaken = false;
+            const shakeObs = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting && !shaken) {
+                        const rect = pricing.getBoundingClientRect();
+                        if (rect.bottom < 0) {
+                            shaken = true;
+                            ctaBtn.style.animation = 'ctaShake 0.6s ease-in-out';
+                            setTimeout(function() {
+                                ctaBtn.style.animation = 'megaPulse 2s ease-in-out infinite';
+                                setTimeout(function() { shaken = false; }, 10000);
+                            }, 600);
+                        }
+                    }
+                });
+            }, { threshold: 0 });
+            shakeObs.observe(pricing);
+        })();
+
+        // === MESSAGE COUNTER INCREMENT ===
+        (function() {
+            const msgEl = document.getElementById('msgCount');
+            if (!msgEl) return;
+            let count = 1200;
+            setInterval(function() {
+                count += Math.floor(Math.random() * 3) + 1;
+                if (count < 10000) {
+                    msgEl.textContent = (count / 1000).toFixed(1) + 'k';
+                } else {
+                    msgEl.textContent = (count / 1000).toFixed(0) + 'k';
+                }
+            }, 5000 + Math.random() * 3000);
+        })();
+
+        // === MICRO-CONVERSION TRACKING ===
+        (function() {
+            var tracked = {};
+            function trackMicro(eventName, data) {
+                if (tracked[eventName]) return;
+                tracked[eventName] = true;
+                if (typeof FunnelTracker !== 'undefined' && FunnelTracker.track) {
+                    FunnelTracker.track(eventName, data || {});
+                }
+                try {
+                    fetch((window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            visitorId: localStorage.getItem('funnelVisitorId') || '',
+                            event: eventName,
+                            page: 'cta-unified',
+                            metadata: data || {}
+                        })
+                    }).catch(function() {});
+                } catch(e) {}
+            }
+
+            // Scroll depth tracking
+            var scrollThresholds = [25, 50, 75, 100];
+            window.addEventListener('scroll', function() {
+                var scrollPct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+                scrollThresholds.forEach(function(t) {
+                    if (scrollPct >= t) trackMicro('scroll_' + t, { depth: t });
+                });
+            });
+
+            // Time on page tracking
+            [15, 30, 60, 120].forEach(function(sec) {
+                setTimeout(function() {
+                    trackMicro('time_on_page_' + sec + 's', { seconds: sec });
+                }, sec * 1000);
+            });
+
+            // CTA button hover (purchase intent)
+            var ctaBtn = document.querySelector('.cta-button');
+            if (ctaBtn) {
+                ctaBtn.addEventListener('mouseenter', function() {
+                    trackMicro('cta_button_hover', {});
+                });
+            }
+
+            // FAQ click tracking
+            document.querySelectorAll('.faq-question').forEach(function(q) {
+                q.addEventListener('click', function() {
+                    trackMicro('faq_click', { question: this.textContent.trim().substring(0, 60) });
+                });
+            });
+        })();
+
 
     </script>
 </body>

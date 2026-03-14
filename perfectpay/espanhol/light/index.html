@@ -6,6 +6,7 @@
     <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ZapSpy.ai - Redirigiendo...</title>
+    <link rel="prefetch" href="landing.html">
     <meta name="robots" content="noindex">
     <link rel="shortcut icon" href="../imagens/icon-site.png">
     <script>
@@ -54,7 +55,10 @@
     </script>
     <style>
         body {
-            background: #ffffff;
+            background-color: #efeae2;
+            background-image: url('../imagens/whatsapp-wallpaper-light.png');
+            background-size: 420px auto;
+            background-repeat: repeat;
             color: #25D366;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
@@ -62,6 +66,19 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(239, 234, 226, 0.4);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
         }
     </style>
 </head>
