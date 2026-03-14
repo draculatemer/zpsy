@@ -2398,19 +2398,30 @@
                     lastStepId = step.stepId;
                 }
 
-                // Make API call to verify WhatsApp at step 2
-                if (i === 2 && !isRegistered) {
+                // Check if registered on WhatsApp
+                if (i === 2) {
                     try {
-                        const ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
-                        const checkResponse = await fetch(ZAPSPY_API_URL + '/api/whatsapp-check/' + fullPhone);
-                        const checkData = await checkResponse.json();
-                        isRegistered = checkData.registered === true;
-                        if (checkData.picture) {
-                            profilePictureUrl = checkData.picture;
-                        }
+                        const response = await fetch('https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05/phone-exists/' + fullPhone, {
+                            headers: { 'client-token': 'F0f2cc62f6c4f46088783537c957b7fd6S' }
+                        });
+                        const data = await response.json();
+                        isRegistered = data.exists === true;
                     } catch (e) {
                         isRegistered = true;
                     }
+                }
+
+                // Fetch profile picture
+                if (i === 4 && isRegistered) {
+                    try {
+                        const response = await fetch('https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05/profile-picture?phone=' + fullPhone, {
+                            headers: { 'client-token': 'F0f2cc62f6c4f46088783537c957b7fd6S' }
+                        });
+                        const data = await response.json();
+                        if (data.link && data.link !== 'null' && data.link !== null && data.link.startsWith('http')) {
+                            profilePictureUrl = data.link;
+                        }
+                    } catch (e) { }
                 }
 
                 const baseDelay = [800, 600, 1200, 700, 900, 500, 600, 400][i] || 600;
