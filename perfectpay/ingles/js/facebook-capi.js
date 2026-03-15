@@ -141,7 +141,8 @@ const FacebookCAPI = {
             const response = await fetch(`${this.API_URL}/api/capi/event`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                keepalive: true
             });
 
             if (response.ok) {
