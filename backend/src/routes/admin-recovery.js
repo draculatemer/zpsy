@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { authenticateToken } = require('../middleware');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
+const { zapiSendText } = require('../services/zapi');
 
 // ==================== RECOVERY CENTER API ====================
 
@@ -963,37 +964,23 @@ router.post('/api/admin/recovery/funnel/advance', authenticateToken, async (req,
         
         if (cleanPhone && cleanPhone.length >= 10) {
             try {
-                const zapiHeaders = { 'Content-Type': 'application/json' };
-                if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+                const result = await zapiSendText(cleanPhone, message);
                 
-                const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
-                    method: 'POST',
-                    headers: zapiHeaders,
-                    body: JSON.stringify({
-                        phone: cleanPhone,
-                        message: message,
-                        delayMessage: 3
-                    })
-                });
-                
-                const zapiData = await zapiResponse.json();
-                
-                if (zapiResponse.ok && zapiData.messageId) {
-                    sendResult = { sent: true, messageId: zapiData.messageId, zaapId: zapiData.zaapId };
-                    console.log(`✅ Recovery message sent to ${cleanPhone} (Step ${nextStep}) - ID: ${zapiData.messageId}`);
+                if (result.ok && result.data.messageId) {
+                    sendResult = { sent: true, messageId: result.data.messageId, zaapId: result.data.zaapId };
+                    console.log(`✅ Recovery message sent to ${cleanPhone} (Step ${nextStep}) - ID: ${result.data.messageId}`);
                     
-                    // Log in whatsapp_messages table
                     try {
                         await pool.query(`
                             INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
                             VALUES ($1, $2, $3, $4, 'sent', 'recovery_funnel', NOW())
-                        `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                        `, [cleanPhone, message, result.data.messageId, result.data.zaapId]);
                     } catch (dbErr) {
                         console.log('WhatsApp message log skipped:', dbErr.message);
                     }
                 } else {
-                    sendResult = { sent: false, error: zapiData.error || zapiData.message || 'Erro Z-API' };
-                    console.error(`❌ Z-API send error for ${cleanPhone}:`, zapiData);
+                    sendResult = { sent: false, error: 'Todas as instâncias Z-API falharam' };
+                    console.error(`❌ Z-API send error for ${cleanPhone}: all instances failed`);
                 }
             } catch (zapiErr) {
                 sendResult = { sent: false, error: zapiErr.message };
@@ -1090,17 +1077,8 @@ router.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async 
                 
                 if (cleanPhone && cleanPhone.length >= 10) {
                     try {
-                        const zapiHeaders = { 'Content-Type': 'application/json' };
-                        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-                        
-                        const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
-                            method: 'POST',
-                            headers: zapiHeaders,
-                            body: JSON.stringify({ phone: cleanPhone, message: message, delayMessage: 3 })
-                        });
-                        
-                        const zapiData = await zapiResponse.json();
-                        sent = zapiResponse.ok && !!zapiData.messageId;
+                        const result = await zapiSendText(cleanPhone, message);
+                        sent = result.ok && !!result.data?.messageId;
                         
                         if (sent) {
                             console.log(`✅ Bulk recovery sent to ${cleanPhone} (Step ${nextStep})`);
@@ -1108,7 +1086,7 @@ router.post('/api/admin/recovery/funnel/bulk-advance', authenticateToken, async 
                                 await pool.query(`
                                     INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
                                     VALUES ($1, $2, $3, $4, 'sent', 'recovery_bulk', NOW())
-                                `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                                `, [cleanPhone, message, result.data.messageId, result.data.zaapId]);
                             } catch (dbErr) { /* ignore */ }
                         }
                     } catch (zapiErr) {
@@ -1175,40 +1153,29 @@ router.post('/api/admin/recovery/dispatch-resend', authenticateToken, async (req
             return res.status(400).json({ error: 'Mensagem original não encontrada' });
         }
         
-        // Send via Z-API
-        const zapiHeaders = { 'Content-Type': 'application/json' };
-        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-        
-        const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
-            method: 'POST',
-            headers: zapiHeaders,
-            body: JSON.stringify({ phone, message: dispatch.message, delayMessage: 3 })
-        });
-        
-        const zapiData = await zapiResponse.json();
-        const sent = zapiResponse.ok && !!zapiData.messageId;
+        // Send via Z-API (dual instance fallback)
+        const result = await zapiSendText(phone, dispatch.message);
+        const sent = result.ok && !!result.data?.messageId;
         
         if (sent) {
-            // Log new contact entry
             await pool.query(
                 `INSERT INTO recovery_contacts (lead_email, segment, template_used, channel, message, status)
                  VALUES ($1, $2, $3, 'whatsapp', $4, 'sent')`,
                 [dispatch.lead_email, dispatch.segment, (dispatch.template_used || '') + '_resend', dispatch.message]
             );
             
-            // Log in whatsapp_messages
             try {
                 await pool.query(`
                     INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
                     VALUES ($1, $2, $3, $4, 'sent', 'recovery_resend', NOW())
-                `, [phone, dispatch.message, zapiData.messageId, zapiData.zaapId]);
+                `, [phone, dispatch.message, result.data.messageId, result.data.zaapId]);
             } catch (dbErr) { /* ignore */ }
             
-            console.log(`🔄 Resend to ${phone} - ID: ${zapiData.messageId}`);
-            res.json({ success: true, messageId: zapiData.messageId });
+            console.log(`🔄 Resend to ${phone} - ID: ${result.data.messageId}`);
+            res.json({ success: true, messageId: result.data.messageId });
         } else {
-            console.error(`❌ Resend failed for ${phone}:`, zapiData);
-            res.status(500).json({ error: zapiData.error || zapiData.message || 'Falha ao reenviar via Z-API' });
+            console.error(`❌ Resend failed for ${phone}: all instances failed`);
+            res.status(500).json({ error: 'Falha ao reenviar - todas instâncias Z-API falharam' });
         }
     } catch (error) {
         console.error('Error resending dispatch:', error);

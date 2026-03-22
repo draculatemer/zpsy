@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, requireAdmin } = require('../middleware');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
+const { zapiSendText } = require('../services/zapi');
 const { buildDateFilter, parseMonetizzeDate } = require('../helpers');
 const { sendToFacebookCAPI, sendMissingCAPIPurchases } = require('../services/facebook-capi');
 
@@ -528,26 +529,18 @@ router.post('/api/admin/refunds/:id/send-message', authenticateToken, async (req
                 return res.status(400).json({ error: 'NÃºmero de telefone invÃ¡lido' });
             }
             
-            const zapiHeaders = { 'Content-Type': 'application/json' };
-            if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-            
             try {
-                const zapiResponse = await fetch(`${ZAPI_BASE_URL}/send-text`, {
-                    method: 'POST',
-                    headers: zapiHeaders,
-                    body: JSON.stringify({ phone: cleanPhone, message, delayMessage: 3 })
-                });
-                const zapiData = await zapiResponse.json();
-                sent = zapiResponse.ok && !!zapiData.messageId;
-                messageId = zapiData.messageId;
-                if (!sent) sendError = zapiData.error || zapiData.message || 'Falha Z-API';
+                const result = await zapiSendText(cleanPhone, message);
+                sent = result.ok && !!result.data?.messageId;
+                messageId = result.data?.messageId;
+                if (!sent) sendError = 'Todas as instâncias Z-API falharam';
                 
                 if (sent) {
                     try {
                         await pool.query(`
                             INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
                             VALUES ($1, $2, $3, $4, 'sent', 'refund_comm', NOW())
-                        `, [cleanPhone, message, zapiData.messageId, zapiData.zaapId]);
+                        `, [cleanPhone, message, result.data.messageId, result.data.zaapId]);
                     } catch (dbErr) { /* ignore */ }
                 }
             } catch (fetchErr) {

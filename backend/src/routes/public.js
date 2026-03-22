@@ -4,8 +4,9 @@ const pool = require('../database');
 const { authenticateToken, requireAdmin, leadLimiter, apiLimiter, invalidateCache } = require('../middleware');
 const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransactionFbcFbp } = require('../services/facebook-capi');
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
-const { getCountryFromIP } = require('../services/geolocation');
+const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = require('../services/geolocation');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
+const { zapiPhoneExists, zapiProfilePicture } = require('../services/zapi');
 const activeCampaign = require('../services/activecampaign');
 
 // ==================== PUBLIC API ROUTES ====================
@@ -19,6 +20,57 @@ router.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+router.get('/api/geo', apiLimiter, async (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    try {
+        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+            || req.headers['x-real-ip']
+            || req.connection?.remoteAddress
+            || req.ip;
+        const lang = req.query.lang || 'en';
+
+        const geo = await getDetailedGeoFromIP(ip);
+        if (!geo || !geo.city) {
+            return res.json({ success: false, message: 'Could not determine location' });
+        }
+
+        const locations = generateSuspiciousLocations(geo.city, geo.state, lang);
+        const ua = req.headers['user-agent'] || '';
+        let device = 'Unknown Device';
+        if (/iPhone/.test(ua)) device = ua.match(/iPhone[^;)]*/)?.[0] || 'iPhone';
+        else if (/iPad/.test(ua)) device = 'iPad';
+        else if (/Android/.test(ua)) {
+            const m = ua.match(/Android[^;]*;\s*([^)]+)\)/);
+            device = m ? m[1].trim() : 'Android Device';
+        } else if (/Mac OS X/.test(ua)) device = 'Mac';
+        else if (/Windows/.test(ua)) device = 'Windows PC';
+        else if (/Linux/.test(ua)) device = 'Linux PC';
+
+        let browser = 'Unknown Browser';
+        if (/CriOS|Chrome/.test(ua) && !/Edg/.test(ua)) browser = 'Chrome';
+        else if (/Safari/.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+        else if (/Firefox|FxiOS/.test(ua)) browser = 'Firefox';
+        else if (/Edg/.test(ua)) browser = 'Edge';
+        else if (/OPR|Opera/.test(ua)) browser = 'Opera';
+
+        res.json({
+            success: true,
+            city: geo.city,
+            state: geo.state,
+            country: geo.country,
+            country_code: geo.country_code,
+            latitude: geo.latitude,
+            longitude: geo.longitude,
+            device,
+            browser,
+            locations
+        });
+    } catch (error) {
+        console.error('Geo endpoint error:', error.message);
+        res.json({ success: false, message: 'Error fetching geolocation' });
+    }
+});
+
 router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
     try {
@@ -27,33 +79,12 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             return res.json({ registered: false, picture: null });
         }
 
-        const zapiHeaders = {};
-        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+        console.log(`📱 WhatsApp check: ${phone} (dual instance fallback)`);
 
-        console.log(`📱 WhatsApp check: ${phone} → ${ZAPI_BASE_URL}/phone-exists/${phone}`);
-
-        const verifyResponse = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
-            method: 'GET',
-            headers: zapiHeaders
-        });
-        const verifyData = await verifyResponse.json();
-        console.log(`📱 WhatsApp check result for ${phone}:`, JSON.stringify(verifyData));
-        const isRegistered = verifyData.exists === true;
-
+        const { exists: isRegistered } = await zapiPhoneExists(phone);
         let picture = null;
         if (isRegistered) {
-            try {
-                const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
-                    headers: zapiHeaders
-                });
-                const picData = await picResponse.json();
-                console.log(`📱 Profile picture result for ${phone}:`, JSON.stringify(picData));
-                if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
-                    picture = picData.link;
-                }
-            } catch (e) {
-                console.log(`📱 Profile picture error for ${phone}:`, e.message);
-            }
+            picture = await zapiProfilePicture(phone);
         }
 
         console.log(`📱 WhatsApp check response: ${phone} → registered=${isRegistered}, picture=${picture ? 'YES' : 'NO'}`);
@@ -151,9 +182,9 @@ router.get('/', (req, res) => {
 <html><head>
 <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
 <meta name="facebook-domain-verification" content="mmgxqvywkcn38obhqg1g5j1cj3g7d8" />
-<title>ZapSpy.ai</title>
+<title>Whats Spy</title>
 </head><body>
-<h1>ZapSpy.ai API</h1>
+<h1>Whats Spy API</h1>
 <p>Status: running</p>
 <p><a href="/admin.html">Admin Panel</a></p>
 </body></html>`);
@@ -287,31 +318,9 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
             if (cleanPhone.length >= 10) {
                 setImmediate(async () => {
                     try {
-                        const zapiHeaders = {};
-                        if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
+                        const { exists: isRegistered } = await zapiPhoneExists(cleanPhone);
+                        const profilePicture = isRegistered ? await zapiProfilePicture(cleanPhone) : null;
                         
-                        const verifyResponse = await fetch(`${ZAPI_BASE_URL}/phone-exists/${cleanPhone}`, {
-                            method: 'GET',
-                            headers: zapiHeaders
-                        });
-                        const verifyData = await verifyResponse.json();
-                        const isRegistered = verifyData.exists === true;
-                        
-                        // Try to get profile picture if registered
-                        let profilePicture = null;
-                        if (isRegistered) {
-                            try {
-                                const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${cleanPhone}`, {
-                                    headers: zapiHeaders
-                                });
-                                const picData = await picResponse.json();
-                                if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
-                                    profilePicture = picData.link;
-                                }
-                            } catch (e) { /* ignore pic errors */ }
-                        }
-                        
-                        // Update lead with verification result
                         await pool.query(`
                             UPDATE leads SET 
                                 whatsapp_verified = $1,

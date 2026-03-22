@@ -5,6 +5,7 @@ const path = require('path');
 const { authenticateToken, requireAdmin, bulkLimiter } = require('../middleware');
 const { getCountryFromIP } = require('../services/geolocation');
 const { ZAPI_INSTANCE, ZAPI_TOKEN, ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
+const { ZAPI_INSTANCES, zapiRequest, zapiCheckStatus, zapiSendText, zapiPhoneExists, zapiProfilePicture } = require('../services/zapi');
 
 // ==================== LEADS MANAGEMENT ====================
 
@@ -344,43 +345,29 @@ router.post('/api/admin/whatsapp/send', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Invalid phone number' });
         }
         
-        // Send via Z-API send-text
-        const headers = { 'Content-Type': 'application/json' };
-        if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
+        // Send via Z-API send-text (dual instance fallback)
+        const result = await zapiSendText(cleanPhone, message);
         
-        const response = await fetch(`${ZAPI_BASE_URL}/send-text`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                phone: cleanPhone,
-                message: message,
-                delayMessage: 3
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.messageId) {
-            // Log the message in database
+        if (result.ok && result.data.messageId) {
             try {
                 await pool.query(`
                     INSERT INTO whatsapp_messages (phone, message, message_id, zaap_id, status, sent_by, created_at)
                     VALUES ($1, $2, $3, $4, 'sent', $5, NOW())
-                `, [cleanPhone, message, data.messageId, data.zaapId, req.user?.email || 'admin']);
+                `, [cleanPhone, message, result.data.messageId, result.data.zaapId, req.user?.email || 'admin']);
             } catch (dbError) {
                 console.log('WhatsApp message log skipped (table may not exist):', dbError.message);
             }
             
             res.json({ 
                 success: true, 
-                messageId: data.messageId,
-                zaapId: data.zaapId
+                messageId: result.data.messageId,
+                zaapId: result.data.zaapId
             });
         } else {
-            console.error('Z-API send error:', data);
-            res.status(response.status || 500).json({ 
+            console.error('Z-API send error - all instances failed');
+            res.status(500).json({ 
                 error: 'Failed to send WhatsApp message', 
-                details: data.error || data.message || 'Unknown error'
+                details: 'Todas as instâncias Z-API falharam. Verifique se estão conectadas.'
             });
         }
         
@@ -390,47 +377,18 @@ router.post('/api/admin/whatsapp/send', authenticateToken, async (req, res) => {
     }
 });
 
-// ---- Check Z-API instance status ----
+// ---- Check Z-API instance status (dual instance) ----
 router.get('/api/admin/whatsapp/status', authenticateToken, async (req, res) => {
     try {
-        const headers = {};
-        if (ZAPI_CLIENT_TOKEN) headers['Client-Token'] = ZAPI_CLIENT_TOKEN;
-        
-        const statusUrl = `${ZAPI_BASE_URL}/status`;
-        console.log(`📱 Checking Z-API status: ${statusUrl}`);
-        console.log(`📱 Client-Token set: ${ZAPI_CLIENT_TOKEN ? 'YES (***' + ZAPI_CLIENT_TOKEN.slice(-4) + ')' : 'NO'}`);
-        
-        const response = await fetch(statusUrl, { method: 'GET', headers });
-        const responseText = await response.text();
-        console.log(`📱 Z-API status response: HTTP ${response.status} → ${responseText}`);
-        
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch(e) {
-            return res.status(500).json({ error: 'Invalid Z-API response', raw: responseText.substring(0, 500) });
-        }
-        
-        if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: data.message || data.error || `Z-API error ${response.status}`,
-                zapiStatus: response.status,
-                zapiResponse: data,
-                configUsed: {
-                    instanceId: ZAPI_INSTANCE.substring(0,8) + '...',
-                    token: ZAPI_TOKEN.substring(0,8) + '...',
-                    clientToken: ZAPI_CLIENT_TOKEN ? '***' + ZAPI_CLIENT_TOKEN.slice(-4) : 'NOT SET',
-                    baseUrl: ZAPI_BASE_URL
-                }
+        const status = await zapiCheckStatus();
+        if (status.connected) {
+            res.json(status);
+        } else {
+            res.status(500).json({ 
+                error: 'Nenhuma instância Z-API conectada',
+                details: 'Verifique as instâncias no painel Z-API'
             });
         }
-        
-        res.json({
-            connected: data.connected || false,
-            smartphoneConnected: data.smartphoneConnected || false,
-            session: data.session || false,
-            ...data
-        });
     } catch (error) {
         console.error('Error checking WhatsApp status:', error);
         res.status(500).json({ error: 'Failed to check WhatsApp status', details: error.message });
@@ -458,84 +416,36 @@ router.post('/api/admin/leads/:id/verify-whatsapp', authenticateToken, async (re
         // Clean phone number - remove all non-digits
         phone = phone.replace(/\D/g, '');
         
-        // Check if number exists on WhatsApp via Z-API
-        try {
-            const zapiHeaders = {};
-            if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-            
-            const fullUrl = `${ZAPI_BASE_URL}/phone-exists/${phone}`;
-            console.log(`📱 Verifying WhatsApp: ${phone} → ${fullUrl}`);
-            console.log(`📱 Headers:`, JSON.stringify({ ...zapiHeaders, 'Client-Token': zapiHeaders['Client-Token'] ? '***' + zapiHeaders['Client-Token'].slice(-4) : 'NOT SET' }));
-            
-            const response = await fetch(fullUrl, {
-                method: 'GET',
-                headers: zapiHeaders
+        console.log(`📱 Verifying WhatsApp: ${phone} (dual instance fallback)`);
+        
+        const { exists: isRegistered, raw } = await zapiPhoneExists(phone);
+        
+        if (!raw.ok && !isRegistered) {
+            console.error(`📱 All Z-API instances failed for phone-exists/${phone}`);
+            return res.status(500).json({ 
+                error: 'Todas as instâncias Z-API falharam', 
+                details: 'Verifique se as instâncias Z-API estão conectadas',
+                verified: false 
             });
-            
-            const responseText = await response.text();
-            console.log(`📱 Z-API raw response for ${phone}: HTTP ${response.status} → ${responseText}`);
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch(e) {
-                console.error(`📱 Z-API response is not JSON: ${responseText}`);
-                return res.status(500).json({ 
-                    error: 'Resposta inválida da Z-API', 
-                    details: responseText.substring(0, 200),
-                    verified: false 
-                });
-            }
-            
-            // Check for API errors first
-            if (!response.ok) {
-                console.error(`📱 Z-API HTTP error ${response.status} for ${phone}:`, data);
-                return res.status(500).json({ 
-                    error: data.message || data.error || `Z-API retornou erro ${response.status}`, 
-                    details: JSON.stringify(data),
-                    verified: false 
-                });
-            }
-            
-            const isRegistered = data.exists === true;
-            
-            // Try to get profile picture if registered
-            let profilePicture = null;
-            if (isRegistered) {
-                try {
-                    const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
-                        headers: zapiHeaders
-                    });
-                    const picData = await picResponse.json();
-                    if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
-                        profilePicture = picData.link;
-                    }
-                } catch (e) {
-                    console.log('Profile picture fetch error:', e);
-                }
-            }
-            
-            // Update lead in database
-            await pool.query(`
-                UPDATE leads SET 
-                    whatsapp_verified = $1,
-                    whatsapp_verified_at = NOW(),
-                    whatsapp_profile_pic = $2,
-                    updated_at = NOW()
-                WHERE id = $3
-            `, [isRegistered, profilePicture, id]);
-            
-            res.json({ 
-                success: true, 
-                verified: isRegistered, 
-                profilePicture,
-                phone
-            });
-            
-        } catch (apiError) {
-            console.error('Z-API error:', apiError);
-            res.status(500).json({ error: 'WhatsApp API error', details: apiError.message });
         }
+        
+        const profilePicture = isRegistered ? await zapiProfilePicture(phone) : null;
+        
+        await pool.query(`
+            UPDATE leads SET 
+                whatsapp_verified = $1,
+                whatsapp_verified_at = NOW(),
+                whatsapp_profile_pic = $2,
+                updated_at = NOW()
+            WHERE id = $3
+        `, [isRegistered, profilePicture, id]);
+        
+        res.json({ 
+            success: true, 
+            verified: isRegistered, 
+            profilePicture,
+            phone
+        });
         
     } catch (error) {
         console.error('Error verifying WhatsApp:', error);
@@ -573,16 +483,8 @@ router.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (r
             phone = phone.replace(/\D/g, '');
             
             try {
-                const bvHeaders = {};
-                if (ZAPI_CLIENT_TOKEN) bvHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-                const response = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
-                    headers: bvHeaders
-                });
+                const { exists: isRegistered } = await zapiPhoneExists(phone);
                 
-                const data = await response.json();
-                const isRegistered = data.exists === true;
-                
-                // Update lead
                 await pool.query(`
                     UPDATE leads SET 
                         whatsapp_verified = $1,
@@ -593,7 +495,6 @@ router.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (r
                 
                 results.push({ id: lead.id, verified: isRegistered });
                 
-                // Rate limit: wait 500ms between requests
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
             } catch (e) {
@@ -649,9 +550,6 @@ router.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (re
 
         // Run in background
         (async () => {
-            const zapiHeaders = {};
-            if (ZAPI_CLIENT_TOKEN) zapiHeaders['Client-Token'] = ZAPI_CLIENT_TOKEN;
-
             for (const lead of leadsResult.rows) {
                 let phone = lead.whatsapp || '';
                 if (!phone || phone.replace(/\D/g, '').length < 10) {
@@ -664,27 +562,8 @@ router.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (re
                 phone = phone.replace(/\D/g, '');
 
                 try {
-                    const response = await fetch(`${ZAPI_BASE_URL}/phone-exists/${phone}`, {
-                        method: 'GET',
-                        headers: zapiHeaders
-                    });
-
-                    const data = await response.json();
-                    const isRegistered = data.exists === true;
-
-                    let profilePicture = null;
-                    if (isRegistered) {
-                        try {
-                            const picResponse = await fetch(`${ZAPI_BASE_URL}/profile-picture?phone=${phone}`, {
-                                method: 'GET',
-                                headers: zapiHeaders
-                            });
-                            const picData = await picResponse.json();
-                            if (picData.link && picData.link !== 'null' && picData.link.startsWith('http')) {
-                                profilePicture = picData.link;
-                            }
-                        } catch (e) { /* ignore */ }
-                    }
+                    const { exists: isRegistered } = await zapiPhoneExists(phone);
+                    const profilePicture = isRegistered ? await zapiProfilePicture(phone) : null;
 
                     await pool.query(`
                         UPDATE leads SET 
