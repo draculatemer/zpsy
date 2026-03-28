@@ -142,6 +142,97 @@ router.post('/api/admin/dispatch/cleanup', authenticateToken, async (req, res) =
     }
 });
 
+// ==================== CANCEL FUNNEL FOR SPECIFIC CONTACT ====================
+
+// POST /api/admin/dispatch/cancel-funnel - Cancel email funnel for a specific contact
+router.post('/api/admin/dispatch/cancel-funnel', authenticateToken, async (req, res) => {
+    try {
+        const { email, reason } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'email is required' });
+        }
+
+        const result = await dispatchService.cancelEmailFunnel(email, reason || 'admin_manual');
+        res.json({ success: true, ...result });
+    } catch (error) {
+        console.error('Error cancelling funnel:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== PURGE AC CONTACTS ====================
+
+// POST /api/admin/dispatch/purge-ac - Delete all recovery contacts from ActiveCampaign to free plan slots
+router.post('/api/admin/dispatch/purge-ac', authenticateToken, async (req, res) => {
+    try {
+        const { confirm } = req.body;
+        if (confirm !== 'PURGE_AC') {
+            return res.json({
+                warning: 'This will DELETE contacts from ActiveCampaign that are in recovery lists.',
+                instruction: 'Send { "confirm": "PURGE_AC" } to proceed'
+            });
+        }
+
+        const acService = require('../services/activecampaign');
+        if (!acService.isConfigured()) {
+            return res.status(400).json({ error: 'ActiveCampaign not configured' });
+        }
+
+        const listNames = [
+            ...Object.values(acService.LIST_MAP['checkout_abandoned'] || {}),
+            ...Object.values(acService.LIST_MAP['sale_cancelled'] || {}),
+            ...Object.values(acService.LIST_MAP['lead_captured'] || {})
+        ].filter(Boolean);
+
+        let totalDeleted = 0;
+        const listResults = {};
+
+        for (const listName of listNames) {
+            try {
+                const listId = await acService.getOrCreateList(listName);
+                if (!listId) continue;
+
+                let contactsInList = [];
+                let offset = 0;
+
+                // Fetch all contacts in this list (paginated)
+                while (true) {
+                    const data = await acService.apiRequest('GET', 
+                        `contacts?listid=${listId}&limit=100&offset=${offset}&status=any`
+                    );
+                    if (!data || !data.contacts || data.contacts.length === 0) break;
+                    contactsInList.push(...data.contacts);
+                    offset += 100;
+                    if (data.contacts.length < 100) break;
+                }
+
+                let deleted = 0;
+                for (const contact of contactsInList) {
+                    try {
+                        await acService.deleteContact(contact.id);
+                        deleted++;
+                        await new Promise(r => setTimeout(r, 200));
+                    } catch (delErr) {
+                        console.error(`Error deleting contact ${contact.email}:`, delErr.message);
+                    }
+                }
+
+                listResults[listName] = { found: contactsInList.length, deleted };
+                totalDeleted += deleted;
+            } catch (listErr) {
+                listResults[listName] = { error: listErr.message };
+            }
+        }
+
+        console.log(`🗑️ AC Purge: Deleted ${totalDeleted} contacts from recovery lists`);
+        res.json({ success: true, totalDeleted, lists: listResults });
+    } catch (error) {
+        console.error('Error purging AC contacts:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== FULL RESET ====================
 
 // POST /api/admin/dispatch/reset - Reset all dispatch data and metrics to start fresh

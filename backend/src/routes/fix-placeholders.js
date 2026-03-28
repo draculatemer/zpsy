@@ -342,8 +342,8 @@ router.post('/api/admin/fix-placeholders', authenticateToken, async (req, res) =
           encoding: msgData.encoding || 'quoted-printable',
           subject: msgData.subject || '',
           fromemail: msgData.fromemail || 'noreply@xaimonitor.com',
-          fromname: msgData.fromname || 'ZapSpy.ai',
-          reply2: msgData.reply2 || 'support@zapspy.ai',
+          fromname: msgData.fromname || 'Whats Spy',
+          reply2: msgData.reply2 || 'support@Whats Spy',
           priority: msgData.priority || '3',
           textcopy: msgData.textcopy || '',
         };

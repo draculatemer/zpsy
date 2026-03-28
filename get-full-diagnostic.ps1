@@ -2,7 +2,7 @@
 $baseUrl = "https://painel.xaimonitor.com"
 
 # Login payload
-$loginJson = '{"email":"admin@zapspy.ai","password":"zapspy2024"}'
+$loginJson = '{"email":"admin@whatspy","password":"whatspy2024"}'
 $loginJson | Out-File -FilePath "temp-login.json" -Encoding ASCII -NoNewline
 
 # Login to get token

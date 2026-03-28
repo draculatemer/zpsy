@@ -1,0 +1,3397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+    })();
+    </script>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Whats Spy - Débloquer l'Accès Complet</title>
+    <meta name="description" content="Whats Spy - L'outil de récupération de données WhatsApp le plus avancé. Débloquez l'accès complet maintenant.">
+    <link rel="shortcut icon" href="../imagens/icon-site.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="../css/global.css">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    // Advanced Matching - get user data from localStorage
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    
+    // Initialize pixels with Advanced Matching
+    fbq('init', '726299943423075', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <!-- Enhanced Tracking -->
+    <script src="../js/tracking-utils.js" defer></script>
+    <script src="../js/tracking.js"></script>
+    <script src="../js/funnel-tracking.js" defer></script>
+    <script src="../js/facebook-capi.js" defer></script>
+    <script>
+        // Default product value
+        window.productValue = 47;
+        window.checkoutCode = 'PPU38CQ7KHI';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Facebook CAPI with current product value
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('CTA Page');
+                FacebookCAPI.trackViewContent('CTA Page', 'Funnel - Final Step', window.productValue);
+            }
+        });
+    </script>
+    
+    <!-- Email Capture Modal -->
+    <script src="../js/email-capture.js"></script>
+    
+    <!-- Matrix Effect -->
+    <script src="../js/matrix.js"></script>
+
+
+
+
+    
+    <!-- Shared Audio & Vibration Systems -->
+    <script src="../js/audio-vibration.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(239, 234, 226, 0.4);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+        #socialProofContainer,
+        .exit-overlay {
+            z-index: auto;
+        }
+        #socialProofContainer { position: fixed; z-index: 99994; }
+
+        /* Matrix Canvas - hidden on light theme */
+        #matrix-canvas {
+            display: none;
+        }
+
+        /* Live Counter Bar */
+        .live-counter-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 101;
+            font-size: 13px;
+            color: #6c757d;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #FF3B30;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .live-counter-bar span {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 60px 20px 140px;
+            box-sizing: border-box;
+        }
+
+        /* Scarcity Banner */
+        .scarcity-banner {
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .scarcity-icon {
+            width: 40px;
+            height: 40px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .scarcity-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #dc2626;
+        }
+
+        .scarcity-text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .scarcity-text strong {
+            display: block;
+            color: #dc2626;
+            font-size: 14px;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .scarcity-text span {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .main-title {
+            font-size: clamp(22px, 5vw, 28px);
+            font-weight: 800;
+            line-height: 1.2;
+            color: #1a1a1a;
+        }
+
+        .main-title .gradient {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .profile-card-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            padding: 3px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .profile-avatar::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid #25D366;
+            border-radius: 50%;
+            animation: profile-ring 2s infinite;
+            opacity: 0;
+        }
+
+        @keyframes profile-ring {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
+        .profile-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            overflow: hidden;
+        }
+
+        .profile-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .profile-phone {
+            font-size: 14px;
+            color: #128C7E;
+            margin-bottom: 8px;
+        }
+
+        .profile-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .profile-stat {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .profile-stat strong {
+            color: #1a1a1a;
+        }
+
+        /* Success Badge */
+        .success-badge {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .badge-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 8px;
+        }
+
+        .badge-text {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .trust-badge svg {
+            width: 14px;
+            height: 14px;
+            color: #25D366;
+        }
+
+        /* Features */
+        .features-section {
+            margin-bottom: 18px;
+        }
+
+        .feature-item {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .feature-header {
+            margin-bottom: 12px;
+        }
+
+        .feature-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .feature-icon {
+            width: 22px;
+            height: 22px;
+            color: #25D366;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        /* Media Grid */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .media-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: #f3f4f6;
+        }
+
+        .media-item.large {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(6px);
+        }
+
+        .media-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-overlay svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+
+        /* Chat Preview */
+        .chat-preview {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: message-appear 0.5s forwards;
+        }
+
+        .chat-message:nth-child(1) { animation-delay: 0.5s; }
+        .chat-message:nth-child(2) { animation-delay: 1.5s; }
+        .chat-message:nth-child(3) { animation-delay: 2.5s; }
+
+        @keyframes message-appear {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .chat-message.received .chat-bubble {
+            background: #e5e7eb;
+            color: #1a1a1a;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.sent .chat-bubble {
+            background: #dcfce7;
+            color: #1a1a1a;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.locked {
+            filter: blur(4px);
+            user-select: none;
+        }
+
+        .conv-list {
+            margin-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+        .conv-list-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .conv-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 10px;
+            background: #fff;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .conv-item.suspicious {
+            background: rgba(239,68,68,0.03);
+            border-color: rgba(239,68,68,0.12);
+        }
+        .conv-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            object-fit: cover;
+            filter: blur(3px) brightness(0.95);
+            user-select: none;
+            pointer-events: none;
+        }
+        .conv-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .conv-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            filter: blur(3px);
+            user-select: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .conv-msg {
+            font-size: 12px;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            filter: blur(3px);
+            user-select: none;
+        }
+        .conv-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        .conv-badge {
+            font-size: 9px;
+            font-weight: 700;
+            color: #fff;
+            background: #ef4444;
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+        .conv-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 3px;
+        }
+        .conv-tag {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 1px 5px;
+            border-radius: 3px;
+            letter-spacing: 0.3px;
+        }
+        .conv-tag.deleted { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .conv-tag.suspicious { background: rgba(245,158,11,0.1); color: #d97706; }
+        .conv-tag.evidence { background: rgba(139,92,246,0.1); color: #7c3aed; }
+        .conv-audio {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37,211,102,0.08);
+            border-radius: 16px;
+            padding: 4px 10px;
+            filter: blur(1px);
+            user-select: none;
+        }
+        .conv-audio-bar {
+            display: flex;
+            align-items: end;
+            gap: 1.5px;
+            height: 14px;
+        }
+        .conv-audio-bar span {
+            width: 2.5px;
+            background: #25D366;
+            border-radius: 1px;
+        }
+
+        /* Suspicion Detector */
+        .suspicion-detector {
+            background: #ffffff;
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .suspicion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .suspicion-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suspicion-title svg {
+            width: 20px;
+            height: 20px;
+            color: #dc2626;
+        }
+
+        .suspicion-title span {
+            font-size: 13px;
+            font-weight: 700;
+            color: #dc2626;
+            text-transform: uppercase;
+        }
+
+        .suspicion-score {
+            font-size: 28px;
+            font-weight: 800;
+            color: #dc2626;
+        }
+
+        .suspicion-bar {
+            height: 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .suspicion-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #dc2626);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .suspicion-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .suspicion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .suspicion-item-label {
+            color: #6c757d;
+        }
+
+        .suspicion-item-value.high {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* Frequent Contact */
+        .frequent-contact {
+            background: #ffffff;
+            border: 1px solid #fed7aa;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .frequent-contact-avatar {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+
+        .frequent-contact-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            filter: blur(8px);
+        }
+
+        .frequent-contact-avatar::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .frequent-contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .frequent-contact-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #ea580c;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .frequent-contact-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .frequent-contact-name .hidden {
+            background: #1a1a1a;
+            color: #1a1a1a;
+            border-radius: 2px;
+            padding: 0 2px;
+            margin-right: 4px;
+        }
+
+        .frequent-contact-stats {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .frequent-contact-stats strong {
+            color: #dc2626;
+        }
+
+        .frequent-contact-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .frequent-contact-badge span {
+            display: block;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        /* Deleted Message Reveal */
+        .deleted-message-reveal {
+            background: #ffffff;
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .deleted-message-reveal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.03), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .deleted-message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .deleted-message-header svg {
+            width: 20px;
+            height: 20px;
+            color: #dc2626;
+        }
+
+        .deleted-message-header span {
+            font-size: 12px;
+            font-weight: 700;
+            color: #dc2626;
+            text-transform: uppercase;
+        }
+
+        .deleted-message-content {
+            font-size: 15px;
+            color: #1a1a1a;
+            line-height: 1.5;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        .deleted-message-content .blocked {
+            background: #1a1a1a;
+            color: #1a1a1a;
+            border-radius: 2px;
+            padding: 0 2px;
+            user-select: none;
+        }
+
+        .deleted-message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            position: relative;
+            z-index: 1;
+        }
+
+        .deleted-message-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .deleted-message-unlock {
+            font-size: 11px;
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            background: #ffffff;
+            border: 2px solid #25D366;
+            border-radius: 20px;
+            padding: 24px 20px;
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.12);
+        }
+
+        .pricing-section::before {
+            content: 'BEST VALUE';
+            position: absolute;
+            top: 12px;
+            right: -30px;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 40px;
+            transform: rotate(45deg);
+        }
+
+        .discount-badge {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .price-original {
+            font-size: 20px;
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-bottom: 4px;
+        }
+
+        .price-current {
+            font-size: 52px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .price-savings {
+            font-size: 14px;
+            color: #16a34a;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .price-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 16px;
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: 22px 24px;
+            background: linear-gradient(135deg, #25D366 0%, #20BA5C 50%, #128C7E 100%);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: megaPulse 2s ease-in-out infinite;
+            box-shadow: 
+                0 4px 14px rgba(37, 211, 102, 0.3),
+                0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes megaPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 4px 14px rgba(37, 211, 102, 0.3),
+                    0 2px 6px rgba(0, 0, 0, 0.08);
+            }
+            50% { 
+                transform: scale(1.03);
+                box-shadow: 
+                    0 6px 20px rgba(37, 211, 102, 0.4),
+                    0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 8px 24px rgba(37, 211, 102, 0.5),
+                0 4px 12px rgba(0, 0, 0, 0.12);
+            animation: none;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: btn-shimmer 1.5s infinite;
+        }
+
+        .cta-button-icon {
+            display: inline-block;
+            margin-right: 10px;
+            animation: iconShake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes iconShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        @keyframes btn-shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        @keyframes ctaShake {
+            0%, 100% { transform: translateX(0); }
+            15% { transform: translateX(-6px) rotate(-1deg); }
+            30% { transform: translateX(5px) rotate(1deg); }
+            45% { transform: translateX(-4px) rotate(-0.5deg); }
+            60% { transform: translateX(3px) rotate(0.5deg); }
+            75% { transform: translateX(-2px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cta-subtext {
+            font-size: 11px;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .cta-subtext svg {
+            width: 14px;
+            height: 14px;
+            color: #25D366;
+        }
+
+        /* Bonus Section */
+        .bonus-section {
+            background: #ffffff;
+            border: 2px solid #fbbf24;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .bonus-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #d97706;
+            margin-bottom: 8px;
+        }
+
+        .bonus-total {
+            text-align: center;
+            font-size: 14px;
+            color: #16a34a;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .bonus-total span {
+            text-decoration: line-through;
+            color: #dc2626;
+        }
+
+        .bonus-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .bonus-item:last-child {
+            border-bottom: none;
+        }
+
+        .bonus-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .bonus-icon.instagram {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white;
+        }
+
+        .bonus-icon.tiktok {
+            background: #000000;
+            color: #25F4EE;
+        }
+
+        .bonus-icon.snapchat {
+            background: #FFFC00;
+            color: #000000;
+        }
+
+        .bonus-icon.location {
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+        }
+
+        .bonus-icon.alerts {
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            color: white;
+        }
+
+        .bonus-icon.monitor {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+
+        .bonus-icon svg {
+            width: 16px;
+            height: 16px;
+            color: #FF9500;
+        }
+
+        .bonus-info h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+
+        .bonus-info p {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .bonus-value {
+            font-size: 12px;
+            color: #d97706;
+            font-weight: 600;
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .testimonials-header-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 14px 14px 0 0;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .testimonials-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .testimonials-header-left svg { width: 16px; height: 16px; }
+        .testimonials-header-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.3px;
+        }
+        .testimonials-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .testimonials-rating-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.12);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .testimonials-count-pill {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        .testimonials-body {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            overflow: hidden;
+        }
+
+        .testimonial-item {
+            padding: 14px 16px;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .testimonial-item:not(:last-child) {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .testimonial-avatar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+        .testimonial-avatar-icon.tav-1 { background: #dbeafe; }
+        .testimonial-avatar-icon.tav-2 { background: #fce7f3; }
+        .testimonial-avatar-icon.tav-3 { background: #dcfce7; }
+        .testimonial-avatar-icon.tav-4 { background: #fef3c7; }
+        .testimonial-avatar-icon.tav-5 { background: #ede9fe; }
+
+        .testimonial-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .testimonial-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .testimonial-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .testimonial-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            color: #16a34a;
+            font-weight: 500;
+        }
+
+        .testimonial-verified svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .testimonial-stars {
+            color: #fbbf24;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .testimonial-text {
+            font-size: 12.5px;
+            color: #475569;
+            line-height: 1.55;
+            margin-bottom: 6px;
+        }
+        .testimonial-text em {
+            font-style: normal;
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .testimonial-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .testimonial-time {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .testimonial-helpful {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .testimonial-helpful svg { width: 11px; height: 11px; }
+
+        /* FAQ */
+        .faq-section {
+            margin-bottom: 18px;
+        }
+
+        .faq-item {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .faq-question svg {
+            width: 18px;
+            height: 18px;
+            color: #9ca3af;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.open .faq-question svg {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 14px 14px;
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        /* Guarantee */
+        .guarantee-section {
+            background: #ffffff;
+            border: 2px solid #fbbf24;
+            border-radius: 20px;
+            padding: 28px 20px;
+            text-align: center;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.1);
+        }
+
+        .guarantee-seal {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 16px;
+        }
+
+        .guarantee-seal-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #FFC107, #FF9800);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 24px rgba(255, 193, 7, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 215, 0, 0.6);
+        }
+
+        .guarantee-seal-icon {
+            width: 22px;
+            height: 22px;
+            fill: #1a1a2e;
+            margin-bottom: 2px;
+        }
+
+        .guarantee-seal-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1;
+        }
+
+        .guarantee-seal-days {
+            font-size: 8px;
+            font-weight: 700;
+            color: #1a1a2e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .guarantee-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #d97706;
+            margin-bottom: 10px;
+        }
+
+        .guarantee-text {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.6;
+            max-width: 340px;
+            margin: 0 auto;
+        }
+
+        /* Security Badges */
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 60px 16px 140px;
+            }
+            .scarcity-banner {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .scarcity-icon {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+            }
+            .scarcity-text strong {
+                font-size: 13px;
+            }
+            .scarcity-text span {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .container {
+                padding: 55px 12px 130px;
+            }
+            .price-current {
+                font-size: 42px;
+            }
+            .live-counter-bar {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+
+        /* === ACCESS EXPIRY BAR === */
+        .access-expiry-bar {
+            position: fixed;
+            top: 36px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 102;
+        }
+        .access-expiry-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #25D366, #25D366);
+            transition: width 1s linear, background 1s ease;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* === ACTIVITY TIMELINE === */
+        .activity-timeline {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 0;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+        }
+        .timeline-header svg { width: 16px; height: 16px; color: #4ade80; }
+        .timeline-header span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+        .timeline-live-dot {
+            width: 7px; height: 7px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+            margin-left: auto;
+            box-shadow: 0 0 6px rgba(74,222,128,0.6);
+        }
+        .timeline-counter {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+        .timeline-items { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 16px;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: timeline-appear 0.35s forwards;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 52px;
+            right: 16px;
+            height: 1px;
+            background: #f1f5f9;
+        }
+        @keyframes timeline-appear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .timeline-item:nth-child(1) { animation-delay: 0.15s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.35s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.55s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.75s; }
+        .timeline-item:nth-child(5) { animation-delay: 0.95s; }
+        .timeline-item:nth-child(6) { animation-delay: 1.15s; }
+        .timeline-item:nth-child(7) { animation-delay: 1.35s; }
+        .timeline-item:nth-child(8) { animation-delay: 1.55s; }
+        .timeline-item:nth-child(9) { animation-delay: 1.75s; }
+        .timeline-item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+        .timeline-item-icon.tl-delete { background: #fef2f2; }
+        .timeline-item-icon.tl-msg { background: #f0fdf4; }
+        .timeline-item-icon.tl-call { background: #eff6ff; }
+        .timeline-item-icon.tl-location { background: #fefce8; }
+        .timeline-item-icon.tl-online { background: #f5f3ff; }
+        .timeline-item-icon.tl-contact { background: #fff7ed; }
+        .timeline-item-content { flex: 1; min-width: 0; }
+        .timeline-item-text {
+            font-size: 12.5px;
+            color: #334155;
+            line-height: 1.45;
+        }
+        .timeline-item-text .tl-highlight { color: #dc2626; font-weight: 600; }
+        .timeline-item-text .tl-name { filter: blur(3px); user-select: none; font-weight: 500; }
+        .timeline-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+        }
+        .timeline-item-time {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        .tl-tag {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .tl-tag.danger { background: rgba(239,68,68,0.2); color: #f87171; font-weight: 700; }
+        .tl-tag.warn { background: rgba(245,158,11,0.2); color: #fbbf24; font-weight: 700; }
+        .tl-tag.info { background: rgba(139,92,246,0.2); color: #a78bfa; font-weight: 700; }
+
+        /* === SOCIAL PROOF POPUP === */
+        .social-proof {
+            position: fixed;
+            bottom: 20px;
+            left: 16px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            z-index: 99995;
+            max-width: calc(100vw - 32px);
+            transform: translateY(120px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .social-proof.show {
+            transform: translateY(0);
+        }
+        .social-proof-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #dcfce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .social-proof-body { flex: 1; }
+        .social-proof-text {
+            font-size: 12px;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+        .social-proof-text strong { color: #16a34a; }
+        .social-proof-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 1px;
+        }
+
+        /* === EXIT INTENT POPUP === */
+        .exit-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .exit-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .exit-popup {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px 24px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .exit-overlay.show .exit-popup {
+            transform: scale(1);
+        }
+        .exit-close {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #6c757d;
+        }
+        .exit-icon { font-size: 48px; margin-bottom: 16px; }
+        .exit-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        .exit-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .exit-timer {
+            font-size: 36px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        .exit-cta {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+            animation: megaPulse 2s ease-in-out infinite;
+        }
+        .exit-dismiss {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+
+    </style>
+
+</head>
+<body>
+    <!-- Matrix Canvas -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Live Counter Bar -->
+    <div class="live-counter-bar">
+        <div class="live-dot"></div>
+        <span id="liveViewers">73</span> personnes consultent cette page en ce moment
+    </div>
+
+    <!-- Access Expiry Bar -->
+    <div class="access-expiry-bar">
+        <div class="access-expiry-fill" id="accessExpiryFill"></div>
+    </div>
+
+    <!-- Social Proof Container -->
+    <div id="socialProofContainer"></div>
+
+    <!-- Timer Bar -->
+    <!-- Timer bar removido -->
+
+    <div class="container">
+        <!-- Scarcity Banner -->
+        <div class="scarcity-banner">
+            <div class="scarcity-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div class="scarcity-text">
+                <strong>Plus que <span id="slotsLeft">3</span> places disponibles pour ce numéro !</strong>
+                <span>Forte demande - L'accès pourrait être bloqué bientôt</span>
+            </div>
+        </div>
+
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <h1 class="main-title">
+                Voyez tout <span class="gradient">ce qu'on supprime</span>
+            </h1>
+        </div>
+
+
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-card-content">
+                <div class="profile-avatar">
+                    <div class="profile-avatar-inner">
+                        <img src="../imagens/default-avatar.png" alt="Target profile picture" id="targetAvatar" loading="lazy">
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profileTargetName">Personne Cible</div>
+                    <div class="profile-phone" id="targetPhone">+** (***) ***-4567</div>
+                    <div class="profile-stats">
+                        <span class="profile-stat"><strong id="convCount">--</strong> conversations</span>
+                        <span class="profile-stat"><strong id="msgCount">--</strong> messages</span>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Badge -->
+        <div class="success-badge">
+            <div class="badge-title">Nous avons tout trouvé.</div>
+            <div class="badge-text">Voyez ce qu'on vous cache :</div>
+        </div>
+
+        <!-- Suspicion Detector -->
+        <div class="suspicion-detector">
+            <div class="suspicion-header">
+                <div class="suspicion-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>⚠️ Indice de Suspicion</span>
+                </div>
+                <div class="suspicion-score" id="suspicionScore">87%</div>
+            </div>
+            <div class="suspicion-bar">
+                <div class="suspicion-bar-fill" id="suspicionBar" style="width: 0%"></div>
+            </div>
+            <div class="suspicion-details">
+                <div class="suspicion-item">
+                    <span class="suspicion-item-label">🌙 Messages supprimés la nuit</span>
+                    <span class="suspicion-item-value high">34%</span>
+                </div>
+                <div class="suspicion-item">
+                    <span class="suspicion-item-label">👤 Conversations avec des contacts cachés</span>
+                    <span class="suspicion-item-value high">28%</span>
+                </div>
+                <div class="suspicion-item">
+                    <span class="suspicion-item-label">📸 Photos envoyées et supprimées</span>
+                    <span class="suspicion-item-value high">25%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="activity-timeline">
+            <div class="timeline-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Moniteur d'Activité</span>
+                <div class="timeline-live-dot"></div>
+                <span class="timeline-counter" id="tlCounter"></span>
+            </div>
+            <div class="timeline-items" id="timelineItems">
+            </div>
+        </div>
+
+        <!-- Frequent Contact (dynamically set based on gender) -->
+        <div class="frequent-contact">
+            <div class="frequent-contact-avatar">
+                <img id="frequentContactImg" src="../imagens/mulher1.jpg" alt="Frequent contact photo" loading="lazy" onerror="this.src='../imagens/default-avatar.png'">
+            </div>
+            <div class="frequent-contact-info">
+                <div class="frequent-contact-label">🔥 Contact le Plus Fréquent</div>
+                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J***</span><span class="hidden">S***</span></div>
+                <div class="frequent-contact-stats"><span id="ctaTotalMsgs">847</span> messages ce mois • <strong><span id="ctaDeletedMsgs">289</span> SUPPRIMÉS</strong></div>
+            </div>
+            <div class="frequent-contact-badge">
+                <span>🔒</span>
+                QUI ?
+            </div>
+        </div>
+
+        <!-- Deleted Message Reveal -->
+        <div class="deleted-message-reveal">
+            <div class="deleted-message-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+                <span>🚨 Dernier Message Supprimé Récupéré</span>
+            </div>
+            <div class="deleted-message-content" id="deletedMessageContent">
+                "Chéri(e), ne dis pas à <span class="blocked">██████</span> qu'on a <span class="blocked">████████</span> hier au <span class="blocked">██████</span>..."
+            </div>
+            <div class="deleted-message-footer">
+                <span class="deleted-message-time">Supprimé hier à 23h47</span>
+                <span class="deleted-message-unlock">🔓 Débloquer pour révéler le message complet</span>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features-section">
+            <!-- View All Conversations -->
+            <div class="feature-item">
+                <div class="feature-header">
+                    <div class="feature-title-row">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                        </svg>
+                        <h3 class="feature-title">Voir Toutes les Conversations</h3>
+                    </div>
+                    <p class="feature-desc">Lisez tous les messages envoyés et reçus, y compris ceux supprimés.</p>
+                </div>
+                <div class="chat-preview">
+                    <div class="chat-message received">
+                        <div class="chat-bubble locked">Hey chéri(e), tu viens ce soir ?</div>
+                    </div>
+                    <div class="chat-message sent">
+                        <div class="chat-bubble locked">Oui ! J'ai trop hâte de te revoir...</div>
+                    </div>
+                    <div class="chat-message received">
+                        <div class="chat-bubble locked">J'ai une surprise pour toi</div>
+                    </div>
+                    <div class="chat-message received" id="typingIndicator" style="opacity: 0; transition: opacity 0.3s;">
+                        <div class="chat-bubble" style="background: rgba(37, 211, 102, 0.15); padding: 8px 12px;">
+                            <div class="typing-dots" style="display: flex; gap: 4px;">
+                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out;"></span>
+                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.2s;"></span>
+                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.4s;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conv-list" id="convList"></div>
+                </div>
+            </div>
+
+            <!-- Photos & Videos (dynamically set based on gender) -->
+            <div class="feature-item">
+                <div class="feature-header">
+                    <div class="feature-title-row">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <h3 class="feature-title">Photos & Vidéos</h3>
+                    </div>
+                    <p class="feature-desc">Visualisez tous les médias partagés, y compris ceux supprimés.</p>
+                </div>
+                <div class="media-grid" id="mediaGrid">
+                    <!-- Media items will be dynamically inserted based on gender -->
+                </div>
+            </div>
+
+        <!-- Suspicious Locations -->
+        <div id="suspiciousLocationsSection" style="display:none; margin: 24px 0; padding: 20px; background: #ffffff; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+                <div style="width:32px;height:32px;background:rgba(239,68,68,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Localisations Suspectes Détectées</div>
+                    <div style="font-size:11px;color:#8e8e93;">Près de <span id="geoCity" style="color:#ff3b30;font-weight:600;">--</span>, <span id="geoState" style="color:#ff3b30;">--</span></div>
+                </div>
+            </div>
+            <div id="locationsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+        <script>
+        (function(){
+            var p = window.location.pathname;
+            var lang = 'fr';
+            if (p.indexOf('/espanhol') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues') !== -1) lang = 'pt';
+            else if (p.indexOf('/frances') !== -1) lang = 'fr';
+            var isDark = !p.includes('/light/');
+            var txtColor = isDark ? '#e5e5ea' : '#1a1a1a';
+            var cardBg = isDark ? 'rgba(255,255,255,0.04)' : '#f8f8f8';
+            var cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+            var icons = {hotel:'🏨', motel:'🏩', restaurant:'🍷'};
+            var lb = {en:{visits:'visits',last:['Last seen today','Last seen yesterday','Last seen 2 days ago','Last seen 3 days ago','Last seen 5 days ago','Last seen 1 week ago']},es:{visits:'visitas',last:['Visto hoy','Visto ayer','Visto hace 2 días','Visto hace 3 días','Visto hace 5 días','Visto hace 1 semana']},pt:{visits:'visitas',last:['Visto hoje','Visto ontem','Visto há 2 dias','Visto há 3 dias','Visto há 5 dias','Visto há 1 semana']},fr:{visits:'visites',last:['Vu aujourd\'hui','Vu hier','Vu il y a 2 jours','Vu il y a 3 jours','Vu il y a 5 jours','Vu il y a 1 semaine']}}[lang] || {visits:'visites',last:['Vu aujourd\'hui','Vu hier','Vu il y a 2 jours']};
+            function detectDevice(){
+                var ua = navigator.userAgent;
+                var d = 'Unknown Device', b = 'Unknown';
+                if (/iPhone/.test(ua)) d = (ua.match(/iPhone[^;)]*/)||['iPhone'])[0];
+                else if (/iPad/.test(ua)) d = 'iPad';
+                else if (/Android/.test(ua)){ var m = ua.match(/;\s*([^;)]+)\s*Build/); d = m ? m[1].trim() : 'Android'; }
+                else if (/Mac OS X/.test(ua)) d = 'Mac';
+                else if (/Windows/.test(ua)) d = 'Windows PC';
+                if (/CriOS|Chrome/.test(ua) && !/Edg/.test(ua)) b = 'Chrome';
+                else if (/Safari/.test(ua) && !/Chrome/.test(ua)) b = 'Safari';
+                else if (/Firefox/.test(ua)) b = 'Firefox';
+                else if (/Edg/.test(ua)) b = 'Edge';
+                return {device:d, browser:b};
+            }
+            function genLocations(city){
+                var seed = 0; for(var i=0;i<city.length;i++) seed += city.charCodeAt(i);
+                var hp = lang==='es'?['Gran','Real','Sol','Paraíso','Dorado','Plaza']:lang==='pt'?['Grand','Real','Sol','Paraíso','Dourado','Plaza']:lang==='fr'?['Grand','Royal','Soleil','Paradis','Doré','Plaza']:['Grand','Royal','Sunset','Paradise','Golden','Silver'];
+                var hs = lang==='es'?['Hotel','Posada','Suites','Resort']:lang==='pt'?['Hotel','Pousada','Suítes','Resort']:lang==='fr'?['Hôtel','Auberge','Suites','Resort']:['Hotel','Inn','Suites','Resort'];
+                var mn = lang==='es'?['Motel','Auto Hotel']:lang==='pt'?['Motel','Auto Hotel']:lang==='fr'?['Motel','Motor Hôtel']:['Motel','Motor Inn'];
+                var rs = lang==='es'?['Bistró','Parrilla','Lounge','Bar']:lang==='pt'?['Bistrô','Grill','Lounge','Bar']:lang==='fr'?['Bistro','Grill','Lounge','Bar']:['Bistro','Grill','Lounge','Bar & Grill'];
+                var rp = lang==='es'?['El','La','Don','Casa']:lang==='pt'?['O','A','Dom','Casa']:lang==='fr'?['Le','La','Chez','Maison']:['The','Old','Downtown','Harbor'];
+                var pk = function(a,o){return a[(seed+o)%a.length]};
+                return [
+                    {type:'hotel',name:pk(hp,0)+' '+city+' '+pk(hs,1),visits:Math.floor((seed%5)+2),lastSeen:lb.last[0]},
+                    {type:'motel',name:city+' '+pk(mn,2),visits:Math.floor((seed%3)+1),lastSeen:lb.last[4]},
+                    {type:'hotel',name:pk(hp,3)+' '+pk(hs,4),visits:Math.floor((seed%4)+1),lastSeen:lb.last[5]},
+                    {type:'restaurant',name:pk(rp,5)+' '+pk(rs,6),visits:Math.floor((seed%6)+3),lastSeen:lb.last[1]},
+                    {type:'motel',name:pk(hp,7)+' '+pk(mn,0),visits:Math.floor((seed%2)+1),lastSeen:lb.last[2]},
+                    {type:'restaurant',name:pk(rp,1)+' '+city+' '+pk(rs,2),visits:Math.floor((seed%7)+2),lastSeen:lb.last[0]}
+                ];
+            }
+            function render(city, state, device, browser, locations){
+                var section = document.getElementById('suspiciousLocationsSection');
+                if (!section) return;
+                document.getElementById('geoCity').textContent = city;
+                if (locBadge) { locBadge.textContent = '📍 ' + city + (state ? ', ' + state : ''); locBadge.style.display = ''; }
+                document.getElementById('geoState').textContent = state || '';
+                var gd = document.getElementById('geoDevice'); if (gd) gd.textContent = device || '--';
+                var gb = document.getElementById('geoBrowser'); if (gb) gb.textContent = browser || '--';
+                var list = document.getElementById('locationsList');
+                locations.forEach(function(loc, idx){
+                    var blurred = idx >= 2;
+                    var wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'position:relative;' + (blurred ? 'overflow:hidden;border-radius:10px;' : '');
+                    var div = document.createElement('div');
+                    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+cardBg+';border:1px solid '+cardBorder+';border-radius:10px;' + (blurred ? 'filter:blur(5px);-webkit-filter:blur(5px);user-select:none;pointer-events:none;' : '');
+                    div.innerHTML = '<div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+(icons[loc.type]||'📍')+'</div>'+
+                        '<div style="flex:1;min-width:0;">'+
+                            '<div style="font-size:13px;color:'+txtColor+';font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+loc.name+'</div>'+
+                            '<div style="font-size:11px;color:#8e8e93;">'+loc.lastSeen+'</div>'+
+                        '</div>'+
+                        '<div style="text-align:right;flex-shrink:0;">'+
+                            '<div style="font-size:14px;font-weight:700;color:#ff3b30;">'+loc.visits+'</div>'+
+                            '<div style="font-size:10px;color:#8e8e93;">'+lb.visits+'</div>'+
+                        '</div>';
+                    wrapper.appendChild(div);
+                    if (blurred) {
+                        var overlay = document.createElement('div');
+                        overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;';
+                        overlay.innerHTML = '<span style="font-size:11px;color:#ff3b30;font-weight:600;background:rgba(255,255,255,0.7);padding:3px 10px;border-radius:20px;">🔒</span>';
+                        overlay.onclick = function(){ var p = document.getElementById('pricing'); if(p) p.scrollIntoView({behavior:'smooth'}); };
+                        wrapper.appendChild(overlay);
+                    }
+                    list.appendChild(wrapper);
+                });
+                section.style.display = '';
+            }
+            function renderBlurred(dev){
+                var section = document.getElementById('suspiciousLocationsSection');
+                if (!section) return;
+                var title = lang==='es'?'Ubicaciones Sospechosas Detectadas':lang==='pt'?'Localizações Suspeitas Detectadas':lang==='fr'?'Localisations Suspectes Détectées':'Suspicious Locations Detected';
+                var fakeCity = 'Unknown';
+                var fakeLocs = genLocations(fakeCity);
+                document.getElementById('geoCity').textContent = fakeCity;
+                document.getElementById('geoState').textContent = '';
+                var gd = document.getElementById('geoDevice'); if (gd) gd.textContent = dev.device || '--';
+                var gb = document.getElementById('geoBrowser'); if (gb) gb.textContent = dev.browser || '--';
+                var list = document.getElementById('locationsList');
+                fakeLocs.forEach(function(loc){
+                    var wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'position:relative;overflow:hidden;border-radius:10px;';
+                    var div = document.createElement('div');
+                    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+cardBg+';border:1px solid '+cardBorder+';border-radius:10px;filter:blur(5px);-webkit-filter:blur(5px);user-select:none;pointer-events:none;';
+                    div.innerHTML = '<div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+(icons[loc.type]||'📍')+'</div><div style="flex:1;min-width:0;"><div style="font-size:13px;color:'+txtColor+';font-weight:600;">'+loc.name+'</div><div style="font-size:11px;color:#8e8e93;">'+loc.lastSeen+'</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:14px;font-weight:700;color:#ff3b30;">'+loc.visits+'</div><div style="font-size:10px;color:#8e8e93;">'+lb.visits+'</div></div>';
+                    wrapper.appendChild(div);
+                    var overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;';
+                    overlay.innerHTML = '<span style="font-size:11px;color:#ff3b30;font-weight:600;background:rgba(0,0,0,0.5);padding:3px 10px;border-radius:20px;">🔒</span>';
+                    overlay.onclick = function(){ var p = document.getElementById('pricing'); if(p) p.scrollIntoView({behavior:'smooth'}); };
+                    wrapper.appendChild(overlay);
+                    list.appendChild(wrapper);
+                });
+                var cityEl = document.getElementById('geoCity');
+                if (cityEl) { cityEl.style.filter = 'blur(4px)'; cityEl.style.webkitFilter = 'blur(4px)'; }
+                var stateEl = document.getElementById('geoState');
+                if (stateEl) { stateEl.style.filter = 'blur(4px)'; stateEl.style.webkitFilter = 'blur(4px)'; }
+                section.style.display = '';
+            }
+            var dev = detectDevice();
+            var locBadge = document.getElementById('ctaUserLocationBadge');
+            var devBadge = document.getElementById('ctaUserDeviceBadge');
+            if (devBadge) { devBadge.textContent = '💻 ' + dev.device + ' · ' + dev.browser; devBadge.style.display = ''; }
+            var apiBase = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app');
+            fetch(apiBase + '/api/geo?lang=' + lang).then(function(r){return r.json()}).then(function(data){
+                if (data.success && data.city) {
+                    render(data.city, data.state||data.country, data.device||dev.device, data.browser||dev.browser, data.locations);
+                } else { throw new Error('no city'); }
+            }).catch(function(){
+                fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(g){
+                    if (g.city) render(g.city, g.region||g.country_name, dev.device, dev.browser, genLocations(g.city));
+                }).catch(function(){
+                    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+                    var city = tz.split('/').pop().replace(/_/g,' ');
+                    if (city) { render(city, '', dev.device, dev.browser, genLocations(city)); }
+                    else { renderBlurred(dev); }
+                });
+            });
+        })();
+        </script>
+
+        </div>
+
+        <!-- Bonus Section -->
+        <div class="bonus-section">
+            <div class="bonus-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Bonus Exclusifs (GRATUITS)
+            </div>
+            <div class="bonus-total">Valeur totale : <span>394$</span> - Les vôtres GRATUITEMENT aujourd'hui !</div>
+            <div class="bonus-item">
+                <div class="bonus-icon instagram">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>Instagram Spy</h4>
+                    <p>Accédez aux DMs, stories vues et abonnés secrets</p>
+                </div>
+            </div>
+            <div class="bonus-item">
+                <div class="bonus-icon tiktok">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>TikTok Spy</h4>
+                    <p>Voir les vidéos privées, likes et historique de messages</p>
+                </div>
+            </div>
+            <div class="bonus-item">
+                <div class="bonus-icon snapchat">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03a1.76 1.76 0 01-.168-.015c-.375-.045-.779-.09-1.229-.09-.449 0-.929.045-1.438.18-.509.119-.959.329-1.529.569-.795.33-1.695.705-3.009.705h-.075c-1.314 0-2.214-.375-3.009-.705-.57-.24-1.02-.45-1.529-.569-.509-.135-.989-.18-1.438-.18-.45 0-.854.045-1.229.09-.061.015-.12.015-.168.015-.284 0-.479-.134-.555-.405-.061-.193-.105-.375-.134-.553-.045-.195-.105-.479-.165-.57-1.872-.283-2.905-.702-3.146-1.271a.49.49 0 01-.044-.225.47.47 0 01.419-.509c3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.209-.645.119-.869-.195-.449-.884-.674-1.333-.809a3.96 3.96 0 01-.344-.119c-.823-.329-1.229-.72-1.214-1.168 0-.36.285-.689.735-.838.149-.06.326-.09.509-.09.119 0 .299.016.464.104.374.181.733.301 1.032.301.197 0 .326-.045.401-.09-.008-.165-.018-.33-.03-.51l-.003-.06c-.104-1.628-.23-3.654.299-4.847C7.86 1.069 11.216.793 12.206.793z"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>Snapchat Spy</h4>
+                    <p>Récupérez les snaps supprimés et conversations secrètes</p>
+                </div>
+            </div>
+            <div class="bonus-item">
+                <div class="bonus-icon location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="12 2 12 12 17 7"/>
+                        <line x1="12" y1="12" x2="12" y2="22"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>Tracker GPS Temps Réel</h4>
+                    <p>Mises à jour de localisation en direct toutes les 5 minutes</p>
+                </div>
+            </div>
+            <div class="bonus-item">
+                <div class="bonus-icon alerts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>Alertes Instantanées</h4>
+                    <p>Soyez notifié des nouveaux contacts et activités suspectes</p>
+                </div>
+            </div>
+            <div class="bonus-item">
+                <div class="bonus-icon monitor">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="bonus-info">
+                    <h4>Moniteur En Ligne 24/7</h4>
+                    <p>Suivez quand la personne est en ligne, même en mode invisible</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Testimonials -->
+        <div class="testimonials-section">
+            <div class="testimonials-header-card">
+                <div class="testimonials-header-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <span class="testimonials-header-title">Avis des Utilisateurs</span>
+                </div>
+                <div class="testimonials-header-right">
+                    <span class="testimonials-rating-pill">★ 4.9</span>
+                    <span class="testimonials-count-pill">2 847 avis</span>
+                </div>
+            </div>
+            <div class="testimonials-body">
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-1">🔍</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">user_8***2k</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">J'avais un pressentiment depuis des mois que quelque chose n'allait pas. Il cachait toujours son téléphone, quittait la pièce pour envoyer des messages. J'ai trouvé des <em>conversations supprimées avec le même contact</em> remontant à des semaines. Des messages qu'il jurait n'avoir jamais envoyés. J'avais enfin la preuve de ce que je ressentais.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">Il y a 2 jours • 🇫🇷</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 124 utile</span>
+                </div>
+            </div>
+
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-2">💔</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">anon_***91</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">Elle disait toujours « c'est juste un collègue ». J'ai vu des <em>photos échangées puis supprimées</em>, des appels tard dans la nuit à 1h du matin, et un contact enregistré sous un faux nom. Tout ce dont j'avais besoin était là. Douloureux mais nécessaire.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">Il y a 8 heures • 🇧🇪</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 89 utile</span>
+                </div>
+            </div>
+            <div class="testimonial-item">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar-icon tav-4">🔒</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">anon_***4r</div>
+                        <div class="testimonial-meta-row">
+                            <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
+                            <span class="testimonial-stars">★★★★★</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="testimonial-text">J'ai failli ne pas l'acheter. J'avais peur de ce que j'allais trouver. Il s'avère qu'elle avait <em>toute une vie secrète sur WhatsApp</em> — des contacts bloqués, des messages vocaux supprimés, des photos que je n'étais jamais censé voir. Ça fait mal, mais au moins maintenant je connais la vérité.</p>
+                <div class="testimonial-footer">
+                    <span class="testimonial-time">Il y a 3 jours • 🇨🇭</span>
+                    <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 156 utile</span>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Protection de votre WhatsApp -->
+        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:18px;">🛡️</span>
+                </div>
+                <div>
+                    <div style="font-size:14px;font-weight:600;color:#128C7E;">Votre WhatsApp reste protégé, <span id="ctaUserFirstName"></span></div>
+                    <div style="font-size:11px;color:#667781;">100% anonyme • Aucune trace laissée</div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> Votre numéro n'est <strong style="color:#128C7E;">jamais exposé</strong> pendant le processus
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Il/Elle</span> ne saura <strong>jamais</strong> que vous avez accédé à <span id="ctaGenderPronoun1">ses</span> données
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> Chiffrement militaire 256 bits protège votre identité
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> Aucune installation requise sur <span id="ctaGenderPronoun3">son</span> téléphone
+                </div>
+            </div>
+            <div style="font-size:11px;color:#667781;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
+                🔒 Vos données sont chiffrées et jamais partagées avec des tiers
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="pricing-section" id="pricing">
+            <div class="discount-badge" data-ab-discount>75% DE RÉDUCTION - TEMPS LIMITÉ</div>
+            <div class="price-original" data-ab-original-price>$197</div>
+            <div class="price-current" data-ab-price>$47</div>
+            <div class="price-savings" data-ab-savings>Vous économisez 150$ aujourd'hui !</div>
+            <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Paiement unique • <strong style="color:#25D366;">Accès à vie</strong></div>
+            <div class="price-info">Paiement unique • Accès instantané • Garantie 30 jours</div>
+            <button class="cta-button" onclick="handlePurchase()" aria-label="Débloquer l'accès complet à Whats Spy">
+                <span class="cta-button-icon">🔓</span> Débloquer l'Accès Complet<br><span id="ctaBtnPhone" style="font-size:12px;font-weight:400;opacity:0.85;"></span>
+            </button>
+            <p class="cta-subtext">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+                Paiement sécurisé • Accès en moins de 2 minutes
+            </p>
+            <div class="payment-methods">
+                <span class="payment-method">💳 Visa</span>
+                <span class="payment-method">💳 Mastercard</span>
+                <span class="payment-method">💳 Amex</span>
+                <span class="payment-method">🔒 PayPal</span>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2 class="section-title">Questions Fréquemment Posées</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    L'outil fonctionne-t-il vraiment ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="faq-answer">Oui ! Nous utilisons une technologie avancée pour accéder aux données WhatsApp de manière totalement invisible. Plus de 50 000 utilisateurs ont déjà utilisé notre outil avec succès.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    La personne saura-t-elle que j'ai espionné ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="faq-answer">Non ! L'accès est 100% invisible. La personne ne reçoit aucune notification et ne saura jamais que vous avez accédé à ses données.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Ça fonctionne avec n'importe quel numéro ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="faq-answer">Oui ! Ça fonctionne avec n'importe quel numéro WhatsApp dans le monde, même avec la vérification en deux étapes activée.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Combien de temps ai-je accès ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="faq-answer">L'accès est à vie ! Une fois acheté, vous pouvez l'utiliser pour toujours sans frais supplémentaires.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Et si je ne suis pas satisfait ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="faq-answer">Nous offrons une garantie de remboursement de 30 jours. Si vous n'êtes pas 100% satisfait, nous vous remboursons intégralement.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Dois-je installer quelque chose sur leur téléphone ?
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer">Non. Whats Spy fonctionne 100% à distance en utilisant uniquement le numéro de téléphone. Vous n'avez besoin d'aucun accès physique à l'appareil cible.</div>
+            </div>
+        </div>
+
+        <!-- Security Badges -->
+        <div class="security-badges">
+            <div class="security-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                SSL Sécurisé
+            </div>
+            <div class="security-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFCC00" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Norton Secured
+            </div>
+            <div class="security-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                Chiffrement 256 bits
+            </div>
+        </div>
+
+        <!-- 30-Day Guarantee -->
+        <div class="guarantee-section">
+            <div class="guarantee-seal">
+                <div class="guarantee-seal-circle">
+                    <svg class="guarantee-seal-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span class="guarantee-seal-number">30</span>
+                    <span class="guarantee-seal-days">JOURS</span>
+                </div>
+            </div>
+            <h3 class="guarantee-title">Garantie Satisfait ou Remboursé 30 Jours</h3>
+            <p class="guarantee-text">Pas satisfait ? Obtenez un remboursement intégral sous 30 jours, sans questions. Votre achat est sans aucun risque.</p>
+        </div>
+    </div>
+
+    <!-- Exit Intent Popup -->
+    <div class="exit-overlay" id="exitOverlay">
+        <div class="exit-popup">
+            <button class="exit-close" id="exitClose">&times;</button>
+            <div class="exit-icon">⚠️</div>
+            <div class="exit-title">Attendez ! Vos données seront perdues</div>
+            <div class="exit-subtitle">La session de surveillance pour ce numéro va expirer et toutes les données capturées seront définitivement supprimées.</div>
+            <div class="exit-timer" id="exitTimer">04:59</div>
+            <button class="exit-cta" onclick="handlePurchase()">🔓 Débloquer l'Accès Avant l'Expiration</button>
+            <button class="exit-dismiss" id="exitDismiss">Non merci, je perds les données</button>
+        </div>
+    </div>
+
+
+    <!-- Matrix Effect - disabled on light theme -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof MatrixEffect !== 'undefined' && !window.location.pathname.includes('/light/')) {
+                MatrixEffect.init('matrix-canvas', { chars: '01', frameInterval: 100 });
+            }
+        });
+    </script>
+
+    <!-- Main Script -->
+    <script>
+        // Detect gender from URL parameter or localStorage
+        function getGender() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const genderParam = urlParams.get('gender');
+            if (genderParam) {
+                localStorage.setItem('targetGender', genderParam);
+                return genderParam;
+            }
+            return localStorage.getItem('targetGender') || 'male';
+        }
+
+        const gender = getGender();
+        const utmCampaign = gender === 'female' ? 'cta_female' : (gender === 'male' ? 'cta_male' : 'cta');
+
+        // Set media images based on gender (show opposite gender photos as "suspicious")
+        const mediaGrid = document.getElementById('mediaGrid');
+        const frequentContactImg = document.getElementById('frequentContactImg');
+        const frequentContactName = document.getElementById('frequentContactName');
+
+        if (gender === 'female') {
+            // User spying on female, show male photos
+            frequentContactImg.src = '../imagens/homem1.jpg';
+            frequentContactName.innerHTML = '<span class="hidden">M***</span><span class="hidden">J***</span>';
+            mediaGrid.innerHTML = `
+                <div class="media-item large">
+                    <img src="../imagens/blocked-male-1.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-male-2.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-male-3.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-male-5.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-male-4.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        } else {
+            // User spying on male (default), show female photos
+            frequentContactImg.src = '../imagens/mulher1.jpg';
+            frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">S***</span>';
+            mediaGrid.innerHTML = `
+                <div class="media-item large">
+                    <img src="../imagens/blocked-female-1.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-female-2.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-female-3.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-female-5.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/blocked-female-4.png" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Populate suspicious conversations based on gender
+        (function() {
+            var cl = document.getElementById('convList');
+            if (!cl) return;
+            var p = window.location.pathname;
+            var lang = 'fr';
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+            else if (p.indexOf('/frances/') !== -1) lang = 'fr';
+
+            var labels = {
+                en: { title: 'Suspicious conversations detected', deleted: 'deleted', suspicious: 'suspicious', evidence: 'evidence' },
+                es: { title: 'Conversaciones sospechosas detectadas', deleted: 'eliminado', suspicious: 'sospechoso', evidence: 'evidencia' },
+                pt: { title: 'Conversas suspeitas detectadas', deleted: 'apagado', suspicious: 'suspeito', evidence: 'evidência' },
+                fr: { title: 'Conversations suspectes détectées', deleted: 'supprimé', suspicious: 'suspect', evidence: 'preuve' }
+            }[lang];
+
+            var audioBars = '';
+            var heights = [4,8,12,6,14,9,5,11,7,13,4,10,8,6,12,3,9,14,5,11];
+            for (var h = 0; h < heights.length; h++) audioBars += '<span style="height:' + heights[h] + 'px"></span>';
+
+            var convsFemale = [
+                { img: 'mulher1.jpg', name: 'Jes***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
+                { img: 'mulher3.jpg', name: 'Ash***', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
+                { img: 'mulher5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
+                { img: 'mulher7.jpg', name: 'Sam***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
+                { img: 'mulher9.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+            ];
+            var convsMale = [
+                { img: 'homem1.jpg', name: 'Mic***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
+                { img: 'homem3.jpg', name: 'Kev** (Work)', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
+                { img: 'homem5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
+                { img: 'homem2.jpg', name: 'Dan***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
+                { img: 'homem4.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+            ];
+
+            if (lang === 'es') {
+                convsFemale[0].msg = 'Borra esto después de le***...'; convsFemale[1].msg = 'Todavía pien** en nosotr**...';
+                convsFemale[2].msg = 'Te extrañ** much**...'; convsFemale[4].msg = 'Nadie tiene que sab***...';
+                convsMale[0].msg = 'Borra esto después de le***...'; convsMale[1].msg = 'Todavía pien** en nosotr**...';
+                convsMale[2].msg = 'Te extrañ** much**...'; convsMale[4].msg = 'Nadie tiene que sab***...';
+            } else if (lang === 'pt') {
+                convsFemale[0].name = 'Luc***'; convsFemale[1].name = 'Cam***'; convsFemale[2].name = 'Contato Bloqueado'; convsFemale[3].name = 'Bru***'; convsFemale[4].name = 'Contato Excluído';
+                convsMale[0].name = 'Mar***'; convsMale[1].name = 'And*** (Trabalho)'; convsMale[2].name = 'Contato Bloqueado'; convsMale[3].name = 'Die***'; convsMale[4].name = 'Contato Excluído';
+                convsFemale[0].msg = 'Apaga isso depois de l***...'; convsFemale[1].msg = 'Ainda pen** em nós doi**...';
+                convsFemale[2].msg = 'Sinto sua fal** demais...'; convsFemale[4].msg = 'Ninguém precisa sab***...';
+                convsMale[0].msg = 'Apaga isso depois de l***...'; convsMale[1].msg = 'Ainda pen** em nós doi**...';
+                convsMale[2].msg = 'Sinto sua fal** demais...'; convsMale[4].msg = 'Ninguém precisa sab***...';
+            } else if (lang === 'fr') {
+                convsFemale[0].name = 'Luc***'; convsFemale[1].name = 'Cam***'; convsFemale[2].name = 'Contact Bloqué'; convsFemale[3].name = 'Sop***'; convsFemale[4].name = 'Contact Supprimé';
+                convsFemale[0].msg = 'Supprime ça après l***...'; convsFemale[1].msg = 'Je pense encore à no***...';
+                convsFemale[2].msg = 'Tu me manq*** tellement...'; convsFemale[4].msg = 'Personne ne doit sav***...';
+                convsMale[0].name = 'Mar***'; convsMale[1].name = 'Ant*** (Travail)'; convsMale[2].name = 'Contact Bloqué'; convsMale[3].name = 'Die***'; convsMale[4].name = 'Contact Supprimé';
+                convsMale[0].msg = 'Supprime ça après l***...'; convsMale[1].msg = 'Je pense encore à no***...';
+                convsMale[2].msg = 'Tu me manq*** tellement...'; convsMale[4].msg = 'Personne ne doit sav***...';
+            }
+
+            var convs = gender === 'female' ? convsMale : convsFemale;
+
+            var html = '<div class="conv-list-title"><svg viewBox="0 0 16 16" fill="#ef4444" width="12" height="12"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a1 1 0 011 1v4a1 1 0 01-2 0V4a1 1 0 011-1zm0 8a1 1 0 110-2 1 1 0 010 2z"/></svg> ' + labels.title + '</div>';
+
+            for (var i = 0; i < convs.length; i++) {
+                var c = convs[i];
+                var isSusp = c.tags.indexOf('evidence') !== -1 || c.tags.indexOf('suspicious') !== -1;
+                html += '<div class="conv-item' + (isSusp ? ' suspicious' : '') + '">';
+                html += '<img class="conv-avatar" src="../imagens/' + c.img + '" alt="">';
+                html += '<div class="conv-body"><div class="conv-name">' + c.name + '</div>';
+                if (c.msg === 'audio') {
+                    html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#25D366" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
+                } else {
+                    html += '<div class="conv-msg">' + c.msg + '</div>';
+                }
+                html += '<div class="conv-tags">';
+                for (var t = 0; t < c.tags.length; t++) html += '<span class="conv-tag ' + c.tags[t] + '">' + labels[c.tags[t]] + '</span>';
+                html += '</div></div>';
+                html += '<div class="conv-meta"><span class="conv-badge">' + c.unread + '</span></div>';
+                html += '</div>';
+            }
+            cl.innerHTML = html;
+        })();
+
+        // Load target phone from localStorage
+        const targetPhone = localStorage.getItem('targetPhone') || '+** (***) ***-4567';
+        document.getElementById('targetPhone').textContent = targetPhone;
+        var btnPhone = document.getElementById('ctaBtnPhone');
+        if (btnPhone) btnPhone.textContent = '📱 ' + targetPhone;
+
+        const targetNameEl = document.getElementById('profileTargetName');
+        if (targetNameEl) {
+            const savedPhone = localStorage.getItem('targetPhone');
+            if (savedPhone) {
+                const masked = savedPhone.substring(0, 4) + '****' + savedPhone.substring(savedPhone.length - 2);
+                targetNameEl.textContent = masked;
+            }
+        }
+
+        // Load target avatar from localStorage
+        const targetAvatar = localStorage.getItem('targetAvatar');
+        const avatarImg = document.getElementById('targetAvatar');
+        if (targetAvatar && targetAvatar !== 'null' && targetAvatar.startsWith('http')) {
+            avatarImg.src = targetAvatar;
+        } else {
+            avatarImg.src = '../imagens/default-avatar.png';
+        }
+        avatarImg.onerror = function() {
+            this.src = '../imagens/default-avatar.png';
+        };
+
+        // Random stats
+        document.getElementById('convCount').textContent = Math.floor(Math.random() * 30) + 35;
+        document.getElementById('msgCount').textContent = (Math.random() * 2 + 0.8).toFixed(1) + 'k';
+
+        // Live viewers counter
+        function updateLiveViewers() {
+            const el = document.getElementById('liveViewers');
+            if (!el) return;
+            const current = parseInt(el.textContent);
+            const change = Math.floor(Math.random() * 5) - 2;
+            const newValue = Math.max(49, Math.min(124, current + change));
+            el.textContent = newValue;
+        }
+        setInterval(updateLiveViewers, 3000);
+
+        // Slots countdown
+        let slots = 3;
+        function updateSlots() {
+            if (slots > 1 && Math.random() > 0.7) {
+                slots--;
+                const slotsEl = document.getElementById('slotsLeft');
+                const slotsFixedEl = document.getElementById('slotsLeftFixed');
+                if (slotsEl) slotsEl.textContent = slots;
+                if (slotsFixedEl) slotsFixedEl.textContent = slots;
+            }
+        }
+        setInterval(updateSlots, 45000);
+
+        // Scroll to pricing
+        function scrollToPricing() {
+            document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Toggle FAQ
+        function toggleFaq(element) {
+            element.parentElement.classList.toggle('open');
+        }
+
+        // Handle purchase - check if already captured lead data
+        function handlePurchase() {
+            const existingEmail = localStorage.getItem('userEmail');
+            const existingWhatsApp = localStorage.getItem('userWhatsApp');
+            
+            // If already captured on phone page, go directly to checkout
+            if (existingEmail && existingWhatsApp) {
+                proceedToCheckout();
+                return;
+            }
+            
+            // Otherwise show email capture modal
+            if (typeof EmailCapture !== 'undefined') {
+                EmailCapture.show(function(userData) {
+                    proceedToCheckout();
+                });
+            } else {
+                proceedToCheckout();
+            }
+        }
+        
+        // Proceed to checkout with all tracking
+        var checkoutLocked = false;
+        function proceedToCheckout() {
+            if (checkoutLocked) return;
+            checkoutLocked = true;
+            // Get current product value
+            const currentValue = window.productValue || 47;
+            const currentCheckoutCode = window.checkoutCode || 'PPU38CQ7KHI';
+            
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackAddToCart(currentValue, 'Whats Spy VIP Access');
+                FacebookCAPI.trackInitiateCheckout(currentValue, 'Whats Spy VIP Access');
+            } else if (typeof fbq !== 'undefined') {
+                // Fallback: browser pixel + direct CAPI call
+                const cartEventId = 'AddToCart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const checkoutEventId = 'InitiateCheckout_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                fbq('track', 'AddToCart', { content_name: 'Whats Spy VIP Access', currency: 'USD', value: currentValue }, { eventID: cartEventId });
+                fbq('track', 'InitiateCheckout', { content_name: 'Whats Spy VIP Access', currency: 'USD', value: currentValue }, { eventID: checkoutEventId });
+                // Send to CAPI directly as fallback
+                const capiUrl = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/capi/event';
+                const capiData = { eventSourceUrl: window.location.href, funnelLanguage: 'fr', email: localStorage.getItem('userEmail'), phone: localStorage.getItem('userWhatsApp'), fbc: document.cookie.match(/_fbc=([^;]+)/)?.[1] || '', fbp: document.cookie.match(/_fbp=([^;]+)/)?.[1] || '' };
+                fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, keepalive: true, body: JSON.stringify({...capiData, eventName: 'AddToCart', eventId: cartEventId, value: currentValue, currency: 'USD', content_name: 'Whats Spy VIP Access'}) }).catch(() => {});
+                fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, keepalive: true, body: JSON.stringify({...capiData, eventName: 'InitiateCheckout', eventId: checkoutEventId, value: currentValue, currency: 'USD', content_name: 'Whats Spy VIP Access'}) }).catch(() => {});
+            }
+            
+            // Track checkout click in funnel
+            if (typeof FunnelTracker !== 'undefined') {
+                FunnelTracker.track(FunnelTracker.events.CHECKOUT_CLICKED);
+            }
+            
+            // Build checkout URL with user data
+            let checkoutUrl = 'https://go.centerpag.com/' + currentCheckoutCode;
+            
+            // Get preserved UTMs from Meta Ads (if they exist)
+            const utm_source = localStorage.getItem('utm_source') || 'Whats Spy';
+            const utm_medium = localStorage.getItem('utm_medium') || 'funnel';
+            const utm_campaign = localStorage.getItem('utm_campaign') || utmCampaign;
+            const utm_content = localStorage.getItem('utm_content');
+            const utm_term = localStorage.getItem('utm_term');
+            
+            // Add original UTMs (compatible with Utmify)
+            checkoutUrl += '?utm_source=' + encodeURIComponent(utm_source);
+            checkoutUrl += '&utm_medium=' + encodeURIComponent(utm_medium);
+            checkoutUrl += '&utm_campaign=' + encodeURIComponent(utm_campaign);
+            if (utm_content) checkoutUrl += '&utm_content=' + encodeURIComponent(utm_content);
+            if (utm_term) checkoutUrl += '&utm_term=' + encodeURIComponent(utm_term);
+            
+            // Add custom zs_* params for internal tracking
+            checkoutUrl += '&zs_source=Whats Spy';
+            checkoutUrl += '&zs_funnel=' + encodeURIComponent(utmCampaign);
+            
+            // IMPORTANT: Pass visitor_id for upsell tracking continuity
+            const visitorId = typeof TrackingUtils !== 'undefined' ? TrackingUtils.getVisitorId() : localStorage.getItem('funnelVisitorId');
+            if (visitorId) {
+                checkoutUrl += '&vid=' + encodeURIComponent(visitorId);
+            }
+            
+            // Pass Facebook IDs for CAPI attribution
+            const checkoutFbc = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbc() : localStorage.getItem('_fbc');
+            const checkoutFbp = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbp() : localStorage.getItem('_fbp');
+            if (checkoutFbc) {
+                checkoutUrl += '&zs_fbc=' + encodeURIComponent(checkoutFbc);
+                const fbclidMatch = checkoutFbc.match(/\.([^.]+)$/);
+                if (fbclidMatch && fbclidMatch[1]) {
+                    checkoutUrl += '&fbclid=' + encodeURIComponent(fbclidMatch[1]);
+                }
+            }
+            if (checkoutFbp) checkoutUrl += '&zs_fbp=' + encodeURIComponent(checkoutFbp);
+            
+            // Add user data from localStorage to pre-fill PerfectPay checkout
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            const userWhatsApp = localStorage.getItem('userWhatsApp');
+            const userCountryCode = localStorage.getItem('userCountryCode');
+            const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+            
+            if (userName) checkoutUrl += '&full_name=' + encodeURIComponent(userName);
+            if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
+            if (userPhoneNumber) checkoutUrl += '&phone=' + encodeURIComponent(userPhoneNumber);
+            
+            // Delay to ensure tracking events complete before navigation
+            setTimeout(function() { window.location.href = checkoutUrl; }, 1200);
+        }
+
+        // Initialize
+        localStorage.setItem('funnelProgress', 'cta');
+
+
+        // Animate suspicion bar
+        setTimeout(() => {
+            const bar = document.getElementById('suspicionBar');
+            if (bar) bar.style.width = '87%';
+        }, 500);
+
+        // Typing indicator
+        function showTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.style.opacity = '1';
+                setTimeout(() => { indicator.style.opacity = '0'; }, 3000);
+            }
+        }
+        setInterval(() => {
+            if (Math.random() > 0.5) showTypingIndicator();
+        }, 15000);
+        setTimeout(showTypingIndicator, 5000);
+
+        // ============================================================
+        // 2) ACTIVITY TIMELINE - Recent target events
+        // ============================================================
+        function buildTimeline() {
+            var p = window.location.pathname;
+            var lang = 'fr';
+            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
+            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
+            else if (p.indexOf('/frances/') !== -1) lang = 'fr';
+
+            var g = (typeof gender !== 'undefined') ? gender : 'male';
+            var isFemale = (g === 'female');
+
+            var contactName = isFemale
+                ? (lang==='es' ? '<span class="tl-name">Carlos M.</span>' : (lang==='pt' ? '<span class="tl-name">Rafael M.</span>' : (lang==='fr' ? '<span class="tl-name">Lucas M.</span>' : '<span class="tl-name">Jordan M.</span>')))
+                : (lang==='es' ? '<span class="tl-name">Valentina R.</span>' : (lang==='pt' ? '<span class="tl-name">Fernanda R.</span>' : (lang==='fr' ? '<span class="tl-name">Camille R.</span>' : '<span class="tl-name">Ashley R.</span>')));
+
+            var he = isFemale ? 'She' : 'He';
+            var his = isFemale ? 'Her' : 'His';
+            var their = isFemale ? 'her' : 'his';
+            var ilFr = isFemale ? 'Elle' : 'Il';
+            var sonFr = isFemale ? 'Son' : 'Son';
+            var elEs = isFemale ? 'Ella' : 'Él';
+            var suEs = isFemale ? 'su' : 'su';
+            var elePt = isFemale ? 'Ela' : 'Ele';
+            var delePt = isFemale ? 'dela' : 'dele';
+
+            var eventsEN = [
+                { icon: '🗑', cls: 'tl-delete', text: he + ' deleted <span class="tl-highlight">23 messages</span> from chat with ' + contactName + ' at <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'suspicious', days: 0 },
+                { icon: '📷', cls: 'tl-msg', text: he + ' received <span class="tl-highlight">4 photos</span> from ' + contactName + ' — opened and <span class="tl-highlight">auto-deleted in 3 seconds</span>', tag: 'danger', tagText: 'auto-delete', days: 0 },
+                { icon: '🔇', cls: 'tl-contact', text: he + ' set notifications from ' + contactName + ' to <span class="tl-highlight">silent mode</span> — conversation <span class="tl-highlight">archived</span>', tag: 'danger', tagText: 'hidden', days: 1 },
+                { icon: '📍', cls: 'tl-location', text: his + ' GPS detected at <span class="tl-highlight">unknown address</span> — <span class="tl-name">7.7 mi</span> from home at <span class="tl-highlight">11:47 PM</span>', tag: 'danger', tagText: 'critical', days: 2 },
+                { icon: '📱', cls: 'tl-call', text: he + ' made <span class="tl-highlight">8 calls</span> to ' + contactName + ' in the last 48h — average duration <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frequent', days: 2 },
+                { icon: '🟣', cls: 'tl-online', text: he + ' was online for <span class="tl-highlight">47 min</span> between 1:00 AM - 1:47 AM — <span class="tl-highlight">zero messages sent to you</span>', tag: 'warn', tagText: 'ghost mode', days: 3 },
+                { icon: '🔒', cls: 'tl-contact', text: he + ' renamed ' + contactName + ' from <span class="tl-name">"Babe 💕"</span> to <span class="tl-name">"Company Driver"</span>', tag: 'danger', tagText: 'disguised', days: 4 },
+                { icon: '💬', cls: 'tl-msg', text: he + ' created a <span class="tl-highlight">secret chat</span> with disappearing messages — <span class="tl-highlight">set to 5 seconds</span>', tag: 'danger', tagText: 'encrypted', days: 5 },
+                { icon: '🔕', cls: 'tl-delete', text: he + ' changed your contact name from <span class="tl-name">"❤️"</span> to <span class="tl-name">"Work colleague"</span> on ' + their + ' phone', tag: 'danger', tagText: 'alert', days: 6 }
+            ];
+
+            var eventsES = [
+                { icon: '🗑', cls: 'tl-delete', text: elEs + ' eliminó <span class="tl-highlight">23 mensajes</span> del chat con ' + contactName + ' a las <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'sospechoso', days: 0 },
+                { icon: '📷', cls: 'tl-msg', text: elEs + ' recibió <span class="tl-highlight">4 fotos</span> de ' + contactName + ' — abrió y <span class="tl-highlight">auto-eliminó en 3 segundos</span>', tag: 'danger', tagText: 'auto-borrado', days: 0 },
+                { icon: '🔇', cls: 'tl-contact', text: elEs + ' puso notificaciones de ' + contactName + ' en <span class="tl-highlight">modo silencioso</span> — conversación <span class="tl-highlight">archivada</span>', tag: 'danger', tagText: 'oculto', days: 1 },
+                { icon: '📍', cls: 'tl-location', text: 'GPS de ' + elEs.toLowerCase() + ' detectado en <span class="tl-highlight">dirección desconocida</span> — <span class="tl-name">12.4 km</span> de casa a las <span class="tl-highlight">11:47 PM</span>', tag: 'danger', tagText: 'crítico', days: 2 },
+                { icon: '📱', cls: 'tl-call', text: elEs + ' hizo <span class="tl-highlight">8 llamadas</span> a ' + contactName + ' en las últimas 48h — duración promedio <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frecuente', days: 2 },
+                { icon: '🟣', cls: 'tl-online', text: elEs + ' estuvo en línea <span class="tl-highlight">47 min</span> entre 1:00 AM - 1:47 AM — <span class="tl-highlight">cero mensajes enviados a ti</span>', tag: 'warn', tagText: 'modo oculto', days: 3 },
+                { icon: '🔒', cls: 'tl-contact', text: elEs + ' renombró a ' + contactName + ' de <span class="tl-name">"Amor 💕"</span> a <span class="tl-name">"Chofer Empresa"</span>', tag: 'danger', tagText: 'disfrazado', days: 4 },
+                { icon: '💬', cls: 'tl-msg', text: elEs + ' creó un <span class="tl-highlight">chat secreto</span> con mensajes que desaparecen — <span class="tl-highlight">configurado a 5 segundos</span>', tag: 'danger', tagText: 'encriptado', days: 5 },
+                { icon: '🔕', cls: 'tl-delete', text: elEs + ' cambió tu nombre de contacto de <span class="tl-name">"❤️"</span> a <span class="tl-name">"Colega de trabajo"</span> en ' + suEs + ' teléfono', tag: 'danger', tagText: 'alerta', days: 6 }
+            ];
+
+            var eventsPT = [
+                { icon: '🗑', cls: 'tl-delete', text: elePt + ' apagou <span class="tl-highlight">23 mensagens</span> da conversa com ' + contactName + ' às <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'suspeito', days: 0 },
+                { icon: '📷', cls: 'tl-msg', text: elePt + ' recebeu <span class="tl-highlight">4 fotos</span> de ' + contactName + ' — abriu e <span class="tl-highlight">auto-apagou em 3 segundos</span>', tag: 'danger', tagText: 'auto-apagado', days: 0 },
+                { icon: '🔇', cls: 'tl-contact', text: elePt + ' colocou notificações de ' + contactName + ' em <span class="tl-highlight">modo silencioso</span> — conversa <span class="tl-highlight">arquivada</span>', tag: 'danger', tagText: 'oculto', days: 1 },
+                { icon: '📍', cls: 'tl-location', text: 'GPS ' + delePt + ' detectado em <span class="tl-highlight">endereço desconhecido</span> — <span class="tl-name">12.4 km</span> de casa às <span class="tl-highlight">23:47</span>', tag: 'danger', tagText: 'crítico', days: 2 },
+                { icon: '📱', cls: 'tl-call', text: elePt + ' fez <span class="tl-highlight">8 ligações</span> para ' + contactName + ' nas últimas 48h — duração média <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frequente', days: 2 },
+                { icon: '🟣', cls: 'tl-online', text: elePt + ' ficou online por <span class="tl-highlight">47 min</span> entre 1:00 AM - 1:47 AM — <span class="tl-highlight">zero mensagens enviadas para você</span>', tag: 'warn', tagText: 'modo fantasma', days: 3 },
+                { icon: '🔒', cls: 'tl-contact', text: elePt + ' renomeou ' + contactName + ' de <span class="tl-name">"Amor 💕"</span> para <span class="tl-name">"Motorista Empresa"</span>', tag: 'danger', tagText: 'disfarçado', days: 4 },
+                { icon: '💬', cls: 'tl-msg', text: elePt + ' criou um <span class="tl-highlight">chat secreto</span> com mensagens temporárias — <span class="tl-highlight">configurado para 5 segundos</span>', tag: 'danger', tagText: 'encriptado', days: 5 },
+                { icon: '🔕', cls: 'tl-delete', text: elePt + ' mudou seu nome de contato de <span class="tl-name">"❤️"</span> para <span class="tl-name">"Colega de trabalho"</span> no celular ' + delePt, tag: 'danger', tagText: 'alerta', days: 6 }
+            ];
+
+            var eventsFR = [
+                { icon: '🗑', cls: 'tl-delete', text: ilFr + ' a supprimé <span class="tl-highlight">23 messages</span> de la conversation avec ' + contactName + ' à <span class="tl-highlight">2h14</span>', tag: 'danger', tagText: 'suspect', days: 0 },
+                { icon: '📷', cls: 'tl-msg', text: ilFr + ' a reçu <span class="tl-highlight">4 photos</span> de ' + contactName + ' — ouvertes et <span class="tl-highlight">auto-supprimées en 3 secondes</span>', tag: 'danger', tagText: 'auto-suppression', days: 0 },
+                { icon: '🔇', cls: 'tl-contact', text: ilFr + ' a mis les notifications de ' + contactName + ' en <span class="tl-highlight">mode silencieux</span> — conversation <span class="tl-highlight">archivée</span>', tag: 'danger', tagText: 'caché', days: 1 },
+                { icon: '📍', cls: 'tl-location', text: sonFr + ' GPS détecté à une <span class="tl-highlight">adresse inconnue</span> — <span class="tl-name">12,4 km</span> de chez vous à <span class="tl-highlight">23h47</span>', tag: 'danger', tagText: 'critique', days: 2 },
+                { icon: '📱', cls: 'tl-call', text: ilFr + ' a passé <span class="tl-highlight">8 appels</span> à ' + contactName + ' ces dernières 48h — durée moyenne <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'fréquent', days: 2 },
+                { icon: '🟣', cls: 'tl-online', text: ilFr + ' était en ligne <span class="tl-highlight">47 min</span> entre 1h00 et 1h47 — <span class="tl-highlight">zéro message envoyé à vous</span>', tag: 'warn', tagText: 'mode fantôme', days: 3 },
+                { icon: '🔒', cls: 'tl-contact', text: ilFr + ' a renommé ' + contactName + ' de <span class="tl-name">"Mon cœur 💕"</span> en <span class="tl-name">"Chauffeur entreprise"</span>', tag: 'danger', tagText: 'déguisé', days: 4 },
+                { icon: '💬', cls: 'tl-msg', text: ilFr + ' a créé un <span class="tl-highlight">chat secret</span> avec messages éphémères — <span class="tl-highlight">réglé à 5 secondes</span>', tag: 'danger', tagText: 'chiffré', days: 5 },
+                { icon: '🔕', cls: 'tl-delete', text: ilFr + ' a changé votre nom de contact de <span class="tl-name">"❤️"</span> en <span class="tl-name">"Collègue de travail"</span> sur son téléphone', tag: 'danger', tagText: 'alerte', days: 6 }
+            ];
+
+            var events = lang === 'es' ? eventsES : (lang === 'pt' ? eventsPT : (lang === 'fr' ? eventsFR : eventsEN));
+            var alertsLabel = lang === 'es' ? 'alertas' : (lang === 'pt' ? 'alertas' : (lang === 'fr' ? 'alertes' : 'alerts'));
+
+            var container = document.getElementById('timelineItems');
+            var counterEl = document.getElementById('tlCounter');
+            if (!container) return;
+            if (counterEl) counterEl.textContent = events.length + ' ' + alertsLabel;
+
+            var agoLabel = { en: [' min ago', 'Just now'], es: ['hace ', ' min', 'Ahora'], pt: ['há ', ' min', 'Agora'], fr: ['il y a ', ' min', 'À l\'instant'] };
+
+            container.innerHTML = events.map(function(e) {
+                var agoText;
+                if (e.days === 0) {
+                    agoText = lang === 'es' ? 'hace unas horas' : (lang === 'pt' ? 'h\u00e1 poucas horas' : (lang === 'fr' ? 'il y a quelques heures' : 'a few hours ago'));
+                } else if (e.days === 1) {
+                    agoText = lang === 'es' ? 'hace 1 d\u00eda' : (lang === 'pt' ? 'h\u00e1 1 dia' : (lang === 'fr' ? 'il y a 1 jour' : '1 day ago'));
+                } else {
+                    agoText = lang === 'es' ? 'hace ' + e.days + ' d\u00edas' : (lang === 'pt' ? 'há ' + e.days + ' dias' : (lang === 'fr' ? 'il y a ' + e.days + ' jours' : e.days + ' days ago'));
+                }
+                return '<div class="timeline-item">' +
+                    '<div class="timeline-item-icon ' + e.cls + '">' + e.icon + '</div>' +
+                    '<div class="timeline-item-content">' +
+                        '<div class="timeline-item-text">' + e.text + '</div>' +
+                        '<div class="timeline-item-meta">' +
+                            '<span class="timeline-item-time">' + agoText + '</span>' +
+                            '<span class="tl-tag ' + e.tag + '">' + e.tagText + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+        buildTimeline();
+
+        // ============================================================
+        // 3) ACCESS EXPIRY BAR - Visual urgency (green → red)
+        // ============================================================
+        (function initExpiryBar() {
+            const fill = document.getElementById('accessExpiryFill');
+            if (!fill) return;
+            const totalDuration = 600;
+            let elapsed = 0;
+            function updateBar() {
+                elapsed++;
+                const pct = Math.max(0, 100 - (elapsed / totalDuration) * 100);
+                fill.style.width = pct + '%';
+                if (pct > 60) {
+                    fill.style.background = 'linear-gradient(90deg, #25D366, #25D366)';
+                } else if (pct > 30) {
+                    fill.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
+                } else {
+                    fill.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)';
+                }
+                if (pct > 0) setTimeout(updateBar, 1000);
+            }
+            updateBar();
+        })();
+
+        // ============================================================
+        // 4) SOCIAL PROOF - Recent purchases from global cities
+        // ============================================================
+        const socialProofData = [
+            { name: 'Sarah M.', city: 'London, UK' },
+            { name: 'Carlos R.', city: 'Mexico City, MX' },
+            { name: 'Priya K.', city: 'Mumbai, IN' },
+            { name: 'Ahmed H.', city: 'Dubai, UAE' },
+            { name: 'Lisa W.', city: 'Toronto, CA' },
+            { name: 'Juan P.', city: 'Madrid, ES' },
+            { name: 'Yuki T.', city: 'Tokyo, JP' },
+            { name: 'Fatima A.', city: 'Riyadh, SA' },
+            { name: 'Emily R.', city: 'Sydney, AU' },
+            { name: 'Marco B.', city: 'Milan, IT' },
+            { name: 'Nina S.', city: 'Berlin, DE' },
+            { name: 'David L.', city: 'New York, US' },
+            { name: 'Ana C.', city: 'Buenos Aires, AR' },
+            { name: 'Ravi P.', city: 'Singapore, SG' },
+            { name: 'Chloe D.', city: 'Paris, FR' },
+            { name: 'Omar M.', city: 'Istanbul, TR' },
+            { name: 'Kim J.', city: 'Seoul, KR' },
+            { name: 'Grace N.', city: 'Lagos, NG' },
+            { name: 'Lena V.', city: 'Stockholm, SE' },
+            { name: 'Chen W.', city: 'Taipei, TW' },
+            { name: 'Sofia G.', city: 'Bogota, CO' },
+            { name: 'James O.', city: 'Dublin, IE' },
+            { name: 'Mia K.', city: 'Amsterdam, NL' },
+            { name: 'Hassan B.', city: 'Cairo, EG' }
+        ];
+        let spIndex = 0;
+        function showSocialProof() {
+            const container = document.getElementById('socialProofContainer');
+            if (!container) return;
+            const person = socialProofData[spIndex % socialProofData.length];
+            spIndex++;
+            const mins = Math.floor(Math.random() * 12) + 1;
+            const popup = document.createElement('div');
+            popup.className = 'social-proof';
+            popup.innerHTML = `
+                <div class="social-proof-icon">✅</div>
+                <div class="social-proof-body">
+                    <div class="social-proof-text"><strong>${person.name}</strong> de ${person.city} vient de débloquer l'accès complet</div>
+                    <div class="social-proof-time">il y a ${mins} min</div>
+                </div>
+            `;
+            container.appendChild(popup);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { popup.classList.add('show'); });
+            });
+            setTimeout(() => {
+                popup.classList.remove('show');
+                setTimeout(() => popup.remove(), 500);
+            }, 5000);
+        }
+        setTimeout(showSocialProof, 12000);
+        function scheduleNextProof() { setTimeout(function() { showSocialProof(); scheduleNextProof(); }, 30000 + Math.random() * 20000); }
+        scheduleNextProof();
+
+        // === EXIT INTENT POPUP ===
+        (function() {
+            const overlay = document.getElementById('exitOverlay');
+            if (!overlay) return;
+            let shown = false;
+            let timerSec = 299;
+
+            function showExit() {
+                if (shown) return;
+                shown = true;
+                overlay.classList.add('show');
+                const timerEl = document.getElementById('exitTimer');
+                const iv = setInterval(() => {
+                    timerSec--;
+                    if (timerSec <= 0) { clearInterval(iv); timerSec = 0; }
+                    const m = Math.floor(timerSec / 60);
+                    const s = timerSec % 60;
+                    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+                }, 1000);
+            }
+
+            function hideExit() { overlay.classList.remove('show'); }
+
+            document.addEventListener('mouseout', function(e) {
+                if (e.clientY < 5 && e.relatedTarget === null) showExit();
+            });
+
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) { touchStartY = e.touches[0].clientY; });
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches[0].clientY - touchStartY > 80 && window.scrollY < 10) showExit();
+            });
+
+            document.getElementById('exitClose').addEventListener('click', hideExit);
+            document.getElementById('exitDismiss').addEventListener('click', hideExit);
+        })();
+
+
+        // === AUDIO NOTIFICATION ===
+        (function() {
+            var audioCtx = null;
+            function getAudioCtx() {
+                if (!audioCtx) {
+                    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                }
+                return audioCtx;
+            }
+            window._playWhatsAppPop = function() {
+                try {
+                    var ctx = getAudioCtx();
+                    if (!ctx) return;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(900, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.15);
+                } catch(e) {}
+            };
+
+            const origShowSP = window.showSocialProof;
+            if (origShowSP) {
+                const wrappedSP = function() {
+                    origShowSP.apply(this, arguments);
+                    window._playWhatsAppPop();
+                };
+                window.showSocialProof = wrappedSP;
+            }
+        })();
+
+
+        // === TYPING EFFECT ON DELETED MESSAGE ===
+        (function() {
+            const el = document.getElementById('deletedMessageContent');
+            if (!el) return;
+            const fullHTML = el.innerHTML;
+            const textParts = fullHTML.split(/<span class="blocked">|<\/span>/);
+            let displayed = '';
+            let partIdx = 0, charIdx = 0;
+            let isBlocked = false;
+            el.innerHTML = '';
+            el.style.minHeight = '40px';
+
+            function typeNext() {
+                if (partIdx >= textParts.length) return;
+                const part = textParts[partIdx];
+                if (charIdx < part.length) {
+                    if (isBlocked) {
+                        if (charIdx === 0) displayed += '<span class="blocked">';
+                        displayed += part[charIdx];
+                        charIdx++;
+                        if (charIdx >= part.length) {
+                            displayed += '</span>';
+                        }
+                    } else {
+                        displayed += part[charIdx];
+                        charIdx++;
+                    }
+                    el.innerHTML = displayed + '<span style="border-right:2px solid #dc2626;animation:blink 0.7s infinite;">&#8203;</span>';
+                    setTimeout(typeNext, 30 + Math.random() * 50);
+                } else {
+                    partIdx++;
+                    charIdx = 0;
+                    isBlocked = !isBlocked;
+                    setTimeout(typeNext, 100);
+                }
+            }
+
+            const obs = new IntersectionObserver(function(entries) {
+                if (entries[0].isIntersecting) {
+                    obs.disconnect();
+                    setTimeout(typeNext, 800);
+                }
+            });
+            obs.observe(el);
+        })();
+
+
+        // === SHAKE CTA ON SCROLL PAST PRICING ===
+        (function() {
+            const ctaBtn = document.querySelector('.cta-button');
+            const pricing = document.getElementById('pricing');
+            if (!ctaBtn || !pricing) return;
+            let shaken = false;
+            const shakeObs = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting && !shaken) {
+                        const rect = pricing.getBoundingClientRect();
+                        if (rect.bottom < 0) {
+                            shaken = true;
+                            ctaBtn.style.animation = 'ctaShake 0.6s ease-in-out';
+                            setTimeout(function() {
+                                ctaBtn.style.animation = 'megaPulse 2s ease-in-out infinite';
+                                setTimeout(function() { shaken = false; }, 10000);
+                            }, 600);
+                        }
+                    }
+                });
+            }, { threshold: 0 });
+            shakeObs.observe(pricing);
+        })();
+
+        // === MESSAGE COUNTER INCREMENT ===
+        (function() {
+            const msgEl = document.getElementById('msgCount');
+            if (!msgEl) return;
+            let count = 1200;
+            setInterval(function() {
+                count += Math.floor(Math.random() * 3) + 1;
+                if (count < 10000) {
+                    msgEl.textContent = (count / 1000).toFixed(1) + 'k';
+                } else {
+                    msgEl.textContent = (count / 1000).toFixed(0) + 'k';
+                }
+            }, 5000 + Math.random() * 3000);
+        })();
+
+        // === MICRO-CONVERSION TRACKING ===
+        (function() {
+            var tracked = {};
+            function trackMicro(eventName, data) {
+                if (tracked[eventName]) return;
+                tracked[eventName] = true;
+                if (typeof FunnelTracker !== 'undefined' && FunnelTracker.track) {
+                    FunnelTracker.track(eventName, data || {});
+                }
+                try {
+                    fetch((window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            visitorId: localStorage.getItem('funnelVisitorId') || '',
+                            event: eventName,
+                            page: 'cta-unified',
+                            metadata: data || {}
+                        })
+                    }).catch(function() {});
+                } catch(e) {}
+            }
+
+            // Scroll depth tracking
+            var scrollThresholds = [25, 50, 75, 100];
+            window.addEventListener('scroll', function() {
+                var scrollPct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+                scrollThresholds.forEach(function(t) {
+                    if (scrollPct >= t) trackMicro('scroll_' + t, { depth: t });
+                });
+            });
+
+            // Time on page tracking
+            [15, 30, 60, 120].forEach(function(sec) {
+                setTimeout(function() {
+                    trackMicro('time_on_page_' + sec + 's', { seconds: sec });
+                }, sec * 1000);
+            });
+
+            // CTA button hover (purchase intent)
+            var ctaBtn = document.querySelector('.cta-button');
+            if (ctaBtn) {
+                ctaBtn.addEventListener('mouseenter', function() {
+                    trackMicro('cta_button_hover', {});
+                });
+            }
+
+            // FAQ click tracking
+            document.querySelectorAll('.faq-question').forEach(function(q) {
+                q.addEventListener('click', function() {
+                    trackMicro('faq_click', { question: this.textContent.trim().substring(0, 60) });
+                });
+            });
+        })();
+
+        // Floating CTA - show when user scrolls past pricing section
+        (function() {
+            var floatingCta = document.getElementById('floatingCta');
+            var pricingSection = document.getElementById('pricing');
+            if (floatingCta && pricingSection) {
+                var shown = false;
+                window.addEventListener('scroll', function() {
+                    var rect = pricingSection.getBoundingClientRect();
+                    if (rect.bottom < 0 && !shown) {
+                        floatingCta.style.display = 'block';
+                        floatingCta.style.animation = 'slideUp 0.3s ease-out';
+                        shown = true;
+                        var fv = document.getElementById('floatViewers');
+                        if (fv) fv.textContent = document.getElementById('liveViewers') ? document.getElementById('liveViewers').textContent : '73';
+                    } else if (rect.bottom >= 0 && shown) {
+                        floatingCta.style.display = 'none';
+                        shown = false;
+                    }
+                });
+            }
+        })();
+
+        (function() {
+            var el = document.getElementById('deletedMessageContent');
+            if (!el) return;
+            el.style.opacity = '0';
+            setTimeout(function() {
+                el.style.transition = 'opacity 0.5s';
+                el.style.opacity = '1';
+            }, 2000);
+        })();
+
+        // Populate dynamic stats from localStorage
+        (function() {
+            var storedTotal = parseInt(localStorage.getItem('totalMsgs'));
+            var storedDeleted = parseInt(localStorage.getItem('deletedMsgs'));
+            if (storedTotal && !isNaN(storedTotal)) {
+                var el = document.getElementById('ctaTotalMsgs');
+                if (el) el.textContent = storedTotal.toLocaleString();
+            }
+            if (storedDeleted && !isNaN(storedDeleted)) {
+                var el = document.getElementById('ctaDeletedMsgs');
+                if (el) el.textContent = storedDeleted.toLocaleString();
+            }
+        })();
+
+        // Populate WhatsApp protection section
+        (function() {
+            var uName = localStorage.getItem('userName');
+            var section = document.getElementById('userExposedSection');
+            if (section) {
+                section.style.display = 'block';
+                if (uName) {
+                    var firstName = uName.trim().split(' ')[0];
+                    firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                    var el = document.getElementById('ctaUserFirstName');
+                    if (el) el.textContent = firstName;
+                }
+            }
+        })();
+
+        // Set gender pronouns
+        (function() {
+            var g = (typeof gender !== 'undefined') ? gender : 'male';
+            if (g === 'female') {
+                var p1 = document.getElementById('ctaGenderPronoun1'); if (p1) p1.textContent = 'ses';
+                var p2 = document.getElementById('ctaGenderPronoun2'); if (p2) p2.textContent = 'Elle';
+                var p3 = document.getElementById('ctaGenderPronoun3'); if (p3) p3.textContent = 'son';
+            } else {
+                var p1 = document.getElementById('ctaGenderPronoun1'); if (p1) p1.textContent = 'ses';
+                var p2 = document.getElementById('ctaGenderPronoun2'); if (p2) p2.textContent = 'Il';
+                var p3 = document.getElementById('ctaGenderPronoun3'); if (p3) p3.textContent = 'son';
+            }
+        })();
+
+    </script>
+    <div id="floatingCta" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:1000; padding:10px 16px 12px; background:linear-gradient(to top, rgba(0,0,0,0.97), rgba(0,0,0,0.9)); backdrop-filter:blur(12px); border-top:1px solid rgba(37,211,102,0.3);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; padding:0 4px;">
+            <span style="font-size:13px; color:#e5e5ea; font-weight:600;"><span style="text-decoration:line-through;color:#8e8e93;font-weight:400;">$197</span> → <span style="color:#25D366;">$47</span></span>
+            <span style="font-size:11px; color:#8e8e93;">paiement unique • garantie 30 jours</span>
+        </div>
+        <button onclick="handlePurchase()" style="width:100%; padding:14px; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; font-size:16px; font-weight:700; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(37,211,102,0.5); animation:floatPulse 2s infinite;">
+            🔓 Débloquer l'Accès Complet
+        </button>
+    </div>
+    <style>
+        @keyframes floatPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(37,211,102,0.5); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 30px rgba(37,211,102,0.7); }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</body>
+</html>

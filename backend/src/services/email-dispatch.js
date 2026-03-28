@@ -453,12 +453,14 @@ async function runDispatch(category, language, batchSize, batchId) {
             throw new Error('Failed to sync contact to AC');
           }
 
-          // Subscribe to the appropriate list
+          // Subscribe to list → send email → unsubscribe → delete contact
+          // Contact is deleted from AC after sending to free up plan slots
           const eventType = category === 'checkout_abandon' ? 'checkout_abandoned' : 
                            category === 'sale_cancelled' ? 'sale_cancelled' : 'lead_captured';
           const listMapping = acService.LIST_MAP[eventType];
+          let listId = null;
           if (listMapping && listMapping[language]) {
-            const listId = await acService.getOrCreateList(listMapping[language]);
+            listId = await acService.getOrCreateList(listMapping[language]);
             if (listId) {
               await acService.subscribeToList(contactId, listId);
             }
@@ -467,7 +469,25 @@ async function runDispatch(category, language, batchSize, batchId) {
           // 2. Send Email 1 immediately via campaign_send
           await sendCampaignEmail(lead.email, category, language, 1);
 
-          // 2.5. Create tracking record for Email 1
+          // 2.5. Unsubscribe from list after sending
+          if (listId) {
+            try {
+              await acService.apiRequest('POST', 'contactLists', {
+                contactList: { list: String(listId), contact: String(contactId), status: 2 }
+              });
+            } catch (unsubErr) {
+              console.error(`AC: Error removing ${lead.email} from list after send:`, unsubErr.message);
+            }
+          }
+
+          // 2.6. Delete contact from AC to free plan slots
+          try {
+            await acService.deleteContact(contactId);
+          } catch (delErr) {
+            console.error(`AC: Error deleting ${lead.email} after send:`, delErr.message);
+          }
+
+          // 2.7. Create tracking record for Email 1
           try {
             await trackingService.createTrackingRecord(lead.email, category, language, 1, batchId);
           } catch (trackErr) {
@@ -578,8 +598,78 @@ async function processScheduledEmails() {
 
     for (const row of result.rows) {
       try {
+        // Check if contact already purchased (skip recovery emails for buyers)
+        const buyerCheck = await pool.queryRetry(`
+          SELECT id FROM transactions
+          WHERE LOWER(email) = LOWER($1) AND status = 'approved'
+          LIMIT 1
+        `, [row.email]);
+
+        if (buyerCheck.rows.length > 0) {
+          console.log(`📧 Skipping email #${row.email_num} for ${row.email} - already purchased`);
+          await pool.queryRetry(`
+            UPDATE email_dispatch_log
+            SET status = 'cancelled'
+            WHERE id = $1
+          `, [row.id]);
+
+          // Cancel remaining emails and unsubscribe
+          cancelEmailFunnel(row.email, 'already_purchased').catch(err => 
+            console.error(`Error cancelling funnel for buyer ${row.email}:`, err.message)
+          );
+          continue;
+        }
+
+        // Re-create contact → subscribe → send → unsubscribe → delete
+        // Contact must be re-synced because it was deleted after previous email
+        let contactId = row.ac_contact_id;
+        try {
+          const syncResult = await acService.syncContact(row.email);
+          if (syncResult) {
+            contactId = syncResult;
+            await pool.queryRetry(`
+              UPDATE email_dispatch_log SET ac_contact_id = $1
+              WHERE LOWER(email) = LOWER($2) AND category = $3 AND language = $4
+            `, [contactId, row.email, row.category, row.language]);
+          }
+        } catch (syncErr) {
+          console.error(`AC: Error re-syncing ${row.email} for scheduled email:`, syncErr.message);
+        }
+
+        const eventType = row.category === 'checkout_abandon' ? 'checkout_abandoned' :
+                         row.category === 'sale_cancelled' ? 'sale_cancelled' : 'lead_captured';
+        const listMapping = acService.LIST_MAP[eventType];
+        let listId = null;
+
+        if (contactId && listMapping && listMapping[row.language]) {
+          listId = await acService.getOrCreateList(listMapping[row.language]);
+          if (listId) {
+            await acService.subscribeToList(contactId, listId);
+          }
+        }
+
         // Send the email via campaign_send
         await sendCampaignEmail(row.email, row.category, row.language, row.email_num);
+
+        // Unsubscribe from list after sending
+        if (listId && contactId) {
+          try {
+            await acService.apiRequest('POST', 'contactLists', {
+              contactList: { list: String(listId), contact: String(contactId), status: 2 }
+            });
+          } catch (unsubErr) {
+            console.error(`AC: Error removing ${row.email} from list after scheduled send:`, unsubErr.message);
+          }
+        }
+
+        // Delete contact from AC to free plan slots
+        if (contactId) {
+          try {
+            await acService.deleteContact(contactId);
+          } catch (delErr) {
+            console.error(`AC: Error deleting ${row.email} after scheduled send:`, delErr.message);
+          }
+        }
 
         // Create tracking record
         try {
@@ -621,6 +711,91 @@ async function processScheduledEmails() {
   }
 }
 
+// ==================== CANCEL FUNNEL: Remove contact when they buy or need to be removed ====================
+
+async function cancelEmailFunnel(email, reason = 'sale_approved') {
+  try {
+    await ensureDispatchTable();
+
+    if (!email) return { cancelled: false, reason: 'no_email' };
+
+    const pending = await pool.queryRetry(`
+      SELECT DISTINCT category, language, ac_contact_id
+      FROM email_dispatch_log
+      WHERE LOWER(email) = LOWER($1)
+      AND status = 'scheduled'
+    `, [email]);
+
+    if (pending.rows.length === 0) {
+      const existing = await pool.queryRetry(`
+        SELECT DISTINCT category, language, ac_contact_id
+        FROM email_dispatch_log
+        WHERE LOWER(email) = LOWER($1)
+        AND cleaned_up = FALSE
+      `, [email]);
+
+      if (existing.rows.length === 0) {
+        return { cancelled: false, reason: 'not_in_funnel' };
+      }
+
+      for (const row of existing.rows) {
+        await unsubscribeAndCleanup(row, email);
+      }
+
+      return { cancelled: true, reason, scheduledCancelled: 0, listsRemoved: existing.rows.length };
+    }
+
+    const cancelResult = await pool.queryRetry(`
+      UPDATE email_dispatch_log
+      SET status = 'cancelled'
+      WHERE LOWER(email) = LOWER($1)
+      AND status = 'scheduled'
+    `, [email]);
+
+    const cancelledCount = cancelResult.rowCount || 0;
+    console.log(`📧 Cancelled ${cancelledCount} scheduled emails for ${email} (reason: ${reason})`);
+
+    const distinctEntries = await pool.queryRetry(`
+      SELECT DISTINCT category, language, ac_contact_id
+      FROM email_dispatch_log
+      WHERE LOWER(email) = LOWER($1)
+      AND cleaned_up = FALSE
+    `, [email]);
+
+    for (const row of distinctEntries.rows) {
+      await unsubscribeAndCleanup(row, email);
+    }
+
+    return { cancelled: true, reason, scheduledCancelled: cancelledCount, listsRemoved: distinctEntries.rows.length };
+  } catch (error) {
+    console.error(`Error cancelling email funnel for ${email}:`, error.message);
+    return { cancelled: false, error: error.message };
+  }
+}
+
+async function unsubscribeAndCleanup(row, email) {
+  try {
+    if (row.ac_contact_id) {
+      // Delete contact entirely from AC to free plan slots
+      try {
+        await acService.deleteContact(row.ac_contact_id);
+        console.log(`🗑️ Deleted ${email} from AC (cleanup)`);
+      } catch (delErr) {
+        console.log(`AC: Contact ${email} may already be deleted: ${delErr.message}`);
+      }
+    }
+
+    await pool.queryRetry(`
+      UPDATE email_dispatch_log
+      SET cleaned_up = TRUE, cleanup_at = NOW()
+      WHERE LOWER(email) = LOWER($1) AND category = $2 AND language = $3
+    `, [email, row.category, row.language]);
+
+  } catch (error) {
+    console.error(`Error cleaning up ${email} from ${row.category}/${row.language}:`, error.message);
+  }
+}
+
 // ==================== CLEANUP: REMOVE COMPLETED CONTACTS ====================
 
 async function cleanupCompletedContacts() {
@@ -633,7 +808,7 @@ async function cleanupCompletedContacts() {
       FROM email_dispatch_log d
       WHERE d.email_num = 4
       AND d.status = 'sent'
-      AND d.sent_at < NOW() - INTERVAL '48 hours'
+      AND d.sent_at < NOW() - INTERVAL '2 hours'
       AND d.cleaned_up = FALSE
       LIMIT 200
     `);
@@ -649,28 +824,13 @@ async function cleanupCompletedContacts() {
     for (const row of result.rows) {
       try {
         if (row.ac_contact_id) {
-          // Determine the list to unsubscribe from
-          const eventType = row.category === 'checkout_abandon' ? 'checkout_abandoned' :
-                           row.category === 'sale_cancelled' ? 'sale_cancelled' : 'lead_captured';
-          const listMapping = acService.LIST_MAP[eventType];
-          
-          if (listMapping && listMapping[row.language]) {
-            const listId = await acService.getOrCreateList(listMapping[row.language]);
-            if (listId) {
-              await acService.apiRequest('POST', 'contactLists', {
-                contactList: {
-                  list: String(listId),
-                  contact: String(row.ac_contact_id),
-                  status: 2 // unsubscribed
-                }
-              });
-            }
-          }
-
-          // Remove recovery tags
-          const tagMapping = acService.TAG_MAP[eventType];
-          if (tagMapping && tagMapping[row.language]) {
-            await acService.removeTagFromContact(row.ac_contact_id, tagMapping[row.language]);
+          // Try to delete the contact entirely from AC to free plan slots
+          // (it may already be deleted if the per-email deletion worked)
+          try {
+            await acService.deleteContact(row.ac_contact_id);
+          } catch (delErr) {
+            // Contact may already be deleted - that's fine
+            console.log(`AC: Contact ${row.email} may already be deleted: ${delErr.message}`);
           }
         }
 
@@ -827,6 +987,7 @@ module.exports = {
   getDispatchStats,
   processScheduledEmails,
   cleanupCompletedContacts,
+  cancelEmailFunnel,
   ensureDispatchTable,
   sendTestEmails,
   CAMPAIGN_MAP,

@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="version" content="2.1.0-20260211">
-    <title>ZapSpy.ai - Dashboard Pro</title>
+    <title>Whats Spy - Dashboard Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -26,7 +26,7 @@
             <div class="login-header">
                 <div class="login-logo">
                     <div class="login-logo-icon">📱</div>
-                    <h1>ZapSpy.ai</h1>
+                    <h1>Whats Spy</h1>
                 </div>
                 <p>Faça login para acessar o painel</p>
             </div>
@@ -50,7 +50,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="sidebar-logo-icon">📱</div>
-                <span>ZapSpy.ai</span>
+                <span>Whats Spy</span>
             </div>
             
             <nav class="sidebar-nav">
@@ -1399,7 +1399,7 @@
                                 </div>
                                 <div class="ac-kpi-data">
                                     <span class="ac-kpi-value" id="acTotalTags">0</span>
-                                    <span class="ac-kpi-label">Tags ZapSpy</span>
+                                    <span class="ac-kpi-label">Tags Whats Spy</span>
                                 </div>
                             </div>
                             <div class="ac-kpi-card">
@@ -1446,7 +1446,7 @@
                         <div class="ac-two-columns">
                             <div class="ac-section">
                                 <div class="ac-section-header">
-                                    <h3>Tags ZapSpy</h3>
+                                    <h3>Tags Whats Spy</h3>
                                 </div>
                                 <div class="ac-tags-list" id="acTagsList">
                                     <div class="loading"><div class="spinner"></div>Carregando...</div>
@@ -1454,7 +1454,7 @@
                             </div>
                             <div class="ac-section">
                                 <div class="ac-section-header">
-                                    <h3>Listas ZapSpy</h3>
+                                    <h3>Listas Whats Spy</h3>
                                 </div>
                                 <div class="ac-lists-list" id="acListsList">
                                     <div class="loading"><div class="spinner"></div>Carregando...</div>
@@ -1524,6 +1524,10 @@
                                     <button class="ac-add-contact-btn" onclick="runCleanup_ac()" style="background: #f59e0b; font-size: 12px;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                         Limpar Concluídos
+                                    </button>
+                                    <button class="ac-add-contact-btn" onclick="resetDispatchForRemarketing()" style="background: #dc2626; font-size: 12px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                        Resetar Contagens
                                     </button>
                                     <button class="ac-add-contact-btn" onclick="loadDispatchCounts_ac()" style="font-size: 12px;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -1595,6 +1599,15 @@
                                 <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Tamanho do lote:</label>
                                 <input type="number" id="dispatchBatchSize" value="500" min="10" max="2000" step="50" style="width: 100px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px;">
                                 <span style="font-size: 12px; color: var(--text-muted);">Recomendado: 500 (respeita limite de 5.000 contatos ativos)</span>
+                            </div>
+
+                            <!-- Purge AC Contacts -->
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px; background: rgba(239, 68, 68, 0.05); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 13px; font-weight: 600; color: #ef4444; margin-bottom: 4px;">🗑️ Limpar Contatos AC</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">Deleta contatos de recuperação do ActiveCampaign para liberar slots do plano. Contatos já receberam os emails e não precisam mais estar no AC.</div>
+                                </div>
+                                <button onclick="purgeACContacts()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap;">Limpar Agora</button>
                             </div>
 
                             <!-- Dispatch Progress -->
@@ -3934,7 +3947,7 @@
                 <label class="form-label">Mensagem</label>
                 <textarea class="form-input" id="whatsappMessage" rows="6">Olá! 👋
 
-Notamos que você demonstrou interesse no ZapSpy.ai mas não finalizou sua compra.
+Notamos que você demonstrou interesse no Whats Spy mas não finalizou sua compra.
 
 Temos uma condição especial esperando por você! 🎁
 
@@ -4076,7 +4089,7 @@ Posso ajudar com alguma dúvida?</textarea>
 
     <script>
         // Version check - if you see this in console, cache was cleared successfully
-        console.log('%c🚀 ZapSpy Admin v2.1.0 (Build 20260211) - EDIT BUTTON FIXED', 'background: #10b981; color: white; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 14px;');
+        console.log('%c🚀 Whats Spy Admin v2.1.0 (Build 20260211) - EDIT BUTTON FIXED', 'background: #10b981; color: white; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 14px;');
         console.log('%c✅ Team section improvements loaded', 'color: #10b981; font-weight: bold;');
         
         const API_URL = window.location.origin;
@@ -4306,23 +4319,23 @@ Posso ajudar com alguma dúvida?</textarea>
         const templates = {
             1: `Olá! 👋
 
-Notamos que você não finalizou sua compra no ZapSpy.ai.
+Notamos que você não finalizou sua compra no Whats Spy.
 
 ⚠️ As vagas são limitadas e estamos quase esgotados!
 
-Garanta seu acesso agora: https://zapspy.ai
+Garanta seu acesso agora: https://Whats Spy
 
 Posso ajudar com alguma dúvida?`,
             2: `Ei! 🎁
 
-Temos uma oferta especial de 20% OFF só para você finalizar sua compra no ZapSpy.ai!
+Temos uma oferta especial de 20% OFF só para você finalizar sua compra no Whats Spy!
 
 Use o cupom: VOLTA20
 
 Aproveite, é por tempo limitado! ⏰`,
             3: `Olá! 👋
 
-Vi que você teve interesse no ZapSpy.ai.
+Vi que você teve interesse no Whats Spy.
 
 Posso ajudar com alguma dúvida sobre o produto?
 
@@ -9244,7 +9257,7 @@ Estou aqui para esclarecer tudo! 😊`
             <html>
             <head>
                 <meta charset="UTF-8">
-                <title>Reembolsos Processados - ZapSpy.ai</title>
+                <title>Reembolsos Processados - Whats Spy</title>
                 <style>
                     body { font-family: Arial, sans-serif; margin: 20px; color: #1f2937; }
                     h1 { font-size: 18px; margin-bottom: 4px; }
@@ -9260,7 +9273,7 @@ Estou aqui para esclarecer tudo! 😊`
             </head>
             <body>
                 <h1>Relat\u00f3rio de Reembolsos Processados</h1>
-                <div class="subtitle">ZapSpy.ai &mdash; Gerado em ${today}</div>
+                <div class="subtitle">Whats Spy &mdash; Gerado em ${today}</div>
                 
                 <div class="summary">
                     <div class="summary-card">
@@ -9301,7 +9314,7 @@ Estou aqui para esclarecer tudo! 😊`
                     </tbody>
                 </table>
                 
-                <div class="footer">ZapSpy.ai &mdash; Relat\u00f3rio gerado automaticamente em ${today}</div>
+                <div class="footer">Whats Spy &mdash; Relat\u00f3rio gerado automaticamente em ${today}</div>
             </body>
             </html>`;
             
@@ -12599,7 +12612,7 @@ Posso ajudar em algo mais? 😊`
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(18);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('ZapSpy.ai - ' + title, 14, 16);
+                    doc.text('Whats Spy - ' + title, 14, 16);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
                     doc.text('Gerado em: ' + today, pageWidth - 50, 16);
@@ -15257,7 +15270,7 @@ Posso ajudar em algo mais? 😊`
             
             // Browser notification
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('💰 Nova Venda no ZapSpy!', {
+                new Notification('💰 Nova Venda no Whats Spy!', {
                     body: `${count} nova(s) venda(s) aprovada(s)!`,
                     icon: '💰',
                     tag: 'new-sale'
@@ -17262,7 +17275,7 @@ Posso ajudar em algo mais? 😊`
     function renderACAutomations(automations) {
         const tbody = document.getElementById('acAutomationsTableBody');
         if (!automations.length) {
-            tbody.innerHTML = '<tr><td colspan="7"><div class="ac-empty-state"><p>Nenhuma automação ZapSpy encontrada</p></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7"><div class="ac-empty-state"><p>Nenhuma automação Whats Spy encontrada</p></div></td></tr>';
             return;
         }
 
@@ -17543,6 +17556,34 @@ Posso ajudar em algo mais? 😊`
         document.getElementById('dispatchFailed').textContent = status.failed;
     }
 
+    async function purgeACContacts() {
+        if (!confirm('⚠️ Isso vai DELETAR todos os contatos das listas de recuperação do ActiveCampaign.\n\nIsso libera slots do plano. Contatos que já receberam os emails serão removidos.\n\nDeseja continuar?')) {
+            return;
+        }
+        try {
+            const token = _acGetToken();
+            _acShowToast('Limpando...', 'Deletando contatos de recuperação do ActiveCampaign...', 'info');
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/purge-ac`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirm: 'PURGE_AC' })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                let details = `${data.totalDeleted} contatos deletados.\n\n`;
+                for (const [list, info] of Object.entries(data.lists || {})) {
+                    details += `${list}: ${info.deleted || 0}/${info.found || 0}\n`;
+                }
+                _acShowToast('Limpeza Concluída', `${data.totalDeleted} contatos removidos do AC!`, 'success');
+                alert(`Limpeza Concluída!\n\n${details}`);
+            } else {
+                _acShowToast('Erro', data.error || 'Erro na limpeza', 'error');
+            }
+        } catch (err) {
+            _acShowToast('Erro', err.message, 'error');
+        }
+    }
+
     async function loadDispatchHistory_ac() {
         try {
             const token = _acGetToken();
@@ -17576,6 +17617,30 @@ Posso ajudar em algo mais? 😊`
             }
         } catch (err) {
             console.error('Error loading dispatch history:', err);
+        }
+    }
+
+    async function resetDispatchForRemarketing() {
+        if (!confirm('RESETAR CONTAGENS PARA REMARKETING?\n\nIsso vai:\n- Limpar todo o histórico de disparos\n- Cancelar emails agendados pendentes\n- Reabilitar TODOS os leads para novo disparo\n\nOs leads, transações e dados do funil NÃO serão afetados.\n\nDeseja continuar?')) {
+            return;
+        }
+        try {
+            const token = _acGetToken();
+            const resp = await fetch(`${_acGetApiUrl()}/api/admin/dispatch/reset`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirm: 'RESET_ALL' })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                _acShowToast('Remarketing', 'Contagens resetadas! Todos os leads estão disponíveis para novo disparo.', 'success');
+                loadDispatchCounts_ac();
+                loadDispatchHistory_ac();
+            } else {
+                _acShowToast('Erro', data.error || 'Erro ao resetar', 'error');
+            }
+        } catch (err) {
+            _acShowToast('Erro', err.message, 'error');
         }
     }
 

@@ -1,9 +1,9 @@
 /**
- * ZapSpy.ai - Enhanced Tracking System
+ * Whats Spy - Enhanced Tracking System
  * Granular tracking events for Meta Pixel and scroll depth
  */
 
-const ZapSpyTracking = {
+const WhatSpyTracking = {
     // Scroll depth milestones
     scrollMilestones: [25, 50, 75, 100],
     scrollMilestonesReached: {},
@@ -128,7 +128,7 @@ const ZapSpyTracking = {
      */
     trackAddToCart: function(value = 49.00, currency = 'USD') {
         this.trackStandardEvent('AddToCart', {
-            content_name: 'ZapSpy.ai VIP Access',
+            content_name: 'Whats Spy VIP Access',
             content_category: 'Subscription',
             currency: currency,
             value: value
@@ -168,8 +168,8 @@ const ZapSpyTracking = {
 
 // Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    ZapSpyTracking.init();
+    WhatSpyTracking.init();
 });
 
 // Export for use in other scripts
-window.ZapSpyTracking = ZapSpyTracking;
+window.WhatSpyTracking = WhatSpyTracking;

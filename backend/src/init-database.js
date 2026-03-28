@@ -516,11 +516,11 @@ async function _initDatabaseCore() {
         } catch (e) { /* Column might not exist or already nullable */ }
         
         // Insert default admin user if not exists (using env vars)
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@zapspy.ai';
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@whatspy';
         if (!process.env.ADMIN_PASSWORD && process.env.NODE_ENV === 'production') {
             console.error('🚨 ADMIN_PASSWORD environment variable is required in production! Set it in Railway.');
         }
-        const adminPassword = process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? undefined : 'zapspy2024');
+        const adminPassword = process.env.ADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? undefined : 'WhatSpy2024');
         const existingAdmin = await pool.query('SELECT id FROM admin_users WHERE role = $1', ['admin']);
         
         if (existingAdmin.rows.length === 0 && adminPassword) {

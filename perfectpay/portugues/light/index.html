@@ -1,14 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+    })();
+    </script>
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
-    <meta charset="utf-8">
-    <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ZapSpy.ai - Redirecionando...</title>
-    <link rel="prefetch" href="landing.html">
-    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <title>Seu Relacionamento Está em Risco?</title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../imagens/icon-site.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="quiz/styles.css">
+
+    <!-- Meta Pixel Code -->
     <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -23,89 +40,247 @@
         var em = localStorage.getItem('userEmail');
         var ph = localStorage.getItem('userWhatsApp');
         var fn = localStorage.getItem('userName');
-        var ct = localStorage.getItem('userCity');
-        var co = localStorage.getItem('userCountryCode');
         var ge = localStorage.getItem('targetGender');
-        var st = localStorage.getItem('userState');
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
-        if (fn) {
-            var names = fn.trim().split(' ');
-            userData.fn = names[0].toLowerCase();
-            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
-        }
-        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
-        if (co) userData.country = co.toLowerCase();
+        if (fn) { var names = fn.trim().split(' '); userData.fn = names[0].toLowerCase(); if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase(); }
         if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
-        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
     } catch(e) {}
     fbq('init', '820651673268238', userData);
     var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
-    /></noscript>
-    <script>
-        if (!localStorage.getItem('funnelVisitorId')) {
-            localStorage.setItem('funnelVisitorId', 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
-        }
-        var params = window.location.search;
-        setTimeout(function() { window.location.replace('landing.html' + params); }, 400);
-    </script>
-    <style>
-        body {
-            background-color: #efeae2;
-            background-image: url('../imagens/whatsapp-wallpaper-light.png');
-            background-size: 420px auto;
-            background-repeat: repeat;
-            color: #25D366;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            position: relative;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(239, 234, 226, 0.4);
-            pointer-events: none;
-            z-index: 0;
-        }
-        body > * {
-            position: relative;
-            z-index: 1;
-        }
-    </style>
-</head>
-<body>
-    <p>Redirecionando...</p>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"/></noscript>
+    <!-- End Meta Pixel Code -->
+
     <script src="../js/tracking-utils.js"></script>
     <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
-    <script src="../js/google-ads-loader.js" async></script>
-    <script src="../js/facebook-capi.js"></script>
+    <script src="../js/facebook-capi.js" defer></script>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="glow-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+    <div class="topbar" id="topbar">
+        <div class="topbar-progress"><div class="topbar-fill" id="topbarFill"></div></div>
+        <div class="topbar-label" id="topbarLabel"></div>
+    </div>
+
+    <main class="stage">
+
+        <section class="scene active" data-scene="0">
+            <div class="scene-body scene-body--center">
+                <div class="hook-badge"><span class="badge-pulse"></span><span>127.493 pessoas já fizeram este teste</span></div>
+                <h1 class="hook-title" id="hookTitle"></h1>
+                <p class="hook-sub">Existem <strong>7 comportamentos</strong> que aparecem em quase todos os casos de traição — e a maioria das pessoas só reconhece quando já é tarde demais. <strong>Este teste revela se eles estão acontecendo agora, na sua frente.</strong></p>
+                <p class="hook-micro">8 perguntas. 2 minutos. Pode mudar tudo.</p>
+                <button class="btn-main" id="btnStart">
+                    <span class="btn-main-text">Fazer o Teste Agora</span>
+                    <span class="btn-main-arrow">→</span>
+                </button>
+                <div class="hook-trust">
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Criptografado</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 100% Anônimo</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2 Minutos</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="1">
+            <div class="scene-body">
+                <div class="scene-step">Passo 1 de 8</div>
+                <h2 class="scene-title">Primeiro, nos diga:</h2>
+                <p class="scene-desc">Isso muda completamente a análise. Homens e mulheres traem de formas <strong>muito diferentes</strong>.</p>
+                <div class="opts opts--gender">
+                    <button class="opt opt--lg" data-q="1" data-v="male" data-p="0"><span class="opt-emoji">👨</span><span class="opt-main">Sou Homem</span><span class="opt-sub">Quero verificar uma mulher</span></button>
+                    <button class="opt opt--lg" data-q="1" data-v="female" data-p="0"><span class="opt-emoji">👩</span><span class="opt-main">Sou Mulher</span><span class="opt-sub">Quero verificar um homem</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="2">
+            <div class="scene-body">
+                <div class="scene-step">Passo 2 de 8</div>
+                <h2 class="scene-title">O celular dele(a) virou <em>território proibido</em>?</h2>
+                <p class="scene-desc">Em 94% dos casos de traição confirmada, a primeira coisa que mudou foi a relação com o celular. Não é coincidência.</p>
+                <div class="opts">
+                    <button class="opt" data-q="2" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🔐</span><div><span class="opt-main">"Se eu toco no celular, vira guerra."</span><span class="opt-sub">Mudou a senha, leva pro banheiro, dorme abraçado(a) com ele. Se eu chego perto, trava a tela na minha cara.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="2" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🔇</span><div><span class="opt-main">"Sempre virado pra baixo, sempre no silencioso."</span><span class="opt-sub">Notificações desativadas. Só responde mensagens quando estou longe. Quando o celular toca, dá aquela olhada nervosa.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="2" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">📱</span><div><span class="opt-main">"Usa normalmente, sem esconder nada."</span><span class="opt-sub">Celular desbloqueado, sem comportamento estranho.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="3">
+            <div class="scene-body">
+                <div class="scene-step">Passo 3 de 8</div>
+                <h2 class="scene-title">E as <em>redes sociais</em>?</h2>
+                <p class="scene-desc">Instagram, TikTok, Facebook. É onde 73% dos casos de infidelidade moderna começam. Uma curtida "inocente" que vira conversa no direct.</p>
+                <div class="opts">
+                    <button class="opt" data-q="3" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">👻</span><div><span class="opt-main">"Tem perfis que eu não conheço, ou me esconde coisas."</span><span class="opt-sub">Segue gente suspeita, curte fotos que me incomodam, ou simplesmente não me deixa ver. Já encontrei perfil falso ou conversas apagadas.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="3" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">📲</span><div><span class="opt-main">"Passa tempo demais no celular, mas não sei com quem."</span><span class="opt-sub">Horas nas redes, mas quando pergunto o que tá vendo, muda de assunto ou fecha o app rápido.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="3" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">👍</span><div><span class="opt-main">"Sem nada estranho nas redes."</span><span class="opt-sub">Aberto, transparente, sem comportamento suspeito online.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="4">
+            <div class="scene-body">
+                <div class="scene-step">Passo 4 de 8</div>
+                <h2 class="scene-title">Surgiram <em>desculpas novas</em>?</h2>
+                <p class="scene-desc">"Vou sair com amigos." "Tô fazendo hora extra." "Comecei a academia." Pretextos aparecem do nada quando alguém precisa de tempo que <strong>não pode explicar</strong>.</p>
+                <div class="opts">
+                    <button class="opt" data-q="4" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🚩</span><div><span class="opt-main">"Sim, a vida dele(a) mudou do dia pra noite."</span><span class="opt-sub">Horas extras que nunca existiram, "amigos" que não conheço, saídas sem explicação. Começou a se arrumar mais sem motivo aparente.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="4" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🤔</span><div><span class="opt-main">"Tem coisas que não encaixam."</span><span class="opt-sub">Não é drástico, mas tem detalhes que não fazem sentido. Horários estranhos, respostas vagas, um cheiro diferente.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="4" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">✅</span><div><span class="opt-main">"A rotina está igual."</span><span class="opt-sub">Sem mudanças perceptíveis no dia a dia.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="5">
+            <div class="scene-body">
+                <div class="scene-step">Passo 5 de 8</div>
+                <h2 class="scene-title">Vocês ainda se <em>tocam</em>?</h2>
+                <p class="scene-desc">Essa pergunta dói. Mas a intimidade é o termômetro mais honesto de um relacionamento. <strong>Quando ela muda sem motivo, sempre tem alguém no meio.</strong></p>
+                <div class="opts">
+                    <button class="opt" data-q="5" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">💔</span><div><span class="opt-main">"Parece que vivo com um estranho."</span><span class="opt-sub">Quase não nos tocamos. Dormimos de costas. As conversas viram brigas. A casa é silêncio e distância.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="5" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🎭</span><div><span class="opt-main">"Uma hora é carinhoso, outra é gelo."</span><span class="opt-sub">Alterna entre carinho excessivo e frieza total. Um dia me abraça como se pedisse perdão, no outro nem me olha.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="5" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">❤️</span><div><span class="opt-main">"Estamos bem e conectados."</span><span class="opt-sub">A intimidade continua saudável e consistente.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="6">
+            <div class="scene-body">
+                <div class="scene-step">Passo 6 de 8</div>
+                <h2 class="scene-title">Presentes <em>do nada</em>? Gentilezas <em>demais</em>?</h2>
+                <p class="scene-desc">A culpa faz as pessoas fazerem coisas estranhas. Um parceiro(a) infiel frequentemente <strong>compensa com presentes, elogios ou atenção repentina</strong> — tentando aliviar a própria consciência.</p>
+                <div class="opts">
+                    <button class="opt" data-q="6" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🎁</span><div><span class="opt-main">"Sim, tá carinhoso/atencioso demais sem motivo."</span><span class="opt-sub">Presentes inesperados, elogios que não existiam, gentilezas forçadas. Parece que está tentando compensar algo.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="6" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😶</span><div><span class="opt-main">"Tem momentos suspeitos de 'culpa'."</span><span class="opt-sub">Às vezes faz algo muito fora do normal, como se estivesse com peso na consciência. Depois volta ao normal.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="6" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🙂</span><div><span class="opt-main">"Comportamento normal, sem exageros."</span><span class="opt-sub">Não percebi nenhum padrão de compensação ou culpa.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="7">
+            <div class="scene-body">
+                <div class="scene-step">Passo 7 de 8</div>
+                <h2 class="scene-title">Ele(a) provoca <em>brigas por nada</em>?</h2>
+                <p class="scene-desc">Uma das estratégias inconscientes mais comuns: <strong>criar conflito para justificar distância</strong>. Briga, sai de casa, e ganha tempo livre sem precisar dar explicações.</p>
+                <div class="opts">
+                    <button class="opt" data-q="7" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">💥</span><div><span class="opt-main">"Sim, qualquer coisa vira discussão."</span><span class="opt-sub">Parece que procura motivo pra brigar. Depois da briga, some por horas. Quando volta, age como se nada tivesse acontecido.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="7" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😤</span><div><span class="opt-main">"Está mais irritado(a) e impaciente."</span><span class="opt-sub">Não chega a provocar brigas, mas tem muito menos paciência comigo. Parece que eu incomodo só de existir.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="7" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🤝</span><div><span class="opt-main">"Sem brigas fora do normal."</span><span class="opt-sub">Nos comunicamos bem, sem conflitos exagerados.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="8">
+            <div class="scene-body">
+                <div class="scene-step">Última pergunta</div>
+                <h2 class="scene-title">Agora fecha os olhos e me diz:</h2>
+                <p class="scene-desc">Esqueça tudo que você racionalizou. Esqueça as desculpas que você inventou pra se acalmar. <strong>Aquela voz que te acorda de madrugada, que aperta o peito quando o celular dele(a) vibra — o que ela diz?</strong></p>
+                <div class="opts">
+                    <button class="opt" data-q="8" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">⚠️</span><div><span class="opt-main">"Eu sei que tem algo errado. Eu <em>sinto</em>."</span><span class="opt-sub">É uma certeza que mora no meu corpo. Aperta o peito. Tira meu sono. Algo está sendo escondido e eu preciso saber a verdade.</span></div></div><span class="opt-tag opt-tag--red">Grave</span></button>
+                    <button class="opt" data-q="8" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😔</span><div><span class="opt-main">"A dúvida está me consumindo por dentro."</span><span class="opt-sub">Não tenho certeza absoluta, mas a insegurança me corrói. Não consigo mais viver assim. Preciso de paz.</span></div></div><span class="opt-tag opt-tag--yellow">Alerta</span></button>
+                    <button class="opt" data-q="8" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🙂</span><div><span class="opt-main">"Acho que estou exagerando."</span><span class="opt-sub">Provavelmente é coisa da minha cabeça. Mas quero tirar a dúvida de vez.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="analysis">
+            <div class="scene-body scene-body--center analysis-wrap">
+                <div class="scan-visual">
+                    <div class="scan-ring"></div>
+                    <div class="scan-ring scan-ring--2"></div>
+                    <div class="scan-core"><span id="scanPct">0</span>%</div>
+                </div>
+                <h2 class="analysis-headline" id="analysisHeadline">Processando suas respostas...</h2>
+                <p class="analysis-sub" id="analysisSub">Cruzando dados com 127.493 análises anteriores</p>
+                <div class="analysis-log" id="analysisLog"></div>
+            </div>
+        </section>
+
+        <section class="scene" data-scene="result">
+            <div class="scene-body">
+                <div class="res-score-wrap">
+                    <div class="res-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="6"/>
+                            <circle cx="50" cy="50" r="44" fill="none" stroke-width="6" stroke-linecap="round" id="resArc" class="res-arc"/>
+                        </svg>
+                        <div class="res-number-wrap"><span class="res-number" id="resNumber">0</span><span class="res-pct">%</span></div>
+                    </div>
+                    <div class="res-level" id="resLevel">ALTO RISCO</div>
+                </div>
+
+                <h2 class="res-headline" id="resHeadline">Resultado da análise</h2>
+
+                <div class="res-diagnosis" id="resDiagnosis">
+                    <div class="diag-header"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg> Seu Diagnóstico Pessoal</div>
+                    <p id="diagText"></p>
+                </div>
+
+                <div class="res-signals" id="resSignals">
+                    <div class="signals-header">Sinais Detectados no Seu Caso:</div>
+                    <div class="signals-list" id="signalsList"></div>
+                </div>
+
+                <div class="res-stakes">
+                    <div class="stakes-title">⏳ O Que Está em Jogo</div>
+                    <div class="stakes-timeline">
+                        <div class="stake-item"><div class="stake-time">Agora</div><div class="stake-text">Mensagens estão sendo trocadas e <strong>apagadas</strong> neste momento.</div></div>
+                        <div class="stake-item"><div class="stake-time">1 semana</div><div class="stake-text">Fotos, áudios e conversas deletadas <strong>se tornam irrecuperáveis</strong>.</div></div>
+                        <div class="stake-item"><div class="stake-time">1 mês</div><div class="stake-text">A situação se consolida. <strong>Fica mais difícil agir</strong> e mais fácil de ser enganado(a).</div></div>
+                    </div>
+                </div>
+
+                <div class="res-break"><div class="break-line"></div><span>A Solução</span><div class="break-line"></div></div>
+
+                <div class="res-solution">
+                    <p>Existe uma ferramenta que acessa o WhatsApp do seu parceiro(a) de forma <strong>100% anônima e invisível</strong>. Ela encontra:</p>
+                    <div class="solution-grid">
+                        <div class="solution-item"><span class="solution-icon">💬</span><span>Mensagens apagadas</span></div>
+                        <div class="solution-item"><span class="solution-icon">👤</span><span>Contatos ocultos</span></div>
+                        <div class="solution-item"><span class="solution-icon">📸</span><span>Fotos e vídeos excluídos</span></div>
+                        <div class="solution-item"><span class="solution-icon">🕐</span><span>Horários de atividade</span></div>
+                    </div>
+                </div>
+
+                <div class="res-stat-row">
+                    <div class="res-stat"><span class="res-stat-num" id="resStat">87%</span><span class="res-stat-label">confirmaram suspeita<br>com esse perfil</span></div>
+                    <div class="res-stat"><span class="res-stat-num">2 min</span><span class="res-stat-label">para acessar<br>as evidências</span></div>
+                    <div class="res-stat"><span class="res-stat-num">127k</span><span class="res-stat-label">pessoas já<br>usaram</span></div>
+                </div>
+
+                <a href="#" class="cta-final" id="ctaFinal">
+                    <div class="cta-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+                    <div class="cta-text"><strong>Acessar a Ferramenta Agora</strong><span>Verificação 100% anônima e invisível</span></div>
+                    <span class="cta-arrow">→</span>
+                </a>
+
+                <div class="res-urgency"><span class="urgency-dot"></span><strong>Cada minuto conta.</strong> Mensagens, fotos e áudios estão sendo apagados agora mesmo. Quanto mais você espera, menos evidências restam.</div>
+
+                <a href="#" class="cta-secondary" id="ctaSecondary">Quero Descobrir a Verdade Agora →</a>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="quiz/script.js"></script>
     <script>
-    if (typeof FacebookCAPI !== 'undefined') {
-        FacebookCAPI.init();
-        FacebookCAPI.trackViewContent('Home Page', 'Funnel - Entry', 49);
+    if (!localStorage.getItem('funnelVisitorId')) {
+        localStorage.setItem('funnelVisitorId', 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
     }
-    </script>
-    <script>
-    (function() {
-        if (!localStorage.getItem('userCity') || !localStorage.getItem('userState')) {
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(function(data) {
-                if (data.city) localStorage.setItem('userCity', data.city);
-                if (data.region) localStorage.setItem('userState', data.region);
-                if (data.country_code && !localStorage.getItem('userCountryCode')) {
-                    localStorage.setItem('userCountryCode', data.country_code);
-                }
-            }).catch(function(e) { console.log('Geo detection error:', e); });
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof FacebookCAPI !== 'undefined') {
+            FacebookCAPI.init('Quiz Page');
+            FacebookCAPI.trackViewContent('Quiz Page', 'Funnel - Quiz Entry', 47);
         }
-    })();
+    });
     </script>
 </body>
 </html>

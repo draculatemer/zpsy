@@ -1,5 +1,5 @@
 /**
- * ZapSpy.ai Backend API
+ * Whats Spy Backend API
  * Lead capture and admin panel API
  * With Facebook Conversions API integration
  */
@@ -37,6 +37,7 @@ const adminDispatchRoutes = require('./src/routes/admin-dispatch');
 const trackingRoutes = require('./src/routes/tracking');
 const adminTrackingRoutes = require('./src/routes/admin-tracking');
 const fixPlaceholdersRoutes = require('./src/routes/fix-placeholders');
+const zapiProxy = require('./src/routes/zapi-proxy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -212,12 +213,14 @@ app.get('/go/:slug', async (req, res) => {
 // Admin panel served from backend/public/
 app.use(express.static('public'));
 
-// Funnels served from monetizze/ (repo root)
-const funnelPath = path.join(__dirname, '..', 'monetizze');
+// Funnels served from perfectpay/ (repo root)
+const funnelPath = path.join(__dirname, '..', 'perfectpay');
 app.use('/ingles', express.static(path.join(funnelPath, 'ingles')));
 app.use('/espanhol', express.static(path.join(funnelPath, 'espanhol')));
+app.use('/portugues', express.static(path.join(funnelPath, 'portugues')));
 app.use('/en', express.static(path.join(funnelPath, 'ingles')));
 app.use('/es', express.static(path.join(funnelPath, 'espanhol')));
+app.use('/pt', express.static(path.join(funnelPath, 'portugues')));
 
 // Domain-based routing
 app.use((req, res, next) => {
@@ -226,6 +229,10 @@ app.use((req, res, next) => {
         express.static(path.join(funnelPath, 'ingles'))(req, res, next);
     } else if (host.includes('espanhol') || host.includes('espanhol.zappdetect')) {
         express.static(path.join(funnelPath, 'espanhol'))(req, res, next);
+    } else if (host.includes('portugues') || host.includes('portugues.zappdetect')) {
+        express.static(path.join(funnelPath, 'portugues'))(req, res, next);
+    } else if (host.includes('perfect')) {
+        express.static(path.join(funnelPath, 'ingles'))(req, res, next);
     } else {
         next();
     }
@@ -257,6 +264,7 @@ app.use('/', adminACRoutes);
 app.use('/', adminDispatchRoutes);
 app.use('/', adminTrackingRoutes);
 app.use('/', fixPlaceholdersRoutes);
+app.use('/api/zapi', zapiProxy);
 
 // ==================== ERROR HANDLING ====================
 
@@ -266,7 +274,7 @@ app.use(errorHandler);
 // ==================== START SERVER ====================
 
 app.listen(PORT, async () => {
-    console.log(`🚀 ZapSpy API running on port ${PORT}`);
+    console.log(`🚀 Whats Spy API running on port ${PORT}`);
     console.log(`📊 Admin panel: http://localhost:${PORT}/admin`);
     if (process.env.RAILWAY_PUBLIC_DOMAIN) {
         console.log(`🌐 Railway domain: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
@@ -309,7 +317,7 @@ app.listen(PORT, async () => {
         }
     }, 30 * 60 * 1000); // Every 30 minutes
 
-    // Cron: Cleanup completed contacts every 6 hours
+    // Cron: Cleanup completed contacts every 1 hour
     setInterval(async () => {
         try {
             const result = await dispatchService.cleanupCompletedContacts();
@@ -319,9 +327,9 @@ app.listen(PORT, async () => {
         } catch (e) {
             console.error('⚠️ Cron cleanup error:', e.message);
         }
-    }, 6 * 60 * 60 * 1000); // Every 6 hours
+    }, 60 * 60 * 1000); // Every 1 hour
 
-    console.log('📧 Email dispatch cron jobs started (scheduled: 30min, cleanup: 6h)');
+    console.log('📧 Email dispatch cron jobs started (scheduled: 30min, cleanup: 1h)');
 });
 
 // Graceful shutdown

@@ -1,4 +1,4 @@
-# Bugs e Melhorias – Funil ZapSpy.ai
+# Bugs e Melhorias – Funil Whats Spy
 
 ## MELHORIAS APLICADAS (v2.1.0)
 

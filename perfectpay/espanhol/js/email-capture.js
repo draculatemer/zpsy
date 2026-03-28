@@ -1,5 +1,5 @@
 /**
- * ZapSpy.ai - Email/WhatsApp Capture Modal (Spanish Version)
+ * Whats Spy - Email/WhatsApp Capture Modal (Spanish Version)
  * Captura contacto del usuario antes de redirigir al checkout
  */
 
@@ -195,7 +195,7 @@ const EmailCapture = {
                             <select 
                                 id="captureCountry" 
                                 aria-label="Código de país"
-                                style="width: 110px; padding: 16px 8px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 14px; outline: none; cursor: pointer;"
+                                style="width: 110px; padding: 16px 8px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 16px; outline: none; cursor: pointer;"
                             >
                                 ${this.countryCodes}
                             </select>
@@ -295,7 +295,7 @@ const EmailCapture = {
             
             // Track CAPI Lead event
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: name });
+                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: email.split('@')[0] });
             }
             
             if (typeof FunnelTracker !== 'undefined') {

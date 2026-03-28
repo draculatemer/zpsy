@@ -44,6 +44,7 @@
     fbq('init', '820651673268238', userData);
     var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
@@ -99,7 +100,7 @@
         }
         @keyframes bgPulse {
             0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.8; }
         }
         
         /* Scan line effect */
@@ -241,7 +242,7 @@
         }
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.8; }
         }
         .loading-step .step-icon.check {
             background: #25D366;
@@ -252,7 +253,7 @@
         }
         @keyframes checkPop {
             0% { transform: scale(0); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         .loading-step .step-text {
@@ -370,7 +371,7 @@
                 </li>
                 <li class="loading-step" data-step="1">
                     <span class="step-icon pending"></span>
-                    <span class="step-text">Ativando licença ZapSpy<span class="step-dots"></span></span>
+                    <span class="step-text">Ativando licença Whats Spy<span class="step-dots"></span></span>
                 </li>
                 <li class="loading-step" data-step="2">
                     <span class="step-icon pending"></span>
@@ -411,18 +412,20 @@
                     <h3 class="final-cta-title">As Mensagens Apagadas Guardam a Verdade</h3>
                     
                     <p class="final-cta-subtitle">Cada segundo conta. As mensagens apagadas contêm as respostas que você precisa — mas uma vez que desaparecem, desaparecem para sempre. Adicione este serviço à sua conta agora.</p>
-                    
-                    
-                    <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Taxa de ativação do serviço: R$47</p>
-                    <a href='https://go.centerpag.com/PPU38CQ7KHR?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Recuperar conversas apagadas do WhatsApp agora" role="button">Sim, Adicionar Recuperação de Mensagens à Minha Conta</a>
-                    <a href="../up2/" class="decline-link">Não, obrigado</a>
+                    <div id="geoPrice" style="display:none; text-align:center; margin:20px 0 8px;">
+                        <span style="display:inline-block; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:4px 14px; border-radius:20px; margin-bottom:10px;">Oferta Limitada</span><br>
+                        <span style="font-size:42px; font-weight:900; background:linear-gradient(135deg,#22c55e,#4ade80); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1;">$47</span><br>
+                        <span style="font-size:12px; color:#6b7280; letter-spacing:0.5px; margin-top:6px; display:inline-block;">PAGAMENTO ÚNICO &nbsp;·&nbsp; ACESSO VITALÍCIO</span>
+                    </div>
+<a href='https://go.centerpag.com/PPU38CQ7KHR?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Recuperar conversas apagadas do WhatsApp agora" role="button">Sim, Adicionar Recuperação de Mensagens à Minha Conta</a>
+                    <a href="https://go.centerpag.com/PPU38CQ7KHR?upsell=true" class="decline-link">Não, obrigado</a>
                 </div>
             </section>
 
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> ZapSpy. Todos os direitos reservados.</div>
+            <div class="smallprint">© <span id="year"></span> Whats Spy. Todos os direitos reservados.</div>
         </footer>
     </div>
 
@@ -431,9 +434,13 @@
     <script>
 (function(){
     var ua = navigator.userAgent || '';
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
-    var el = document.getElementById('geoPrice');
-    if (el) el.style.display = '';
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+    if (!isMobile) {
+        var el = document.getElementById('geoPrice');
+        if (el) el.style.display = '';
+        var links = document.querySelectorAll('.decline-link');
+        for (var i = 0; i < links.length; i++) links[i].style.display = 'none';
+    }
 })();
 </script>
     <script src="../upsell-tracking.js?v=1.0"></script>

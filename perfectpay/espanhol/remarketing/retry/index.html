@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Completa Tu Compra</title>
+    <title>Whats Spy - Completa Tu Compra</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,10 +28,12 @@
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
-    fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    fbq('init', '534495082571779', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"/></noscript>
 
     <style>
         .retry-solutions {
@@ -221,7 +224,7 @@
 
     <!-- Secondary CTA - Discount -->
     <button class="rmk-cta secondary" onclick="handleDiscount()" style="border-color:rgba(37,211,102,0.3);color:var(--green-primary);">
-        &#127873; Obt&eacute;n 50% OFF - Paga solo $19.50
+        &#127873; Obt&eacute;n 50% OFF - Paga solo $23.50
         <span class="rmk-cta-subtitle" style="color:var(--text-muted);">Montos menores tienen mayor tasa de aprobaci&oacute;n</span>
     </button>
 
@@ -253,14 +256,14 @@
         <div class="rmk-faq-item">
             <div class="rmk-faq-question">&iquest;El objetivo sabr&aacute; que lo estoy monitoreando?</div>
             <div class="rmk-faq-answer">
-                No. ZapSpy.ai opera en modo completamente sigiloso. El objetivo nunca recibir&aacute; ninguna notificaci&oacute;n o indicaci&oacute;n de que sus mensajes est&aacute;n siendo accedidos. Tu identidad est&aacute; 100% protegida.
+                No. Whats Spy opera en modo completamente sigiloso. El objetivo nunca recibir&aacute; ninguna notificaci&oacute;n o indicaci&oacute;n de que sus mensajes est&aacute;n siendo accedidos. Tu identidad est&aacute; 100% protegida.
             </div>
         </div>
 
         <div class="rmk-faq-item">
             <div class="rmk-faq-question">&iquest;Puedo usar la tarjeta de otra persona?</div>
             <div class="rmk-faq-answer">
-                S&iacute;, puedes usar cualquier tarjeta de cr&eacute;dito o d&eacute;bito v&aacute;lida con el permiso del titular. El acceso est&aacute; vinculado a tu cuenta ZapSpy, no al m&eacute;todo de pago utilizado.
+                S&iacute;, puedes usar cualquier tarjeta de cr&eacute;dito o d&eacute;bito v&aacute;lida con el permiso del titular. El acceso est&aacute; vinculado a tu cuenta Whats Spy, no al m&eacute;todo de pago utilizado.
             </div>
         </div>
     </div>
@@ -279,16 +282,16 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Plataforma de Inteligencia Segura<br>
+        Whats Spy - Plataforma de Inteligencia Segura<br>
         Pago seguro procesado por PerfectPay.<br>
-        &copy; 2025 ZapSpy.ai. Todos los derechos reservados.
+        &copy; 2025 Whats Spy. Todos los derechos reservados.
     </div>
 </div>
 
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
-    RmkTracking.init('Remarketing - Retry', 'remarketing_retry', 39);
+    RmkTracking.init('Remarketing - Retry', 'remarketing_retry', 47);
 
     var target = RmkTracking.getTargetData();
     if (target.phone) {
@@ -321,21 +324,21 @@
         icon: '\uD83D\uDCB3',
         title: '\u00A1Tu acceso sigue reservado!',
         text: 'El 94% de los usuarios resuelven problemas de pago en su segundo intento. Prueba otra tarjeta o usa nuestro enlace de 50% off para un monto menor.',
-        ctaLabel: 'INTENTAR DE NUEVO - $39',
+        ctaLabel: 'INTENTAR DE NUEVO - $47',
         ctaClass: 'primary',
         ctaAction: 'handleRetry()'
     });
 })();
 
 function handleRetry() {
-    RmkTracking.trackInitiateCheckout(39, 'ZapSpy VIP - Retry Full Price');
-    var url = RmkTracking.buildCheckoutUrl('KCH455963', 39);
+    RmkTracking.trackInitiateCheckout(37, 'Whats Spy VIP - Retry Full Price');
+    var url = RmkTracking.buildCheckoutUrl('KCH455963', 47);
     window.location.href = url;
 }
 
 function handleDiscount() {
-    RmkTracking.trackInitiateCheckout(19.50, 'ZapSpy VIP - Retry 50% OFF');
-    var url = RmkTracking.buildCheckoutUrl('KMS455971', 19.50);
+    RmkTracking.trackInitiateCheckout(23.50, 'Whats Spy VIP - Retry 50% OFF');
+    var url = RmkTracking.buildCheckoutUrl('KMS455971', 23.50);
     window.location.href = url;
 }
 </script>

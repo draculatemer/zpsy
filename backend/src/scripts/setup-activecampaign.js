@@ -2,7 +2,7 @@
 /**
  * ActiveCampaign Setup Script
  * 
- * Creates all tags, lists, and automations needed for the ZapSpy recovery funnel.
+ * Creates all tags, lists, and automations needed for the Whats Spy recovery funnel.
  * Run once after configuring ACTIVECAMPAIGN_API_URL and ACTIVECAMPAIGN_API_KEY.
  * 
  * Usage:
@@ -63,53 +63,53 @@ async function apiV1(action, params = {}) {
 
 const TAGS_TO_CREATE = [
     // Recovery tags (triggers for automations)
-    { tag: 'zapspy-lead-en', desc: 'Lead captured - English funnel' },
-    { tag: 'zapspy-lead-es', desc: 'Lead captured - Spanish funnel' },
-    { tag: 'zapspy-checkout-abandon-en', desc: 'Checkout abandoned - English' },
-    { tag: 'zapspy-checkout-abandon-es', desc: 'Checkout abandoned - Spanish' },
-    { tag: 'zapspy-sale-cancelled-en', desc: 'Sale cancelled - English' },
-    { tag: 'zapspy-sale-cancelled-es', desc: 'Sale cancelled - Spanish' },
+    { tag: 'Whats Spy-lead-en', desc: 'Lead captured - English funnel' },
+    { tag: 'Whats Spy-lead-es', desc: 'Lead captured - Spanish funnel' },
+    { tag: 'Whats Spy-checkout-abandon-en', desc: 'Checkout abandoned - English' },
+    { tag: 'Whats Spy-checkout-abandon-es', desc: 'Checkout abandoned - Spanish' },
+    { tag: 'Whats Spy-sale-cancelled-en', desc: 'Sale cancelled - English' },
+    { tag: 'Whats Spy-sale-cancelled-es', desc: 'Sale cancelled - Spanish' },
     // Status tags
-    { tag: 'zapspy-buyer-en', desc: 'Buyer - English funnel' },
-    { tag: 'zapspy-buyer-es', desc: 'Buyer - Spanish funnel' },
-    { tag: 'zapspy-refunded-en', desc: 'Refunded - English' },
-    { tag: 'zapspy-refunded-es', desc: 'Refunded - Spanish' },
-    { tag: 'zapspy-chargeback-en', desc: 'Chargeback - English' },
-    { tag: 'zapspy-chargeback-es', desc: 'Chargeback - Spanish' },
+    { tag: 'Whats Spy-buyer-en', desc: 'Buyer - English funnel' },
+    { tag: 'Whats Spy-buyer-es', desc: 'Buyer - Spanish funnel' },
+    { tag: 'Whats Spy-refunded-en', desc: 'Refunded - English' },
+    { tag: 'Whats Spy-refunded-es', desc: 'Refunded - Spanish' },
+    { tag: 'Whats Spy-chargeback-en', desc: 'Chargeback - English' },
+    { tag: 'Whats Spy-chargeback-es', desc: 'Chargeback - Spanish' },
     // Exclusion tags (stop automations)
-    { tag: 'zapspy-do-not-email', desc: 'Do not send recovery emails' },
-    { tag: 'zapspy-recovery-completed', desc: 'Recovery sequence completed' }
+    { tag: 'Whats Spy-do-not-email', desc: 'Do not send recovery emails' },
+    { tag: 'Whats Spy-recovery-completed', desc: 'Recovery sequence completed' }
 ];
 
 // ==================== LISTS ====================
 
 const LISTS_TO_CREATE = [
-    { name: 'ZapSpy - Leads EN', stringid: 'zapspy-leads-en' },
-    { name: 'ZapSpy - Leads ES', stringid: 'zapspy-leads-es' },
-    { name: 'ZapSpy - Checkout Abandon EN', stringid: 'zapspy-checkout-abandon-en' },
-    { name: 'ZapSpy - Checkout Abandon ES', stringid: 'zapspy-checkout-abandon-es' },
-    { name: 'ZapSpy - Sale Cancelled EN', stringid: 'zapspy-sale-cancelled-en' },
-    { name: 'ZapSpy - Sale Cancelled ES', stringid: 'zapspy-sale-cancelled-es' }
+    { name: 'Whats Spy - Leads EN', stringid: 'Whats Spy-leads-en' },
+    { name: 'Whats Spy - Leads ES', stringid: 'Whats Spy-leads-es' },
+    { name: 'Whats Spy - Checkout Abandon EN', stringid: 'Whats Spy-checkout-abandon-en' },
+    { name: 'Whats Spy - Checkout Abandon ES', stringid: 'Whats Spy-checkout-abandon-es' },
+    { name: 'Whats Spy - Sale Cancelled EN', stringid: 'Whats Spy-sale-cancelled-en' },
+    { name: 'Whats Spy - Sale Cancelled ES', stringid: 'Whats Spy-sale-cancelled-es' }
 ];
 
 // ==================== AUTOMATIONS ====================
 
 const AUTOMATIONS_TO_CREATE = [
     {
-        name: 'ZapSpy - Recovery Checkout Abandon EN',
-        triggerTag: 'zapspy-checkout-abandon-en',
-        excludeTag: 'zapspy-buyer-en',
+        name: 'Whats Spy - Recovery Checkout Abandon EN',
+        triggerTag: 'Whats Spy-checkout-abandon-en',
+        excludeTag: 'Whats Spy-buyer-en',
         language: 'en',
         emails: [
             {
                 name: 'Email 1 - Reminder (1h)',
-                subject: 'Your ZapSpy.ai report is ready (and waiting)',
+                subject: 'Your Whats Spy report is ready (and waiting)',
                 preheader: "The data we found won't be available forever...",
                 waitBefore: { hours: 1 }
             },
             {
                 name: 'Email 2 - Urgency (24h)',
-                subject: '⚠️ Your ZapSpy.ai data is scheduled for deletion',
+                subject: '⚠️ Your Whats Spy data is scheduled for deletion',
                 preheader: 'We found real data linked to that number. Deletion in 24h.',
                 waitBefore: { hours: 24 }
             },
@@ -121,27 +121,27 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 4 - Final 50% OFF (72h)',
-                subject: 'Final Offer: 50% OFF your ZapSpy.ai report',
+                subject: 'Final Offer: 50% OFF your Whats Spy report',
                 preheader: 'This is your absolute last chance. 50% OFF expires at midnight.',
                 waitBefore: { hours: 24 }
             }
         ]
     },
     {
-        name: 'ZapSpy - Recovery Checkout Abandon ES',
-        triggerTag: 'zapspy-checkout-abandon-es',
-        excludeTag: 'zapspy-buyer-es',
+        name: 'Whats Spy - Recovery Checkout Abandon ES',
+        triggerTag: 'Whats Spy-checkout-abandon-es',
+        excludeTag: 'Whats Spy-buyer-es',
         language: 'es',
         emails: [
             {
                 name: 'Email 1 - Recordatorio (1h)',
-                subject: 'Tu informe de ZapSpy.ai está listo (y esperando)',
+                subject: 'Tu informe de Whats Spy está listo (y esperando)',
                 preheader: 'Los datos que encontramos no estarán disponibles para siempre...',
                 waitBefore: { hours: 1 }
             },
             {
                 name: 'Email 2 - Urgencia (24h)',
-                subject: '⚠️ Tus datos de ZapSpy.ai serán eliminados',
+                subject: '⚠️ Tus datos de Whats Spy serán eliminados',
                 preheader: 'Encontramos datos reales vinculados a ese número. Eliminación en 24h.',
                 waitBefore: { hours: 24 }
             },
@@ -153,21 +153,21 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 4 - Oferta Final 50% (72h)',
-                subject: 'Oferta Final: 50% de descuento en tu informe ZapSpy.ai',
+                subject: 'Oferta Final: 50% de descuento en tu informe Whats Spy',
                 preheader: 'Esta es tu última oportunidad. 50% de descuento expira a medianoche.',
                 waitBefore: { hours: 24 }
             }
         ]
     },
     {
-        name: 'ZapSpy - Recovery Sale Cancelled EN',
-        triggerTag: 'zapspy-sale-cancelled-en',
-        excludeTag: 'zapspy-buyer-en',
+        name: 'Whats Spy - Recovery Sale Cancelled EN',
+        triggerTag: 'Whats Spy-sale-cancelled-en',
+        excludeTag: 'Whats Spy-buyer-en',
         language: 'en',
         emails: [
             {
                 name: 'Email 1 - Payment Issue (1h)',
-                subject: 'There was a problem with your ZapSpy.ai payment',
+                subject: 'There was a problem with your Whats Spy payment',
                 preheader: 'Your report is ready but your payment could not be processed.',
                 waitBefore: { hours: 1 }
             },
@@ -179,7 +179,7 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 3 - 30% Discount (48h)',
-                subject: 'We want to help: 30% OFF your ZapSpy.ai report',
+                subject: 'We want to help: 30% OFF your Whats Spy report',
                 preheader: 'Try again with a special discount just for you.',
                 waitBefore: { hours: 24 }
             },
@@ -192,14 +192,14 @@ const AUTOMATIONS_TO_CREATE = [
         ]
     },
     {
-        name: 'ZapSpy - Recovery Sale Cancelled ES',
-        triggerTag: 'zapspy-sale-cancelled-es',
-        excludeTag: 'zapspy-buyer-es',
+        name: 'Whats Spy - Recovery Sale Cancelled ES',
+        triggerTag: 'Whats Spy-sale-cancelled-es',
+        excludeTag: 'Whats Spy-buyer-es',
         language: 'es',
         emails: [
             {
                 name: 'Email 1 - Problema de Pago (1h)',
-                subject: 'Hubo un problema con tu pago en ZapSpy.ai',
+                subject: 'Hubo un problema con tu pago en Whats Spy',
                 preheader: 'Tu informe está listo pero no pudimos procesar tu pago.',
                 waitBefore: { hours: 1 }
             },
@@ -211,7 +211,7 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 3 - 30% Descuento (48h)',
-                subject: 'Queremos ayudarte: 30% de descuento en tu informe ZapSpy.ai',
+                subject: 'Queremos ayudarte: 30% de descuento en tu informe Whats Spy',
                 preheader: 'Intenta de nuevo con un descuento especial solo para ti.',
                 waitBefore: { hours: 24 }
             },
@@ -224,9 +224,9 @@ const AUTOMATIONS_TO_CREATE = [
         ]
     },
     {
-        name: 'ZapSpy - Recovery Funnel Abandon EN',
-        triggerTag: 'zapspy-lead-en',
-        excludeTag: 'zapspy-buyer-en',
+        name: 'Whats Spy - Recovery Funnel Abandon EN',
+        triggerTag: 'Whats Spy-lead-en',
+        excludeTag: 'Whats Spy-buyer-en',
         language: 'en',
         emails: [
             {
@@ -243,7 +243,7 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 3 - Social Proof (48h)',
-                subject: '47,832 people used ZapSpy.ai this week',
+                subject: '47,832 people used Whats Spy this week',
                 preheader: 'See what they discovered about the numbers they searched.',
                 waitBefore: { hours: 24 }
             },
@@ -256,9 +256,9 @@ const AUTOMATIONS_TO_CREATE = [
         ]
     },
     {
-        name: 'ZapSpy - Recovery Funnel Abandon ES',
-        triggerTag: 'zapspy-lead-es',
-        excludeTag: 'zapspy-buyer-es',
+        name: 'Whats Spy - Recovery Funnel Abandon ES',
+        triggerTag: 'Whats Spy-lead-es',
+        excludeTag: 'Whats Spy-buyer-es',
         language: 'es',
         emails: [
             {
@@ -275,7 +275,7 @@ const AUTOMATIONS_TO_CREATE = [
             },
             {
                 name: 'Email 3 - Prueba Social (48h)',
-                subject: '47.832 personas usaron ZapSpy.ai esta semana',
+                subject: '47.832 personas usaron Whats Spy esta semana',
                 preheader: 'Mira lo que descubrieron sobre los números que buscaron.',
                 waitBefore: { hours: 24 }
             },
@@ -335,8 +335,8 @@ async function setup() {
                     list: {
                         name,
                         stringid,
-                        sender_url: 'https://zapspy.ai',
-                        sender_reminder: 'You signed up for ZapSpy.ai monitoring service.'
+                        sender_url: 'https://Whats Spy',
+                        sender_reminder: 'You signed up for Whats Spy monitoring service.'
                     }
                 });
                 listIds[name] = data.list.id;
@@ -447,11 +447,11 @@ async function setup() {
                     order: blockOrder++,
                     config: JSON.stringify({
                         action: 'tag_add',
-                        tag: tagIds['zapspy-recovery-completed'] || ''
+                        tag: tagIds['Whats Spy-recovery-completed'] || ''
                     })
                 }
             });
-            console.log(`    → Final tag "zapspy-recovery-completed" block added`);
+            console.log(`    → Final tag "Whats Spy-recovery-completed" block added`);
 
             console.log(`  🎉 Automation "${automation.name}" fully configured!`);
             console.log('');

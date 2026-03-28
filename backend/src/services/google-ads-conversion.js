@@ -64,7 +64,7 @@ async function sendToSingleConfig(config, transactionData) {
 
         const response = await fetch(url.toString(), {
             method: 'GET',
-            headers: { 'User-Agent': 'ZapSpy-Server/1.0' }
+            headers: { 'User-Agent': 'WhatSpy-Server/1.0' }
         });
 
         const success = response.ok;

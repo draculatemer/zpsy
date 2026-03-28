@@ -1,5 +1,5 @@
 /**
- * ZapSpy.ai - Shared Audio & Vibration Systems
+ * Whats Spy - Shared Audio & Vibration Systems
  * Include this file in pages that need notification sounds and vibration
  */
 

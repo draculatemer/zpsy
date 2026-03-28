@@ -1,7 +1,7 @@
 {
-  "name": "zapspy-backend",
+  "name": "whatspy-backend",
   "version": "1.0.0",
-  "description": "Backend API for ZapSpy.ai lead capture and admin panel",
+  "description": "Backend API for Whats Spy lead capture and admin panel",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -24,7 +24,8 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "eslint": "^10.0.0",

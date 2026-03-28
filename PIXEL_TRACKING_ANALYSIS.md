@@ -1,4 +1,4 @@
-# 📊 Análise Completa do Sistema de Rastreamento de Pixel - ZapSpy.ai
+# 📊 Análise Completa do Sistema de Rastreamento de Pixel - Whats Spy
 
 **Data:** 11 de Fevereiro de 2026  
 **Status Geral:** ✅ **FUNCIONANDO 100%** com arquitetura robusta
@@ -215,7 +215,7 @@ server.js
 // Em phone.html, após salvar o lead com sucesso:
 if (typeof FacebookCAPI !== 'undefined') {
     FacebookCAPI.trackEvent('CompleteRegistration', {
-        content_name: 'ZapSpy Registration Complete',
+        content_name: 'Whats Spy Registration Complete',
         status: 'completed',
         registration_method: 'whatsapp'
     });
@@ -294,8 +294,8 @@ trackExitIntent: function() {
 
 **Exemplo:**
 ```javascript
-FacebookCAPI.trackViewContent('ZapSpy Front', 'subscription', 37, {
-    content_ids: ['zapspy_front'],
+FacebookCAPI.trackViewContent('Whats Spy Front', 'subscription', 37, {
+    content_ids: ['Whats Spy_front'],
     content_type: 'product'
 });
 ```

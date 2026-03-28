@@ -120,7 +120,7 @@ Based on your current funnel, here are the events to send via CAPI:
 Update your `js/tracking.js` to also send events to your server:
 
 ```javascript
-// Add to ZapSpyTracking object
+// Add to WhatSpyTracking object
 sendToServer: async function(eventName, params = {}) {
     try {
         // Get Facebook cookies

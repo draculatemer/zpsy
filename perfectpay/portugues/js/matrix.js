@@ -1,5 +1,5 @@
 /**
- * ZapSpy.ai - Matrix Rain Effect
+ * Whats Spy - Matrix Rain Effect
  * Shared matrix rain animation for all pages
  * Optimized for performance with requestAnimationFrame
  */
@@ -58,7 +58,7 @@ const MatrixEffect = {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         // Limit columns for performance
-        this.columns = Math.min(60, Math.floor(this.canvas.width / this.fontSize));
+        this.columns = Math.floor(this.canvas.width / this.fontSize);
     },
 
     /**

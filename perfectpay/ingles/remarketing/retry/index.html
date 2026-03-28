@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Complete Your Purchase</title>
+    <title>Whats Spy - Complete Your Purchase</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,7 +29,9 @@
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
     fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
 
@@ -221,7 +224,7 @@
 
     <!-- Secondary CTA - Discount -->
     <button class="rmk-cta secondary" onclick="handleDiscount()" style="border-color:rgba(37,211,102,0.3);color:var(--green-primary);">
-        &#127873; Get 50% OFF - Pay only $24.50
+        &#127873; Get 50% OFF - Pay only $23.50
         <span class="rmk-cta-subtitle" style="color:var(--text-muted);">Lower amounts have higher approval rates</span>
     </button>
 
@@ -253,14 +256,14 @@
         <div class="rmk-faq-item">
             <div class="rmk-faq-question">Will the target know I'm monitoring them?</div>
             <div class="rmk-faq-answer">
-                No. ZapSpy.ai operates in complete stealth mode. The target will never receive any notification or indication that their messages are being accessed. Your identity is 100% protected.
+                No. Whats Spy operates in complete stealth mode. The target will never receive any notification or indication that their messages are being accessed. Your identity is 100% protected.
             </div>
         </div>
 
         <div class="rmk-faq-item">
             <div class="rmk-faq-question">Can I use PayPal or a debit card?</div>
             <div class="rmk-faq-answer">
-                Yes. PayPal, debit cards, and virtual cards are accepted and often have higher approval rates for online purchases. The access is linked to your ZapSpy account, not to the payment method used.
+                Yes. PayPal, debit cards, and virtual cards are accepted and often have higher approval rates for online purchases. The access is linked to your Whats Spy account, not to the payment method used.
             </div>
         </div>
     </div>
@@ -279,16 +282,16 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Secure Intelligence Platform<br>
+        Whats Spy - Secure Intelligence Platform<br>
         Secure payment processed by PerfectPay.<br>
-        &copy; <script>document.write(new Date().getFullYear())</script> ZapSpy.ai. All rights reserved.
+        &copy; <script>document.write(new Date().getFullYear())</script> Whats Spy. All rights reserved.
     </div>
 </div>
 
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
-    RmkTracking.init('Remarketing - Retry', 'remarketing_retry', 49);
+    RmkTracking.init('Remarketing - Retry', 'remarketing_retry', 47);
 
     // Load target data
     var target = RmkTracking.getTargetData();
@@ -327,21 +330,21 @@
         icon: '\uD83D\uDCB3',
         title: 'Your access is still reserved!',
         text: '94% of users resolve payment issues on their second try. Try a different card or use our 50% off link for a lower charge amount.',
-        ctaLabel: 'TRY AGAIN - $49',
+        ctaLabel: 'TRY AGAIN - $47',
         ctaClass: 'primary',
         ctaAction: 'handleRetry()'
     });
 })();
 
 function handleRetry() {
-    RmkTracking.trackInitiateCheckout(49, 'ZapSpy VIP - Retry Full Price');
-    var url = RmkTracking.buildCheckoutUrl('KKM446018', 49);
+    RmkTracking.trackInitiateCheckout(47, 'Whats Spy VIP - Retry Full Price');
+    var url = RmkTracking.buildCheckoutUrl('KKM446018', 47);
     window.location.href = url;
 }
 
 function handleDiscount() {
-    RmkTracking.trackInitiateCheckout(24.50, 'ZapSpy VIP - Retry 50% OFF');
-    var url = RmkTracking.buildCheckoutUrl('KGQ455954', 24.50);
+    RmkTracking.trackInitiateCheckout(23.50, 'Whats Spy VIP - Retry 50% OFF');
+    var url = RmkTracking.buildCheckoutUrl('KGQ455954', 23.50);
     window.location.href = url;
 }
 </script>

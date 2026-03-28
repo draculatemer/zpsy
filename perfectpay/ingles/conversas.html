@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+    })();
+    </script>
     <!-- UTMify tracking -->
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
@@ -57,6 +67,9 @@
     } catch(e) {}
     
     fbq('init', '726299943423075', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
@@ -69,7 +82,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Conversations List');
-                FacebookCAPI.trackViewContent('Conversations List', 'Funnel Step', 49);
+                FacebookCAPI.trackViewContent('Conversations List', 'Funnel Step', 47);
             }
         });
     </script>
@@ -197,8 +210,8 @@
         .header-menu {
             width: 34px;
             height: 34px;
-            background: var(--bg-tertiary);
-            border-radius: 50%;
+            background: none;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -398,9 +411,9 @@
             align-items: center;
             padding: 12px 20px;
             gap: 14px;
-            cursor: pointer;
+            cursor: default;
             transition: background 0.15s;
-            border-bottom: 0.5px solid var(--divider);
+            border-bottom: 0.5px solid rgba(255,255,255,0.05);
             position: relative;
         }
 
@@ -419,8 +432,8 @@
         }
 
         .avatar {
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             object-fit: cover;
             background: var(--bg-tertiary);
@@ -519,15 +532,6 @@
             filter: blur(2px);
         }
 
-        .conversation-time {
-            font-size: 14px;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-
-        .conversation-time.late {
-            color: var(--red-alert);
-        }
 
         .conversation-preview {
             display: flex;
@@ -556,7 +560,7 @@
         }
 
         .conversation-text.semi-blurred {
-            filter: blur(3px);
+            filter: blur(2px);
         }
 
         /* Tags */
@@ -667,7 +671,7 @@
         }
 
         .nav-item.active svg {
-            color: var(--green-primary);
+            color: #ffffff;
         }
 
         .nav-item span {
@@ -676,7 +680,8 @@
         }
 
         .nav-item.active span {
-            color: var(--green-primary);
+            color: #ffffff;
+            font-weight: 600;
         }
 
         .nav-badge {
@@ -696,130 +701,11 @@
             padding: 0 5px;
         }
 
-        /* VIP Banner - CTA Principal */
-        .vip-banner {
-            position: fixed;
-            bottom: 75px;
-            bottom: calc(75px + var(--safe-area-bottom));
-            left: 8px;
-            right: 8px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            border: 2px solid var(--green-primary);
-            border-radius: 20px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 0 30px rgba(37, 211, 102, 0.3), 0 8px 32px rgba(0,0,0,0.5);
-            animation: ctaPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes ctaPulse {
-            0%, 100% { box-shadow: 0 0 30px rgba(37, 211, 102, 0.3), 0 8px 32px rgba(0,0,0,0.5); }
-            50% { box-shadow: 0 0 50px rgba(37, 211, 102, 0.5), 0 8px 32px rgba(0,0,0,0.5); }
-        }
-
-        .vip-banner-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 99;
-            box-shadow: 0 8px 32px rgba(37, 211, 102, 0.25);
-        }
-
-        .vip-banner-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-
-        .vip-banner-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--green-primary), #1fa855);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: iconBounce 1s ease-in-out infinite;
-        }
-
-        @keyframes iconBounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .vip-banner-icon svg {
-            width: 26px;
-            height: 26px;
-            color: white;
-        }
-
-        .vip-banner-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .vip-banner-text strong {
-            font-size: 14px;
-            color: var(--text-primary);
-            line-height: 1.2;
-        }
-
-        .vip-banner-text span {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .vip-banner-text .timer {
-            color: var(--red-alert);
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .vip-banner-btn {
-            width: 100%;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, var(--green-primary), #1fa855);
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .vip-banner-btn:active {
-            transform: scale(0.98);
-        }
-
-        .vip-banner-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .vip-banner-warning {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--red-alert);
-            margin-top: 4px;
-        }
-
-        .vip-banner-warning svg {
-            width: 14px;
-            height: 14px;
+        .nav-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         /* Modal */
@@ -889,98 +775,245 @@
         }
 
         .modal-text strong {
+            color: #ff3b30;
+        }
+
+        .modal-bonuses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .modal-bonus-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .modal-bonus-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        .modal-bonus-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e9edef;
+            line-height: 1.2;
+        }
+
+        .modal-bonus-text span {
+            display: block;
+            font-size: 9px;
+            font-weight: 400;
+            color: #8696a0;
+            margin-top: 1px;
+        }
+
+        .modal-user-info {
+            margin-bottom: 10px;
+        }
+
+        .modal-user-data {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-user-line {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 10px;
+            color: #8696a0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .modal-user-warning {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.25);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 11px;
+            color: #e9edef;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .modal-user-warning strong {
+            color: #ff3b30;
+        }
+
+        .modal-user-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--green-primary);
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .modal-user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .modal-user-header-text {
+            flex: 1;
+        }
+        .modal-user-header-text .modal-user-name-display {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .modal-user-header-text .modal-user-status {
+            font-size: 11px;
             color: var(--red-alert);
+            margin-top: 2px;
+        }
+
+        .modal-user-avatar-fallback {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid var(--green-primary);
+            margin-right: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #128c7e, #25d366);
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .modal-pricing {
+            background: linear-gradient(135deg, rgba(37,211,102,0.1), rgba(18,140,126,0.08));
+            border: 1px solid rgba(37, 211, 102, 0.25);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .modal-price-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .modal-price-old {
+            font-size: 17px;
+            color: #636366;
+            text-decoration: line-through;
+            font-weight: 400;
+        }
+
+        .modal-price-new {
+            font-size: 40px;
+            font-weight: 900;
+            color: #25d366;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .modal-price-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff3b30, #ff6b6b);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-guarantee {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .modal-guarantee-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+
+        .modal-guarantee-text {
+            font-size: 12px;
+            color: #e9edef;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .modal-guarantee-text span {
+            display: block;
+            font-size: 10px;
+            color: #8696a0;
+            font-weight: 400;
+            margin-top: 2px;
         }
 
         .modal-btn {
             width: 100%;
             padding: 16px;
-            background: var(--green-primary);
+            background: linear-gradient(135deg, #25D366, #128C7E);
             border: none;
             border-radius: 14px;
             color: white;
-            font-size: 17px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
-            margin-bottom: 12px;
+            margin-bottom: 0;
+            box-shadow: 0 4px 24px rgba(37, 211, 102, 0.4);
         }
 
-        .modal-close {
+        @keyframes modalPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(37,211,102,0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 6px 32px rgba(37,211,102,0.6); }
+        }
+
+        .modal-decline {
             background: none;
             border: none;
-            color: var(--text-muted);
-            font-size: 15px;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
             cursor: pointer;
-            padding: 8px;
-        }
-
-        /* Push Notification */
-        .push-notification {
-            position: fixed;
-            top: 60px;
-            left: 12px;
-            right: 12px;
-            background: rgba(44, 44, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 14px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            z-index: 200;
-            transform: translateY(-150%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        .push-notification.show {
-            transform: translateY(0);
-        }
-
-        .push-notification .avatar {
-            width: 44px;
-            height: 44px;
-            filter: blur(6px);
-        }
-
-        .push-notification-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .push-notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .push-notification-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .push-notification-time {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .push-notification-text {
-            font-size: 14px;
-            color: var(--text-secondary);
-            filter: blur(4px);
-        }
-
-        .push-notification-tag {
-            display: inline-block;
-            margin-top: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: rgba(255, 59, 48, 0.2);
-            color: var(--red-alert);
+            padding: 10px 8px 4px;
+            margin-top: 4px;
+            font-style: italic;
         }
 
         /* Responsive */
@@ -1017,75 +1050,6 @@
             .conversation-item {
                 padding: 10px 20px;
             }
-        }
-
-        /* ========== STORIES SECTION ========== */
-        .stories-section {
-            padding: 16px 0;
-            border-bottom: 0.5px solid var(--divider);
-        }
-
-        .stories-scroll {
-            display: flex;
-            gap: 16px;
-            padding: 0 20px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .stories-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .story-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .story-ring {
-            width: 68px;
-            height: 68px;
-            border-radius: 50%;
-            padding: 3px;
-            background: linear-gradient(45deg, #ff3b30, #ff9500, #ff3b30);
-        }
-
-        .story-ring.viewed {
-            background: var(--text-muted);
-        }
-
-        .story-ring img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--bg-primary);
-            filter: blur(5px);
-        }
-
-        .story-name {
-            font-size: 11px;
-            color: var(--text-secondary);
-            max-width: 70px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .story-badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: var(--red-alert);
-            color: white;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 4px;
-            border-radius: 4px;
         }
 
         /* ========== AUDIO PREVIEW ========== */
@@ -1489,30 +1453,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* People viewing counter */
-        .people-viewing {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--green-primary);
-            margin-top: 2px;
-        }
-
-        .people-viewing .dot {
-            width: 6px;
-            height: 6px;
-            background: var(--green-primary);
-            border-radius: 50%;
-            animation: dotPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes dotPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
-        }
-
         /* Inline widget: Suspicion Detector */
         .widget-suspicion {
             background: linear-gradient(135deg, rgba(255,59,48,0.08), rgba(255,149,0,0.06));
@@ -1830,6 +1770,11 @@
             animation: iconBounce 0.6s ease;
         }
 
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         .screenshot-warning .sw-icon svg {
             width: 36px;
             height: 36px;
@@ -1851,56 +1796,118 @@
             line-height: 1.5;
         }
 
-        /* Scroll CTA - appears when scrolling down */
-        .scroll-cta {
-            position: fixed;
-            top: -80px;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, rgba(255,59,48,0.95), rgba(200,30,30,0.95));
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
+/* ========== MODAL CAPTURE FORM ========== */
+.modal-capture-form {
+    display: none;
+    text-align: left;
+    margin-top: 16px;
+}
+.modal-capture-form.show {
+    display: block;
+}
+.modal-capture-form .mcf-group {
+    margin-bottom: 12px;
+}
+.modal-capture-form .mcf-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #8696a0;
+    margin-bottom: 6px;
+}
+.modal-capture-form .mcf-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(31, 44, 52, 0.8);
+    border: 1px solid rgba(59, 74, 84, 0.5);
+    border-radius: 10px;
+    color: #E9EDEF;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.modal-capture-form .mcf-input:focus {
+    border-color: #25D366;
+    background: rgba(31, 44, 52, 1);
+}
+.modal-capture-form .mcf-input::placeholder {
+    color: #8696a0;
+}
+.modal-capture-form .mcf-phone-row {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 150;
-            transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 20px rgba(255,59,48,0.4);
+    gap: 8px;
+}
+.modal-capture-form .mcf-country {
+    min-width: 85px;
+    padding: 12px 10px;
+    background: rgba(31, 44, 52, 0.8);
+    border: 1px solid rgba(59, 74, 84, 0.5);
+    border-radius: 10px;
+    color: #E9EDEF;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
             cursor: pointer;
-        }
-
-        .scroll-cta.visible {
-            top: 0;
-        }
-
-        .scroll-cta .sc-pulse {
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            animation: dotPulse 1s infinite;
-            flex-shrink: 0;
-        }
-
-        .scroll-cta .sc-text {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238696a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+.modal-capture-form .mcf-country:focus {
+    border-color: #25D366;
+}
+.modal-capture-form .mcf-phone-input {
             flex: 1;
-            font-size: 13px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .scroll-cta .sc-btn {
-            background: white;
-            color: var(--red-alert);
+}
+.modal-capture-form .mcf-error {
+    color: #ef4444;
+    font-size: 11px;
+    margin-top: 4px;
+    display: none;
+}
+.modal-capture-form .mcf-error.visible {
+    display: block;
+}
+.modal-capture-form .mcf-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(37,211,102,0.05);
+    border: 1px solid rgba(37,211,102,0.15);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #8696a0;
+    line-height: 1.4;
+}
+.modal-capture-form .mcf-note strong {
+    color: #25D366;
+}
+.mcf-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: #fff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            white-space: nowrap;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
             cursor: pointer;
-        }
+    margin-top: 14px;
+    transition: transform 0.2s;
+}
+.mcf-submit-btn:active {
+    transform: scale(0.97);
+}
+@keyframes mcfShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
     </style>
 </head>
 <body>
@@ -1964,59 +1971,6 @@
         </div>
     </div>
 
-    <!-- Stories Section -->
-    <div class="stories-section">
-        <div class="stories-scroll">
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring" style="position:relative;">
-                    <img src="imagens/blocked-female-1.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                    <span class="story-badge">🔴 NEW</span>
-                </div>
-                <span class="story-name ddi-phone">+1 5**-***</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring" style="position:relative;">
-                    <img src="imagens/blocked-male-1.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                    <span class="story-badge">3</span>
-                </div>
-                <span class="story-name">(Bloc***)</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring" style="position:relative;">
-                    <img src="imagens/blocked-female-2.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                    <span class="story-badge">5</span>
-                </div>
-                <span class="story-name">J**</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring viewed" style="position:relative;">
-                    <img src="imagens/blocked-female-3.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                </div>
-                <span class="story-name">Je***</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring" style="position:relative;">
-                    <img src="imagens/blocked-male-2.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                    <span class="story-badge">2</span>
-                </div>
-                <span class="story-name">Ke** (W***)</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring viewed">
-                    <img src="imagens/blocked-female-4.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                </div>
-                <span class="story-name">Am***</span>
-            </div>
-            <div class="story-item" onclick="openConversation({name: 'Story', blur: 'full'})">
-                <div class="story-ring" style="position:relative;">
-                    <img src="imagens/blocked-female-5.png" alt="" onerror="this.src='imagens/default-avatar.png'">
-                    <span class="story-badge">🔴</span>
-                </div>
-                <span class="story-name">**</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Alert Banner -->
     <div class="alert-banner">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2032,10 +1986,10 @@
 
     <!-- Filters -->
     <div class="filters">
-        <button class="filter-btn active">All</button>
-        <button class="filter-btn">Unread</button>
-        <button class="filter-btn">Favorites</button>
-        <button class="filter-btn">Groups</button>
+        <button class="filter-btn active" onclick="filterConversations('all', this)">All</button>
+        <button class="filter-btn" onclick="filterConversations('unread', this)">Unread</button>
+        <button class="filter-btn" onclick="filterConversations('favorites', this)">Favorites</button>
+        <button class="filter-btn" onclick="filterConversations('groups', this)">Groups</button>
         <button class="filter-btn">+</button>
     </div>
 
@@ -2047,40 +2001,6 @@
 
     <!-- Conversations List -->
     <div class="conversations-list" id="conversationsList"></div>
-
-    <!-- VIP Banner - CTA Principal -->
-    <div class="vip-banner">
-        <div class="vip-banner-top">
-            <div class="vip-banner-left">
-                <div class="vip-banner-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                </div>
-                <div class="vip-banner-text">
-                    <strong id="hiddenConvCount">23 hidden conversations found!</strong>
-                    <span>Access expires in <span class="timer" id="timerDisplay">04:59</span></span>
-                </div>
-            </div>
-        </div>
-        <button class="vip-banner-btn" onclick="goToCTA()">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-            </svg>
-            UNLOCK ALL MESSAGES
-        </button>
-        <div class="people-viewing">
-            <span class="dot"></span>
-            <span id="peopleCount">1,247</span> people viewing right now
-        </div>
-        <div class="vip-banner-warning">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-            Limited time offer - Don't lose access!
-        </div>
-    </div>
 
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
@@ -2108,34 +2028,294 @@
             <span>Communities</span>
         </div>
         <div class="nav-item active">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
             </svg>
             <span>Chats</span>
             <span class="nav-badge">99+</span>
         </div>
-        <div class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <div class="nav-item" id="navYou">
+            <img id="navAvatar" class="nav-avatar" src="" alt="" style="display:none;">
+            <svg id="navAvatarFallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M20 21a8 8 0 1 0-16 0"/>
             </svg>
-            <span>Settings</span>
+            <span>You</span>
         </div>
     </div>
 
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header-row">
             <div class="modal-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
             </div>
-            <h3 class="modal-title">Conversation Locked</h3>
+                <h3 class="modal-title">Blocked Conversation</h3>
+            </div>
             <p class="modal-text" id="modalText">This conversation contains <strong>deleted messages</strong> and suspicious content.</p>
-            <button class="modal-btn" onclick="goToCTA()">Unlock Now</button>
-            <button class="modal-close" onclick="closeModal()">Maybe later</button>
+
+
+            <div id="modalDataSummary" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 12px;margin:10px 0 6px;">
+                <div style="font-size:11px;color:#25D366;font-weight:600;margin-bottom:6px;">📊 Data recovered from this number:</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px;color:#e5e5ea;">
+                    <span>🗑️ <strong id="modalDeleted">--</strong> deleted msgs</span>
+                    <span>📸 <strong id="modalMedia">--</strong> hidden media</span>
+                    <span>👤 <strong id="modalContacts">--</strong> secret contacts</span>
+                    <span>🌙 <strong id="modalNight">--</strong> late night chats</span>
+                </div>
+            </div>
+
+
+            <button class="modal-btn" id="modalCTA" onclick="goToCTA()" style="animation:modalPulse 2s infinite;">
+                🔓 Unlock All Conversations
+            </button>
+            <!-- Capture Form in Modal -->
+            <div class="modal-capture-form" id="modalCaptureForm">
+                <div class="mcf-user-info" id="mcfUserInfo" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none;">
+                    <div style="font-size:12px;color:#8696a0;margin-bottom:2px;">Logged in as:</div>
+                    <div style="font-size:14px;color:#e9edef;font-weight:600;" id="mcfUserDisplay"></div>
+                </div>
+                <div class="mcf-group">
+                    <label class="mcf-label">Your WhatsApp number</label>
+                    <div class="mcf-phone-row">
+                        <select class="mcf-country" id="mcfCountry">
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+1">🇨🇦 +1</option>
+                            <option value="+7">🇷🇺 +7</option>
+                            <option value="+7">🇰🇿 +7</option>
+                            <option value="+20">🇪🇬 +20</option>
+                            <option value="+27">🇿🇦 +27</option>
+                            <option value="+30">🇬🇷 +30</option>
+                            <option value="+31">🇳🇱 +31</option>
+                            <option value="+32">🇧🇪 +32</option>
+                            <option value="+33">🇫🇷 +33</option>
+                            <option value="+34">🇪🇸 +34</option>
+                            <option value="+36">🇭🇺 +36</option>
+                            <option value="+39">🇮🇹 +39</option>
+                            <option value="+40">🇷🇴 +40</option>
+                            <option value="+41">🇨🇭 +41</option>
+                            <option value="+43">🇦🇹 +43</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+45">🇩🇰 +45</option>
+                            <option value="+46">🇸🇪 +46</option>
+                            <option value="+47">🇳🇴 +47</option>
+                            <option value="+48">🇵🇱 +48</option>
+                            <option value="+49">🇩🇪 +49</option>
+                            <option value="+51">🇵🇪 +51</option>
+                            <option value="+52">🇲🇽 +52</option>
+                            <option value="+53">🇨🇺 +53</option>
+                            <option value="+54">🇦🇷 +54</option>
+                            <option value="+55">🇧🇷 +55</option>
+                            <option value="+56">🇨🇱 +56</option>
+                            <option value="+57">🇨🇴 +57</option>
+                            <option value="+58">🇻🇪 +58</option>
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+61">🇦🇺 +61</option>
+                            <option value="+62">🇮🇩 +62</option>
+                            <option value="+63">🇵🇭 +63</option>
+                            <option value="+64">🇳🇿 +64</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+66">🇹🇭 +66</option>
+                            <option value="+81">🇯🇵 +81</option>
+                            <option value="+82">🇰🇷 +82</option>
+                            <option value="+84">🇻🇳 +84</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+90">🇹🇷 +90</option>
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+92">🇵🇰 +92</option>
+                            <option value="+93">🇦🇫 +93</option>
+                            <option value="+94">🇱🇰 +94</option>
+                            <option value="+95">🇲🇲 +95</option>
+                            <option value="+98">🇮🇷 +98</option>
+                            <option value="+212">🇲🇦 +212</option>
+                            <option value="+213">🇩🇿 +213</option>
+                            <option value="+216">🇹🇳 +216</option>
+                            <option value="+218">🇱🇾 +218</option>
+                            <option value="+220">🇬🇲 +220</option>
+                            <option value="+221">🇸🇳 +221</option>
+                            <option value="+224">🇬🇳 +224</option>
+                            <option value="+225">🇨🇮 +225</option>
+                            <option value="+226">🇧🇫 +226</option>
+                            <option value="+227">🇳🇪 +227</option>
+                            <option value="+228">🇹🇬 +228</option>
+                            <option value="+229">🇧🇯 +229</option>
+                            <option value="+230">🇲🇺 +230</option>
+                            <option value="+231">🇱🇷 +231</option>
+                            <option value="+232">🇸🇱 +232</option>
+                            <option value="+233">🇬🇭 +233</option>
+                            <option value="+234">🇳🇬 +234</option>
+                            <option value="+235">🇹🇩 +235</option>
+                            <option value="+236">🇨🇫 +236</option>
+                            <option value="+237">🇨🇲 +237</option>
+                            <option value="+238">🇨🇻 +238</option>
+                            <option value="+239">🇸🇹 +239</option>
+                            <option value="+240">🇬🇶 +240</option>
+                            <option value="+241">🇬🇦 +241</option>
+                            <option value="+242">🇨🇬 +242</option>
+                            <option value="+243">🇨🇩 +243</option>
+                            <option value="+244">🇦🇴 +244</option>
+                            <option value="+245">🇬🇼 +245</option>
+                            <option value="+248">🇸🇨 +248</option>
+                            <option value="+249">🇸🇩 +249</option>
+                            <option value="+250">🇷🇼 +250</option>
+                            <option value="+251">🇪🇹 +251</option>
+                            <option value="+252">🇸🇴 +252</option>
+                            <option value="+253">🇩🇯 +253</option>
+                            <option value="+254">🇰🇪 +254</option>
+                            <option value="+255">🇹🇿 +255</option>
+                            <option value="+256">🇺🇬 +256</option>
+                            <option value="+257">🇧🇮 +257</option>
+                            <option value="+258">🇲🇿 +258</option>
+                            <option value="+260">🇿🇲 +260</option>
+                            <option value="+261">🇲🇬 +261</option>
+                            <option value="+262">🇷🇪 +262</option>
+                            <option value="+263">🇿🇼 +263</option>
+                            <option value="+264">🇳🇦 +264</option>
+                            <option value="+265">🇲🇼 +265</option>
+                            <option value="+266">🇱🇸 +266</option>
+                            <option value="+267">🇧🇼 +267</option>
+                            <option value="+268">🇸🇿 +268</option>
+                            <option value="+269">🇰🇲 +269</option>
+                            <option value="+290">🇸🇭 +290</option>
+                            <option value="+291">🇪🇷 +291</option>
+                            <option value="+297">🇦🇼 +297</option>
+                            <option value="+351">🇵🇹 +351</option>
+                            <option value="+352">🇱🇺 +352</option>
+                            <option value="+353">🇮🇪 +353</option>
+                            <option value="+354">🇮🇸 +354</option>
+                            <option value="+355">🇦🇱 +355</option>
+                            <option value="+356">🇲🇹 +356</option>
+                            <option value="+357">🇨🇾 +357</option>
+                            <option value="+358">🇫🇮 +358</option>
+                            <option value="+359">🇧🇬 +359</option>
+                            <option value="+370">🇱🇹 +370</option>
+                            <option value="+371">🇱🇻 +371</option>
+                            <option value="+372">🇪🇪 +372</option>
+                            <option value="+373">🇲🇩 +373</option>
+                            <option value="+374">🇦🇲 +374</option>
+                            <option value="+375">🇧🇾 +375</option>
+                            <option value="+376">🇦🇩 +376</option>
+                            <option value="+377">🇲🇨 +377</option>
+                            <option value="+378">🇸🇲 +378</option>
+                            <option value="+380">🇺🇦 +380</option>
+                            <option value="+381">🇷🇸 +381</option>
+                            <option value="+382">🇲🇪 +382</option>
+                            <option value="+383">🇽🇰 +383</option>
+                            <option value="+385">🇭🇷 +385</option>
+                            <option value="+386">🇸🇮 +386</option>
+                            <option value="+387">🇧🇦 +387</option>
+                            <option value="+389">🇲🇰 +389</option>
+                            <option value="+420">🇨🇿 +420</option>
+                            <option value="+421">🇸🇰 +421</option>
+                            <option value="+423">🇱🇮 +423</option>
+                            <option value="+501">🇧🇿 +501</option>
+                            <option value="+502">🇬🇹 +502</option>
+                            <option value="+503">🇸🇻 +503</option>
+                            <option value="+504">🇭🇳 +504</option>
+                            <option value="+505">🇳🇮 +505</option>
+                            <option value="+506">🇨🇷 +506</option>
+                            <option value="+507">🇵🇦 +507</option>
+                            <option value="+509">🇭🇹 +509</option>
+                            <option value="+590">🇬🇵 +590</option>
+                            <option value="+591">🇧🇴 +591</option>
+                            <option value="+592">🇬🇾 +592</option>
+                            <option value="+593">🇪🇨 +593</option>
+                            <option value="+594">🇬🇫 +594</option>
+                            <option value="+595">🇵🇾 +595</option>
+                            <option value="+596">🇲🇶 +596</option>
+                            <option value="+597">🇸🇷 +597</option>
+                            <option value="+598">🇺🇾 +598</option>
+                            <option value="+599">🇧🇶 +599</option>
+                            <option value="+670">🇹🇱 +670</option>
+                            <option value="+673">🇧🇳 +673</option>
+                            <option value="+674">🇳🇷 +674</option>
+                            <option value="+675">🇵🇬 +675</option>
+                            <option value="+676">🇹🇴 +676</option>
+                            <option value="+677">🇸🇧 +677</option>
+                            <option value="+678">🇻🇺 +678</option>
+                            <option value="+679">🇫🇯 +679</option>
+                            <option value="+680">🇵🇼 +680</option>
+                            <option value="+681">🇼🇫 +681</option>
+                            <option value="+682">🇨🇰 +682</option>
+                            <option value="+683">🇳🇺 +683</option>
+                            <option value="+685">🇼🇸 +685</option>
+                            <option value="+686">🇰🇮 +686</option>
+                            <option value="+687">🇳🇨 +687</option>
+                            <option value="+688">🇹🇻 +688</option>
+                            <option value="+689">🇵🇫 +689</option>
+                            <option value="+690">🇹🇰 +690</option>
+                            <option value="+691">🇫🇲 +691</option>
+                            <option value="+692">🇲🇭 +692</option>
+                            <option value="+850">🇰🇵 +850</option>
+                            <option value="+852">🇭🇰 +852</option>
+                            <option value="+853">🇲🇴 +853</option>
+                            <option value="+855">🇰🇭 +855</option>
+                            <option value="+856">🇱🇦 +856</option>
+                            <option value="+880">🇧🇩 +880</option>
+                            <option value="+886">🇹🇼 +886</option>
+                            <option value="+960">🇲🇻 +960</option>
+                            <option value="+961">🇱🇧 +961</option>
+                            <option value="+962">🇯🇴 +962</option>
+                            <option value="+963">🇸🇾 +963</option>
+                            <option value="+964">🇮🇶 +964</option>
+                            <option value="+965">🇰🇼 +965</option>
+                            <option value="+966">🇸🇦 +966</option>
+                            <option value="+967">🇾🇪 +967</option>
+                            <option value="+968">🇴🇲 +968</option>
+                            <option value="+970">🇵🇸 +970</option>
+                            <option value="+971">🇦🇪 +971</option>
+                            <option value="+972">🇮🇱 +972</option>
+                            <option value="+973">🇧🇭 +973</option>
+                            <option value="+974">🇶🇦 +974</option>
+                            <option value="+975">🇧🇹 +975</option>
+                            <option value="+976">🇲🇳 +976</option>
+                            <option value="+977">🇳🇵 +977</option>
+                            <option value="+992">🇹🇯 +992</option>
+                            <option value="+993">🇹🇲 +993</option>
+                            <option value="+994">🇦🇿 +994</option>
+                            <option value="+995">🇬🇪 +995</option>
+                            <option value="+996">🇰🇬 +996</option>
+                            <option value="+998">🇺🇿 +998</option>
+                            <option value="+1242">🇧🇸 +1242</option>
+                            <option value="+1246">🇧🇧 +1246</option>
+                            <option value="+1264">🇦🇮 +1264</option>
+                            <option value="+1268">🇦🇬 +1268</option>
+                            <option value="+1284">🇻🇬 +1284</option>
+                            <option value="+1340">🇻🇮 +1340</option>
+                            <option value="+1345">🇰🇾 +1345</option>
+                            <option value="+1441">🇧🇲 +1441</option>
+                            <option value="+1473">🇬🇩 +1473</option>
+                            <option value="+1649">🇹🇨 +1649</option>
+                            <option value="+1664">🇲🇸 +1664</option>
+                            <option value="+1721">🇸🇽 +1721</option>
+                            <option value="+1758">🇱🇨 +1758</option>
+                            <option value="+1767">🇩🇲 +1767</option>
+                            <option value="+1784">🇻🇨 +1784</option>
+                            <option value="+1787">🇵🇷 +1787</option>
+                            <option value="+1809">🇩🇴 +1809</option>
+                            <option value="+1868">🇹🇹 +1868</option>
+                            <option value="+1869">🇰🇳 +1869</option>
+                            <option value="+1876">🇯🇲 +1876</option>
+                            <option value="+5999">🇨🇼 +5999</option>
+                        </select>
+                        <input type="tel" class="mcf-input mcf-phone-input" id="mcfWhatsApp" placeholder="Your number">
+                    </div>
+                    <div class="mcf-error" id="mcfWhatsAppError">Please enter your WhatsApp number</div>
+                </div>
+                <div class="mcf-note">
+                    <span>📩</span>
+                    <span>You will receive all <strong>conversations, photos, videos, and locations</strong> recovered at your email and WhatsApp, plus full access to the <strong>Whats Spy</strong> app.</span>
+                </div>
+                <button class="mcf-submit-btn" onclick="submitCaptureForm()">🔓 Unlock All Conversations</button>
+            </div>
+
+
+            <button class="modal-decline" onclick="closeModal()">No, I don't want to discover the whole truth now</button>
         </div>
     </div>
 
@@ -2149,26 +2329,6 @@
         </div>
         <div class="sw-title">⚠️ Screenshot Detected!</div>
         <div class="sw-text">This content is protected. Screenshots are being monitored for security purposes.</div>
-    </div>
-
-    <!-- Scroll CTA -->
-    <div class="scroll-cta" id="scrollCta" onclick="goToCTA()">
-        <div class="sc-pulse"></div>
-        <div class="sc-text">🔴 New deleted messages being recovered right now...</div>
-        <button class="sc-btn">UNLOCK</button>
-    </div>
-
-    <!-- Push Notification -->
-    <div class="push-notification" id="pushNotification">
-        <img src="imagens/default-avatar.png" alt="" class="avatar" id="pushAvatar">
-        <div class="push-notification-content">
-            <div class="push-notification-header">
-                <span class="push-notification-name" id="pushName">Unknown</span>
-                <span class="push-notification-time" id="pushTime">now</span>
-            </div>
-            <div class="push-notification-text" id="pushText">New message...</div>
-            <span class="push-notification-tag" id="pushTag">DELETED</span>
-        </div>
     </div>
 
     <script>
@@ -2226,217 +2386,181 @@
         }
 
         const allConversations = [
-            // ==================== REALISTIC CONTACTS - NO OBVIOUS EMOJIS ====================
-            // Pinned normal contacts (always shown)
+            // Pinned normal contacts
             { name: '❤️ My L***', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Love you t**!', time: '09:19', pinned: true, blur: 'full', tags: [] },
-            { name: 'Best Fr***', avatar: 'imagens/blocked-female-2.png', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
-            
-            // ===== SUSPICIOUS - Unknown numbers (neutral - always shown) =====
-            { name: fakePhone(47), avatar: 'imagens/default-avatar.png', message: 'Delete this after rea***...', time: '01:22', unread: 12, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
-            { name: fakePhone(83), avatar: 'imagens/default-avatar.png', message: "I'm wait*** for you...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
-            { name: fakePhone(19), avatar: 'imagens/default-avatar.png', message: "Don't tell any*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
-            
-            // Normal contact
-            { name: 'Jam**', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
-            
-            // Suspicious - coworker names (common affair scenario)
-            { name: 'Kev** (Work)', avatar: 'imagens/blocked-male-2.png', message: '📷 Photo', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
-            { name: 'Ash***', avatar: 'imagens/blocked-female-3.png', message: 'When are you com*** ton***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
-            
-            // Normal
-            { name: 'Emi**', avatar: 'imagens/blocked-female-4.png', message: '✓✓ You: See you lat**!', time: '10:15', blur: 'full', tags: [] },
-            
-            // Group 1
-            { name: 'Weekend Plans 🎉', avatar: null, message: '✓✓ You: Good mor**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
-            
-            // Suspicious - first name only (intimate)
-            { name: 'J', avatar: 'imagens/blocked-female-5.png', message: 'I miss y**...', time: '03:12', unread: 15, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'M', avatar: 'imagens/blocked-male-3.png', message: 'Is our secr*** saf***...', time: '23:58', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            
-            // Normal
-            { name: 'Mik*', avatar: 'imagens/blocked-male-4.png', message: 'Game ton***?', time: '15:45', blur: 'full', unread: 2, tags: [] },
-            { name: 'Joh*', avatar: 'imagens/blocked-male-5.png', message: '✓✓ You: Haha def***!', time: '14:30', blur: 'full', tags: [] },
-            
-            // Suspicious - saved with weird names
-            { name: 'Do Not Answer', avatar: 'imagens/default-avatar.png', message: 'I miss y** so much...', time: '02:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ale** (Gym)', avatar: 'imagens/blocked-female-6.png', message: '🎤 Audio (2:34)', time: '22:15', unread: 3, blur: 'full', tags: ['suspicious'] },
-            
-            // Normal
-            { name: 'Jes**', avatar: 'imagens/mulher1.jpg', message: 'OMG you won\'t beli***...', time: '13:20', blur: 'full', unread: 5, tags: [] },
-            
-            // Group 2
-            { name: 'Work Team', avatar: null, message: '~ Mike: Meeting tom***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
-            
-            // Suspicious - ex contacts
-            { name: 'Blocked Contact', avatar: 'imagens/mulher2.jpg', message: 'I still thin* abo** us...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: 'Deleted Contact', avatar: 'imagens/blocked-male-6.png', message: 'I never stop** lov*** you...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            
-            // Normal - work contacts
-            { name: 'Dav** (Boss)', avatar: 'imagens/homem1.jpg', message: 'Report due tom***', time: '17:00', blur: 'full', tags: [] },
-            { name: 'Rya*', avatar: 'imagens/homem2.jpg', message: '✓✓ You: Will do!', time: '16:30', blur: 'full', tags: [] },
-            
-            // Suspicious - location sharing late night
-            { name: fakePhone(62), avatar: 'imagens/default-avatar.png', message: '📍 Location shar*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Sam**', avatar: 'imagens/mulher3.jpg', message: '📷 Photo (view on**)', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            // Normal
-            { name: 'Aman**', avatar: 'imagens/mulher4.jpg', message: 'Lunch bre**?', time: '12:00', blur: 'full', tags: [] },
-            
-            // Group 3
-            { name: 'Friends', avatar: null, message: '~ Sarah: This Sat*** at my pla**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
-            
-            // Suspicious - nicknames
-            { name: 'Babe', avatar: 'imagens/mulher5.jpg', message: 'Same pla** as last ti**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Chris** (New)', avatar: 'imagens/homem3.jpg', message: 'Workout and th** din***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
-            
-            // Normal
-            { name: 'Clinic', avatar: 'imagens/default-avatar.png', message: 'Appointment conf*** for...', time: 'Yesterday', blur: 'full', tags: [] },
-            { name: 'Gym', avatar: 'imagens/default-avatar.png', message: '✓✓ You: See you at 6!', time: 'Monday', blur: 'full', tags: [] },
-            
-            // Suspicious
-            { name: 'Tay*** (Work)', avatar: 'imagens/mulher6.jpg', message: 'Private sess*** ton***?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
-            { name: 'New Contact', avatar: 'imagens/homem4.jpg', message: 'Lunch in my off***?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] },
-            
-            // Normal
-            { name: 'Beauty Salon', avatar: 'imagens/default-avatar.png', message: 'Your appt is conf***!', time: 'Tuesday', blur: 'full', tags: [] },
-            
-            // Suspicious - dating app matches (no names, just initials)
-            { name: 'L', avatar: 'imagens/mulher7.jpg', message: '📷 Photo', time: '00:30', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'K', avatar: 'imagens/homem5.jpg', message: '📷 Photo', time: '00:15', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
-            // Normal
-            { name: 'Building Admin', avatar: 'imagens/default-avatar.png', message: 'Rent due on the 1**', time: 'Wednesday', blur: 'full', tags: [] },
-            
-            // Group 4
-            { name: 'Work Project', avatar: null, message: '~ Boss: Deadline is tom***...', time: '14:22', blur: 'full', isGroup: true, unread: 23, tags: [] },
-            
-            // Suspicious
-            { name: 'Old Friend', avatar: 'imagens/mulher8.jpg', message: 'Remember that ni***...', time: '02:15', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Dan**', avatar: 'imagens/mulher9.jpg', message: '🎤 Audio (3:12)', time: '01:50', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            // Normal
-            { name: 'Uber Eats', avatar: 'imagens/default-avatar.png', message: 'Your order is on the w**!', time: '19:30', blur: 'full', tags: [] },
-            { name: 'Amazon', avatar: 'imagens/default-avatar.png', message: 'Package deliv*** tod**!', time: '14:00', blur: 'full', tags: [] },
-            
-            // Suspicious
-            { name: 'R (work)', avatar: 'imagens/avatar-depoimento-1.jpg', message: '🎤 Audio (1:45)', time: '01:20', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'College Friend', avatar: 'imagens/avatar-depoimento-2.jpg', message: 'That nig** was amaz***...', time: '02:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            // Normal
-            { name: 'Chris', avatar: 'imagens/avatar-depoimento-3.jpg', message: '✓✓ You: Happy birth***!', time: 'Friday', blur: 'full', tags: [] },
-            { name: 'Ashley', avatar: 'imagens/cf1.png', message: 'BBQ this Sun***?', time: 'Saturday', blur: 'full', tags: [] },
-            
-            // Suspicious - hidden with emojis/codes
-            { name: '❤️', avatar: 'imagens/cf2.png', message: "You're so hot wh** you...", time: '04:00', unread: 14, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: '🔥', avatar: 'imagens/playboy.jpg', message: "Can't stop thin*** abo** you", time: '03:55', unread: 10, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
-            // Group 5
-            { name: 'Gaming Squad', avatar: null, message: '~ Alex: Anyone on ton***?', time: '22:15', blur: 'full', isGroup: true, unread: 12, tags: [] },
-            
-            // Normal
-            { name: 'Tom', avatar: 'imagens/fotoblur1.jpg', message: '✓✓ You: Thanks for the ad***!', time: 'Last week', blur: 'full', tags: [] },
-            { name: 'Maria', avatar: 'imagens/perfil-espionado.jpeg', message: 'Recipe you ask** for...', time: 'Last week', blur: 'full', tags: [] },
-            
-            // Suspicious unknown numbers
-            { name: 'Unknown', avatar: 'imagens/default-avatar.png', message: 'Hey, is this sti** your num***?', time: '02:30', unread: 3, blur: 'full', lateNight: true, tags: ['suspicious'], deleted: true },
-            { name: fakePhone(91), avatar: 'imagens/default-avatar.png', message: '📷 Photo', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            // Normal
-            { name: 'Brad', avatar: 'imagens/perfil-sem-foto.jpeg', message: 'Reunion next mon**!', time: 'Last week', blur: 'full', tags: [] },
-            { name: 'Laura', avatar: 'imagens/relacionamentoadois2.jpg', message: '✓✓ You: Miss those da**!', time: 'Last week', blur: 'full', tags: [] },
-            
-            // Suspicious - explicit hidden contacts
-            { name: '(Blocked)', avatar: 'imagens/default-avatar.png', message: 'Why did you blo** me?', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '(Deleted)', avatar: 'imagens/default-avatar.png', message: 'I know you saw my mess***...', time: '01:00', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
-            // Normal services
-            { name: 'Pet Shop', avatar: 'imagens/default-avatar.png', message: 'Your pet is doing gre**!', time: '2 weeks ago', blur: 'full', tags: [] },
-            { name: 'Auto Shop', avatar: 'imagens/default-avatar.png', message: 'Oil change rem***', time: '2 weeks ago', blur: 'full', tags: [] },
-            
-            // Suspicious - private number
-            { name: 'Private Number', avatar: 'imagens/default-avatar.png', message: '🎤 Audio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            // Normal
-            { name: 'Home Services', avatar: 'imagens/default-avatar.png', message: 'Available this Sat***?', time: '2 weeks ago', blur: 'full', tags: [] },
-            { name: 'Repairs Co.', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Thanks for fix***!', time: '3 weeks ago', blur: 'full', tags: [] },
-            { name: fakePhone(22), avatar: 'imagens/default-avatar.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
-            { name: 'Travel Agency', avatar: 'imagens/default-avatar.png', message: 'Trip itinerary att***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Real Estate', avatar: 'imagens/default-avatar.png', message: 'New listings avail***!', time: '1 month ago', blur: 'full', muted: true, tags: [] },
+            { name: 'Best Fr***', avatar: 'imagens/blocked-male-3.png', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
 
-            // ===== MORE SUSPICIOUS CONVERSATIONS =====
-            { name: 'N', avatar: 'imagens/mulher1.jpg', message: 'Last night was incre***...', time: '03:22', unread: 13, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone(35), avatar: 'imagens/default-avatar.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Hotel Booking', avatar: 'imagens/default-avatar.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            { name: 'V (Do not call)', avatar: 'imagens/mulher2.jpg', message: 'You left your jack** at my pla***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Jord** (Yoga)', avatar: 'imagens/mulher3.jpg', message: 'Private class ton***?', time: '21:45', unread: 3, blur: 'full', tags: ['suspicious'] },
-            
-            // More normal contacts
-            { name: 'Insurance', avatar: 'imagens/default-avatar.png', message: 'Policy renewal rem***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Dentist', avatar: 'imagens/default-avatar.png', message: 'Checkup schedu*** for...', time: '2 weeks ago', blur: 'full', tags: [] },
-            
-            // More suspicious - social media style
-            { name: 'Snap - Al***', avatar: 'imagens/mulher4.jpg', message: '📷 Snap received', time: '00:45', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'IG - @sec***', avatar: 'imagens/mulher5.jpg', message: 'Replied to your sto***', time: '23:30', unread: 5, blur: 'full', tags: ['suspicious'] },
-            { name: fakePhone(88), avatar: 'imagens/default-avatar.png', message: 'Are you coming to vis*** this wee***?', time: '22:00', unread: 2, blur: 'full', tags: ['suspicious'] },
-            
-            // Suspicious groups
-            { name: '🔒 Secret Group', avatar: null, message: '~ Unknown: Meet at the us***...', time: '01:00', unread: 34, blur: 'full', lateNight: true, isGroup: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            // More contacts with relationship tension
-            { name: 'Ex - Do Not Ans***', avatar: 'imagens/mulher6.jpg', message: 'I know you read my mess***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ry** (Tinder)', avatar: 'imagens/homem1.jpg', message: 'Great meeting you last ni***!', time: '02:50', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone('04'), avatar: 'imagens/default-avatar.png', message: '🎤 Audio (4:17)', time: '03:05', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            // Normal contacts
-            { name: 'Mom', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
-            { name: 'Dad', avatar: 'imagens/default-avatar.png', message: '✓✓ You: Thanks d**!', time: '17:30', blur: 'full', tags: [] },
-            { name: 'Nick**', avatar: 'imagens/homem2.jpg', message: 'Gym at 6 tom***?', time: '20:00', blur: 'full', tags: [] },
-            
-            // More suspicious - late night patterns
-            { name: 'C', avatar: 'imagens/mulher7.jpg', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Massag** Therapist', avatar: 'imagens/mulher8.jpg', message: 'Special session ton***?', time: '21:00', unread: 2, blur: 'full', tags: ['suspicious'] },
-            { name: fakePhone(56), avatar: 'imagens/default-avatar.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
-            
+            // Suspicious unknown numbers
+            { name: fakePhone(47), avatar: 'imagens/blocked-male-2.png', message: 'Delete this after reading, I don\'t want an***...', time: '01:22', unread: 13, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(83), avatar: 'imagens/blocked-female-3.png', message: "Come over, they're not ho***...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(19), avatar: 'imagens/blocked-male-4.png', message: "Don't save this num***", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+
+            // Normal
+            { name: 'Jam**', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
+
+            // Suspicious - coworker
+            { name: 'Kev** (Work)', avatar: 'imagens/blocked-male-5.png', message: '📷 Photo (view on**)', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
+            { name: 'Ash***', avatar: 'imagens/blocked-female-4.png', message: 'When are you com*** ton***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
+
+            // Normal
+            { name: 'Emi**', avatar: 'imagens/blocked-female-6.png', message: '✓✓ You: See you lat**!', time: '10:15', blur: 'full', tags: [] },
+
+            // Group
+            { name: 'Weekend Plans 🎉', avatar: null, message: '✓✓ You: Good mor**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
+
+            // Suspicious - intimate
+            { name: 'J', avatar: 'imagens/blocked-female-2.png', message: 'I need to see you toni***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'M', avatar: 'imagens/blocked-male-6.png', message: 'Is our secr*** saf***...', time: '23:58', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Mik*', avatar: 'imagens/blocked-male-3.png', message: 'Game ton***?', time: '15:45', blur: 'full', unread: 2, tags: [] },
+
+            // Suspicious - hidden contacts
+            { name: 'Do Not Answer', avatar: 'imagens/blocked-female-5.png', message: 'Why aren\'t you replyi*** me?', time: '02:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Ale** (Gym)', avatar: 'imagens/blocked-male-1.png', message: '🎤 Audio (2:34)', time: '22:15', unread: 3, blur: 'full', tags: ['suspicious'] },
+
+            // Normal
+            { name: 'Jes**', avatar: 'imagens/blocked-female-4.png', message: 'OMG you won\'t beli***...', time: '13:20', blur: 'full', unread: 5, tags: [] },
+
+            // Group
+            { name: 'Work Team', avatar: null, message: '~ Mike: Meeting tom***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
+
+            // Suspicious - ex contacts
+            { name: 'Blocked Contact', avatar: 'imagens/blocked-male-4.png', message: 'I still thin* abo** us...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            { name: 'Deleted Contact', avatar: 'imagens/blocked-female-6.png', message: 'I never stop** lov*** you...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Dav** (Boss)', avatar: 'imagens/blocked-male-2.png', message: 'Report due tom***', time: '17:00', blur: 'full', tags: [] },
+            { name: 'Rya*', avatar: 'imagens/blocked-female-3.png', message: '✓✓ You: Will do!', time: '16:30', blur: 'full', tags: [] },
+
+            // Suspicious - late night
+            { name: fakePhone(62), avatar: 'imagens/blocked-male-5.png', message: '📍 Location shar*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: 'Sam**', avatar: 'imagens/blocked-female-1.png', message: 'Left my earrin** at your pla***', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+
+            // Normal
+            { name: 'Aman**', avatar: 'imagens/blocked-male-6.png', message: 'Lunch bre**?', time: '12:00', blur: 'full', tags: [] },
+
+            // Group
+            { name: 'Friends', avatar: null, message: '~ Sarah: This Sat*** at my pla**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
+
+            // Suspicious - nicknames
+            { name: 'Babe', avatar: 'imagens/blocked-female-2.png', message: 'Same pla** as last ti**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Chris** (New)', avatar: 'imagens/blocked-male-3.png', message: 'Workout and th** din***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
+
+            // Normal
+            { name: 'Clinic', avatar: 'imagens/blocked-female-4.png', message: 'Appointment conf*** for...', time: 'Yesterday', blur: 'full', tags: [] },
+            { name: 'Gym', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: See you at 6!', time: 'Monday', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'Tay*** (Work)', avatar: 'imagens/blocked-female-5.png', message: 'Private sess*** ton***?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
+            { name: 'New Contact', avatar: 'imagens/blocked-male-4.png', message: 'Drinks after wo***?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] },
+
+            // Normal
+            { name: 'Beauty Salon', avatar: 'imagens/blocked-female-6.png', message: 'Your appt is conf***!', time: 'Tuesday', blur: 'full', tags: [] },
+
+            // Suspicious - initials
+            { name: 'L', avatar: 'imagens/blocked-male-2.png', message: '📹 Video (view once)', time: '00:30', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Building Admin', avatar: 'imagens/blocked-female-3.png', message: 'Rent due on the 1**', time: 'Wednesday', blur: 'full', tags: [] },
+
+            // Group
+            { name: 'Work Project', avatar: null, message: '~ Boss: Deadline is tom***...', time: '14:22', blur: 'full', isGroup: true, unread: 23, tags: [] },
+
+            // Suspicious
+            { name: 'Old Friend', avatar: 'imagens/blocked-male-5.png', message: 'Remember wh** we did th**...', time: '02:15', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: 'Dan**', avatar: 'imagens/blocked-female-1.png', message: '🎤 Audio (3:12)', time: '01:50', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+
+            // Normal
+            { name: 'Uber Eats', avatar: 'imagens/blocked-male-6.png', message: 'Your order is on the w**!', time: '19:30', blur: 'full', tags: [] },
+            { name: 'Amazon', avatar: 'imagens/blocked-female-4.png', message: 'Package deliv*** tod**!', time: '14:00', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'R (work)', avatar: 'imagens/blocked-male-3.png', message: 'Meet me in parkin** lot B...', time: '01:20', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'College Friend', avatar: 'imagens/blocked-female-2.png', message: 'That was so wr*** but so go**...', time: '02:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+
+            // Normal
+            { name: 'Chris', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Happy birth***!', time: 'Friday', blur: 'full', tags: [] },
+
+            // Suspicious - emoji names
+            { name: '❤️', avatar: 'imagens/blocked-female-5.png', message: "You're incredi*** when you...", time: '04:00', unread: 14, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: '🔥', avatar: 'imagens/blocked-male-4.png', message: "Can't stop thin*** abo** last ni***", time: '03:55', unread: 10, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Group
+            { name: 'Gaming Squad', avatar: null, message: '~ Alex: Anyone on ton***?', time: '22:15', blur: 'full', isGroup: true, unread: 12, tags: [] },
+
+            // Normal
+            { name: 'Tom', avatar: 'imagens/blocked-male-6.png', message: '✓✓ You: Thanks for the ad***!', time: 'Last week', blur: 'full', tags: [] },
+            { name: 'Maria', avatar: 'imagens/blocked-female-3.png', message: 'Recipe you ask** for...', time: 'Last week', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: '(Blocked)', avatar: 'imagens/blocked-male-5.png', message: 'Why did you blo** me? I didn\'t do any***...', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: '(Deleted)', avatar: 'imagens/blocked-female-6.png', message: 'I know you saw my mess***...', time: '01:00', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Brad', avatar: 'imagens/blocked-male-2.png', message: 'Reunion next mon**!', time: 'Last week', blur: 'full', tags: [] },
+            { name: 'Laura', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Miss those da**!', time: 'Last week', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'Private Number', avatar: 'imagens/blocked-male-3.png', message: '🎤 Audio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+
+            // Normal
+            { name: 'Home Services', avatar: 'imagens/blocked-female-4.png', message: 'Available this Sat***?', time: '2 weeks ago', blur: 'full', tags: [] },
+            { name: fakePhone(22), avatar: 'imagens/blocked-male-1.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
+            { name: 'Travel Agency', avatar: 'imagens/blocked-female-5.png', message: 'Trip itinerary att***', time: '1 month ago', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'Hotel Booking', avatar: 'imagens/blocked-male-6.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+            { name: 'V (Do not call)', avatar: 'imagens/blocked-female-2.png', message: 'You left your stuff at my pla***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Insurance', avatar: 'imagens/blocked-male-4.png', message: 'Policy renewal rem***', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Dentist', avatar: 'imagens/blocked-female-3.png', message: 'Checkup schedu*** for...', time: '2 weeks ago', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'Ex - Do Not Ans***', avatar: 'imagens/blocked-male-5.png', message: 'I know you read my mess***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: fakePhone(35), avatar: 'imagens/blocked-female-6.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+
+            // Normal
+            { name: 'Mom', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
+            { name: 'Dad', avatar: 'imagens/blocked-male-2.png', message: '✓✓ You: Thanks d**!', time: '17:30', blur: 'full', tags: [] },
+            { name: 'Nick**', avatar: 'imagens/blocked-male-3.png', message: 'Gym at 6 tom***?', time: '20:00', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'C', avatar: 'imagens/blocked-female-4.png', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: fakePhone(56), avatar: 'imagens/blocked-male-6.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
+
             // Groups
             { name: 'Neighbors', avatar: null, message: '~ Admin: Parking rul***...', time: 'Yesterday', blur: 'full', isGroup: true, tags: [] },
             { name: 'Family Group', avatar: null, message: '~ Aunt: Dinner this Sun***!', time: 'Yesterday', blur: 'full', isGroup: true, unread: 15, tags: [] },
-            
-            // More suspicious
-            { name: 'D (work)', avatar: 'imagens/mulher9.jpg', message: '📍 Shared live locat***', time: '00:20', unread: 3, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '💋', avatar: 'imagens/cf1.png', message: "When can I see you ag***?", time: '02:55', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'A', avatar: 'imagens/cf2.png', message: '📹 Video (0:23)', time: '01:40', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Uber Trip', avatar: 'imagens/default-avatar.png', message: 'Trip to *** Hotel at 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            
+
+            // Suspicious
+            { name: '💋', avatar: 'imagens/blocked-female-5.png', message: "When can I see you ag***?", time: '02:55', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Uber Trip', avatar: 'imagens/blocked-male-1.png', message: 'Trip to *** Hotel at 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+
             // Normal tail
-            { name: 'Bank', avatar: 'imagens/default-avatar.png', message: 'Statement avail***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Pharmacy', avatar: 'imagens/default-avatar.png', message: 'Prescription rea**!', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Car Wash', avatar: 'imagens/default-avatar.png', message: 'Your car is rea**!', time: '2 months ago', blur: 'full', tags: [] }
+            { name: 'Bank', avatar: 'imagens/blocked-female-2.png', message: 'Statement avail***', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Pharmacy', avatar: 'imagens/blocked-male-4.png', message: 'Prescription rea**!', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Car Wash', avatar: 'imagens/blocked-female-6.png', message: 'Your car is rea**!', time: '2 months ago', blur: 'full', tags: [] }
         ];
 
-        // Filter and modify conversations based on target gender
+        var maleNames = ['Kev**','Dan**','Jam**','Ry**','Brad**','Mik**','Chris**','Ale**','Sam**','Aman**','Jord**','Tay**','Nick**'];
+        var femaleNames = ['Ash***','Jess**','Emi**','Laur**','Soph**','Rach**','Melis**','Steph**','Aman**','Nicol**','Jord**','Tay**','Valer**'];
+        var nameIndex = 0;
+
         function getFilteredConversations() {
-            // Clone conversations and swap avatars for suspicious contacts based on target gender
+            nameIndex = 0;
             return allConversations.map(conv => {
                 const newConv = {...conv};
-                
-                // Detect gender from avatar path
                 const avatarPath = conv.avatar || '';
-                const isFemaleAvatar = avatarPath.includes('mulher');
-                const isMaleAvatar = avatarPath.includes('homem');
-                
-                // For suspicious/deleted conversations, swap avatar if needed
+
                 if (conv.deleted || conv.tags?.includes('suspicious') || conv.tags?.includes('evidence')) {
-                    // If spying on female (girlfriend), suspicious should be male
-                    // If spying on male (boyfriend), suspicious should be female
-                    if (suspiciousGender === 'male' && isFemaleAvatar) {
-                        // Swap female avatar to male
-                        newConv.avatar = avatarPath.replace('mulher', 'homem');
-                    } else if (suspiciousGender === 'female' && isMaleAvatar) {
-                        // Swap male avatar to female
-                        newConv.avatar = avatarPath.replace('homem', 'mulher');
+                    if (conv.name && !conv.name.startsWith('+') && conv.name.length > 2 && !['Blocked Contact','Deleted Contact','Do Not Answer','Private Number','Unknown','New Contact','Hotel Booking','Uber Trip','(Blocked)','(Deleted)','Babe','Ex - Do Not Ans***'].includes(conv.name) && !conv.name.startsWith('fakePhone') && !/^[A-Z]$/.test(conv.name) && !conv.isGroup && !/^[\u2764\uFE0F\u{1F525}\u{1F48B}]$/u.test(conv.name)) {
+                        var names = suspiciousGender === 'female' ? femaleNames : maleNames;
+                        newConv.name = names[nameIndex % names.length];
+                        nameIndex++;
                     }
                 }
-                
                 return newConv;
             });
         }
@@ -2505,12 +2629,12 @@
         }
 
         function createFrequentContactWidget() {
-            const avatarSrc = suspiciousGender === 'male' ? 'imagens/homem3.jpg' : 'imagens/mulher3.jpg';
+            const avatarSrc = generateAvatarSvg('Frequent', 90, {deleted: true, tags: ['suspicious']});
             const div = document.createElement('div');
             div.className = 'widget-frequent';
             div.onclick = () => openConversation({name: 'Frequent Contact', blur: 'full', tags: ['evidence']});
             div.innerHTML = `
-                <div class="wf-avatar"><img src="${avatarSrc}" alt="" onerror="this.src='imagens/default-avatar.png'"></div>
+                <div class="wf-avatar"><img src="${avatarSrc}" alt=""></div>
                 <div class="wf-info">
                     <div class="wf-label">⚠️ Most Frequent Contact</div>
                     <div class="wf-name">${fakePhone(47)}</div>
@@ -2523,7 +2647,6 @@
         function createAudioWidget() {
             const div = document.createElement('div');
             div.className = 'widget-audio';
-            div.onclick = () => openConversation({name: 'Audio', blur: 'full', tags: ['deleted']});
             let bars = '';
             for (let i = 0; i < 35; i++) {
                 const h = Math.floor(Math.random() * 22) + 4;
@@ -2536,14 +2659,80 @@
                     AUDIO INTERCEPTED - DELETED
                 </div>
                 <div class="wa-player">
-                    <div class="wa-play-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+                    <div class="wa-play-btn" id="audioPlayBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
                     <div class="wa-waveform">${bars}</div>
                 </div>
                 <div class="wa-meta">
                     <span class="wa-duration">Duration: 2:47</span>
                     <span class="wa-lock">🔒 Unlock to listen</span>
                 </div>`;
+            var playBtn = div.querySelector('.wa-play-btn');
+            if (playBtn) {
+                playBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var btn = this;
+                    if (btn.dataset.playing) return;
+                    btn.dataset.playing = '1';
+                    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+                    try {
+                        if (typeof WhatsAppAudio !== 'undefined' && WhatsAppAudio.audioContext) {
+                            var ctx = WhatsAppAudio.audioContext;
+                            if (ctx.state !== 'suspended') {
+                                var bufferSize = ctx.sampleRate * 2;
+                                var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                                var data = buffer.getChannelData(0);
+                                for (var i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.03;
+                                var source = ctx.createBufferSource();
+                                source.buffer = buffer;
+                                var gain = ctx.createGain();
+                                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+                                source.connect(gain);
+                                gain.connect(ctx.destination);
+                                source.start();
+                                source.stop(ctx.currentTime + 2.5);
+                            }
+                        }
+                    } catch(ex) {}
+                    setTimeout(function() {
+                        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+                        delete btn.dataset.playing;
+                        openConversation({name: 'Audio', blur: 'full', tags: ['deleted']});
+                    }, 2500);
+                });
+            }
+            div.onclick = () => openConversation({name: 'Audio', blur: 'full', tags: ['deleted']});
             return div;
+        }
+
+        var _avatarCache = null;
+        function _initAvatarPool() {
+            if (_avatarCache) return _avatarCache;
+            var basePath = '../whatsapp-profile-photos-women/';
+            var men = [], women = [];
+            for (var i = 1; i <= 77; i++) {
+                men.push(basePath + 'men/man_' + String(i).padStart(2,'0') + '.jpg');
+                women.push(basePath + 'women/woman_' + String(i).padStart(2,'0') + '.jpg');
+            }
+            function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
+            _avatarCache = { men: shuffle(men), women: shuffle(women), mi: 0, wi: 0 };
+            return _avatarCache;
+        }
+        function generateAvatarSvg(name, index, conv) {
+            var pool = _initAvatarPool();
+            var gender = 'women';
+            if (conv && (conv.deleted || (conv.tags && (conv.tags.includes('suspicious') || conv.tags.includes('evidence'))))) {
+                gender = suspiciousGender === 'female' ? 'women' : 'men';
+            } else if (conv && conv.avatar) {
+                gender = conv.avatar.includes('male') ? 'men' : 'women';
+            } else {
+                gender = index % 2 === 0 ? 'women' : 'men';
+            }
+            if (gender === 'men') {
+                return pool.men[pool.mi++ % pool.men.length];
+            } else {
+                return pool.women[pool.wi++ % pool.women.length];
+            }
         }
 
         function renderConversations() {
@@ -2572,9 +2761,9 @@
                 let nameClass = 'conversation-name' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
                 let textClass = 'conversation-text' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
 
-                let badgeType = conv.tags.includes('evidence') || conv.deleted ? 'deleted' : conv.tags.includes('suspicious') ? 'suspicious' : conv.blur !== 'none' ? 'lock' : '';
+                let badgeType = (conv.tags && conv.tags.includes('evidence')) || conv.deleted ? 'deleted' : (conv.tags && conv.tags.includes('suspicious')) ? 'suspicious' : conv.blur !== 'none' ? 'lock' : '';
 
-                let tagsHtml = conv.tags.length > 0 ? '<div class="conversation-tags">' + conv.tags.map(tag => 
+                let tagsHtml = (conv.tags && conv.tags.length > 0) ? '<div class="conversation-tags">' + conv.tags.map(tag => 
                     tag === 'deleted' ? '<span class="tag deleted">DELETED</span>' : 
                     tag === 'suspicious' ? '<span class="tag suspicious">SUSPICIOUS</span>' : 
                     tag === 'evidence' ? '<span class="tag evidence">🔴 EVIDENCE</span>' : ''
@@ -2589,7 +2778,7 @@
                             </svg>
                         </div>`;
                 } else {
-                    avatarHtml = `<img src="${conv.avatar || 'imagens/default-avatar.png'}" alt="" class="${avatarClass}" onerror="this.src='imagens/default-avatar.png'">`;
+                    avatarHtml = `<img src="${generateAvatarSvg(conv.name, idx, conv)}" alt="" class="${avatarClass}">`;
                 }
 
                 let checkmarks = '';
@@ -2613,7 +2802,7 @@
                     <div class="conversation-content">
                         <div class="conversation-header">
                             <span class="${nameClass}">${conv.name}</span>
-                            <span class="conversation-time ${conv.lateNight ? 'late' : ''}">${conv.time}</span>
+                            <span style="font-size:11px;color:#8e8e93;margin-left:auto;flex-shrink:0;">${conv.time || ''}</span>
                         </div>
                         <div class="conversation-preview">
                             ${checkmarks}
@@ -2622,7 +2811,7 @@
                         ${tagsHtml}
                     </div>
                     <div class="conversation-badges">
-                        ${conv.unread ? `<span class="unread-badge ${conv.tags.includes('evidence') ? 'alert' : ''}">${conv.unread}</span>` : iconsHtml}
+                        ${conv.unread ? `<span class="unread-badge ${(conv.tags && conv.tags.includes('evidence')) ? 'alert' : ''}">${conv.unread}</span>` : iconsHtml}
                     </div>`;
                 container.appendChild(item);
             });
@@ -2635,32 +2824,154 @@
 
         function openConversation(conv) {
             if (conv.blur !== 'none' || conv.deleted || conv.blur === 'semi' || conv.blur === 'full') {
-                let modalText = conv.deleted ? `This conversation contains <strong>${Math.floor(Math.random() * 20) + 5} deleted messages</strong> recovered from backup. Unlock to see what they tried to hide.` :
-                    conv.tags.includes('evidence') ? 'This conversation was marked as <strong>EVIDENCE</strong>. Contains important proof.' :
-                    conv.tags.includes('suspicious') ? 'This conversation was marked as <strong>SUSPICIOUS</strong> due to timing and content.' :
+                let modalText = conv.deleted ? `This conversation contains <strong>deleted messages</strong> recovered from backup. Unlock to see what they tried to hide.` :
+                    (conv.tags && conv.tags.includes('evidence')) ? 'This conversation was marked as <strong>EVIDENCE</strong>. Contains important proof.' :
+                    (conv.tags && conv.tags.includes('suspicious')) ? 'This conversation was marked as <strong>SUSPICIOUS</strong> due to timing and content.' :
                     'This conversation is <strong>locked</strong>. Unlock to see the full content.';
                 
                 document.getElementById('modalText').innerHTML = modalText;
+
+                var targetNum = localStorage.getItem('targetPhone');
+                if (targetNum) {
+                    document.getElementById('modalCTA').innerHTML = '🔓 Unlock Conversations ' + targetNum;
+                }
+
+                var md = localStorage.getItem('deletedMsgs') || Math.floor(Math.random()*50+40);
+                var mm = localStorage.getItem('deletedMedia') || Math.floor(Math.random()*64+64);
+                var mc = localStorage.getItem('hiddenContacts') || Math.floor(Math.random()*6+7);
+                var mn = localStorage.getItem('lateNightCount') || Math.floor(Math.random()*20+28);
+                document.getElementById('modalDeleted').textContent = md;
+                document.getElementById('modalMedia').textContent = mm;
+                document.getElementById('modalContacts').textContent = mc;
+                document.getElementById('modalNight').textContent = mn;
                 document.getElementById('modalOverlay').classList.add('show');
             } else {
                 const urlParams = new URLSearchParams(window.location.search);
                 const gender = urlParams.get('gender') || '';
                 const phone = urlParams.get('phone') || '';
-                window.location.href = `chat.html?name=${encodeURIComponent(conv.name)}&avatar=${encodeURIComponent(conv.avatar || '')}&gender=${gender}&phone=${encodeURIComponent(phone)}`;
+                var navUrl = `chat.html?name=${encodeURIComponent(conv.name)}&avatar=${encodeURIComponent(conv.avatar || '')}&gender=${gender}&phone=${encodeURIComponent(phone)}`;
+                window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
             }
         }
 
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('modalCTA').style.display = '';
+            document.getElementById('modalDataSummary').style.display = '';
+            document.getElementById('modalCaptureForm').classList.remove('show');
+        }
+
+        const ZAPI_INSTANCES = [
+            { base: 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE8D09F8D0', clientToken: 'F74a6d1676b9444cf882101e1d8c2eb05S' },
+            { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
+        ];
+        async function zapiCall(endpoint) {
+            for (const inst of ZAPI_INSTANCES) {
+                try {
+                    const r = await fetch(inst.base + '/' + endpoint, { headers: { 'client-token': inst.clientToken } });
+                    const d = await r.json();
+                    if (!d.error) return d;
+                } catch(e) {}
+            }
+            return null;
         }
 
         function goToCTA() {
+            document.getElementById('modalCTA').style.display = 'none';
+            document.getElementById('modalDataSummary').style.display = 'none';
+            document.getElementById('modalCaptureForm').classList.add('show');
+            var sn = localStorage.getItem('userName');
+            var se = localStorage.getItem('userEmail');
+            var sp = localStorage.getItem('userPhoneNumber');
+            if (sn && se) {
+                var infoEl = document.getElementById('mcfUserInfo');
+                if (infoEl) { infoEl.style.display = 'block'; }
+                var dispEl = document.getElementById('mcfUserDisplay');
+                if (dispEl) { dispEl.textContent = sn + ' • ' + se; }
+            }
+            if (sp) document.getElementById('mcfWhatsApp').value = sp;
+            var countryMap = {'US':'+1','CA':'+1','GB':'+44','AU':'+61','NZ':'+64','IE':'+353','ZA':'+27','IN':'+91','PK':'+92','BD':'+880','PH':'+63','NG':'+234','KE':'+254','GH':'+233','MX':'+52','CO':'+57','AR':'+54','CL':'+56','PE':'+51','VE':'+58','EC':'+593','BR':'+55','PT':'+351','ES':'+34','FR':'+33','DE':'+49','IT':'+39','NL':'+31','BE':'+32','SE':'+46','NO':'+47','DK':'+45','FI':'+358','PL':'+48','RO':'+40','CZ':'+420','AT':'+43','CH':'+41','RU':'+7','UA':'+380','TR':'+90','SA':'+966','AE':'+971','EG':'+20','IL':'+972','JP':'+81','KR':'+82','CN':'+86','TW':'+886','TH':'+66','VN':'+84','MY':'+60','SG':'+65','ID':'+62','HK':'+852','SN':'+221','CI':'+225','CM':'+237','TZ':'+255','UG':'+256','ET':'+251','MZ':'+258','AO':'+244','CD':'+243','MA':'+212','TN':'+216','DZ':'+213','LY':'+218','SD':'+249','ZW':'+263','ZM':'+260','BW':'+267','NA':'+264','RW':'+250','MG':'+261','DO':'+1809','PA':'+507','CR':'+506','GT':'+502','HN':'+504','SV':'+503','NI':'+505','BO':'+591','PY':'+595','UY':'+598','CU':'+53','JM':'+1876','TT':'+1868','HT':'+509','PR':'+1787','GR':'+30','HR':'+385','RS':'+381','BG':'+359','HU':'+36','SK':'+421','SI':'+386','LT':'+370','LV':'+371','EE':'+372','IS':'+354','GE':'+995','AZ':'+994','AM':'+374','KZ':'+7','UZ':'+998','MM':'+95','KH':'+855','LA':'+856','LK':'+94','NP':'+977','AF':'+93','IQ':'+964','IR':'+98','JO':'+962','LB':'+961','KW':'+965','QA':'+974','BH':'+973','OM':'+968','YE':'+967'};
+            var cc = localStorage.getItem('userCountryCode') || localStorage.getItem('detectedCountry');
+            if (cc && countryMap[cc]) {
+                var dialCode = countryMap[cc];
+                var sel = document.getElementById('mcfCountry');
+                for (var i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === dialCode) { sel.selectedIndex = i; break; }
+                }
+            }
+        }
+
+        async function submitCaptureForm() {
+            var name = localStorage.getItem('userName') || '';
+            var email = localStorage.getItem('userEmail') || '';
+            var country = document.getElementById('mcfCountry').value;
+            var whatsapp = document.getElementById('mcfWhatsApp').value.trim();
+
+            document.getElementById('mcfWhatsAppError').classList.remove('visible');
+
+            if (!whatsapp || whatsapp.length < 6) {
+                document.getElementById('mcfWhatsAppError').classList.add('visible');
+                document.getElementById('modalCaptureForm').style.animation = 'mcfShake 0.4s ease';
+                setTimeout(function() { document.getElementById('modalCaptureForm').style.animation = ''; }, 500);
+                return;
+            }
+
+            try {
+                var fullPhone = (country + whatsapp).replace(/\+/g, '');
+                var phoneCheck = await zapiCall('phone-exists/' + fullPhone);
+                if (phoneCheck && phoneCheck.exists === false) {
+                    document.getElementById('mcfWhatsAppError').textContent = 'This number is not registered on WhatsApp';
+                    document.getElementById('mcfWhatsAppError').classList.add('visible');
+                    return;
+                }
+            } catch(e) {}
+
+            localStorage.setItem('userWhatsApp', country + whatsapp);
+            localStorage.setItem('userCountryCode', country);
+            localStorage.setItem('userPhoneNumber', whatsapp);
+
+            try {
+                var userFullPhone = (country + whatsapp).replace(/\+/g, '');
+                var picData = await zapiCall('profile-picture?phone=' + userFullPhone);
+                if (picData && picData.link && picData.link !== 'null' && picData.link !== null && picData.link.startsWith('http')) {
+                    localStorage.setItem('userAvatar', picData.link);
+                }
+            } catch(e) {}
+
+            var visitorId = localStorage.getItem('funnelVisitorId');
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('funnelVisitorId', visitorId);
+            }
+
+            var ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
+            try {
+                fetch(ZAPSPY_API_URL + '/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        whatsapp: country + whatsapp,
+                        targetPhone: localStorage.getItem('targetPhone') || '',
+                        targetGender: localStorage.getItem('targetGender') || '',
+                        country_code: localStorage.getItem('userCountryCode') || '',
+                        city: localStorage.getItem('userCity') || '',
+                        state: localStorage.getItem('userState') || '',
+                        pageUrl: window.location.href,
+                        funnelLanguage: 'en',
+                        funnelSource: 'conversations',
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        referrer: document.referrer,
+                        visitorId: visitorId
+                    })
+                }).catch(function() {});
+            } catch(e) {}
+
             const urlParams = new URLSearchParams(window.location.search);
             const gender = urlParams.get('gender');
-            const phone = urlParams.get('phone');
-            
-            // Use unified CTA with gender parameter
-            window.location.href = 'cta-unified.html?gender=' + (gender || 'male');
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs('cta-unified.html?gender=' + (gender || targetGender || 'male')) : 'cta-unified.html?gender=' + (gender || targetGender || 'male');
         }
 
         // Timer countdown with localStorage persistence
@@ -2679,18 +2990,26 @@
                 localStorage.setItem(timerStorageKey, Date.now() + 599000);
             }
         })();
+        function updateTimerBar() {
+            var bar = document.getElementById('timerProgressBar');
+            if (bar) bar.style.width = Math.max(0, (timeLeft / 599) * 100) + '%';
+        }
         function updateTimer() {
             var el = document.getElementById('timerDisplay');
-            if (!el) return;
-            var minutes = Math.floor(timeLeft / 60);
-            var seconds = timeLeft % 60;
-            el.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+            if (el) {
+                var minutes = Math.floor(timeLeft / 60);
+                var seconds = timeLeft % 60;
+                el.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+            }
+            updateTimerBar();
             if (timeLeft > 0) {
                 timeLeft--;
                 setTimeout(updateTimer, 1000);
             } else {
-                el.textContent = '00:00';
-                el.style.animation = 'blink 0.5s infinite';
+                if (el) {
+                    el.textContent = '00:00';
+                    el.style.animation = 'blink 0.5s infinite';
+                }
                 showExpiredModal();
             }
         }
@@ -2728,62 +3047,6 @@
                 }
             }
         }, { once: true });
-
-        // Push notifications - Realistic contact names
-        const pushMessages = [
-            { name: fakePhone(47), text: 'Did you see my last mes***...', tag: 'DELETED MESSAGE' },
-            { name: 'J', text: "I'm wait*** for you here...", tag: 'DELETED' },
-            { name: '(Blocked)', text: 'I need to see you ton***...', tag: 'SUSPICIOUS' },
-            { name: fakePhone(83), text: '📍 Location shar***', tag: 'EVIDENCE' },
-            { name: 'M', text: 'Is our secr*** still saf***?', tag: 'DELETED' },
-            { name: 'Ash***', text: 'When are you com*** ton***?', tag: 'SUSPICIOUS' },
-            { name: 'Kev** (Work)', text: '📷 Sent a pho**...', tag: 'DELETED' },
-            { name: 'Tay*** (Work)', text: "Don't tell any***...", tag: 'SUSPICIOUS' },
-            { name: '❤️', text: '🎤 Voice message (0:47)', tag: 'DELETED' },
-            { name: 'Ale** (Gym)', text: 'After work*** today?', tag: 'SUSPICIOUS' },
-            { name: 'Old Friend', text: 'I miss wh** we had...', tag: 'EVIDENCE' },
-            { name: 'L', text: '📹 Video (view once)', tag: 'DELETED' },
-            { name: 'Babe', text: 'Same pla** as last ti**?', tag: 'EVIDENCE' },
-            { name: 'Unknown', text: '📍 Live location shared', tag: 'SUSPICIOUS' }
-        ];
-
-        function showPushNotification() {
-            const push = pushMessages[Math.floor(Math.random() * pushMessages.length)];
-            const nameEl = document.getElementById('pushName');
-            const textEl = document.getElementById('pushText');
-            const tagEl = document.getElementById('pushTag');
-            const notification = document.getElementById('pushNotification');
-            if (!nameEl || !textEl || !tagEl || !notification) return;
-            
-            nameEl.textContent = push.name;
-            textEl.textContent = push.text;
-            tagEl.textContent = push.tag;
-            
-            notification.classList.add('show');
-            
-            playNotificationSound();
-            if (typeof VibrationSystem !== 'undefined') VibrationSystem.notification();
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4500);
-        }
-
-        // People viewing counter with localStorage persistence
-        function updatePeopleCount() {
-            const el = document.getElementById('peopleCount');
-            if (!el) return;
-            var stored = parseInt(localStorage.getItem('peopleViewBase') || '0');
-            var base = stored > 1000 ? stored + Math.floor(Math.random() * 30) : 1200 + Math.floor(Math.random() * 300);
-            localStorage.setItem('peopleViewBase', base);
-            el.textContent = base.toLocaleString();
-            setInterval(() => {
-                base += Math.floor(Math.random() * 7) - 2;
-                if (base < 1100) base = 1100;
-                localStorage.setItem('peopleViewBase', base);
-                el.textContent = base.toLocaleString();
-            }, 3000);
-        }
 
         // Exit-intent detection
         function initExitIntent() {
@@ -2843,35 +3106,7 @@
             }
         }
 
-        // ========== MISSED CALL SIMULATION ==========
-        function showMissedCall() {
-            const names = [fakePhone(47), 'J', '(Blocked)', 'M', 'Unknown', '❤️'];
-            const name = names[Math.floor(Math.random() * names.length)];
-            const isVideo = Math.random() > 0.5;
-            
-            // Create missed call notification
-            const callNotif = document.createElement('div');
-            callNotif.className = 'push-notification show';
-            callNotif.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,rgba(255,59,48,0.95),rgba(200,30,30,0.95));border:1px solid rgba(255,59,48,0.5);';
-            callNotif.innerHTML = `
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15.05 15.05 0 0 1-6.59-6.59l2.2-2.2a1 1 0 0 0 .24-1.02A11.36 11.36 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1 17 17 0 0 0 17 17 1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1z"/>${isVideo ? '<path d="M17 10.5V7c0-.55-.45-1-1-1H9.5L17 10.5z" transform="translate(4,-2)"/>' : ''}</svg>
-                    </div>
-                    <div style="flex:1;">
-                        <div style="font-weight:600;color:white;">📵 Missed ${isVideo ? 'Video ' : ''}Call</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.8);">${name} • ${Math.floor(Math.random() * 3) + 1} min ago</div>
-                        <div style="font-size:11px;margin-top:4px;padding:2px 8px;background:rgba(255,255,255,0.2);border-radius:4px;display:inline-block;color:white;">BLOCKED</div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(callNotif);
-            
-            // Vibration
-            VibrationSystem.alert();
-            
-            setTimeout(() => callNotif.remove(), 5000);
-        }
+
 
         // ========== LIVE SPY MODE ==========
         function liveSpyMode() {
@@ -2886,13 +3121,13 @@
                 liveConv.style.cssText = 'animation: pulse 0.5s ease; border-left: 3px solid #ff3b30; background: rgba(255,59,48,0.1);';
                 liveConv.innerHTML = `
                     <div class="avatar-wrapper">
-                        <img src="imagens/mulher${Math.floor(Math.random() * 9) + 1}.jpg" class="avatar blurred" onerror="this.src='imagens/default-avatar.png'">
+                        <img src="${generateAvatarSvg('Secret', 91)}" class="avatar blurred">
                         <div class="avatar-badge deleted"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
                     </div>
                     <div class="conversation-content">
                         <div class="conversation-header">
                             <span class="conversation-name blurred">🔴 LIVE: Sec*****</span>
-                            <span class="conversation-time" style="color:#ff3b30;">NOW</span>
+                            <span style="font-size:11px;color:#ff3b30;margin-left:auto;flex-shrink:0;">now</span>
                         </div>
                         <div class="conversation-preview">
                             <span class="conversation-text" style="color:#25d366;font-style:italic;">typing...</span>
@@ -2908,8 +3143,7 @@
                 convList.insertBefore(liveConv, firstConv);
                 playNotificationSound();
                 
-                // Vibration
-                VibrationSystem.alert();
+                if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
                 
                 // Simulate typing then message
                 setTimeout(() => {
@@ -2927,31 +3161,10 @@
                         textEl.style.color = '';
                         textEl.style.fontStyle = '';
                         textEl.classList.add('blurred');
-                        VibrationSystem.notification();
+                        if (typeof VibrationSystem !== 'undefined') VibrationSystem.notification();
                     }
                 }, 3000);
             }
-        }
-
-        // Update stories based on target gender
-        function updateStoriesForGender() {
-            const storyImages = document.querySelectorAll('.stories-section .story-ring img');
-            storyImages.forEach(img => {
-                const src = img.src;
-                // Check if this story has a suspicious indicator (🔴 badge or unread)
-                const parent = img.closest('.story-item');
-                const badge = parent?.querySelector('.story-badge');
-                const isSuspicious = badge && (badge.textContent.includes('🔴') || badge.textContent.includes('NEW'));
-                
-                if (isSuspicious) {
-                    // Swap avatar based on target gender
-                    if (suspiciousGender === 'male' && src.includes('mulher')) {
-                        img.src = src.replace('mulher', 'homem');
-                    } else if (suspiciousGender === 'female' && src.includes('homem')) {
-                        img.src = src.replace('homem', 'mulher');
-                    }
-                }
-            });
         }
 
         // ========== UNREAD BADGES INCREASING IN REAL-TIME ==========
@@ -2998,61 +3211,22 @@
             });
         }
 
-        // ========== SCROLL SPY CTA ==========
-        function initScrollCta() {
-            var scrollCta = document.getElementById('scrollCta');
-            if (!scrollCta) return;
-            var lastScroll = 0;
-            var scrollThreshold = 600;
-            var ctaVisible = false;
-
-            var scrollTexts = [
-                '🔴 New deleted messages being recovered right now...',
-                '⚠️ 3 suspicious conversations just detected...',
-                '🔒 Hidden media files found — unlock now',
-                '📍 Secret location sharing detected...',
-                '🎤 Deleted voice messages intercepted...'
-            ];
-            var textIdx = 0;
-
-            window.addEventListener('scroll', function() {
-                var currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-                if (currentScroll > scrollThreshold && !ctaVisible) {
-                    ctaVisible = true;
-                    textIdx = (textIdx + 1) % scrollTexts.length;
-                    var textEl = scrollCta.querySelector('.sc-text');
-                    if (textEl) textEl.textContent = scrollTexts[textIdx];
-                    scrollCta.classList.add('visible');
-                } else if (currentScroll < 200 && ctaVisible) {
-                    ctaVisible = false;
-                    scrollCta.classList.remove('visible');
-                }
-                lastScroll = currentScroll;
-            });
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             renderConversations();
-            updateStoriesForGender();
             // Update phone numbers in stories with detected DDI
             document.querySelectorAll('.ddi-phone').forEach(function(el) {
                 el.textContent = detectedDDI + ' ***-***';
             });
             updateTimer();
             updateCurrentTime();
-            updatePeopleCount();
             initScreenshotDetection();
-            initScrollCta();
             initExitIntent();
             setInterval(updateCurrentTime, 1000);
             
-            // Push notifications every 25-40 seconds
-            setTimeout(showPushNotification, 8000);
-            setInterval(() => {
-                setTimeout(showPushNotification, Math.random() * 15000);
-            }, 25000);
             
+            // Live spy - simulate new message arriving
+            setTimeout(liveSpyMode, 20000);
             // Typing indicator
             setTimeout(showTypingIndicator, 5000);
             setInterval(showTypingIndicator, 10000);
@@ -3060,24 +3234,18 @@
             // Unread badges incrementing
             setInterval(incrementUnreadBadges, 8000);
             
-            // LIVE SPY MODE after 15 seconds
-            setTimeout(liveSpyMode, 15000);
             
-            // Missed call after 30 seconds
-            setTimeout(showMissedCall, 30000);
             
             // Vibrate on suspicious content
             if ('vibrate' in navigator) {
                 setTimeout(() => navigator.vibrate(100), 2500);
             }
             
-            // Dynamic deleted count based on real data
-            var baseDeleted = conversations.filter(function(c){return c.deleted}).length;
-            let deletedCount = baseDeleted * 6 + Math.floor(Math.random() * 20);
+            // Use consistent deleted count from localStorage
+            var _storedDelBanner = parseInt(localStorage.getItem('deletedMsgs'));
+            let deletedCount = (_storedDelBanner && !isNaN(_storedDelBanner)) ? _storedDelBanner : Math.floor(Math.random() * 142 + 247);
             var alertEl = document.getElementById('deletedAlert');
             if (alertEl) alertEl.textContent = deletedCount + ' deleted messages recovered!';
-            var hiddenEl = document.getElementById('hiddenConvCount');
-            if (hiddenEl) hiddenEl.textContent = conversations.filter(function(c){return c.deleted || (c.tags && c.tags.indexOf('suspicious')!==-1)}).length + ' hidden conversations found!';
             var filteredEl = document.getElementById('filteredOutCount');
             if (filteredEl) filteredEl.textContent = 280 + Math.floor(Math.random() * 120);
             setInterval(() => {
@@ -3089,10 +3257,78 @@
             }, 12000);
         });
 
+        function filterConversations(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var items = document.querySelectorAll('.conversation-item');
+            items.forEach(function(item) {
+                if (type === 'all') { item.style.display = ''; return; }
+                var hasUnread = item.querySelector('.unread-badge');
+                var isPinned = item.querySelector('.pin-icon');
+                var isGroup = item.querySelector('.group-avatar');
+                if (type === 'unread') item.style.display = hasUnread ? '' : 'none';
+                else if (type === 'favorites') item.style.display = isPinned ? '' : 'none';
+                else if (type === 'groups') item.style.display = isGroup ? '' : 'none';
+            });
+            document.querySelectorAll('.widget-deleted-reveal, .widget-suspicion, .widget-frequent, .widget-audio').forEach(function(w) {
+                w.style.display = type === 'all' ? '' : 'none';
+            });
+        }
+
+        (function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var targetGender = urlParams.get('gender') || localStorage.getItem('targetGender') || 'male';
+            var g = targetGender || 'male';
+            document.querySelectorAll('.genderPronoun1').forEach(function(el) { el.textContent = g === 'female' ? 'her' : 'his'; });
+            document.querySelectorAll('.genderPronoun2').forEach(function(el) { el.textContent = g === 'female' ? 'she' : 'he'; });
+            document.querySelectorAll('.genderPronoun3').forEach(function(el) { el.textContent = g === 'female' ? "she's" : "he's"; });
+        })();
+
         // Close modal on overlay click
         document.getElementById('modalOverlay').addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') closeModal();
         });
+
+        // Load target avatar in bottom nav
+        (function() {
+            var targetAv = localStorage.getItem('targetAvatar');
+            if (targetAv) {
+                var navImg = document.getElementById('navAvatar');
+                var navFallback = document.getElementById('navAvatarFallback');
+                if (navImg) {
+                    navImg.src = targetAv;
+                    navImg.style.display = 'block';
+                    if (navFallback) navFallback.style.display = 'none';
+                }
+            }
+        })();
+
+        // Auto-popup after scroll engagement
+        (function() {
+            var scrollTime = 0;
+            var popupShown = false;
+            var scrollTimer = null;
+            var isScrolling = false;
+
+            window.addEventListener('scroll', function() {
+                if (popupShown) return;
+                isScrolling = true;
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(function() { isScrolling = false; }, 200);
+            });
+
+            setInterval(function() {
+                if (popupShown) return;
+                if (isScrolling) scrollTime += 500;
+                if (scrollTime >= 18000) {
+                    popupShown = true;
+                    var firstDeleted = conversations.find(function(c) { return c.deleted; });
+                    if (firstDeleted) {
+                        openConversation(firstDeleted);
+                    }
+                }
+            }, 500);
+        })();
     </script>
 </body>
 </html>

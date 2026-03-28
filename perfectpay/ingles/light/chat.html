@@ -48,6 +48,9 @@
     } catch(e) {}
     
     fbq('init', '726299943423075', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"
@@ -65,7 +68,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Chat View');
-                FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 49);
+                FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 47);
             }
         });
     </script>
@@ -73,7 +76,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --bg-primary: #efeae2;
+            --bg-primary: #ffffff;
             --bg-secondary: #ffffff;
             --bg-tertiary: #f0f2f5;
             --text-primary: #111b21;
@@ -89,9 +92,6 @@
         html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-primary);
-            background-image: url('../imagens/whatsapp-wallpaper-light.png');
-            background-size: 420px auto;
-            background-repeat: repeat;
             color: var(--text-primary);
             min-height: 100vh;
             position: relative;
@@ -656,14 +656,16 @@
             const gender = urlParams.get('gender') || '';
             const phone = urlParams.get('phone') || '';
             
-            window.location.href = 'cta-unified.html?gender=' + (gender || 'male');
+            var navUrl = 'cta-unified.html?gender=' + (gender || 'male');
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
         }
         
         function goBack() { 
             const urlParams = new URLSearchParams(window.location.search);
             const gender = urlParams.get('gender') || '';
             const phone = urlParams.get('phone') || '';
-            window.location.href = `conversas.html?gender=${gender}&phone=${encodeURIComponent(phone)}`;
+            var navUrl = `conversas.html?gender=${gender}&phone=${encodeURIComponent(phone)}`;
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
         }
 
         const urlParams = new URLSearchParams(window.location.search);

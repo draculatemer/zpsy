@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Advertencia Final</title>
+    <title>Whats Spy - Advertencia Final</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,10 +28,12 @@
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
-    fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    fbq('init', '534495082571779', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"/></noscript>
 
     <style>
         .lc-warning-header {
@@ -205,12 +208,12 @@
     <div class="rmk-comparison">
         <div class="rmk-compare-col dimmed">
             <div class="rmk-compare-label">Regular</div>
-            <div class="rmk-compare-price">$39</div>
+            <div class="rmk-compare-price">$47</div>
             <div class="rmk-compare-note">No disponible</div>
         </div>
         <div class="rmk-compare-col highlight">
             <div class="rmk-compare-label">Precio Final</div>
-            <div class="rmk-compare-price">$19.50</div>
+            <div class="rmk-compare-price">$23.50</div>
             <div class="rmk-compare-note">&Uacute;ltima oportunidad</div>
         </div>
     </div>
@@ -220,7 +223,7 @@
     <!-- CTA -->
     <button class="rmk-cta danger" onclick="handleCheckout()">
         DESBLOQUEA AHORA ANTES DE QUE SEA TARDE
-        <span class="rmk-cta-subtitle">Guarda todas las pruebas - Solo $19.50</span>
+        <span class="rmk-cta-subtitle">Guarda todas las pruebas - Solo $23.50</span>
     </button>
 
     <!-- Trust Badges -->
@@ -274,9 +277,9 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Plataforma de Inteligencia Segura<br>
+        Whats Spy - Plataforma de Inteligencia Segura<br>
         Cuando el temporizador expire, todos los datos ser&aacute;n eliminados<br>y esta oferta no estar&aacute; disponible de nuevo.<br>
-        &copy; 2025 ZapSpy.ai. Todos los derechos reservados.
+        &copy; 2025 Whats Spy. Todos los derechos reservados.
     </div>
 
     <div style="height:80px;"></div>
@@ -285,14 +288,14 @@
 <!-- Sticky Footer CTA -->
 <div class="rmk-sticky-footer">
     <button class="rmk-cta danger" onclick="handleCheckout()">
-        &#128274; &Uacute;LTIMA OPORTUNIDAD - $19.50 (50% OFF)
+        &#128274; &Uacute;LTIMA OPORTUNIDAD - $23.50 (50% OFF)
     </button>
 </div>
 
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
-    RmkTracking.init('Remarketing - Last Chance', 'remarketing_lastchance', 19.50);
+    RmkTracking.init('Remarketing - Last Chance', 'remarketing_lastchance', 23.50);
 
     var target = RmkTracking.getTargetData();
     if (target.phone) {
@@ -364,15 +367,15 @@
         icon: '\uD83D\uDEA8',
         title: '\u00A1TODAS LAS PRUEBAS SER\u00c1N DESTRUIDAS!',
         text: '23 conversaciones ocultas, 147 mensajes eliminados y 38 fotos secretas ser\u00e1n eliminados permanentemente. Esta es tu \u00faltima oportunidad absoluta.',
-        ctaLabel: '\uD83D\uDD12 GUARDAR PRUEBAS AHORA - $19.50',
+        ctaLabel: '\uD83D\uDD12 GUARDAR PRUEBAS AHORA - $23.50',
         ctaClass: 'danger',
         ctaAction: 'handleCheckout()'
     });
 })();
 
 function handleCheckout() {
-    RmkTracking.trackInitiateCheckout(19.50, 'ZapSpy VIP - Last Chance 50% OFF');
-    var url = RmkTracking.buildCheckoutUrl('KMS455971', 19.50);
+    RmkTracking.trackInitiateCheckout(23.50, 'Whats Spy VIP - Last Chance 50% OFF');
+    var url = RmkTracking.buildCheckoutUrl('KMS455971', 23.50);
     window.location.href = url;
 }
 </script>

@@ -12,17 +12,32 @@ const TrackingUtils = {
     utmParams: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'],
     
     /**
-     * Capture UTMs from URL and save to localStorage
-     * Only saves if utm_source or utm_campaign present (fresh visit from ad)
+     * Capture UTMs from URL and save to localStorage.
+     * Never overwrites paid UTMs (FB, google, tiktok, etc.) with organic/empty values.
+     * Only a fresh ad click (with a real paid utm_source) can replace existing UTMs.
      */
     captureUTMs: function() {
         const urlParams = new URLSearchParams(window.location.search);
         
         if (urlParams.has('utm_source') || urlParams.has('utm_campaign')) {
+            var newSource = (urlParams.get('utm_source') || '').toLowerCase();
+            var existingSource = (localStorage.getItem('utm_source') || '').toLowerCase();
+            
+            var paidSources = ['fb','facebook','ig','instagram','google','gads','gclid','tiktok','tt','taboola','outbrain','bing','twitter','x','snapchat','pinterest','kwai','meta'];
+            var existingIsPaid = paidSources.some(function(s) { return existingSource.indexOf(s) !== -1; });
+            var newIsPaid = paidSources.some(function(s) { return newSource.indexOf(s) !== -1; });
+            
+            if (existingIsPaid && !newIsPaid) {
+                console.log('[TrackingUtils] Skipping UTM overwrite: keeping paid source "' + existingSource + '" over "' + newSource + '"');
+                return;
+            }
+            
+            var expDate = new Date(new Date().getTime() + 7*24*60*60*1000).toISOString();
             this.utmParams.forEach(param => {
                 const value = urlParams.get(param);
                 if (value) {
                     localStorage.setItem(param, value);
+                    localStorage.setItem(param + '_exp', expDate);
                 }
             });
             console.log('[TrackingUtils] Captured UTMs from URL:', this.getStoredUTMs());
@@ -73,6 +88,41 @@ const TrackingUtils = {
         return params.join('&');
     },
     
+    /**
+     * Append stored UTMs to any internal navigation URL.
+     * Preserves existing query params and avoids duplicates.
+     * @param {String} url - Target URL (e.g. 'phone.html?gender=male')
+     * @returns {String} URL with UTMs appended
+     */
+    appendUTMs: function(url) {
+        try {
+            var base = url.split('?')[0];
+            var existing = url.indexOf('?') !== -1 ? url.split('?')[1] : '';
+            var params = new URLSearchParams(existing);
+            this.utmParams.forEach(function(key) {
+                if (!params.has(key)) {
+                    var val = localStorage.getItem(key);
+                    if (val) params.set(key, val);
+                }
+            });
+            var fbclid = localStorage.getItem('fbclid_raw');
+            if (fbclid && !params.has('fbclid')) params.set('fbclid', fbclid);
+            var qs = params.toString();
+            return qs ? base + '?' + qs : base;
+        } catch(e) {
+            return url;
+        }
+    },
+
+    /**
+     * Navigate to an internal funnel page preserving UTM params.
+     * Drop-in replacement for window.location.href = url
+     * @param {String} url - Target URL
+     */
+    navigateWithUTMs: function(url) {
+        window.location.href = this.appendUTMs(url);
+    },
+
     // ============================================
     // VISITOR ID (Centralized)
     // ============================================

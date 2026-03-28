@@ -1,4 +1,4 @@
-# ZapSpy.ai Backend
+# Whats Spy Backend
 
 Backend API para captura de leads e painel administrativo.
 

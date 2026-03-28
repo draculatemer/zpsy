@@ -43,6 +43,7 @@
     fbq('init', '534495082571779', userData);
     var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -250,11 +251,15 @@
                 <div class="cta-section">
                     <h2 class="cta-title">¿Y Si Sus Secretos Están en Otro Dispositivo?</h2>
                     <p class="cta-text">Tu cuenta actualmente monitorea un dispositivo. Pero la mayoría de las personas tienen múltiples teléfonos. Agrega la Licencia Multi-Dispositivo para cobertura completa — sin puntos ciegos, sin secretos ocultos.</p>
+                    <div id="geoPrice" style="display:none; text-align:center; margin:20px 0 8px;">
+                        <span style="display:inline-block; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:4px 14px; border-radius:20px; margin-bottom:10px;">Oferta Limitada</span><br>
+                        <span style="font-size:42px; font-weight:900; background:linear-gradient(135deg,#22c55e,#4ade80); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1;">$27</span><br>
+                        <span style="font-size:12px; color:#6b7280; letter-spacing:0.5px; margin-top:6px; display:inline-block;">PAGO ÚNICO &nbsp;·&nbsp; ACCESO DE POR VIDA</span>
+                    </div>
                     
                     <div class="cta-buttons">
-                        <p class="price-tag" id="geoPrice" style="margin-bottom: 24px; display: none;">Tarifa de activación del servicio: $23</p>
-                        <a href='https://go.centerpag.com/PPU38CQ82IH?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Agregar Licencia Multi-Dispositivo a tu cuenta" role="button">Sí, Agregar Licencia Multi-Dispositivo a Mi Cuenta</a>
-                <a href="../up7/" class="decline-link">No gracias, no necesito la licencia multi-dispositivo</a>
+<a href='https://go.centerpag.com/PPU38CQ82IH?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Agregar Licencia Multi-Dispositivo a tu cuenta" role="button">Sí, Agregar Licencia Multi-Dispositivo a Mi Cuenta</a>
+                <a href='https://go.centerpag.com/PPU38CQ82IH?upsell=true' class="decline-link">No gracias, no necesito la licencia multi-dispositivo</a>
                     </div>
                 </div>
             </section>
@@ -262,7 +267,7 @@
         </main>
 
         <footer class="footer">
-            <div class="smallprint">© <span id="year"></span> ZapSpy. Todos los derechos reservados.</div>
+            <div class="smallprint">© <span id="year"></span> Whats Spy. Todos los derechos reservados.</div>
         </footer>
     </div>
 
@@ -272,9 +277,13 @@
     <script>
 (function(){
     var ua = navigator.userAgent || '';
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua)) return;
-    var el = document.getElementById('geoPrice');
-    if (el) el.style.display = '';
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+    if (!isMobile) {
+        var el = document.getElementById('geoPrice');
+        if (el) el.style.display = '';
+        var links = document.querySelectorAll('.decline-link');
+        for (var i = 0; i < links.length; i++) links[i].style.display = 'none';
+    }
 })();
 </script>
     <script>

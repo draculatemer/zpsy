@@ -77,7 +77,7 @@ const UpsellTracker = {
             page,
             targetPhone,
             targetGender,
-            funnelLanguage: 'pt-BR',
+            funnelLanguage: 'pt',
             funnelSource: 'main',
             fbc: fbIds.fbc,
             fbp: fbIds.fbp,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Upsell Funnel Tracking
  * Tracks visitor journey through upsell pages
  * Uses the same visitorId from main funnel for complete journey tracking

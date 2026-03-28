@@ -17,44 +17,44 @@ const { AC_API_URL, AC_API_KEY } = require('../config');
 // Tag mapping: event -> { en: tagName, es: tagName }
 const TAG_MAP = {
     'lead_captured': {
-        en: 'zapspy-lead-en',
-        es: 'zapspy-lead-es'
+        en: 'Whats Spy-lead-en',
+        es: 'Whats Spy-lead-es'
     },
     'checkout_abandoned': {
-        en: 'zapspy-checkout-abandon-en',
-        es: 'zapspy-checkout-abandon-es'
+        en: 'Whats Spy-checkout-abandon-en',
+        es: 'Whats Spy-checkout-abandon-es'
     },
     'sale_cancelled': {
-        en: 'zapspy-sale-cancelled-en',
-        es: 'zapspy-sale-cancelled-es'
+        en: 'Whats Spy-sale-cancelled-en',
+        es: 'Whats Spy-sale-cancelled-es'
     },
     'sale_approved': {
-        en: 'zapspy-buyer-en',
-        es: 'zapspy-buyer-es'
+        en: 'Whats Spy-buyer-en',
+        es: 'Whats Spy-buyer-es'
     },
     'sale_refunded': {
-        en: 'zapspy-refunded-en',
-        es: 'zapspy-refunded-es'
+        en: 'Whats Spy-refunded-en',
+        es: 'Whats Spy-refunded-es'
     },
     'sale_chargeback': {
-        en: 'zapspy-chargeback-en',
-        es: 'zapspy-chargeback-es'
+        en: 'Whats Spy-chargeback-en',
+        es: 'Whats Spy-chargeback-es'
     }
 };
 
 // List mapping: language -> listName
 const LIST_MAP = {
     'lead_captured': {
-        en: 'ZapSpy - Leads EN',
-        es: 'ZapSpy - Leads ES'
+        en: 'Whats Spy - Leads EN',
+        es: 'Whats Spy - Leads ES'
     },
     'checkout_abandoned': {
-        en: 'ZapSpy - Checkout Abandon EN',
-        es: 'ZapSpy - Checkout Abandon ES'
+        en: 'Whats Spy - Checkout Abandon EN',
+        es: 'Whats Spy - Checkout Abandon ES'
     },
     'sale_cancelled': {
-        en: 'ZapSpy - Sale Cancelled EN',
-        es: 'ZapSpy - Sale Cancelled ES'
+        en: 'Whats Spy - Sale Cancelled EN',
+        es: 'Whats Spy - Sale Cancelled ES'
     }
 };
 
@@ -186,7 +186,7 @@ async function getOrCreateTag(tagName) {
         tag: {
             tag: tagName,
             tagType: 'contact',
-            description: `ZapSpy auto-created tag: ${tagName}`
+            description: `Whats Spy auto-created tag: ${tagName}`
         }
     });
 
@@ -213,8 +213,8 @@ async function getOrCreateList(listName) {
         list: {
             name: listName,
             stringid: listName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-            sender_url: 'https://zapspy.ai',
-            sender_reminder: 'You signed up for ZapSpy.ai monitoring service.'
+            sender_url: 'https://Whats Spy',
+            sender_reminder: 'You signed up for Whats Spy monitoring service.'
         }
     });
 
@@ -288,6 +288,22 @@ async function removeTagFromContact(contactId, tagName) {
 }
 
 /**
+ * Delete a contact from ActiveCampaign entirely
+ * This frees up the contact slot in the plan
+ */
+async function deleteContact(contactId) {
+    if (!contactId) return false;
+    try {
+        await apiRequest('DELETE', `contacts/${contactId}`);
+        console.log(`🗑️ AC: Deleted contact ${contactId} from account`);
+        return true;
+    } catch (error) {
+        console.error(`AC: Error deleting contact ${contactId}:`, error.message);
+        return false;
+    }
+}
+
+/**
  * Subscribe a contact to a list
  */
 async function subscribeToList(contactId, listId) {
@@ -356,7 +372,7 @@ async function processEvent(eventType, language, contactInfo) {
             }
         }
 
-        // 5. If buyer/approved, remove recovery tags (stop recovery emails)
+        // 5. If buyer/approved, remove recovery tags AND unsubscribe from recovery lists
         if (eventType === 'sale_approved') {
             const recoveryTags = [
                 TAG_MAP['lead_captured']?.[lang],
@@ -367,7 +383,30 @@ async function processEvent(eventType, language, contactInfo) {
             for (const recoveryTag of recoveryTags) {
                 await removeTagFromContact(contactId, recoveryTag);
             }
-            console.log(`📧 AC: Removed recovery tags for buyer ${email}`);
+
+            const recoveryLists = [
+                LIST_MAP['checkout_abandoned']?.[lang],
+                LIST_MAP['sale_cancelled']?.[lang]
+            ].filter(Boolean);
+
+            for (const listName of recoveryLists) {
+                try {
+                    const listId = await getOrCreateList(listName);
+                    if (listId) {
+                        await apiRequest('POST', 'contactLists', {
+                            contactList: {
+                                list: String(listId),
+                                contact: String(contactId),
+                                status: 2
+                            }
+                        });
+                    }
+                } catch (unsubErr) {
+                    console.error(`AC: Error unsubscribing from ${listName}:`, unsubErr.message);
+                }
+            }
+
+            console.log(`📧 AC: Removed recovery tags + unsubscribed from recovery lists for buyer ${email}`);
         }
 
         console.log(`✅ AC Event processed: ${eventType} [${lang.toUpperCase()}] → tag "${tagName}" added to ${email}`);
@@ -386,6 +425,7 @@ module.exports = {
     addTagToContact,
     removeTagFromContact,
     subscribeToList,
+    deleteContact,
     getOrCreateTag,
     getOrCreateList,
     loadCache,

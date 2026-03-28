@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Oferta Exclusiva</title>
+    <title>Whats Spy - Oferta Exclusiva</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,10 +28,12 @@
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
-    fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    fbq('init', '534495082571779', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
 
@@ -104,12 +107,12 @@
     <div class="rmk-comparison">
         <div class="rmk-compare-col dimmed">
             <div class="rmk-compare-label">Regular</div>
-            <div class="rmk-compare-price">$39</div>
+            <div class="rmk-compare-price">$47</div>
             <div class="rmk-compare-note">Precio del sitio web</div>
         </div>
         <div class="rmk-compare-col highlight">
             <div class="rmk-compare-label">Tu Precio</div>
-            <div class="rmk-compare-price">$19.50</div>
+            <div class="rmk-compare-price">$23.50</div>
             <div class="rmk-compare-note">50% OFF - Exclusivo</div>
         </div>
     </div>
@@ -125,7 +128,7 @@
     <!-- CTA -->
     <button class="rmk-cta primary" onclick="handleCheckout()" style="animation:glowPulse 2s ease-in-out infinite;">
         DESBLOQUEAR AHORA - 50% OFF
-        <span class="rmk-cta-subtitle">Solo $19.50 - Ahorra $19.50 hoy</span>
+        <span class="rmk-cta-subtitle">Solo $23.50 - Ahorra $23.50 hoy</span>
     </button>
 
     <!-- Trust Badges -->
@@ -223,9 +226,9 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Plataforma de Inteligencia Segura<br>
+        Whats Spy - Plataforma de Inteligencia Segura<br>
         Pago seguro procesado por PerfectPay.<br>
-        &copy; 2025 ZapSpy.ai. Todos los derechos reservados.
+        &copy; 2025 Whats Spy. Todos los derechos reservados.
     </div>
 
     <div style="height:80px;"></div>
@@ -234,14 +237,14 @@
 <!-- Sticky Footer CTA -->
 <div class="rmk-sticky-footer">
     <button class="rmk-cta primary" onclick="handleCheckout()">
-        DESBLOQUEAR AHORA - $19.50 (50% OFF)
+        DESBLOQUEAR AHORA - $23.50 (50% OFF)
     </button>
 </div>
 
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
-    RmkTracking.init('Remarketing - Offer', 'remarketing_offer', 19.50);
+    RmkTracking.init('Remarketing - Offer', 'remarketing_offer', 23.50);
 
     var target = RmkTracking.getTargetData();
     if (target.phone) {
@@ -265,7 +268,7 @@
         { emoji: '\uD83D\uDC68', name: 'Carlos de M\u00e9xico', action: 'recuper\u00f3 89 mensajes eliminados', time: 'hace 3 min' },
         { emoji: '\uD83D\uDC69', name: 'Ana de Buenos Aires', action: 'us\u00f3 el enlace exclusivo ahora', time: 'hace 2 min' },
         { emoji: '\uD83D\uDC68', name: 'Diego de Colombia', action: 'encontr\u00f3 evidencia en chats ocultos', time: 'hace 5 min' },
-        { emoji: '\uD83D\uDC69', name: 'Sof\u00eda de Espa\u00f1a', action: 'ahorr\u00f3 $19.50 con la oferta especial', time: 'hace 4 min' }
+        { emoji: '\uD83D\uDC69', name: 'Sof\u00eda de Espa\u00f1a', action: 'ahorr\u00f3 $23.50 con la oferta especial', time: 'hace 4 min' }
     ], 10000);
 
     initTabTitle('\uD83C\uDF81 50% OFF - \u00A1No te lo pierdas!');
@@ -273,16 +276,16 @@
     initExitIntent({
         icon: '\uD83C\uDF81',
         title: '\u00A1Espera! \u00A1Tu 50% OFF sigue activo!',
-        text: 'Este descuento exclusivo no durar\u00e1. Obt\u00e9n acceso completo a todas las conversaciones ocultas y mensajes eliminados por solo $19.50.',
-        ctaLabel: 'OBTENER 50% OFF AHORA - $19.50',
+        text: 'Este descuento exclusivo no durar\u00e1. Obt\u00e9n acceso completo a todas las conversaciones ocultas y mensajes eliminados por solo $23.50.',
+        ctaLabel: 'OBTENER 50% OFF AHORA - $23.50',
         ctaClass: 'primary',
         ctaAction: 'handleCheckout()'
     });
 })();
 
 function handleCheckout() {
-    RmkTracking.trackInitiateCheckout(19.50, 'ZapSpy VIP - Remarketing 50% OFF');
-    var url = RmkTracking.buildCheckoutUrl('KMS455971', 19.50);
+    RmkTracking.trackInitiateCheckout(23.50, 'Whats Spy VIP - Remarketing 50% OFF');
+    var url = RmkTracking.buildCheckoutUrl('KMS455971', 23.50);
     window.location.href = url;
 }
 </script>

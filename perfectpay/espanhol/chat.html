@@ -48,6 +48,9 @@
     } catch(e) {}
     
     fbq('init', '534495082571779', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"
@@ -65,7 +68,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Chat View');
-                FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 39);
+                FacebookCAPI.trackViewContent('Chat View', 'Funnel Step', 47);
             }
         });
     </script>
@@ -629,14 +632,16 @@
             const phone = urlParams.get('phone') || '';
             
             // Use unified CTA with gender parameter
-            window.location.href = 'cta-unified.html?gender=' + (gender || 'male');
+            var navUrl = 'cta-unified.html?gender=' + (gender || 'male');
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
         }
         
         function goBack() { 
             const urlParams = new URLSearchParams(window.location.search);
             const gender = urlParams.get('gender') || '';
             const phone = urlParams.get('phone') || '';
-            window.location.href = `conversas.html?gender=${gender}&phone=${encodeURIComponent(phone)}`;
+            var navUrl = `conversas.html?gender=${gender}&phone=${encodeURIComponent(phone)}`;
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
         }
 
         const urlParams = new URLSearchParams(window.location.search);

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Data Being Deleted</title>
+    <title>Whats Spy - Data Being Deleted</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,7 +29,9 @@
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
     fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
 </head>
@@ -65,7 +68,7 @@
             <div class="rmk-terminal-dot red"></div>
             <div class="rmk-terminal-dot yellow"></div>
             <div class="rmk-terminal-dot green"></div>
-            <div class="rmk-terminal-title">zapspy@secure-server</div>
+            <div class="rmk-terminal-title">Whats Spy@secure-server</div>
         </div>
         <div class="rmk-terminal-body" id="terminalBody"></div>
     </div>
@@ -129,17 +132,18 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Secure Intelligence Platform<br>
+        Whats Spy - Secure Intelligence Platform<br>
         All data is encrypted and stored on secure servers.<br>
-        &copy; 2025 ZapSpy.ai. All rights reserved.
+        &copy; 2025 Whats Spy. All rights reserved.
     </div>
 </div>
 
+<script src="../../js/tracking-utils.js"></script>
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
     // Initialize tracking
-    RmkTracking.init('Remarketing - Expired', 'remarketing_expired', 49);
+    RmkTracking.init('Remarketing - Expired', 'remarketing_expired', 47);
 
     // Load target data from localStorage
     var target = RmkTracking.getTargetData();
@@ -151,7 +155,7 @@
 
     // Terminal animation
     var lines = [
-        { text: 'root@zapspy:~# initiate data_purge --target=' + (target.phone || 'UNKNOWN'), cls: '' },
+        { text: 'root@Whats Spy:~# initiate data_purge --target=' + (target.phone || 'UNKNOWN'), cls: '' },
         { text: '[WARN] 23 active conversations found...', cls: 'warning' },
         { text: '[WARN] 147 deleted messages in recovery buffer...', cls: 'warning' },
         { text: '[WARN] 38 media files queued for deletion...', cls: 'warning' },
@@ -259,13 +263,15 @@ function handleCTA() {
     var target = RmkTracking.getTargetData();
     RmkTracking.trackEvent('Lead', {
         content_name: 'Remarketing Expired CTA',
-        value: 49,
+        value: 47,
         currency: 'USD'
     });
     if (target.phone) {
-        window.location.href = '../../cta-unified.html?gender=' + target.gender + '&returning=1';
+        var url = '../../cta-unified.html?gender=' + target.gender + '&returning=1';
+        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(url) : url;
     } else {
-        window.location.href = '../../landing.html';
+        var url = '../../landing.html';
+        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(url) : url;
     }
 }
 </script>

@@ -21,7 +21,7 @@ function validateEnv() {
 
     // Optional but recommended
     const optional = [
-        { name: 'ADMIN_EMAIL', desc: 'Master admin email', default: 'admin@zapspy.ai' },
+        { name: 'ADMIN_EMAIL', desc: 'Master admin email', default: 'admin@whatspy' },
         { name: 'ADMIN_PASSWORD', desc: 'Master admin password', default: '(insecure default)' },
         { name: 'MONETIZZE_CONSUMER_KEY', desc: 'Monetizze API key (sync disabled without it)' },
         { name: 'FB_PIXEL_TOKEN_EN', desc: 'Facebook Pixel token for English funnel' },

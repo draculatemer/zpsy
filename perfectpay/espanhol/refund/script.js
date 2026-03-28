@@ -1,90 +1,139 @@
 /**
- * Página de Solicitud de Reembolso - Script
- * Maneja validación de formulario, navegación de pasos y envío
+ * Refund Request Page Script v2
+ * Multi-step form with security validation, friction, and WhatsApp bridge
  */
 
-// Datos de países con banderas y códigos de marcación
+const WHATSAPP_NUMBER = '5527981346417';
+const LANG = 'es';
+const MIN_FEEDBACK_CHARS = 50;
+
 const countries = [
-    { code: 'ES', name: 'España', dial: '+34', flag: '🇪🇸' },
-    { code: 'MX', name: 'México', dial: '+52', flag: '🇲🇽' },
+    { code: 'US', name: 'United States', dial: '+1', flag: '🇺🇸' },
+    { code: 'BR', name: 'Brazil', dial: '+55', flag: '🇧🇷' },
+    { code: 'GB', name: 'United Kingdom', dial: '+44', flag: '🇬🇧' },
+    { code: 'CA', name: 'Canada', dial: '+1', flag: '🇨🇦' },
+    { code: 'AU', name: 'Australia', dial: '+61', flag: '🇦🇺' },
+    { code: 'DE', name: 'Germany', dial: '+49', flag: '🇩🇪' },
+    { code: 'FR', name: 'France', dial: '+33', flag: '🇫🇷' },
+    { code: 'IT', name: 'Italy', dial: '+39', flag: '🇮🇹' },
+    { code: 'ES', name: 'Spain', dial: '+34', flag: '🇪🇸' },
+    { code: 'MX', name: 'Mexico', dial: '+52', flag: '🇲🇽' },
     { code: 'AR', name: 'Argentina', dial: '+54', flag: '🇦🇷' },
-    { code: 'CO', name: 'Colombia', dial: '+57', flag: '🇨🇴' },
+    { code: 'PT', name: 'Portugal', dial: '+351', flag: '🇵🇹' },
     { code: 'CL', name: 'Chile', dial: '+56', flag: '🇨🇱' },
-    { code: 'PE', name: 'Perú', dial: '+51', flag: '🇵🇪' },
+    { code: 'CO', name: 'Colombia', dial: '+57', flag: '🇨🇴' },
+    { code: 'PE', name: 'Peru', dial: '+51', flag: '🇵🇪' },
     { code: 'VE', name: 'Venezuela', dial: '+58', flag: '🇻🇪' },
     { code: 'EC', name: 'Ecuador', dial: '+593', flag: '🇪🇨' },
     { code: 'UY', name: 'Uruguay', dial: '+598', flag: '🇺🇾' },
     { code: 'PY', name: 'Paraguay', dial: '+595', flag: '🇵🇾' },
     { code: 'BO', name: 'Bolivia', dial: '+591', flag: '🇧🇴' },
-    { code: 'GT', name: 'Guatemala', dial: '+502', flag: '🇬🇹' },
-    { code: 'CU', name: 'Cuba', dial: '+53', flag: '🇨🇺' },
-    { code: 'DO', name: 'República Dominicana', dial: '+1', flag: '🇩🇴' },
-    { code: 'HN', name: 'Honduras', dial: '+504', flag: '🇭🇳' },
-    { code: 'SV', name: 'El Salvador', dial: '+503', flag: '🇸🇻' },
-    { code: 'NI', name: 'Nicaragua', dial: '+505', flag: '🇳🇮' },
-    { code: 'CR', name: 'Costa Rica', dial: '+506', flag: '🇨🇷' },
-    { code: 'PA', name: 'Panamá', dial: '+507', flag: '🇵🇦' },
-    { code: 'PR', name: 'Puerto Rico', dial: '+1', flag: '🇵🇷' },
-    { code: 'US', name: 'Estados Unidos', dial: '+1', flag: '🇺🇸' },
-    { code: 'BR', name: 'Brasil', dial: '+55', flag: '🇧🇷' },
-    { code: 'PT', name: 'Portugal', dial: '+351', flag: '🇵🇹' },
-    { code: 'GB', name: 'Reino Unido', dial: '+44', flag: '🇬🇧' },
-    { code: 'CA', name: 'Canadá', dial: '+1', flag: '🇨🇦' },
-    { code: 'AU', name: 'Australia', dial: '+61', flag: '🇦🇺' },
-    { code: 'DE', name: 'Alemania', dial: '+49', flag: '🇩🇪' },
-    { code: 'FR', name: 'Francia', dial: '+33', flag: '🇫🇷' },
-    { code: 'IT', name: 'Italia', dial: '+39', flag: '🇮🇹' },
-    { code: 'JP', name: 'Japón', dial: '+81', flag: '🇯🇵' },
+    { code: 'JP', name: 'Japan', dial: '+81', flag: '🇯🇵' },
     { code: 'CN', name: 'China', dial: '+86', flag: '🇨🇳' },
     { code: 'IN', name: 'India', dial: '+91', flag: '🇮🇳' },
-    { code: 'KR', name: 'Corea del Sur', dial: '+82', flag: '🇰🇷' },
-    { code: 'RU', name: 'Rusia', dial: '+7', flag: '🇷🇺' },
-    { code: 'ZA', name: 'Sudáfrica', dial: '+27', flag: '🇿🇦' },
-    { code: 'NL', name: 'Países Bajos', dial: '+31', flag: '🇳🇱' },
-    { code: 'BE', name: 'Bélgica', dial: '+32', flag: '🇧🇪' },
-    { code: 'CH', name: 'Suiza', dial: '+41', flag: '🇨🇭' },
+    { code: 'KR', name: 'South Korea', dial: '+82', flag: '🇰🇷' },
+    { code: 'RU', name: 'Russia', dial: '+7', flag: '🇷🇺' },
+    { code: 'ZA', name: 'South Africa', dial: '+27', flag: '🇿🇦' },
+    { code: 'NL', name: 'Netherlands', dial: '+31', flag: '🇳🇱' },
+    { code: 'BE', name: 'Belgium', dial: '+32', flag: '🇧🇪' },
+    { code: 'CH', name: 'Switzerland', dial: '+41', flag: '🇨🇭' },
     { code: 'AT', name: 'Austria', dial: '+43', flag: '🇦🇹' },
-    { code: 'SE', name: 'Suecia', dial: '+46', flag: '🇸🇪' },
-    { code: 'NO', name: 'Noruega', dial: '+47', flag: '🇳🇴' },
-    { code: 'DK', name: 'Dinamarca', dial: '+45', flag: '🇩🇰' },
-    { code: 'FI', name: 'Finlandia', dial: '+358', flag: '🇫🇮' },
-    { code: 'PL', name: 'Polonia', dial: '+48', flag: '🇵🇱' },
-    { code: 'GR', name: 'Grecia', dial: '+30', flag: '🇬🇷' },
-    { code: 'IE', name: 'Irlanda', dial: '+353', flag: '🇮🇪' },
-    { code: 'NZ', name: 'Nueva Zelanda', dial: '+64', flag: '🇳🇿' },
-    { code: 'SG', name: 'Singapur', dial: '+65', flag: '🇸🇬' },
-    { code: 'MY', name: 'Malasia', dial: '+60', flag: '🇲🇾' },
-    { code: 'TH', name: 'Tailandia', dial: '+66', flag: '🇹🇭' },
-    { code: 'PH', name: 'Filipinas', dial: '+63', flag: '🇵🇭' },
+    { code: 'SE', name: 'Sweden', dial: '+46', flag: '🇸🇪' },
+    { code: 'NO', name: 'Norway', dial: '+47', flag: '🇳🇴' },
+    { code: 'DK', name: 'Denmark', dial: '+45', flag: '🇩🇰' },
+    { code: 'FI', name: 'Finland', dial: '+358', flag: '🇫🇮' },
+    { code: 'PL', name: 'Poland', dial: '+48', flag: '🇵🇱' },
+    { code: 'GR', name: 'Greece', dial: '+30', flag: '🇬🇷' },
+    { code: 'IE', name: 'Ireland', dial: '+353', flag: '🇮🇪' },
+    { code: 'NZ', name: 'New Zealand', dial: '+64', flag: '🇳🇿' },
+    { code: 'SG', name: 'Singapore', dial: '+65', flag: '🇸🇬' },
+    { code: 'MY', name: 'Malaysia', dial: '+60', flag: '🇲🇾' },
+    { code: 'TH', name: 'Thailand', dial: '+66', flag: '🇹🇭' },
+    { code: 'PH', name: 'Philippines', dial: '+63', flag: '🇵🇭' },
     { code: 'ID', name: 'Indonesia', dial: '+62', flag: '🇮🇩' },
     { code: 'VN', name: 'Vietnam', dial: '+84', flag: '🇻🇳' },
-    { code: 'AE', name: 'Emiratos Árabes Unidos', dial: '+971', flag: '🇦🇪' },
-    { code: 'SA', name: 'Arabia Saudita', dial: '+966', flag: '🇸🇦' },
+    { code: 'AE', name: 'United Arab Emirates', dial: '+971', flag: '🇦🇪' },
+    { code: 'SA', name: 'Saudi Arabia', dial: '+966', flag: '🇸🇦' },
     { code: 'IL', name: 'Israel', dial: '+972', flag: '🇮🇱' },
-    { code: 'TR', name: 'Turquía', dial: '+90', flag: '🇹🇷' },
-    { code: 'EG', name: 'Egipto', dial: '+20', flag: '🇪🇬' },
+    { code: 'TR', name: 'Turkey', dial: '+90', flag: '🇹🇷' },
+    { code: 'EG', name: 'Egypt', dial: '+20', flag: '🇪🇬' },
     { code: 'NG', name: 'Nigeria', dial: '+234', flag: '🇳🇬' },
-    { code: 'KE', name: 'Kenia', dial: '+254', flag: '🇰🇪' }
+    { code: 'KE', name: 'Kenya', dial: '+254', flag: '🇰🇪' }
 ];
 
-let selectedCountry = countries[0];
+let selectedCountry = countries[8];
 let currentStep = 1;
 
-// Inicializar página
+// ==================== STEP 0: VALIDATION SCREEN ====================
+
 document.addEventListener('DOMContentLoaded', function() {
+    runValidationScreen();
+});
+
+function runValidationScreen() {
+    const steps = [
+        { id: 'vStep1', delay: 0, duration: 4000 },
+        { id: 'vStep2', delay: 4000, duration: 4000 },
+        { id: 'vStep3', delay: 8000, duration: 4000 },
+        { id: 'vStep4', delay: 12000, duration: 3000 }
+    ];
+    const totalDuration = 15000;
+    const bar = document.getElementById('validationBar');
+    const pct = document.getElementById('validationPercent');
+    const startTime = Date.now();
+
+    // Progress bar animation
+    const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min((elapsed / totalDuration) * 100, 100);
+        bar.style.width = progress + '%';
+        pct.textContent = Math.round(progress) + '%';
+        if (progress >= 100) clearInterval(progressInterval);
+    }, 50);
+
+    // Step animations
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            const el = document.getElementById(step.id);
+            el.classList.add('active');
+        }, step.delay);
+
+        setTimeout(() => {
+            const el = document.getElementById(step.id);
+            el.classList.remove('active');
+            el.classList.add('completed');
+            el.querySelector('.v-step-icon').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+        }, step.delay + step.duration);
+    });
+
+    // After validation completes, show the form
+    setTimeout(() => {
+        document.getElementById('validationScreen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('validationScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+            document.getElementById('mainContent').style.animation = 'fadeIn 0.5s ease';
+            initForm();
+        }, 400);
+    }, totalDuration + 500);
+}
+
+// ==================== FORM INITIALIZATION ====================
+
+function initForm() {
     initCountrySelector();
     initCharCounter();
     initFormValidation();
     setMaxDate();
-});
+}
 
-// Establecer fecha máxima para la fecha de compra (hoy)
 function setMaxDate() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('purchaseDate').setAttribute('max', today);
 }
 
-// Inicializar selector de país
+// ==================== COUNTRY SELECTOR ====================
+
 function initCountrySelector() {
     const countryList = document.getElementById('countryList');
     const countrySelector = document.getElementById('countrySelector');
@@ -92,15 +141,14 @@ function initCountrySelector() {
     const countrySearch = document.getElementById('countrySearch');
     const selectedCountryEl = document.getElementById('selectedCountry');
 
-    // Renderizar lista de países
     function renderCountries(filter = '') {
-        const filtered = countries.filter(c => 
+        const filtered = countries.filter(c =>
             c.name.toLowerCase().includes(filter.toLowerCase()) ||
             c.dial.includes(filter)
         );
 
         if (filtered.length === 0) {
-            countryList.innerHTML = '<div class="no-results">No se encontró el país</div>';
+            countryList.innerHTML = '<div class="no-results">País no encontrado</div>';
             return;
         }
 
@@ -112,330 +160,263 @@ function initCountrySelector() {
             </div>
         `).join('');
 
-        // Agregar manejadores de clic
         countryList.querySelectorAll('.country-item').forEach(item => {
             item.addEventListener('click', function() {
-                const code = this.dataset.code;
-                selectCountry(code);
+                selectCountryFn(this.dataset.code);
                 closeDropdown();
             });
         });
     }
 
-    // Seleccionar país
-    function selectCountry(code) {
+    function selectCountryFn(code) {
         selectedCountry = countries.find(c => c.code === code);
         selectedCountryEl.innerHTML = `
             <span class="flag">${selectedCountry.flag}</span>
             <span class="code">${selectedCountry.dial}</span>
             <span class="arrow">▼</span>
         `;
-        // Re-renderizar para actualizar estado seleccionado
         renderCountries(countrySearch.value);
     }
 
-    // Abrir dropdown
     function openDropdown() {
         countryDropdown.classList.add('active');
         countrySelector.classList.add('open');
         countrySearch.value = '';
         countrySearch.focus();
         renderCountries();
-        
-        // Desplazar al país seleccionado
         setTimeout(() => {
             const selectedItem = countryList.querySelector('.country-item.selected');
-            if (selectedItem) {
-                selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            }
+            if (selectedItem) selectedItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }, 100);
     }
 
-    // Cerrar dropdown
     function closeDropdown() {
         countryDropdown.classList.remove('active');
         countrySelector.classList.remove('open');
     }
 
-    // Alternar dropdown
     selectedCountryEl.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (countryDropdown.classList.contains('active')) {
-            closeDropdown();
-        } else {
-            openDropdown();
-        }
+        countryDropdown.classList.contains('active') ? closeDropdown() : openDropdown();
     });
 
-    // Funcionalidad de búsqueda
-    countrySearch.addEventListener('input', function() {
-        renderCountries(this.value);
-    });
-
-    // Navegación por teclado
+    countrySearch.addEventListener('input', function() { renderCountries(this.value); });
     countrySearch.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeDropdown();
-        } else if (e.key === 'Enter') {
+        if (e.key === 'Escape') closeDropdown();
+        else if (e.key === 'Enter') {
             const firstItem = countryList.querySelector('.country-item');
-            if (firstItem) {
-                selectCountry(firstItem.dataset.code);
-                closeDropdown();
-            }
+            if (firstItem) { selectCountryFn(firstItem.dataset.code); closeDropdown(); }
         }
     });
 
-    // Cerrar al hacer clic fuera
     document.addEventListener('click', function(e) {
-        if (!countrySelector.contains(e.target)) {
-            closeDropdown();
-        }
+        if (!countrySelector.contains(e.target)) closeDropdown();
     });
 
-    // Renderizado inicial
     renderCountries();
 }
 
-// Inicializar contador de caracteres para detalles (eliminado - ya no es necesario)
-function initCharCounter() {
-    // Funcionalidad eliminada
-}
+// ==================== CHARACTER COUNTER ====================
 
-// Inicializar validación del formulario
-function initFormValidation() {
-    const form = document.getElementById('refundForm');
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (validateStep(2)) {
-            submitForm();
+function initCharCounter() {
+    const details = document.getElementById('details');
+    const charCount = document.getElementById('charCount');
+    const charStatus = document.getElementById('charStatus');
+
+    details.addEventListener('input', function() {
+        const len = this.value.trim().length;
+        charCount.textContent = len;
+
+        if (len >= MIN_FEEDBACK_CHARS) {
+            charStatus.textContent = '✓ Suficiente';
+            charStatus.className = 'char-status sufficient';
+            charCount.parentElement.className = 'char-counter sufficient';
+        } else {
+            charStatus.textContent = '⚠ Se necesitan más detalles';
+            charStatus.className = 'char-status';
+            charCount.parentElement.className = 'char-counter';
         }
     });
 }
 
-// Navegar al siguiente paso
+// ==================== FORM VALIDATION ====================
+
+function initFormValidation() {
+    document.getElementById('refundForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (validateStep(3)) submitForm();
+    });
+}
+
 function nextStep(step) {
     if (validateStep(currentStep)) {
-        // Marcar paso actual como completado
         document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
-        
-        // Actualizar paso actual
         currentStep = step;
-        
-        // Actualizar progreso
         updateProgress(step);
-        
-        // Mostrar nuevo paso
         showStep(step);
     }
 }
 
-// Navegar al paso anterior
 function prevStep(step) {
     currentStep = step;
     updateProgress(step);
     showStep(step);
 }
 
-// Actualizar indicador de progreso
 function updateProgress(step) {
     document.querySelectorAll('.progress-step').forEach(el => {
-        const stepNum = parseInt(el.dataset.step);
+        const s = parseInt(el.dataset.step);
         el.classList.remove('active');
-        if (stepNum === step) {
-            el.classList.add('active');
-        }
+        if (s === step) el.classList.add('active');
     });
 }
 
-// Mostrar paso específico
 function showStep(step) {
-    document.querySelectorAll('.form-step').forEach(el => {
-        el.classList.remove('active');
-    });
+    document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
     document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
-    
-    // Desplazar hacia arriba
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Validar paso actual
 function validateStep(step) {
     let isValid = true;
 
     if (step === 1) {
-        // Validar nombre completo
         const fullName = document.getElementById('fullName');
         if (!fullName.value.trim() || fullName.value.trim().length < 3) {
-            showError('fullName', 'Por favor, ingresa tu nombre completo');
+            showError('fullName', 'Por favor ingresa tu nombre completo');
             isValid = false;
-        } else {
-            clearError('fullName');
-        }
+        } else { clearError('fullName'); }
 
-        // Validar correo electrónico
         const email = document.getElementById('email');
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email.value.trim() || !emailRegex.test(email.value)) {
-            showError('email', 'Por favor, ingresa un correo electrónico válido');
+        if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+            showError('email', 'Por favor ingresa un email válido');
             isValid = false;
-        } else {
-            clearError('email');
-        }
+        } else { clearError('email'); }
 
-        // Validar teléfono
         const phone = document.getElementById('phone');
         if (!phone.value.trim() || phone.value.length < 6) {
-            showError('phone', 'Por favor, ingresa un número de teléfono válido');
+            showError('phone', 'Por favor ingresa un número de teléfono válido');
             isValid = false;
-        } else {
-            clearError('phone');
-        }
+        } else { clearError('phone'); }
     }
 
     if (step === 2) {
-        // Validar fecha de compra
         const purchaseDate = document.getElementById('purchaseDate');
         if (!purchaseDate.value) {
-            showError('purchaseDate', 'Por favor, selecciona la fecha de compra');
+            showError('purchaseDate', 'Por favor selecciona la fecha de compra');
             isValid = false;
-        } else {
-            clearError('purchaseDate');
-        }
+        } else { clearError('purchaseDate'); }
 
-        // Validar motivo
         const reason = document.getElementById('reason');
         if (!reason.value) {
-            showError('reason', 'Por favor, selecciona un motivo');
+            showError('reason', 'Por favor selecciona una razón');
             isValid = false;
-        } else {
-            clearError('reason');
-        }
+        } else { clearError('reason'); }
+    }
 
-        // Validar detalles
+    if (step === 3) {
         const details = document.getElementById('details');
-        if (!details.value.trim()) {
-            showError('details', 'Por favor, proporciona detalles sobre tu solicitud');
+        const len = details.value.trim().length;
+        if (len < MIN_FEEDBACK_CHARS) {
+            showError('details', `Por favor proporciona al menos ${MIN_FEEDBACK_CHARS} caracteres. Tienes ${len} caracteres.`);
             isValid = false;
-        } else {
-            clearError('details');
-        }
+        } else { clearError('details'); }
     }
 
     return isValid;
 }
 
-// Mostrar mensaje de error
 function showError(fieldId, message) {
     const errorEl = document.getElementById(fieldId + 'Error');
     const inputEl = document.getElementById(fieldId);
-    
-    if (errorEl) {
-        errorEl.textContent = message;
-    }
-    if (inputEl) {
-        inputEl.style.borderColor = 'var(--error-color)';
-    }
+    if (errorEl) errorEl.textContent = message;
+    if (inputEl) inputEl.style.borderColor = 'var(--error-color)';
 }
 
-// Limpiar mensaje de error
 function clearError(fieldId) {
     const errorEl = document.getElementById(fieldId + 'Error');
     const inputEl = document.getElementById(fieldId);
-    
-    if (errorEl) {
-        errorEl.textContent = '';
-    }
-    if (inputEl) {
-        inputEl.style.borderColor = 'var(--border-color)';
-    }
+    if (errorEl) errorEl.textContent = '';
+    if (inputEl) inputEl.style.borderColor = 'var(--border-color)';
 }
 
-// Enviar formulario
+// ==================== FORM SUBMISSION ====================
+
 async function submitForm() {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.classList.add('btn-loading');
     submitBtn.disabled = true;
 
-    // Recopilar datos del formulario
+    const reasonSelect = document.getElementById('reason');
+    const reasonText = reasonSelect.options[reasonSelect.selectedIndex].text;
+
     const formData = {
         fullName: document.getElementById('fullName').value.trim(),
         email: document.getElementById('email').value.trim(),
         phone: selectedCountry.dial + ' ' + document.getElementById('phone').value.trim(),
         countryCode: selectedCountry.code,
         purchaseDate: document.getElementById('purchaseDate').value,
-        reason: document.getElementById('reason').value,
+        reason: reasonSelect.value,
         details: document.getElementById('details').value.trim(),
         submittedAt: new Date().toISOString()
     };
 
-    // Generar número de protocolo
     const protocol = generateProtocol();
 
     try {
-        // Enviar al backend
         await sendRefundRequest(formData, protocol);
 
-        // Actualizar resumen
         document.getElementById('protocolNumber').textContent = protocol;
         document.getElementById('summaryName').textContent = formData.fullName;
         document.getElementById('summaryEmail').textContent = formData.email;
-        document.getElementById('summaryPhone').textContent = formData.phone;
 
-        // Marcar paso 2 como completado
-        document.querySelector('.progress-step[data-step="2"]').classList.add('completed');
+        // Build WhatsApp URL with pre-filled message
+        const waMessage = encodeURIComponent(
+            `Hola, soy ${formData.fullName} y quiero confirmar mi solicitud de reembolso de Whats Spy (Protocolo: ${protocol}). Motivo: ${reasonText}.`
+        );
+        document.getElementById('whatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`;
 
-        // Ir al paso de confirmación
-        currentStep = 3;
-        updateProgress(3);
-        showStep(3);
+        document.querySelector('.progress-step[data-step="3"]').classList.add('completed');
+        currentStep = 4;
+        updateProgress(4);
+        showStep(4);
 
-        // Almacenar para PDF
         window.refundData = { ...formData, protocol };
 
     } catch (error) {
-        console.error('Error al enviar reembolso:', error);
-        showToast('Error al enviar la solicitud. Por favor, inténtalo de nuevo.', 'error');
+        console.error('Error submitting refund:', error);
+        showToast('Error al enviar la solicitud. Por favor intenta de nuevo.', 'error');
     } finally {
         submitBtn.classList.remove('btn-loading');
         submitBtn.disabled = false;
     }
 }
 
-// Generar número de protocolo
 function generateProtocol() {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substr(2, 4).toUpperCase();
     return `REF-${timestamp}${random}`;
 }
 
-// Enviar solicitud de reembolso al backend
 async function sendRefundRequest(data, protocol) {
     const API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
-    
+
     try {
         const response = await fetch(`${API_URL}/api/refund`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ...data,
                 protocol,
-                language: 'es',
+                language: LANG,
                 visitorId: (typeof visitorId !== 'undefined' ? visitorId : null)
             })
         });
 
-        if (!response.ok) {
-            throw new Error('Error al enviar la solicitud de reembolso');
-        }
-
+        if (!response.ok) throw new Error('Failed to submit refund request');
         return await response.json();
     } catch (error) {
-        console.warn('Backend no disponible, almacenando localmente:', error);
-        // Almacenar localmente como respaldo
+        console.warn('Backend not available, storing locally:', error);
         const refunds = JSON.parse(localStorage.getItem('refundRequests') || '[]');
         refunds.push({ ...data, protocol, status: 'pending' });
         localStorage.setItem('refundRequests', JSON.stringify(refunds));
@@ -443,94 +424,30 @@ async function sendRefundRequest(data, protocol) {
     }
 }
 
-// Copiar protocolo al portapapeles
+// ==================== UTILITIES ====================
+
 function copyProtocol() {
     const protocol = document.getElementById('protocolNumber').textContent;
     navigator.clipboard.writeText(protocol).then(() => {
         showToast('¡Número de protocolo copiado!', 'success');
     }).catch(() => {
-        // Respaldo para navegadores antiguos
-        const textArea = document.createElement('textarea');
-        textArea.value = protocol;
-        document.body.appendChild(textArea);
-        textArea.select();
+        const ta = document.createElement('textarea');
+        ta.value = protocol;
+        document.body.appendChild(ta);
+        ta.select();
         document.execCommand('copy');
-        document.body.removeChild(textArea);
+        document.body.removeChild(ta);
         showToast('¡Número de protocolo copiado!', 'success');
     });
 }
 
-// Descargar recibo PDF
-function downloadPDF() {
-    const data = window.refundData;
-    if (!data) return;
-
-    // Crear contenido del PDF (basado en texto simple por ahora)
-    const content = `
-RECIBO DE SOLICITUD DE REEMBOLSO
-================================
-
-Protocolo: ${data.protocol}
-Fecha: ${new Date().toLocaleDateString('es-ES')}
-
-INFORMACIÓN DEL CLIENTE
------------------------
-Nombre: ${data.fullName}
-Correo: ${data.email}
-Teléfono: ${data.phone}
-
-DETALLES DE LA COMPRA
----------------------
-Fecha de Compra: ${data.purchaseDate}
-Motivo: ${data.reason}
-
-DETALLES
---------
-${data.details}
-
-ESTADO: Pendiente de Revisión
-
----
-Este es un recibo automático. Por favor, consérvalo para tus registros.
-Tu reembolso será procesado en un plazo de 7 días hábiles.
-
-Equipo de Soporte ZapDetect
-    `.trim();
-
-    // Crear blob y descargar
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `recibo-reembolso-${data.protocol}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showToast('¡Recibo descargado!', 'success');
-}
-
-// Mostrar notificación toast
 function showToast(message, type = 'success') {
-    // Eliminar toast existente
     const existing = document.querySelector('.toast');
-    if (existing) {
-        existing.remove();
-    }
+    if (existing) existing.remove();
 
-    // Crear toast
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span>${type === 'success' ? '✓' : '⚠'}</span>
-        <span>${message}</span>
-    `;
-
+    toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠'}</span><span>${message}</span>`;
     document.body.appendChild(toast);
-
-    // Eliminar después de 3 segundos
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }

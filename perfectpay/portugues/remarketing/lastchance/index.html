@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai - Aviso Final</title>
+    <title>Whats Spy - Aviso Final</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,7 +29,9 @@
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
     fbq('init', '820651673268238', userData);
-    fbq('track', 'PageView');
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"/></noscript>
 
@@ -205,12 +208,12 @@
     <div class="rmk-comparison">
         <div class="rmk-compare-col dimmed">
             <div class="rmk-compare-label">Normal</div>
-            <div class="rmk-compare-price">$49</div>
+            <div class="rmk-compare-price">$47</div>
             <div class="rmk-compare-note">Indisponível</div>
         </div>
         <div class="rmk-compare-col highlight">
             <div class="rmk-compare-label">Preço Final</div>
-            <div class="rmk-compare-price">$24.50</div>
+            <div class="rmk-compare-price">$23.50</div>
             <div class="rmk-compare-note">Última chance</div>
         </div>
     </div>
@@ -220,7 +223,7 @@
     <!-- CTA -->
     <button class="rmk-cta danger" onclick="handleCheckout()">
         DESBLOQUEAR AGORA ANTES QUE SEJA TARDE
-        <span class="rmk-cta-subtitle">Salve todas as evidências - Apenas $24.50</span>
+        <span class="rmk-cta-subtitle">Salve todas as evidências - Apenas $23.50</span>
     </button>
 
     <!-- Trust Badges -->
@@ -274,9 +277,9 @@
     </div>
 
     <div class="rmk-footer">
-        ZapSpy.ai - Plataforma de Inteligência Segura<br>
+        Whats Spy - Plataforma de Inteligência Segura<br>
         Após este cronômetro expirar, todos os dados serão apagados<br>e esta oferta não estará disponível novamente.<br>
-        &copy; 2025 ZapSpy.ai. Todos os direitos reservados.
+        &copy; 2025 Whats Spy. Todos os direitos reservados.
     </div>
 
     <!-- Bottom spacer for sticky footer -->
@@ -286,14 +289,14 @@
 <!-- Sticky Footer CTA -->
 <div class="rmk-sticky-footer">
     <button class="rmk-cta danger" onclick="handleCheckout()">
-        &#128274; ÚLTIMA CHANCE - $24.50 (50% OFF)
+        &#128274; ÚLTIMA CHANCE - $23.50 (50% OFF)
     </button>
 </div>
 
 <script src="../js/remarketing-tracking.js"></script>
 <script>
 (function() {
-    RmkTracking.init('Remarketing - Last Chance', 'remarketing_lastchance', 24.50);
+    RmkTracking.init('Remarketing - Last Chance', 'remarketing_lastchance', 23.50);
 
     // Load target data
     var target = RmkTracking.getTargetData();
@@ -373,15 +376,15 @@
         icon: '\uD83D\uDEA8',
         title: 'TODAS AS EVIDÊNCIAS SERÃO DESTRUÍDAS!',
         text: '23 conversas ocultas, 147 mensagens apagadas e 38 fotos secretas serão permanentemente apagadas. Esta é sua última chance absoluta.',
-        ctaLabel: '\uD83D\uDD12 SALVAR EVIDÊNCIAS AGORA - $24.50',
+        ctaLabel: '\uD83D\uDD12 SALVAR EVIDÊNCIAS AGORA - $23.50',
         ctaClass: 'danger',
         ctaAction: 'handleCheckout()'
     });
 })();
 
 function handleCheckout() {
-    RmkTracking.trackInitiateCheckout(24.50, 'ZapSpy VIP - Last Chance 50% OFF');
-    var url = RmkTracking.buildCheckoutUrl('KGQ455954', 24.50);
+    RmkTracking.trackInitiateCheckout(23.50, 'Whats Spy VIP - Last Chance 50% OFF');
+    var url = RmkTracking.buildCheckoutUrl('KGQ455954', 23.50);
     window.location.href = url;
 }
 </script>

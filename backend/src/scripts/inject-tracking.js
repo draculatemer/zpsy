@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Inject Tracking Pixel and Click Tracking into AC Campaign Templates
  * 
  * This script:

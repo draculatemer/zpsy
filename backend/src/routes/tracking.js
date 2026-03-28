@@ -50,7 +50,7 @@ router.get('/t/open', async (req, res) => {
 });
 
 // ==================== EMAIL-BASED CLICK TRACKING ====================
-// Used in AC templates: <a href="https://domain/t/click?e=%EMAIL%&c=sale_cancelled&l=en&n=1&url=https://zapspy.ai">
+// Used in AC templates: <a href="https://domain/t/click?e=%EMAIL%&c=sale_cancelled&l=en&n=1&url=https://Whats Spy">
 
 router.get('/t/click', async (req, res) => {
   try {
@@ -69,10 +69,10 @@ router.get('/t/click', async (req, res) => {
     if (url) {
       res.redirect(302, url);
     } else {
-      res.redirect(302, 'https://zapspy.ai');
+      res.redirect(302, 'https://Whats Spy');
     }
   } catch (error) {
-    const fallbackUrl = req.query.url || 'https://zapspy.ai';
+    const fallbackUrl = req.query.url || 'https://Whats Spy';
     res.redirect(302, fallbackUrl);
   }
 });
@@ -119,10 +119,10 @@ router.get('/t/c/:trackId', async (req, res) => {
     if (url) {
       res.redirect(302, url);
     } else {
-      res.redirect(302, 'https://zapspy.ai');
+      res.redirect(302, 'https://Whats Spy');
     }
   } catch (error) {
-    const fallbackUrl = req.query.url || 'https://zapspy.ai';
+    const fallbackUrl = req.query.url || 'https://Whats Spy';
     res.redirect(302, fallbackUrl);
   }
 });

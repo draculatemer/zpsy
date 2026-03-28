@@ -149,7 +149,7 @@ const FunnelTracker = {
         const page = window.location.pathname.split('/').pop() || 'index';
         
         const pageEvents = {
-            'index.html': this.events.PAGE_VIEW_LANDING,
+            'bridge.html': this.events.PAGE_VIEW_LANDING,
             'landing.html': this.events.PAGE_VIEW_LANDING,
             'phone.html': this.events.PAGE_VIEW_PHONE,
             'conversas.html': this.events.PAGE_VIEW_CONVERSAS,

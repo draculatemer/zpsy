@@ -32,23 +32,23 @@
         const templates = {
             1: `Olá! 👋
 
-Notamos que você não finalizou sua compra no ZapSpy.ai.
+Notamos que você não finalizou sua compra no Whats Spy.
 
 ⚠️ As vagas são limitadas e estamos quase esgotados!
 
-Garanta seu acesso agora: https://zapspy.ai
+Garanta seu acesso agora: https://Whats Spy
 
 Posso ajudar com alguma dúvida?`,
             2: `Ei! 🎁
 
-Temos uma oferta especial de 20% OFF só para você finalizar sua compra no ZapSpy.ai!
+Temos uma oferta especial de 20% OFF só para você finalizar sua compra no Whats Spy!
 
 Use o cupom: VOLTA20
 
 Aproveite, é por tempo limitado! ⏰`,
             3: `Olá! 👋
 
-Vi que você teve interesse no ZapSpy.ai.
+Vi que você teve interesse no Whats Spy.
 
 Posso ajudar com alguma dúvida sobre o produto?
 
@@ -3368,7 +3368,7 @@ Posso ajudar em algo mais? 😊`
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(18);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('ZapSpy.ai - ' + title, 14, 16);
+                    doc.text('Whats Spy - ' + title, 14, 16);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
                     doc.text('Gerado em: ' + today, pageWidth - 50, 16);
@@ -4116,7 +4116,7 @@ Posso ajudar em algo mais? 😊`
             
             // Browser notification
             if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('💰 Nova Venda no ZapSpy!', {
+                new Notification('💰 Nova Venda no Whats Spy!', {
                     body: `${count} nova(s) venda(s) aprovada(s)!`,
                     icon: '💰',
                     tag: 'new-sale'

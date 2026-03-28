@@ -54,19 +54,45 @@ const FacebookCAPI = {
         return localStorage.getItem('_fbc') || null;
     },
 
-    // Get Facebook browser ID from cookie (_fbp set by Meta Pixel) or generate one
+    // Get Facebook browser ID from cookie (_fbp set by Meta Pixel)
     getFbp: function() {
         const cookieFbp = this._getCookie('_fbp');
         if (cookieFbp) {
             localStorage.setItem('_fbp', cookieFbp);
             return cookieFbp;
         }
-        let fbp = localStorage.getItem('_fbp');
-        if (!fbp) {
-            fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10000000000)}`;
-            localStorage.setItem('_fbp', fbp);
+        return localStorage.getItem('_fbp') || null;
+    },
+
+    // Wait for Meta Pixel to set _fbp cookie (async with retry)
+    waitForFbp: function(maxWait) {
+        maxWait = maxWait || 5000;
+        var self = this;
+        return new Promise(function(resolve) {
+            var start = Date.now();
+            var check = function() {
+                var fbp = self._getCookie('_fbp');
+                if (fbp) {
+                    localStorage.setItem('_fbp', fbp);
+                    resolve(fbp);
+                } else if (Date.now() - start < maxWait) {
+                    setTimeout(check, 200);
+                } else {
+                    resolve(localStorage.getItem('_fbp') || null);
+                }
+            };
+            check();
+        });
+    },
+
+    // Refresh _fbp from cookie if available (handles late pixel load)
+    refreshFbp: function() {
+        var cookieFbp = this._getCookie('_fbp');
+        if (cookieFbp) {
+            localStorage.setItem('_fbp', cookieFbp);
+            return cookieFbp;
         }
-        return fbp;
+        return localStorage.getItem('_fbp') || null;
     },
 
     // Get user data from localStorage (including geo data for better match quality)
@@ -92,9 +118,11 @@ const FacebookCAPI = {
             gender: localStorage.getItem('targetGender') || null,
             visitorId: this.getVisitorId(),
             fbc: this.getFbc(),
-            fbp: this.getFbp()
+            fbp: this.refreshFbp()
         };
     },
+
+    standardEvents: ['PageView','ViewContent','Search','AddToCart','AddToWishlist','InitiateCheckout','AddPaymentInfo','Purchase','Lead','CompleteRegistration','Contact','CustomizeProduct','Donate','FindLocation','Schedule','StartTrial','SubmitApplication','Subscribe'],
 
     // Send event to both Browser Pixel and Server CAPI
     trackEvent: function(eventName, customData = {}, options = {}) {
@@ -105,9 +133,10 @@ const FacebookCAPI = {
         if (typeof fbq !== 'undefined') {
             const pixelData = {
                 ...customData,
-                eventID: eventId  // For deduplication
+                eventID: eventId
             };
-            fbq('track', eventName, pixelData, { eventID: eventId });
+            const isStandard = this.standardEvents.indexOf(eventName) !== -1;
+            fbq(isStandard ? 'track' : 'trackCustom', eventName, pixelData, { eventID: eventId });
             console.log(`📊 Browser Pixel: ${eventName} (${eventId})`);
         }
 
@@ -186,7 +215,7 @@ const FacebookCAPI = {
         return this.trackEvent('Lead', {
             content_name: 'Lead Capture',
             currency: 'USD',
-            value: 49,
+            value: 47,
             email: email,
             phone: userData.phone || null,
             firstName: userData.name || null,
@@ -231,17 +260,25 @@ const FacebookCAPI = {
     // ==================== INITIALIZATION ====================
 
     init: function(pageName) {
+        var self = this;
         this.getFbc();
-        this.getFbp();
         this.getVisitorId();
 
-        if (pageName) {
-            this.trackPageView(pageName);
-        }
+        this.waitForFbp(3000).then(function(fbp) {
+            console.log('📊 Facebook CAPI v2.0 initialized');
+            console.log('   Visitor ID:', self.getVisitorId());
+            console.log('   FBP:', fbp || 'not set (pixel may be blocked)');
+            console.log('   FBC:', self.getFbc() || 'not set');
 
-        console.log('📊 Facebook CAPI v2.0 initialized');
-        console.log('   Visitor ID:', this.getVisitorId());
-        console.log('   FBP:', this.getFbp());
-        console.log('   FBC:', this.getFbc() || 'not set');
+            if (pageName) {
+                if (window._fbPageViewFired) {
+                    var eventId = self.generateEventId('PageView');
+                    var userData = self.getUserData();
+                    self.sendToServer('PageView', eventId, userData, { content_name: pageName });
+                } else {
+                    self.trackPageView(pageName);
+                }
+            }
+        });
     }
 };

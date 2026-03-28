@@ -1,5 +1,5 @@
 /**
- * ZapSpy Funnel Configuration
+ * Whats Spy Funnel Configuration
  * Single source of truth for API URL and shared settings.
  * Include this script BEFORE other funnel scripts in HTML pages.
  * 

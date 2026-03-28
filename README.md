@@ -1,6 +1,6 @@
-# ZapSpy.ai - Sistema de Recuperação de Vendas (ActiveCampaign)
+# Whats Spy - Sistema de Recuperação de Vendas (ActiveCampaign)
 
-Este documento detalha a arquitetura e o funcionamento do sistema de recuperação de vendas e abandono de funil para o ZapSpy.ai, utilizando automações de email via ActiveCampaign e um painel de administração integrado.
+Este documento detalha a arquitetura e o funcionamento do sistema de recuperação de vendas e abandono de funil para o Whats Spy, utilizando automações de email via ActiveCampaign e um painel de administração integrado.
 
 ## 1. Visão Geral do Sistema
 
@@ -20,12 +20,12 @@ Foram criadas e configuradas 6 automações principais, cada uma com um gatilho 
 
 | ID | Nome da Automação                       | Gatilho (Tag)                     | Idioma |
 |----|-----------------------------------------|-----------------------------------|--------|
-| 31 | ZapSpy - Recovery Checkout Abandon EN   | `zapspy-checkout-abandon-en`      | EN     |
-| 32 | ZapSpy - Recovery Checkout Abandon ES   | `zapspy-checkout-abandon-es`      | ES     |
-| 35 | ZapSpy - Recovery Sale Cancelled EN     | `zapspy-sale-cancelled-en`        | EN     |
-| 36 | ZapSpy - Recovery Sale Cancelled ES     | `zapspy-sale-cancelled-es`        | ES     |
-| 37 | ZapSpy - Recovery Funnel Abandon EN     | `zapspy-lead-en`                  | EN     |
-| 38 | ZapSpy - Recovery Funnel Abandon ES     | `zapspy-lead-es`                  | ES     |
+| 31 | Whats Spy - Recovery Checkout Abandon EN   | `Whats Spy-checkout-abandon-en`      | EN     |
+| 32 | Whats Spy - Recovery Checkout Abandon ES   | `Whats Spy-checkout-abandon-es`      | ES     |
+| 35 | Whats Spy - Recovery Sale Cancelled EN     | `Whats Spy-sale-cancelled-en`        | EN     |
+| 36 | Whats Spy - Recovery Sale Cancelled ES     | `Whats Spy-sale-cancelled-es`        | ES     |
+| 37 | Whats Spy - Recovery Funnel Abandon EN     | `Whats Spy-lead-en`                  | EN     |
+| 38 | Whats Spy - Recovery Funnel Abandon ES     | `Whats Spy-lead-es`                  | ES     |
 
 ### Mensagens de Email
 
@@ -64,10 +64,10 @@ Uma nova aba, **"Email Automations"**, foi adicionada ao painel de administraç�
 
 1.  **Dashboard de KPIs**: Visualização rápida das métricas mais importantes:
     *   **Status da Conexão**: Verifica se a API do ActiveCampaign está configurada e acessível.
-    *   **Total de Automações**: Número de automações de recuperação ZapSpy ativas.
+    *   **Total de Automações**: Número de automações de recuperação Whats Spy ativas.
     *   **Automações Ativas**: Quantas das automações estão atualmente habilitadas.
     *   **Contatos Entrados**: Total de contatos que entraram em alguma das automações.
-    *   **Tags ZapSpy**: Total de tags relacionadas ao ZapSpy.
+    *   **Tags Whats Spy**: Total de tags relacionadas ao Whats Spy.
     *   **Contatos Total**: Número total de contatos na conta do ActiveCampaign.
 
 2.  **Tabela de Automações**: Lista todas as 6 automações de recuperação com as seguintes informações e ações:
@@ -78,13 +78,13 @@ Uma nova aba, **"Email Automations"**, foi adicionada ao painel de administraç�
 
 3.  **Adicionar Contato (para Teste)**: Um modal permite adicionar um contato manualmente, especificando o email, nome, tipo de evento (Lead, Checkout, Cancelamento) e idioma. O sistema automaticamente aplica a tag correta para disparar a automação correspondente.
 
-4.  **Listagem de Tags e Listas**: Exibe todas as tags e listas de contatos relacionadas ao ZapSpy para fácil referência.
+4.  **Listagem de Tags e Listas**: Exibe todas as tags e listas de contatos relacionadas ao Whats Spy para fácil referência.
 
 5.  **Tabela de Contatos Recentes**: Mostra os contatos mais recentes na conta, com funcionalidade de busca por email e paginação.
 
 ## 5. Como Usar
 
-1.  **Acesse o Painel**: Faça login no painel de administração do ZapSpy.ai.
+1.  **Acesse o Painel**: Faça login no painel de administração do Whats Spy.
 2.  **Navegue até a Aba**: Clique em **"Email Automations"** no menu lateral.
 3.  **Monitore**: Acompanhe os KPIs e o status das automações.
 4.  **Gerencie**: Ative ou desative automações conforme a necessidade diretamente pela tabela.

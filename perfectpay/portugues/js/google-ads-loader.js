@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Google Ads Dynamic Loader
  * Loads gtag.js with ALL active Conversion IDs from the backend.
  * Supports multiple Google Ads accounts per language.

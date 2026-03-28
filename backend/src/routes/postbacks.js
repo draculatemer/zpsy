@@ -7,6 +7,7 @@ const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conver
 const { parseMonetizzeDate } = require('../helpers');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const activeCampaign = require('../services/activecampaign');
+const dispatchService = require('../services/email-dispatch');
 
 // ==================== MONETIZZE POSTBACK API ====================
 
@@ -967,7 +968,21 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 }
             });
         }
-        
+
+        // ==================== CANCEL RECOVERY EMAIL FUNNEL ON PURCHASE ====================
+        if (finalEmail && mappedStatus === 'approved') {
+            setImmediate(async () => {
+                try {
+                    const cancelResult = await dispatchService.cancelEmailFunnel(finalEmail, 'sale_approved');
+                    if (cancelResult.cancelled) {
+                        console.log(`📧 Recovery email funnel cancelled for buyer ${finalEmail}: ${cancelResult.scheduledCancelled} emails cancelled, ${cancelResult.listsRemoved} lists cleaned`);
+                    }
+                } catch (cancelErr) {
+                    console.error('Cancel recovery email funnel error (non-blocking):', cancelErr.message);
+                }
+            });
+        }
+
         // Return success (Monetizze expects 200 OK)
         res.status(200).send('OK');
         
@@ -1571,6 +1586,20 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                     }
                 } catch (acError) {
                     console.error('ActiveCampaign PerfectPay event error (non-blocking):', acError.message);
+                }
+            });
+        }
+        
+        // ==================== CANCEL EMAIL FUNNEL ON PURCHASE ====================
+        if (buyerEmail && mappedStatus === 'approved') {
+            setImmediate(async () => {
+                try {
+                    const cancelResult = await dispatchService.cancelEmailFunnel(buyerEmail, 'sale_approved');
+                    if (cancelResult.cancelled) {
+                        console.log(`📧 PerfectPay: Email funnel cancelled for buyer ${buyerEmail}: ${cancelResult.scheduledCancelled} emails cancelled, ${cancelResult.listsRemoved} lists cleaned`);
+                    }
+                } catch (cancelErr) {
+                    console.error('PerfectPay cancel email funnel error (non-blocking):', cancelErr.message);
                 }
             });
         }

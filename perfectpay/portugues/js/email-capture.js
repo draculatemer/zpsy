@@ -1,12 +1,12 @@
 /**
- * ZapSpy.ai - Email/WhatsApp Capture Modal
+ * Whats Spy - Email/WhatsApp Capture Modal
  * Captures user contact before redirecting to checkout
  */
 
 // ============================================================
 // CONFIGURE YOUR BACKEND URL HERE
 // After deploying to Railway, paste your URL below:
-// Example: 'https://zapspy-backend.up.railway.app'
+// Example: 'https://Whats Spy-backend.up.railway.app'
 // ============================================================
 const ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app'; // Railway backend URL
 
@@ -275,6 +275,21 @@ const EmailCapture = {
                     <form id="captureForm" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
                         <div style="position: relative;">
                             <input 
+                                type="text" 
+                                id="captureName" 
+                                placeholder="Seu nome completo"
+                                required
+                                aria-label="Seu nome completo"
+                                style="width: 100%; padding: 16px 16px 16px 44px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 16px; outline: none; transition: border-color 0.3s; box-sizing: border-box;"
+                            >
+                            <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #667781;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        
+                        <div style="position: relative;">
+                            <input 
                                 type="email" 
                                 id="captureEmail" 
                                 placeholder="Seu melhor e-mail"
@@ -292,7 +307,7 @@ const EmailCapture = {
                             <select 
                                 id="captureCountry" 
                                 aria-label="Código do país"
-                                style="width: 110px; padding: 16px 8px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 14px; outline: none; cursor: pointer;"
+                                style="width: 110px; padding: 16px 8px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 16px; outline: none; cursor: pointer;"
                             >
                                 ${this.countryCodes}
                             </select>
@@ -341,19 +356,23 @@ const EmailCapture = {
         
         // Focus first input for accessibility
         setTimeout(() => {
-            document.getElementById('captureEmail').focus();
+            document.getElementById('captureName').focus();
         }, 100);
         
         // Form submission handler
         document.getElementById('captureForm').addEventListener('submit', (e) => {
             e.preventDefault();
             
+            const name = document.getElementById('captureName').value;
             const email = document.getElementById('captureEmail').value;
             const country = document.getElementById('captureCountry').value;
             const whatsapp = document.getElementById('captureWhatsApp').value;
             
             // Store in localStorage
+            localStorage.setItem('userName', name);
             localStorage.setItem('userEmail', email);
+            localStorage.setItem('userCountryCode', country);
+            localStorage.setItem('userPhoneNumber', whatsapp);
             localStorage.setItem('userWhatsApp', country + whatsapp);
             
             // Ensure visitorId exists (create if missing)
@@ -366,6 +385,7 @@ const EmailCapture = {
             
             // Send to webhook/backend (if configured)
             this.sendToBackend({
+                name: name,
                 email: email,
                 whatsapp: country + whatsapp,
                 targetPhone: localStorage.getItem('targetPhone') || '',
@@ -396,12 +416,12 @@ const EmailCapture = {
             
             // Track CAPI Lead event
             if (typeof FacebookCAPI !== 'undefined') {
-                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: email.split('@')[0] });
+                FacebookCAPI.trackLead(email, { phone: country + whatsapp, name: name });
             }
             
             // Track event
-            if (typeof ZapSpyTracking !== 'undefined') {
-                ZapSpyTracking.trackEvent('LeadCapture', {
+            if (typeof WhatSpyTracking !== 'undefined') {
+                WhatSpyTracking.trackEvent('LeadCapture', {
                     has_email: true,
                     has_whatsapp: true
                 });
@@ -418,7 +438,7 @@ const EmailCapture = {
             
             // Execute callback
             if (typeof onSuccess === 'function') {
-                onSuccess({ email, whatsapp: country + whatsapp });
+                onSuccess({ name, email, whatsapp: country + whatsapp });
             }
         });
         
@@ -428,8 +448,8 @@ const EmailCapture = {
             this.modalShown = false;
             
             // Track event
-            if (typeof ZapSpyTracking !== 'undefined') {
-                ZapSpyTracking.trackEvent('LeadCapture', {
+            if (typeof WhatSpyTracking !== 'undefined') {
+                WhatSpyTracking.trackEvent('LeadCapture', {
                     skipped: true
                 });
             }
@@ -441,7 +461,7 @@ const EmailCapture = {
         });
         
         // Focus styles for inputs
-        ['captureEmail', 'captureWhatsApp'].forEach(id => {
+        ['captureName', 'captureEmail', 'captureWhatsApp'].forEach(id => {
             const input = document.getElementById(id);
             if (input) {
                 input.addEventListener('focus', () => {

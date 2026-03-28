@@ -55,7 +55,7 @@ router.get('/api/admin/ac/status', authenticateToken, async (req, res) => {
 
 // ==================== AUTOMATIONS ====================
 
-// GET /api/admin/ac/automations - List all ZapSpy automations
+// GET /api/admin/ac/automations - List all Whats Spy automations
 router.get('/api/admin/ac/automations', authenticateToken, async (req, res) => {
     try {
         if (!isACConfigured()) {
@@ -68,15 +68,15 @@ router.get('/api/admin/ac/automations', authenticateToken, async (req, res) => {
             return res.status(500).json({ error: 'Failed to fetch automations', details: result.data });
         }
 
-        // Filter ZapSpy automations
+        // Filter Whats Spy automations
         const allAutomations = result.data.automations || [];
-        const zapspyAutomations = allAutomations.filter(a => 
-            a.name && a.name.toLowerCase().includes('zapspy')
+        const WhatSpyAutomations = allAutomations.filter(a => 
+            a.name && a.name.toLowerCase().includes('whats spy')
         );
 
         // Enrich with contact counts
         const enriched = [];
-        for (const auto of zapspyAutomations) {
+        for (const auto of WhatSpyAutomations) {
             // Get contacts in this automation
             let contactCount = 0;
             try {
@@ -210,7 +210,7 @@ router.post('/api/admin/ac/contacts/add', authenticateToken, async (req, res) =>
 
 // ==================== TAGS ====================
 
-// GET /api/admin/ac/tags - List all ZapSpy tags
+// GET /api/admin/ac/tags - List all Whats Spy tags
 router.get('/api/admin/ac/tags', authenticateToken, async (req, res) => {
     try {
         if (!isACConfigured()) return res.status(400).json({ error: 'AC not configured' });
@@ -225,11 +225,11 @@ router.get('/api/admin/ac/tags', authenticateToken, async (req, res) => {
             offset += 100;
         }
 
-        const zapspyTags = allTags.filter(t => t.tag && t.tag.toLowerCase().includes('zapspy'));
+        const WhatSpyTags = allTags.filter(t => t.tag && t.tag.toLowerCase().includes('whats spy'));
         
         // Get contact count for each tag
         const enrichedTags = [];
-        for (const tag of zapspyTags) {
+        for (const tag of WhatSpyTags) {
             let contactCount = 0;
             try {
                 const contactsResult = await acApiRequest('GET', `contacts?tagid=${tag.id}&limit=1`);
@@ -255,7 +255,7 @@ router.get('/api/admin/ac/tags', authenticateToken, async (req, res) => {
 
 // ==================== LISTS ====================
 
-// GET /api/admin/ac/lists - List all ZapSpy lists
+// GET /api/admin/ac/lists - List all Whats Spy lists
 router.get('/api/admin/ac/lists', authenticateToken, async (req, res) => {
     try {
         if (!isACConfigured()) return res.status(400).json({ error: 'AC not configured' });
@@ -264,9 +264,9 @@ router.get('/api/admin/ac/lists', authenticateToken, async (req, res) => {
         if (!result.ok) return res.status(500).json({ error: 'Failed to fetch lists' });
         
         const allLists = result.data.lists || [];
-        const zapspyLists = allLists.filter(l => l.name && l.name.toLowerCase().includes('zapspy'));
+        const WhatSpyLists = allLists.filter(l => l.name && l.name.toLowerCase().includes('whats spy'));
         
-        const enrichedLists = zapspyLists.map(l => ({
+        const enrichedLists = WhatSpyLists.map(l => ({
             id: l.id,
             name: l.name,
             subscribers: parseInt(l.subscriber_count || 0),
@@ -282,7 +282,7 @@ router.get('/api/admin/ac/lists', authenticateToken, async (req, res) => {
 
 // ==================== MESSAGES (EMAILS) ====================
 
-// GET /api/admin/ac/messages - List all ZapSpy email messages
+// GET /api/admin/ac/messages - List all Whats Spy email messages
 router.get('/api/admin/ac/messages', authenticateToken, async (req, res) => {
     try {
         if (!isACConfigured()) return res.status(400).json({ error: 'AC not configured' });
@@ -297,11 +297,11 @@ router.get('/api/admin/ac/messages', authenticateToken, async (req, res) => {
             offset += 100;
         }
 
-        const zapspyMessages = allMessages.filter(m => 
-            m.subject && (m.subject.toLowerCase().includes('zapspy') || m.subject.toLowerCase().includes('zap spy') || m.subject.toLowerCase().includes('x ai monitor'))
+        const WhatSpyMessages = allMessages.filter(m => 
+            m.subject && (m.subject.toLowerCase().includes('whats spy') || m.subject.toLowerCase().includes('zap spy') || m.subject.toLowerCase().includes('x ai monitor'))
         );
 
-        const enrichedMessages = zapspyMessages.map(m => ({
+        const enrichedMessages = WhatSpyMessages.map(m => ({
             id: m.id,
             subject: m.subject,
             fromName: m.fromname,
@@ -334,24 +334,24 @@ router.get('/api/admin/ac/dashboard', authenticateToken, async (req, res) => {
         // Fetch automations
         const autoResult = await acApiRequest('GET', 'automations?limit=100');
         const allAutomations = autoResult.ok ? (autoResult.data.automations || []) : [];
-        const zapspyAutomations = allAutomations.filter(a => a.name && a.name.toLowerCase().includes('zapspy'));
+        const WhatSpyAutomations = allAutomations.filter(a => a.name && a.name.toLowerCase().includes('whats spy'));
 
         // Fetch tags
         const tagsResult = await acApiRequest('GET', 'tags?limit=100');
         const allTags = tagsResult.ok ? (tagsResult.data.tags || []) : [];
-        const zapspyTags = allTags.filter(t => t.tag && t.tag.toLowerCase().includes('zapspy'));
+        const WhatSpyTags = allTags.filter(t => t.tag && t.tag.toLowerCase().includes('whats spy'));
 
         // Fetch lists
         const listsResult = await acApiRequest('GET', 'lists?limit=100');
         const allLists = listsResult.ok ? (listsResult.data.lists || []) : [];
-        const zapspyLists = allLists.filter(l => l.name && l.name.toLowerCase().includes('zapspy'));
+        const WhatSpyLists = allLists.filter(l => l.name && l.name.toLowerCase().includes('whats spy'));
 
         // Fetch total contacts
         const contactsResult = await acApiRequest('GET', 'contacts?limit=1');
         const totalContacts = contactsResult.ok ? parseInt(contactsResult.data.meta?.total || 0) : 0;
 
         // Build automation summary
-        const automationSummary = zapspyAutomations.map(a => ({
+        const automationSummary = WhatSpyAutomations.map(a => ({
             id: a.id,
             name: a.name,
             status: a.status === '1' ? 'active' : 'inactive',
@@ -377,11 +377,11 @@ router.get('/api/admin/ac/dashboard', authenticateToken, async (req, res) => {
                 totalEntered: totalEntered,
                 totalExited: totalExited,
                 totalContacts: totalContacts,
-                totalTags: zapspyTags.length,
-                totalLists: zapspyLists.length
+                totalTags: WhatSpyTags.length,
+                totalLists: WhatSpyLists.length
             },
-            tags: zapspyTags.map(t => ({ id: t.id, name: t.tag })),
-            lists: zapspyLists.map(l => ({ id: l.id, name: l.name, subscribers: parseInt(l.subscriber_count || 0) }))
+            tags: WhatSpyTags.map(t => ({ id: t.id, name: t.tag })),
+            lists: WhatSpyLists.map(l => ({ id: l.id, name: l.name, subscribers: parseInt(l.subscriber_count || 0) }))
         });
     } catch (error) {
         console.error('Error fetching AC dashboard:', error);

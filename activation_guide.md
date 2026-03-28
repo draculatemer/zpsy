@@ -37,8 +37,8 @@ Para que os **novos leads** que entram no funil comecem a receber as sequências
 
 ### Como Funciona:
 
-1.  **Gatilho Automático:** Quando um novo lead realiza uma ação (ex: abandona o checkout), o backend do ZapSpy.ai automaticamente envia um evento para o ActiveCampaign.
-2.  **Aplicação da Tag:** O ActiveCampaign, por sua vez, aplica a tag correspondente ao contato (ex: `zapspy-checkout-abandon-en`).
+1.  **Gatilho Automático:** Quando um novo lead realiza uma ação (ex: abandona o checkout), o backend do Whats Spy automaticamente envia um evento para o ActiveCampaign.
+2.  **Aplicação da Tag:** O ActiveCampaign, por sua vez, aplica a tag correspondente ao contato (ex: `Whats Spy-checkout-abandon-en`).
 3.  **Início da Automação:** Esta tag serve como o **gatilho de entrada** para a automação de recuperação. Uma vez que a automação está ativa, o lead entra na sequência e o primeiro e-mail é enviado.
 
 ### Passo a Passo para Ativar as Automações:
@@ -47,20 +47,20 @@ Como o sistema já está totalmente configurado para enviar os eventos e aplicar
 
 1.  Acesse seu painel do ActiveCampaign.
 2.  Navegue até a seção "Automations" (Automações).
-3.  Você verá 6 automações com "ZapSpy" no nome, atualmente com o status "Inactive".
+3.  Você verá 6 automações com "Whats Spy" no nome, atualmente com o status "Inactive".
 4.  Para cada uma dessas 6 automações, mude o status de **"Inactive"** para **"Active"**.
 
 Uma vez ativadas, todas as automações mostrarão o status "Ativa" e começarão a processar os novos leads que entrarem no funil a partir daquele momento.
 
 ## 4. Disparo para Leads Antigos (Disparo em Lote)
 
-Para a sua base de leads existente (aqueles que já estão no seu banco de dados mas nunca receberam a sequência de recuperação), você utilizará a funcionalidade de **Disparo em Lote** disponível no painel de administração do ZapSpy.ai.
+Para a sua base de leads existente (aqueles que já estão no seu banco de dados mas nunca receberam a sequência de recuperação), você utilizará a funcionalidade de **Disparo em Lote** disponível no painel de administração do Whats Spy.
 
 Esta ferramenta permite selecionar um segmento de leads (por categoria e idioma) e iniciar o envio da sequência de e-mails em lotes, de forma controlada.
 
 ### Como Usar o Disparo em Lote:
 
-1.  Acesse o painel de administração do ZapSpy.ai.
+1.  Acesse o painel de administração do Whats Spy.
 2.  Navegue até a aba **"Email Automations"**.
 3.  Na seção **"Batch Dispatch"**, você encontrará as opções para iniciar os disparos.
 4.  **Selecione a Categoria:** Escolha o segmento que deseja alcançar (ex: `Sale Cancelled`).

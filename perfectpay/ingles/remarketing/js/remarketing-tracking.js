@@ -1,5 +1,5 @@
 /**
- * ZapSpy.ai - Remarketing Tracking v1.0
+ * Whats Spy - Remarketing Tracking v1.0
  * Facebook Pixel + CAPI + localStorage integration
  */
 
@@ -126,7 +126,19 @@ const RmkTracking = {
     },
 
     trackPageView: function(pageName) {
-        return this.trackEvent('PageView', { content_name: pageName || document.title });
+        var customData = { content_name: pageName || document.title };
+        var eventId = this.generateEventId('PageView');
+        var userData = this.getUserData();
+
+        if (!window._fbPageViewFired && typeof fbq !== 'undefined') {
+            var pixelData = {};
+            for (var k in customData) pixelData[k] = customData[k];
+            pixelData.eventID = eventId;
+            fbq('track', 'PageView', pixelData, { eventID: eventId });
+        }
+
+        this.sendToServer('PageView', eventId, userData, customData);
+        return eventId;
     },
 
     trackViewContent: function(contentName, contentCategory, value) {
@@ -164,7 +176,7 @@ const RmkTracking = {
         if (visitorId) params.push('zs_vid=' + encodeURIComponent(visitorId));
         if (fbc) params.push('fbc=' + encodeURIComponent(fbc));
         if (fbp) params.push('fbp=' + encodeURIComponent(fbp));
-        params.push('zs_source=zapspy_remarketing');
+        params.push('zs_source=Whats Spy_remarketing');
 
         var utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
         var urlParams = new URLSearchParams(window.location.search);

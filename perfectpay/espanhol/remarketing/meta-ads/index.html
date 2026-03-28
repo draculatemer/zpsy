@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ZapSpy.ai – Oferta Especial para Visitantes</title>
+    <title>Whats Spy – Oferta Especial para Visitantes</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="shortcut icon" href="../../imagens/icon-site.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -139,10 +140,12 @@
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
     } catch(e) {}
-    fbq('init', '726299943423075', userData);
-    fbq('track', 'PageView');
+    fbq('init', '534495082571779', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=534495082571779&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
 
@@ -250,12 +253,12 @@
     <div class="rmk-comparison" style="margin-bottom:8px;">
         <div class="rmk-compare-col dimmed">
             <div class="rmk-compare-label">Precio normal</div>
-            <div class="rmk-compare-price">$49</div>
+            <div class="rmk-compare-price">$47</div>
             <div class="rmk-compare-note">Precio en el sitio web</div>
         </div>
         <div class="rmk-compare-col highlight">
             <div class="rmk-compare-label">Tu precio</div>
-            <div class="rmk-compare-price">$24.50</div>
+            <div class="rmk-compare-price">$23.50</div>
             <div class="rmk-compare-note">50% OFF — Solo hoy</div>
         </div>
     </div>
@@ -386,8 +389,8 @@
     </a>
 
     <div class="rmk-footer">
-        ZapSpy.ai — Plataforma de Inteligencia Segura<br>
-        &copy; 2025 ZapSpy.ai. Todos los derechos reservados.<br>
+        Whats Spy — Plataforma de Inteligencia Segura<br>
+        &copy; 2025 Whats Spy. Todos los derechos reservados.<br>
         Esta oferta es exclusiva para visitantes que regresaron.
     </div>
 
@@ -449,7 +452,7 @@
         { emoji: '👨', name: 'Rodrigo de México', action: 'recuperó 89 mensajes eliminados hoy', time: 'hace 3 min' },
         { emoji: '👩', name: 'Camila de Bogotá', action: 'activó el acceso por WhatsApp', time: 'hace 2 min' },
         { emoji: '👨', name: 'Diego de Lima', action: 'encontró conversaciones ocultas — ahora lo sabe todo', time: 'hace 5 min' },
-        { emoji: '👩', name: 'Sofía de Santiago', action: 'ahorró $24.50 con la oferta exclusiva', time: 'hace 4 min' },
+        { emoji: '👩', name: 'Sofía de Santiago', action: 'ahorró $23.50 con la oferta exclusiva', time: 'hace 4 min' },
         { emoji: '👨', name: 'Martín de Montevideo', action: 'está hablando con un especialista ahora mismo', time: 'ahora' },
         { emoji: '👩', name: 'Lucía de Guadalajara', action: 'obtuvo acceso completo en menos de 3 minutos', time: 'hace 6 min' },
     ];
@@ -475,7 +478,7 @@ function closeExit() {
 function trackWhatsApp() {
     if (typeof fbq !== 'undefined') {
         fbq('track', 'Contact', { content_name: 'WhatsApp CTA - Meta Ads Remarketing ES' });
-        fbq('track', 'InitiateCheckout', { value: 24.50, currency: 'USD' });
+        fbq('track', 'InitiateCheckout', { value: 23.50, currency: 'USD' });
     }
 }
 </script>

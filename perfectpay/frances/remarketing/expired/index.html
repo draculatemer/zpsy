@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Whats Spy - Données en cours de suppression</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="../../imagens/icon-site.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/remarketing.css">
+
+    <!-- Meta Pixel -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+    } catch(e) {}
+    fbq('init', '726299943423075', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+</head>
+<body>
+
+<div class="rmk-container">
+    <!-- Header -->
+    <div class="rmk-header">
+        <div class="rmk-logo">Zap<span>Spy</span>.ai</div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div class="rmk-alert-banner">
+        <div class="rmk-alert-dot"></div>
+        <div class="rmk-alert-text">
+            <strong>Protocole de sécurité initié</strong><br>
+            Les données d'enquête sont en cours de suppression définitive de nos serveurs.
+        </div>
+    </div>
+
+    <!-- Target Card -->
+    <div class="rmk-target-card" id="targetCard" style="display:none;">
+        <div class="rmk-target-avatar" id="targetAvatar"></div>
+        <div class="rmk-target-info">
+            <div class="rmk-target-label">Cible sous enquête</div>
+            <div class="rmk-target-phone" id="targetPhone"></div>
+            <div class="rmk-target-status">Suppression des données en cours</div>
+        </div>
+    </div>
+
+    <!-- Terminal Animation -->
+    <div class="rmk-terminal">
+        <div class="rmk-terminal-header">
+            <div class="rmk-terminal-dot red"></div>
+            <div class="rmk-terminal-dot yellow"></div>
+            <div class="rmk-terminal-dot green"></div>
+            <div class="rmk-terminal-title">Whats Spy@secure-server</div>
+        </div>
+        <div class="rmk-terminal-body" id="terminalBody"></div>
+    </div>
+
+    <!-- Deletion Progress -->
+    <div class="rmk-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:13px;color:var(--red-alert);font-weight:600;">Suppression des données d'enquête...</span>
+            <span style="font-size:13px;color:var(--text-primary);font-weight:700;" id="progressPercent">0%</span>
+        </div>
+        <div class="rmk-progress">
+            <div class="rmk-progress-bar red" id="progressBar" style="width:0%"></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+            Une fois la suppression à 100%, tous les messages récupérés, photos et journaux de conversations seront définitivement effacés.
+        </p>
+    </div>
+
+    <!-- Data Found Summary -->
+    <div class="rmk-card">
+        <div class="rmk-card-header">
+            <div class="rmk-card-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1"/></svg>
+            </div>
+            <div>
+                <div class="rmk-card-title">Données en cours d'effacement</div>
+                <div class="rmk-card-subtitle">Preuves trouvées avant le début de la suppression</div>
+            </div>
+        </div>
+        <ul class="rmk-features">
+            <li>23 conversations cachées découvertes</li>
+            <li>147 messages supprimés récupérés</li>
+            <li>38 photos et vidéos trouvées</li>
+            <li>12 échanges de messages nocturnes</li>
+            <li>Historique de localisation GPS disponible</li>
+        </ul>
+    </div>
+
+    <!-- Timer -->
+    <div class="rmk-timer">
+        <div class="rmk-timer-label">Données définitivement effacées dans</div>
+        <div class="rmk-timer-value" id="countdown">10:00</div>
+    </div>
+
+    <!-- CTA -->
+    <button class="rmk-cta danger" id="ctaButton" onclick="handleCTA()">
+        ARRÊTER LA SUPPRESSION - Garder mes résultats
+        <span class="rmk-cta-subtitle">Sauvegarder toutes les preuves avant qu'elles ne disparaissent à jamais</span>
+    </button>
+
+    <div class="rmk-guarantee mt-16">
+        <div class="rmk-guarantee-icon">&#128274;</div>
+        <div class="rmk-guarantee-text">
+            <strong>Accès 100% anonyme.</strong> La cible ne saura jamais qu'elle est surveillée. Connexion chiffrée 256 bits.
+        </div>
+    </div>
+
+    <div class="rmk-social-proof">
+        <span class="rmk-live-dot"></span>
+        <span id="liveCount">1,847</span> personnes ont sauvegardé leurs données aujourd'hui
+    </div>
+
+    <div class="rmk-footer">
+        Whats Spy - Plateforme de renseignement sécurisée<br>
+        Toutes les données sont chiffrées et stockées sur des serveurs sécurisés.<br>
+        &copy; 2025 Whats Spy. Tous droits réservés.
+    </div>
+</div>
+
+<script src="../../js/tracking-utils.js"></script>
+<script src="../js/remarketing-tracking.js"></script>
+<script>
+(function() {
+    // Initialize tracking
+    RmkTracking.init('Remarketing - Expired', 'remarketing_expired', 47);
+
+    // Load target data from localStorage
+    var target = RmkTracking.getTargetData();
+    if (target.phone) {
+        document.getElementById('targetCard').style.display = 'flex';
+        document.getElementById('targetPhone').textContent = target.phone;
+        document.getElementById('targetAvatar').textContent = target.gender === 'female' ? '\uD83D\uDC69' : '\uD83D\uDC68';
+    }
+
+    // Terminal animation
+    var lines = [
+        { text: 'root@Whats Spy:~# initiate data_purge --target=' + (target.phone || 'UNKNOWN'), cls: '' },
+        { text: '[WARN] 23 conversations actives trouvées...', cls: 'warning' },
+        { text: '[WARN] 147 messages supprimés dans le tampon de récupération...', cls: 'warning' },
+        { text: '[WARN] 38 fichiers médias en file d\'attente pour suppression...', cls: 'warning' },
+        { text: 'Purge des journaux de conversations... /data/msgs/', cls: '' },
+        { text: 'Purge du cache média... /data/media/', cls: '' },
+        { text: 'Purge des enregistrements GPS... /data/location/', cls: '' },
+        { text: '[ALERT] Fichiers de preuves marqués pour suppression définitive', cls: 'error' },
+        { text: 'Durée estimée : 10 minutes', cls: 'info' },
+        { text: 'Pour annuler : ACCESS_REQUIRED', cls: 'error' }
+    ];
+
+    var terminalBody = document.getElementById('terminalBody');
+    lines.forEach(function(line, i) {
+        setTimeout(function() {
+            var el = document.createElement('div');
+            el.className = 'rmk-terminal-line' + (line.cls ? ' ' + line.cls : '');
+            el.textContent = line.text;
+            el.style.animationDelay = '0s';
+            terminalBody.appendChild(el);
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+        }, i * 800);
+    });
+
+    // Progress bar animation
+    var progress = 0;
+    var progressBar = document.getElementById('progressBar');
+    var progressPercent = document.getElementById('progressPercent');
+    var progressInterval = setInterval(function() {
+        progress += Math.random() * 0.5;
+        if (progress > 72) progress = 72;
+        progressBar.style.width = progress.toFixed(1) + '%';
+        progressPercent.textContent = progress.toFixed(0) + '%';
+    }, 2000);
+
+    // Countdown timer with shake effect at low time
+    var timerEl = document.getElementById('countdown');
+    startTimer('countdown', 600, function() {
+        timerEl.textContent = 'EXPIRÉ';
+        timerEl.style.color = 'var(--red-alert)';
+    });
+    setInterval(function() {
+        var text = timerEl.textContent;
+        if (text.indexOf('0') === 0 && text.length === 5) {
+            timerEl.parentElement.classList.add('shake');
+            setTimeout(function() { timerEl.parentElement.classList.remove('shake'); }, 600);
+        }
+    }, 60000);
+
+    // Live counter variation
+    var liveEl = document.getElementById('liveCount');
+    setInterval(function() {
+        var n = 1700 + Math.floor(Math.random() * 300);
+        liveEl.textContent = n.toLocaleString();
+    }, 5000);
+
+    // Terminal continues adding lines periodically
+    var extraLines = [
+        { text: 'rm -rf /data/conversations/thread_0847.db', cls: '' },
+        { text: 'rm -rf /data/media/IMG_deleted_*.jpg (38 files)', cls: '' },
+        { text: '[WARN] Tampon de sauvegarde vidé : 2.4 Go libérés', cls: 'warning' },
+        { text: 'rm -rf /data/gps/location_history.log', cls: '' },
+        { text: '[ALERT] Point de non-retour imminent...', cls: 'error' },
+        { text: 'rm -rf /data/contacts/suspicious_list.dat', cls: '' },
+        { text: '[CRITICAL] 67% des preuves définitivement détruites', cls: 'error' }
+    ];
+    var extraIdx = 0;
+    setInterval(function() {
+        if (extraIdx < extraLines.length) {
+            var line = extraLines[extraIdx];
+            var el = document.createElement('div');
+            el.className = 'rmk-terminal-line' + (line.cls ? ' ' + line.cls : '');
+            el.textContent = line.text;
+            el.style.animationDelay = '0s';
+            terminalBody.appendChild(el);
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+            extraIdx++;
+        }
+    }, 6000);
+
+    // Activity Feed
+    startActivityFeed([
+        { emoji: '\uD83D\uDC69', name: 'Marie de Paris', action: 'vient de sauvegarder ses données d\'enquête', time: 'il y a 2 min' },
+        { emoji: '\uD83D\uDC68', name: 'Pierre de Lyon', action: 'a arrêté la suppression à temps', time: 'il y a 4 min' },
+        { emoji: '\uD83D\uDC69', name: 'Claire de Marseille', action: 'a récupéré tous les messages supprimés', time: 'il y a 5 min' },
+        { emoji: '\uD83D\uDC68', name: 'Thomas de Bordeaux', action: 'a débloqué l\'accès complet à l\'instant', time: 'il y a 1 min' },
+        { emoji: '\uD83D\uDC69', name: 'Sophie de Toulouse', action: 'a sauvegardé 147 messages supprimés', time: 'il y a 3 min' },
+        { emoji: '\uD83D\uDC68', name: 'Lucas de Nice', action: 'a arrêté la suppression à 71%', time: 'il y a 6 min' }
+    ], 9000);
+
+    // Tab title urgency
+    initTabTitle('\u26A0\uFE0F Vos données sont en cours de suppression !');
+
+    // Exit intent
+    initExitIntent({
+        icon: '\uD83D\uDEA8',
+        title: 'Attendez ! Vos données sont en cours de destruction !',
+        text: 'Une fois la suppression à 100%, les 23 conversations et 147 messages supprimés seront perdus à jamais. Arrêtez la suppression maintenant.',
+        ctaLabel: 'ARRÊTER LA SUPPRESSION MAINTENANT',
+        ctaClass: 'danger',
+        ctaAction: 'handleCTA()'
+    });
+})();
+
+function handleCTA() {
+    var target = RmkTracking.getTargetData();
+    RmkTracking.trackEvent('Lead', {
+        content_name: 'Remarketing Expired CTA',
+        value: 47,
+        currency: 'USD'
+    });
+    if (target.phone) {
+        var url = '../../cta-unified.html?gender=' + target.gender + '&returning=1';
+        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(url) : url;
+    } else {
+        var url = '../../landing.html';
+        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(url) : url;
+    }
+}
+</script>
+
+</body>
+</html>
