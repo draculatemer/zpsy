@@ -307,11 +307,12 @@
         var circumference = 276.46;
         var offset = circumference - (circumference * displayPct / 100);
 
+        var url = DEST + '?from_quiz=true&score=' + displayPct;
         try {
             var params = window.location.search;
             if (typeof TrackingUtils !== 'undefined') {
                 var baseUrl = DEST + (params || '') + (params ? '&' : '?') + 'from_quiz=true&score=' + displayPct;
-                var url = TrackingUtils.appendUTMs(baseUrl);
+                url = TrackingUtils.appendUTMs(baseUrl);
             } else {
                 if (!params || params.indexOf('utm_source') === -1) {
                     var utmKeys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
@@ -320,15 +321,16 @@
                     if (stored.length) params = (params ? params + '&' : '?') + stored.join('&');
                 }
                 var sep = params ? '&' : '?';
-                var url = DEST + params + sep + 'from_quiz=true&score=' + displayPct;
+                url = DEST + params + sep + 'from_quiz=true&score=' + displayPct;
             }
-            el = document.getElementById('ctaFinal');
-            if (el) el.href = url;
-            el = document.getElementById('ctaSecondary');
-            if (el) el.href = url;
         } catch(e) { console.error('URL build error:', e); }
 
         goToScene('result');
+
+        var ctaF = document.getElementById('ctaFinal');
+        var ctaS = document.getElementById('ctaSecondary');
+        if (ctaF) { ctaF.href = url; ctaF.onclick = function() { window.location.href = url; }; }
+        if (ctaS) { ctaS.href = url; ctaS.onclick = function() { window.location.href = url; }; }
 
         setTimeout(function() {
             if (arc) {

@@ -291,23 +291,29 @@
         var offset = circumference - (circumference * displayPct / 100);
 
         var params = window.location.search;
-        if (typeof TrackingUtils !== 'undefined') {
-            var baseUrl = DEST + (params || '') + (params ? '&' : '?') + 'from_quiz=true&score=' + displayPct;
-            var url = TrackingUtils.appendUTMs(baseUrl);
-        } else {
-            if (!params || params.indexOf('utm_source') === -1) {
-                var utmKeys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
-                var stored = [];
-                utmKeys.forEach(function(k) { var v = localStorage.getItem(k); if (v) stored.push(k + '=' + encodeURIComponent(v)); });
-                if (stored.length) params = (params ? params + '&' : '?') + stored.join('&');
+        var url = DEST + '?from_quiz=true&score=' + displayPct;
+        try {
+            if (typeof TrackingUtils !== 'undefined') {
+                var baseUrl = DEST + (params || '') + (params ? '&' : '?') + 'from_quiz=true&score=' + displayPct;
+                url = TrackingUtils.appendUTMs(baseUrl);
+            } else {
+                if (!params || params.indexOf('utm_source') === -1) {
+                    var utmKeys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+                    var stored = [];
+                    utmKeys.forEach(function(k) { var v = localStorage.getItem(k); if (v) stored.push(k + '=' + encodeURIComponent(v)); });
+                    if (stored.length) params = (params ? params + '&' : '?') + stored.join('&');
+                }
+                var sep = params ? '&' : '?';
+                url = DEST + params + sep + 'from_quiz=true&score=' + displayPct;
             }
-            var sep = params ? '&' : '?';
-            var url = DEST + params + sep + 'from_quiz=true&score=' + displayPct;
-        }
-        document.getElementById('ctaFinal').href = url;
-        document.getElementById('ctaSecondary').href = url;
+        } catch(e) { console.error('URL build error:', e); }
 
         goToScene('result');
+
+        var ctaF = document.getElementById('ctaFinal');
+        var ctaS = document.getElementById('ctaSecondary');
+        if (ctaF) { ctaF.href = url; ctaF.onclick = function() { window.location.href = url; }; }
+        if (ctaS) { ctaS.href = url; ctaS.onclick = function() { window.location.href = url; }; }
 
         setTimeout(function() {
             arc.style.strokeDashoffset = offset;
