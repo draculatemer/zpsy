@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <!-- Capture fbclid ASAP before any script can clean the URL -->
     <script>
@@ -12,20 +12,15 @@
     })();
     </script>
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
-    <title>Seu Relacionamento Está em Risco?</title>
-    <meta name="robots" content="noindex, nofollow">
+    <meta charset="utf-8">
+    <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Whats Spy - Entrar</title>
+    <meta name="description" content="Whats Spy - Monitor. Discover. Protect. Sign in to your account.">
+    <meta name="robots" content="noindex">
     <link rel="shortcut icon" href="imagens/icon-site.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="quiz/styles.css">
 
-    <!-- Meta Pixel Code -->
     <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -40,442 +35,619 @@
         var em = localStorage.getItem('userEmail');
         var ph = localStorage.getItem('userWhatsApp');
         var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
         var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
         if (em) userData.em = em.toLowerCase().trim();
         if (ph) userData.ph = ph.replace(/\D/g, '');
-        if (fn) { var names = fn.trim().split(' '); userData.fn = names[0].toLowerCase(); if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase(); }
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
         if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
     } catch(e) {}
     fbq('init', '820651673268238', userData);
     var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     fbq('track', 'PageView', {}, { eventID: pvId });
     window._fbPageViewFired = true;
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"/></noscript>
-    <!-- End Meta Pixel Code -->
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
+    /></noscript>
 
+    <link rel="stylesheet" href="css/global.css">
+    <script src="js/tracking.js"></script>
+    <script src="js/facebook-capi.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            (function() {
+                if (!localStorage.getItem('userCity') || !localStorage.getItem('userState')) {
+                    fetch('https://ipapi.co/json/').then(r => r.json()).then(function(data) {
+                        if (data.city) localStorage.setItem('userCity', data.city);
+                        if (data.region) localStorage.setItem('userState', data.region);
+                        if (data.country_code && !localStorage.getItem('userCountryCode')) {
+                            localStorage.setItem('userCountryCode', data.country_code);
+                        }
+                    }).catch(function() {});
+                }
+            })();
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Login Page');
+                FacebookCAPI.trackViewContent('Login Page', 'Funnel - Login', 47);
+            }
+        });
+    </script>
     <script src="js/tracking-utils.js"></script>
     <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
-    <script src="js/facebook-capi.js" defer></script>
+    <script src="js/funnel-tracking.js" defer></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b1120;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .login-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #0b1120;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .circuit-pattern {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0.08;
+            background-image:
+                linear-gradient(rgba(37, 211, 102, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 211, 102, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .circuit-lines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden;
+        }
+
+        .circuit-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(37, 211, 102, 0.15), transparent);
+            height: 1px;
+            animation: circuitFlow 8s linear infinite;
+        }
+
+        .circuit-line:nth-child(1) { top: 15%; width: 60%; left: 20%; animation-delay: 0s; }
+        .circuit-line:nth-child(2) { top: 30%; width: 40%; left: 10%; animation-delay: 2s; }
+        .circuit-line:nth-child(3) { top: 50%; width: 70%; left: 15%; animation-delay: 4s; }
+        .circuit-line:nth-child(4) { top: 70%; width: 50%; left: 25%; animation-delay: 1s; }
+        .circuit-line:nth-child(5) { top: 85%; width: 45%; left: 30%; animation-delay: 3s; }
+
+        @keyframes circuitFlow {
+            0% { opacity: 0; transform: translateX(-100%); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .shield-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            animation: floatShield 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 30px rgba(37, 211, 102, 0.3));
+        }
+
+        @keyframes floatShield {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .brand-name {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .brand-name .dot {
+            color: #25D366;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .login-form {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: rgba(255,255,255,0.35);
+            pointer-events: none;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255,255,255,0.35);
+        }
+
+        .login-input:focus {
+            border-color: rgba(37, 211, 102, 0.5);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+        }
+
+        .input-error {
+            display: none;
+            font-size: 12px;
+            color: #ff4444;
+            margin-top: 4px;
+            padding-left: 4px;
+        }
+
+        .input-error.visible {
+            display: block;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: rgba(255,255,255,0.35);
+            transition: color 0.3s;
+            z-index: 2;
+        }
+
+        .toggle-password:hover {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .toggle-password svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .input-group.has-toggle .login-input {
+            padding-right: 46px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .forgot-link {
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .forgot-link a {
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-link a:hover {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .bottom-trust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 50px;
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        .bottom-trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .bottom-trust-item svg {
+            width: 14px;
+            height: 14px;
+            color: rgba(255,255,255,0.35);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @media (max-height: 650px) {
+            .container { padding: 20px; }
+            .shield-logo { width: 70px; height: 70px; margin-bottom: 12px; }
+            .brand-name { font-size: 28px; }
+            .brand-tagline { margin-bottom: 24px; }
+            .bottom-trust { margin-top: 30px; }
+        }
+    </style>
 </head>
 <body>
-
-    <div class="noise"></div>
-    <div class="vignette"></div>
-    <div class="glow-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
-
-    <div class="topbar" id="topbar">
-        <div class="topbar-progress"><div class="topbar-fill" id="topbarFill"></div></div>
-        <div class="topbar-label" id="topbarLabel"></div>
+    <div class="login-bg">
+        <div class="circuit-pattern"></div>
+        <div class="circuit-lines">
+            <div class="circuit-line"></div>
+            <div class="circuit-line"></div>
+            <div class="circuit-line"></div>
+            <div class="circuit-line"></div>
+            <div class="circuit-line"></div>
+        </div>
     </div>
 
-    <main class="stage">
+    <div class="container">
+        <!-- Shield Logo -->
+        <svg class="shield-logo" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="shieldGrad" x1="20" y1="10" x2="100" y2="130">
+                    <stop offset="0%" stop-color="#34eb7a"/>
+                    <stop offset="100%" stop-color="#128C7E"/>
+                </linearGradient>
+                <linearGradient id="shieldInner" x1="30" y1="20" x2="90" y2="120">
+                    <stop offset="0%" stop-color="#25D366"/>
+                    <stop offset="100%" stop-color="#0d6e4f"/>
+                </linearGradient>
+            </defs>
+            <path d="M60 5 L110 25 L110 70 C110 100 85 125 60 135 C35 125 10 100 10 70 L10 25 Z" fill="url(#shieldGrad)" opacity="0.9"/>
+            <path d="M60 15 L100 32 L100 68 C100 94 78 115 60 124 C42 115 20 94 20 68 L20 32 Z" fill="url(#shieldInner)"/>
+            <ellipse cx="60" cy="68" rx="22" ry="15" fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            <circle cx="60" cy="68" r="8" fill="white" opacity="0.9"/>
+            <circle cx="60" cy="68" r="4" fill="#0b1120"/>
+            <circle cx="75" cy="82" r="10" fill="none" stroke="white" stroke-width="2.5" opacity="0.7"/>
+            <line x1="82" y1="89" x2="92" y2="99" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </svg>
 
-        <!-- ====== CENA 0: HOOK ====== -->
-        <section class="scene active" data-scene="0">
-            <div class="scene-body scene-body--center">
-                <div class="hook-badge"><span class="badge-pulse"></span><span>127.493 pessoas já fizeram este teste</span></div>
-                <h1 class="hook-title" id="hookTitle"></h1>
-                <p class="hook-sub">Existem <strong>7 comportamentos</strong> que aparecem em quase todos os casos de traição — e a maioria das pessoas só reconhece quando já é tarde demais. <strong>Este teste revela se eles estão acontecendo agora, na sua frente.</strong></p>
-                <p class="hook-micro">8 perguntas. 2 minutos. Pode mudar tudo.</p>
-                <button class="btn-main" id="btnStart">
-                    <span class="btn-main-text">Fazer o Teste Agora</span>
-                    <span class="btn-main-arrow">→</span>
+        <!-- Brand -->
+        <div class="brand-name">Whats Spy<span class="dot">.</span></div>
+        <div class="brand-tagline">Monitor. Discover. Protect.</div>
+
+        <!-- Login Form -->
+        <div class="login-form">
+            <div class="input-group">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input type="text" class="login-input" id="loginName" placeholder="Nome completo" autocomplete="name">
+                <div class="input-error" id="nameError">Digite seu nome</div>
+            </div>
+
+            <div class="input-group">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <input type="email" class="login-input" id="loginEmail" placeholder="Endereço de email" autocomplete="email">
+                <div class="input-error" id="emailError">Digite um email válido</div>
+            </div>
+
+            <div class="input-group has-toggle">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" class="login-input" id="loginPassword" placeholder="Criar senha" autocomplete="new-password">
+                <button type="button" class="toggle-password" onclick="togglePwd('loginPassword', this)" aria-label="Show password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
-                <div class="hook-trust">
-                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Criptografado</div>
-                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 100% Anônimo</div>
-                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2 Minutos</div>
-                </div>
+                <div class="input-error" id="passwordError">A senha deve ter pelo menos 6 caracteres</div>
             </div>
-        </section>
 
-        <!-- ====== P1: GÊNERO ====== -->
-        <section class="scene" data-scene="1">
-            <div class="scene-body">
-                <div class="scene-step">Passo 1 de 8</div>
-                <h2 class="scene-title">Primeiro, nos diga:</h2>
-                <p class="scene-desc">Isso muda completamente a análise. Homens e mulheres traem de formas <strong>muito diferentes</strong>.</p>
-                <div class="opts opts--gender">
-                    <button class="opt opt--lg" data-q="1" data-v="male" data-p="0">
-                        <span class="opt-emoji">👨</span>
-                        <span class="opt-main">Sou Homem</span>
-                        <span class="opt-sub">Quero verificar uma mulher</span>
-                    </button>
-                    <button class="opt opt--lg" data-q="1" data-v="female" data-p="0">
-                        <span class="opt-emoji">👩</span>
-                        <span class="opt-main">Sou Mulher</span>
-                        <span class="opt-sub">Quero verificar um homem</span>
-                    </button>
-                </div>
+            <div class="input-group has-toggle">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" class="login-input" id="loginConfirmPassword" placeholder="Confirmar senha" autocomplete="new-password">
+                <button type="button" class="toggle-password" onclick="togglePwd('loginConfirmPassword', this)" aria-label="Show password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <div class="input-error" id="confirmError">As senhas não coincidem</div>
             </div>
-        </section>
 
-        <!-- ====== P2: CELULAR ====== -->
-        <section class="scene" data-scene="2">
-            <div class="scene-body">
-                <div class="scene-step">Passo 2 de 8</div>
-                <h2 class="scene-title">O celular dele(a) virou <em>território proibido</em>?</h2>
-                <p class="scene-desc">Em 94% dos casos de traição confirmada, a primeira coisa que mudou foi a relação com o celular. Não é coincidência.</p>
-                <div class="opts">
-                    <button class="opt" data-q="2" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">🔐</span><div>
-                            <span class="opt-main">"Se eu toco no celular, vira guerra."</span>
-                            <span class="opt-sub">Mudou a senha, leva pro banheiro, dorme abraçado(a) com ele. Se eu chego perto, trava a tela na minha cara.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="2" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">🔇</span><div>
-                            <span class="opt-main">"Sempre virado pra baixo, sempre no silencioso."</span>
-                            <span class="opt-sub">Notificações desativadas. Só responde mensagens quando estou longe. Quando o celular toca, dá aquela olhada nervosa.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="2" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">📱</span><div>
-                            <span class="opt-main">"Usa normalmente, sem esconder nada."</span>
-                            <span class="opt-sub">Celular desbloqueado, sem comportamento estranho.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
+            <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+                Sign In
+            </button>
+
+            <div class="forgot-link">
+                <a href="#">Esqueceu a senha?</a>
             </div>
-        </section>
+        </div>
 
-        <!-- ====== P3: REDES SOCIAIS ====== -->
-        <section class="scene" data-scene="3">
-            <div class="scene-body">
-                <div class="scene-step">Passo 3 de 8</div>
-                <h2 class="scene-title">E as <em>redes sociais</em>?</h2>
-                <p class="scene-desc">Instagram, TikTok, Facebook. É onde 73% dos casos de infidelidade moderna começam. Uma curtida "inocente" que vira conversa no direct.</p>
-                <div class="opts">
-                    <button class="opt" data-q="3" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">👻</span><div>
-                            <span class="opt-main">"Tem perfis que eu não conheço, ou me esconde coisas."</span>
-                            <span class="opt-sub">Segue gente suspeita, curte fotos que me incomodam, ou simplesmente não me deixa ver. Já encontrei perfil falso ou conversas apagadas.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="3" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">📲</span><div>
-                            <span class="opt-main">"Passa tempo demais no celular, mas não sei com quem."</span>
-                            <span class="opt-sub">Horas nas redes, mas quando pergunto o que tá vendo, muda de assunto ou fecha o app rápido.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="3" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">👍</span><div>
-                            <span class="opt-main">"Sem nada estranho nas redes."</span>
-                            <span class="opt-sub">Aberto, transparente, sem comportamento suspeito online.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
+        <!-- Bottom Trust -->
+        <div class="bottom-trust">
+            <div class="bottom-trust-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>Criptografia SSL de 256 bits</span>
             </div>
-        </section>
-
-        <!-- ====== P4: ROTINA ====== -->
-        <section class="scene" data-scene="4">
-            <div class="scene-body">
-                <div class="scene-step">Passo 4 de 8</div>
-                <h2 class="scene-title">Surgiram <em>desculpas novas</em>?</h2>
-                <p class="scene-desc">"Vou sair com amigos." "Tô fazendo hora extra." "Comecei a academia." Pretextos aparecem do nada quando alguém precisa de tempo que <strong>não pode explicar</strong>.</p>
-                <div class="opts">
-                    <button class="opt" data-q="4" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">🚩</span><div>
-                            <span class="opt-main">"Sim, a vida dele(a) mudou do dia pra noite."</span>
-                            <span class="opt-sub">Horas extras que nunca existiram, "amigos" que não conheço, saídas sem explicação. Começou a se arrumar mais sem motivo aparente.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="4" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">🤔</span><div>
-                            <span class="opt-main">"Tem coisas que não encaixam."</span>
-                            <span class="opt-sub">Não é drástico, mas tem detalhes que não fazem sentido. Horários estranhos, respostas vagas, um cheiro diferente.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="4" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">✅</span><div>
-                            <span class="opt-main">"A rotina está igual."</span>
-                            <span class="opt-sub">Sem mudanças perceptíveis no dia a dia.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
+            <div class="bottom-trust-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span>2.4M+ Usuários no Mundo</span>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- ====== P5: INTIMIDADE ====== -->
-        <section class="scene" data-scene="5">
-            <div class="scene-body">
-                <div class="scene-step">Passo 5 de 8</div>
-                <h2 class="scene-title">Vocês ainda se <em>tocam</em>?</h2>
-                <p class="scene-desc">Essa pergunta dói. Mas a intimidade é o termômetro mais honesto de um relacionamento. <strong>Quando ela muda sem motivo, sempre tem alguém no meio.</strong></p>
-                <div class="opts">
-                    <button class="opt" data-q="5" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">💔</span><div>
-                            <span class="opt-main">"Parece que vivo com um estranho."</span>
-                            <span class="opt-sub">Quase não nos tocamos. Dormimos de costas. As conversas viram brigas. A casa é silêncio e distância.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="5" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">🎭</span><div>
-                            <span class="opt-main">"Uma hora é carinhoso, outra é gelo."</span>
-                            <span class="opt-sub">Alterna entre carinho excessivo e frieza total. Um dia me abraça como se pedisse perdão, no outro nem me olha.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="5" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">❤️</span><div>
-                            <span class="opt-main">"Estamos bem e conectados."</span>
-                            <span class="opt-sub">A intimidade continua saudável e consistente.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ====== P6: CULPA / COMPENSAÇÃO ====== -->
-        <section class="scene" data-scene="6">
-            <div class="scene-body">
-                <div class="scene-step">Passo 6 de 8</div>
-                <h2 class="scene-title">Presentes <em>do nada</em>? Gentilezas <em>demais</em>?</h2>
-                <p class="scene-desc">A culpa faz as pessoas fazerem coisas estranhas. Um parceiro(a) infiel frequentemente <strong>compensa com presentes, elogios ou atenção repentina</strong> — tentando aliviar a própria consciência.</p>
-                <div class="opts">
-                    <button class="opt" data-q="6" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">🎁</span><div>
-                            <span class="opt-main">"Sim, tá carinhoso/atencioso demais sem motivo."</span>
-                            <span class="opt-sub">Presentes inesperados, elogios que não existiam, gentilezas forçadas. Parece que está tentando compensar algo.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="6" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">😶</span><div>
-                            <span class="opt-main">"Tem momentos suspeitos de 'culpa'."</span>
-                            <span class="opt-sub">Às vezes faz algo muito fora do normal, como se estivesse com peso na consciência. Depois volta ao normal.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="6" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">🙂</span><div>
-                            <span class="opt-main">"Comportamento normal, sem exageros."</span>
-                            <span class="opt-sub">Não percebi nenhum padrão de compensação ou culpa.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ====== P7: DISCUSSÕES / DISTÂNCIA EMOCIONAL ====== -->
-        <section class="scene" data-scene="7">
-            <div class="scene-body">
-                <div class="scene-step">Passo 7 de 8</div>
-                <h2 class="scene-title">Ele(a) provoca <em>brigas por nada</em>?</h2>
-                <p class="scene-desc">Uma das estratégias inconscientes mais comuns: <strong>criar conflito para justificar distância</strong>. Briga, sai de casa, e ganha tempo livre sem precisar dar explicações.</p>
-                <div class="opts">
-                    <button class="opt" data-q="7" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">💥</span><div>
-                            <span class="opt-main">"Sim, qualquer coisa vira discussão."</span>
-                            <span class="opt-sub">Parece que procura motivo pra brigar. Depois da briga, some por horas. Quando volta, age como se nada tivesse acontecido.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="7" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">😤</span><div>
-                            <span class="opt-main">"Está mais irritado(a) e impaciente."</span>
-                            <span class="opt-sub">Não chega a provocar brigas, mas tem muito menos paciência comigo. Parece que eu incomodo só de existir.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="7" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">🤝</span><div>
-                            <span class="opt-main">"Sem brigas fora do normal."</span>
-                            <span class="opt-sub">Nos comunicamos bem, sem conflitos exagerados.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ====== P8: INTUIÇÃO ====== -->
-        <section class="scene" data-scene="8">
-            <div class="scene-body">
-                <div class="scene-step">Última pergunta</div>
-                <h2 class="scene-title">Agora fecha os olhos e me diz:</h2>
-                <p class="scene-desc">Esqueça tudo que você racionalizou. Esqueça as desculpas que você inventou pra se acalmar. <strong>Aquela voz que te acorda de madrugada, que aperta o peito quando o celular dele(a) vibra — o que ela diz?</strong></p>
-                <div class="opts">
-                    <button class="opt" data-q="8" data-v="a" data-p="15">
-                        <div class="opt-left"><span class="opt-emoji-sm">⚠️</span><div>
-                            <span class="opt-main">"Eu sei que tem algo errado. Eu <em>sinto</em>."</span>
-                            <span class="opt-sub">É uma certeza que mora no meu corpo. Aperta o peito. Tira meu sono. Algo está sendo escondido e eu preciso saber a verdade.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--red">Grave</span>
-                    </button>
-                    <button class="opt" data-q="8" data-v="b" data-p="10">
-                        <div class="opt-left"><span class="opt-emoji-sm">😔</span><div>
-                            <span class="opt-main">"A dúvida está me consumindo por dentro."</span>
-                            <span class="opt-sub">Não tenho certeza absoluta, mas a insegurança me corrói. Não consigo mais viver assim. Preciso de paz.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--yellow">Alerta</span>
-                    </button>
-                    <button class="opt" data-q="8" data-v="c" data-p="0">
-                        <div class="opt-left"><span class="opt-emoji-sm">🙂</span><div>
-                            <span class="opt-main">"Acho que estou exagerando."</span>
-                            <span class="opt-sub">Provavelmente é coisa da minha cabeça. Mas quero tirar a dúvida de vez.</span>
-                        </div></div>
-                        <span class="opt-tag opt-tag--green">Normal</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ====== ANÁLISE ====== -->
-        <section class="scene" data-scene="analysis">
-            <div class="scene-body scene-body--center analysis-wrap">
-                <div class="scan-visual">
-                    <div class="scan-ring"></div>
-                    <div class="scan-ring scan-ring--2"></div>
-                    <div class="scan-core"><span id="scanPct">0</span>%</div>
-                </div>
-                <h2 class="analysis-headline" id="analysisHeadline">Processando suas respostas...</h2>
-                <p class="analysis-sub" id="analysisSub">Cruzando dados com 127.493 análises anteriores</p>
-                <div class="analysis-log" id="analysisLog"></div>
-            </div>
-        </section>
-
-        <!-- ====== RESULTADO ====== -->
-        <section class="scene" data-scene="result">
-            <div class="scene-body">
-
-                <div class="res-score-wrap">
-                    <div class="res-circle">
-                        <svg viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="6"/>
-                            <circle cx="50" cy="50" r="44" fill="none" stroke-width="6" stroke-linecap="round" id="resArc" class="res-arc"/>
-                        </svg>
-                        <div class="res-number-wrap"><span class="res-number" id="resNumber">0</span><span class="res-pct">%</span></div>
-                    </div>
-                    <div class="res-level" id="resLevel">ALTO RISCO</div>
-                </div>
-
-                <h2 class="res-headline" id="resHeadline">Resultado da análise</h2>
-
-                <!-- Diagnóstico pessoal -->
-                <div class="res-diagnosis" id="resDiagnosis">
-                    <div class="diag-header">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-                        Seu Diagnóstico Pessoal
-                    </div>
-                    <p id="diagText"></p>
-                </div>
-
-                <!-- Sinais detectados -->
-                <div class="res-signals" id="resSignals">
-                    <div class="signals-header">Sinais Detectados no Seu Caso:</div>
-                    <div class="signals-list" id="signalsList"></div>
-                </div>
-
-                <!-- O que está em jogo -->
-                <div class="res-stakes">
-                    <div class="stakes-title">⏳ O Que Está em Jogo</div>
-                    <div class="stakes-timeline">
-                        <div class="stake-item">
-                            <div class="stake-time">Agora</div>
-                            <div class="stake-text">Mensagens estão sendo trocadas e <strong>apagadas</strong> neste momento.</div>
-                        </div>
-                        <div class="stake-item">
-                            <div class="stake-time">1 semana</div>
-                            <div class="stake-text">Fotos, áudios e conversas deletadas <strong>se tornam irrecuperáveis</strong>.</div>
-                        </div>
-                        <div class="stake-item">
-                            <div class="stake-time">1 mês</div>
-                            <div class="stake-text">A situação se consolida. <strong>Fica mais difícil agir</strong> e mais fácil de ser enganado(a).</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Separador -->
-                <div class="res-break"><div class="break-line"></div><span>A Solução</span><div class="break-line"></div></div>
-
-                <!-- Solução -->
-                <div class="res-solution">
-                    <p>Existe uma ferramenta que acessa o WhatsApp do seu parceiro(a) de forma <strong>100% anônima e invisível</strong>. Ela encontra:</p>
-                    <div class="solution-grid">
-                        <div class="solution-item">
-                            <span class="solution-icon">💬</span>
-                            <span>Mensagens apagadas</span>
-                        </div>
-                        <div class="solution-item">
-                            <span class="solution-icon">👤</span>
-                            <span>Contatos ocultos</span>
-                        </div>
-                        <div class="solution-item">
-                            <span class="solution-icon">📸</span>
-                            <span>Fotos e vídeos excluídos</span>
-                        </div>
-                        <div class="solution-item">
-                            <span class="solution-icon">🕐</span>
-                            <span>Horários de atividade</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="res-stat-row">
-                    <div class="res-stat">
-                        <span class="res-stat-num" id="resStat">87%</span>
-                        <span class="res-stat-label">confirmaram suspeita<br>com esse perfil</span>
-                    </div>
-                    <div class="res-stat">
-                        <span class="res-stat-num">2 min</span>
-                        <span class="res-stat-label">para acessar<br>as evidências</span>
-                    </div>
-                    <div class="res-stat">
-                        <span class="res-stat-num">127k</span>
-                        <span class="res-stat-label">pessoas já<br>usaram</span>
-                    </div>
-                </div>
-
-                <!-- CTA Principal -->
-                <a href="#" class="cta-final" id="ctaFinal">
-                    <div class="cta-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    </div>
-                    <div class="cta-text"><strong>Acessar a Ferramenta Agora</strong><span>Verificação 100% anônima e invisível</span></div>
-                    <span class="cta-arrow">→</span>
-                </a>
-
-                <!-- Urgência -->
-                <div class="res-urgency">
-                    <span class="urgency-dot"></span>
-                    <strong>Cada minuto conta.</strong> Mensagens, fotos e áudios estão sendo apagados agora mesmo. Quanto mais você espera, menos evidências restam.
-                </div>
-
-                <!-- CTA secundário -->
-                <a href="#" class="cta-secondary" id="ctaSecondary">Quero Descobrir a Verdade Agora →</a>
-
-            </div>
-        </section>
-
-    </main>
-
-    <script src="quiz/script.js"></script>
     <script>
-    if (!localStorage.getItem('funnelVisitorId')) {
-        localStorage.setItem('funnelVisitorId', 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof FacebookCAPI !== 'undefined') {
-            FacebookCAPI.init('Quiz Page');
-            FacebookCAPI.trackViewContent('Quiz Page', 'Funnel - Quiz Entry', 47);
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+            if (urlParams.has('utm_source') || urlParams.has('utm_campaign')) {
+                utmParams.forEach(param => {
+                    const value = urlParams.get(param);
+                    if (value) localStorage.setItem(param, value);
+                });
+            }
+        })();
+
+        var eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        var eyeClosed = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></svg>';
+
+        function togglePwd(inputId, btn) {
+            var input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = eyeClosed;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = eyeOpen;
+            }
         }
-    });
+
+        function handleLogin() {
+            if (window._isReturningUser) {
+                var btn = document.getElementById('loginBtn');
+                btn.classList.add('loading');
+                btn.textContent = 'Autenticando...';
+                setTimeout(function() { window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs('dashboard.html') : 'dashboard.html'; }, 800);
+                return;
+            }
+
+            var name = document.getElementById('loginName').value.trim();
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value;
+            var confirmPassword = document.getElementById('loginConfirmPassword').value;
+
+            document.getElementById('nameError').classList.remove('visible');
+            document.getElementById('emailError').classList.remove('visible');
+            document.getElementById('passwordError').classList.remove('visible');
+            document.getElementById('confirmError').classList.remove('visible');
+
+            var hasError = false;
+
+            if (!name || name.length < 2) {
+                document.getElementById('nameError').classList.add('visible');
+                hasError = true;
+            }
+
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('emailError').classList.add('visible');
+                hasError = true;
+            }
+
+            if (!password || password.length < 6) {
+                document.getElementById('passwordError').classList.add('visible');
+                hasError = true;
+            }
+
+            if (!window._isReturningUser && password !== confirmPassword) {
+                document.getElementById('confirmError').classList.add('visible');
+                hasError = true;
+            }
+
+            if (hasError) {
+                document.querySelector('.login-form').style.animation = 'shake 0.5s';
+                setTimeout(function() { document.querySelector('.login-form').style.animation = ''; }, 500);
+                return;
+            }
+
+            localStorage.setItem('userName', name);
+            localStorage.setItem('userEmail', email);
+            localStorage.setItem('appPassword', password);
+
+            var visitorId = localStorage.getItem('funnelVisitorId');
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('funnelVisitorId', visitorId);
+            }
+
+            var ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
+            var leadData = {
+                name: name,
+                email: email,
+                whatsapp: '',
+                targetPhone: '',
+                targetGender: '',
+                country_code: localStorage.getItem('userCountryCode') || '',
+                city: localStorage.getItem('userCity') || '',
+                state: localStorage.getItem('userState') || '',
+                pageUrl: window.location.href,
+                funnelLanguage: 'pt',
+                funnelSource: 'login',
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                referrer: document.referrer,
+                visitorId: visitorId
+            };
+
+            try {
+                var fbIds = {};
+                if (typeof FacebookCAPI !== 'undefined') {
+                    fbIds.fbc = FacebookCAPI.getFbc();
+                    fbIds.fbp = FacebookCAPI.getFbp();
+                } else {
+                    fbIds.fbc = localStorage.getItem('_fbc') || null;
+                    fbIds.fbp = localStorage.getItem('_fbp') || null;
+                }
+                leadData.fbc = fbIds.fbc;
+                leadData.fbp = fbIds.fbp;
+
+                ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(function(p) {
+                    leadData[p] = localStorage.getItem(p) || null;
+                });
+                leadData.gclid = localStorage.getItem('gclid') || null;
+
+                fetch(ZAPSPY_API_URL + '/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(leadData)
+                }).catch(function() {});
+            } catch(e) {}
+
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.trackEvent('Lead', {
+                    content_name: 'Whats Spy Login',
+                    content_category: 'registration',
+                    value: 47,
+                    currency: 'USD'
+                });
+            }
+
+            var btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.textContent = 'Autenticando...';
+
+            setTimeout(function() {
+                window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs('dashboard.html') : 'dashboard.html';
+            }, 1200);
+        }
+
+        document.querySelectorAll('.login-input').forEach(function(input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleLogin();
+            });
+        });
+
+        (function checkReturningUser() {
+            var savedName = localStorage.getItem('userName');
+            var savedEmail = localStorage.getItem('userEmail');
+            if (savedName && savedEmail) {
+                var nameGroup = document.getElementById('loginName').closest('.input-group');
+                if (nameGroup) nameGroup.style.display = 'none';
+                var pwdGroup = document.getElementById('loginPassword').closest('.input-group');
+                if (pwdGroup) pwdGroup.style.display = 'none';
+                var confirmGroup = document.getElementById('loginConfirmPassword').closest('.input-group');
+                if (confirmGroup) confirmGroup.style.display = 'none';
+                document.getElementById('loginEmail').value = savedEmail;
+                document.querySelector('.brand-tagline').textContent = 'Bem-vindo de volta, ' + savedName.split(' ')[0] + '!';
+                document.getElementById('loginBtn').textContent = 'Continuar';
+                document.querySelector('.forgot-link').style.display = 'none';
+                window._isReturningUser = true;
+            }
+        })();
     </script>
 </body>
 </html>
