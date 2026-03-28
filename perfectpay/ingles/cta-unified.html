@@ -2545,10 +2545,13 @@
             const currentValue = window.productValue || 47;
             const currentCheckoutCode = window.checkoutCode || 'PPU38CQ7KHI';
             
+            console.log('🛒 proceedToCheckout: starting...', { FacebookCAPI: typeof FacebookCAPI, fbq: typeof fbq, value: currentValue });
             if (typeof FacebookCAPI !== 'undefined') {
+                console.log('🛒 Sending AddToCart + InitiateCheckout via FacebookCAPI');
                 FacebookCAPI.trackAddToCart(currentValue, 'Whats Spy VIP Access');
                 FacebookCAPI.trackInitiateCheckout(currentValue, 'Whats Spy VIP Access');
             } else if (typeof fbq !== 'undefined') {
+                console.log('🛒 Sending AddToCart + InitiateCheckout via fbq fallback');
                 // Fallback: browser pixel + direct CAPI call
                 const cartEventId = 'AddToCart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 const checkoutEventId = 'InitiateCheckout_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -2617,9 +2620,12 @@
             const userCountryCode = localStorage.getItem('userCountryCode');
             const userPhoneNumber = localStorage.getItem('userPhoneNumber');
             
-            if (userName) checkoutUrl += '&full_name=' + encodeURIComponent(userName);
+            if (userName) checkoutUrl += '&name=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
             if (userPhoneNumber) checkoutUrl += '&phone=' + encodeURIComponent(userPhoneNumber);
+            
+            console.log('🛒 Checkout data:', { name: userName, email: userEmail, phone: userPhoneNumber });
+            console.log('🛒 Checkout URL:', checkoutUrl);
             
             // Delay to ensure tracking events complete before navigation
             setTimeout(function() { window.location.href = checkoutUrl; }, 1200);

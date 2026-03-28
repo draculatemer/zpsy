@@ -2618,7 +2618,7 @@
             const userCountryCode = localStorage.getItem('userCountryCode');
             const userPhoneNumber = localStorage.getItem('userPhoneNumber');
             
-            if (userName) checkoutUrl += '&full_name=' + encodeURIComponent(userName);
+            if (userName) checkoutUrl += '&name=' + encodeURIComponent(userName);
             if (userEmail) checkoutUrl += '&email=' + encodeURIComponent(userEmail);
             if (userPhoneNumber) checkoutUrl += '&phone=' + encodeURIComponent(userPhoneNumber);
             
