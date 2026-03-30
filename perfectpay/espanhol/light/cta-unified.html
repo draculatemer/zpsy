@@ -2207,6 +2207,62 @@
             </div>
         </div>
 
+        <!-- Protección de tu WhatsApp -->
+        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:18px;">🛡️</span>
+                </div>
+                <div>
+                    <div style="font-size:14px;font-weight:600;color:#128C7E;">Tu WhatsApp queda protegido, <span id="ctaUserFirstName"></span></div>
+                    <div style="font-size:11px;color:#667781;">100% anónimo • Sin dejar rastro</div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> Tu número <strong style="color:#128C7E;">nunca se expone</strong> durante el proceso
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Él</span> <strong>jamás sabrá</strong> que accediste a <span id="ctaGenderPronoun1">sus</span> datos
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> Cifrado militar de 256 bits protege tu identidad
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
+                    <span style="color:#25D366;">✓</span> No requiere instalar nada en <span id="ctaGenderPronoun3">su</span> teléfono
+                </div>
+            </div>
+            <div style="font-size:11px;color:#667781;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
+                🔒 Tus datos están cifrados y nunca se comparten con terceros
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="pricing-section" id="pricing">
+            <div class="discount-badge" data-ab-discount>81% OFF - TIEMPO LIMITADO</div>
+            <div class="price-original" data-ab-original-price>$197</div>
+            <div class="price-current" data-ab-price>$37</div>
+            <div class="price-savings" data-ab-savings>¡Ahorras $160 hoy!</div>
+            <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Pago único • <strong style="color:#25D366;">Acceso de por vida</strong></div>
+            <div class="price-info">Pago único • Acceso instantáneo • Garantía de 30 días</div>
+            <button class="cta-button" onclick="handlePurchase()" aria-label="Desbloquear acceso completo a Whats Spy">
+                <span class="cta-button-icon">🔓</span> Desbloquear Acceso Ahora<br><span id="ctaBtnPhone" style="font-size:12px;font-weight:400;opacity:0.85;"></span>
+            </button>
+            <p class="cta-subtext">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+                Pago seguro • Acceso liberado en hasta 2 minutos
+            </p>
+            <div class="payment-methods">
+                <span class="payment-method">💳 Visa</span>
+                <span class="payment-method">💳 Mastercard</span>
+                <span class="payment-method">💳 Amex</span>
+                <span class="payment-method">🔒 PayPal</span>
+            </div>
+        </div>
+
         <!-- Testimonials -->
         <div class="testimonials-section">
             <div class="testimonials-header-card">
@@ -2273,62 +2329,6 @@
                     <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 156 útil</span>
                 </div>
             </div>
-            </div>
-        </div>
-
-        <!-- Protección de tu WhatsApp -->
-        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span style="font-size:18px;">🛡️</span>
-                </div>
-                <div>
-                    <div style="font-size:14px;font-weight:600;color:#128C7E;">Tu WhatsApp queda protegido, <span id="ctaUserFirstName"></span></div>
-                    <div style="font-size:11px;color:#667781;">100% anónimo • Sin dejar rastro</div>
-                </div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> Tu número <strong style="color:#128C7E;">nunca se expone</strong> durante el proceso
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Él</span> <strong>jamás sabrá</strong> que accediste a <span id="ctaGenderPronoun1">sus</span> datos
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> Cifrado militar de 256 bits protege tu identidad
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> No requiere instalar nada en <span id="ctaGenderPronoun3">su</span> teléfono
-                </div>
-            </div>
-            <div style="font-size:11px;color:#667781;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
-                🔒 Tus datos están cifrados y nunca se comparten con terceros
-            </div>
-        </div>
-
-        <!-- Pricing -->
-        <div class="pricing-section" id="pricing">
-            <div class="discount-badge" data-ab-discount>81% OFF - TIEMPO LIMITADO</div>
-            <div class="price-original" data-ab-original-price>$197</div>
-            <div class="price-current" data-ab-price>$37</div>
-            <div class="price-savings" data-ab-savings>¡Ahorras $160 hoy!</div>
-            <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Pago único • <strong style="color:#25D366;">Acceso de por vida</strong></div>
-            <div class="price-info">Pago único • Acceso instantáneo • Garantía de 30 días</div>
-            <button class="cta-button" onclick="handlePurchase()" aria-label="Desbloquear acceso completo a Whats Spy">
-                <span class="cta-button-icon">🔓</span> Desbloquear Acceso Ahora<br><span id="ctaBtnPhone" style="font-size:12px;font-weight:400;opacity:0.85;"></span>
-            </button>
-            <p class="cta-subtext">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
-                </svg>
-                Pago seguro • Acceso liberado en hasta 2 minutos
-            </p>
-            <div class="payment-methods">
-                <span class="payment-method">💳 Visa</span>
-                <span class="payment-method">💳 Mastercard</span>
-                <span class="payment-method">💳 Amex</span>
-                <span class="payment-method">🔒 PayPal</span>
             </div>
         </div>
 
