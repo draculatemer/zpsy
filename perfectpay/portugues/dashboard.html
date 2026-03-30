@@ -159,7 +159,7 @@
         .activity-banner {
             margin: 4px 16px 16px;
             background: linear-gradient(135deg, rgba(37,211,102,0.12), rgba(18,140,126,0.08));
-            border: 1px solid rgba(37,211,102,0.2);
+            border: 1px solid rgba(37,211,102,0.3);
             border-radius: 14px;
             padding: 14px 16px;
             display: flex;
@@ -204,15 +204,28 @@
             background: linear-gradient(90deg, #25D366, #34eb7a);
             border-radius: 3px;
             transition: width 1.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
         }
 
         .section-label {
             padding: 0 20px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #8e8e93;
+            font-size: 11px;
+            font-weight: 700;
+            color: #25D366;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -228,7 +241,7 @@
         .main-feature {
             margin: 0 16px 20px;
             background: linear-gradient(135deg, #0a2a1a, #0d3320);
-            border: 1.5px solid rgba(37,211,102,0.35);
+            border: 1.5px solid rgba(37,211,102,0.4);
             border-radius: 20px;
             padding: 22px 20px;
             position: relative;
@@ -236,6 +249,7 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             animation: fadeSlideIn 0.5s ease-out 0.4s both;
+            box-shadow: 0 0 25px rgba(37,211,102,0.12), 0 4px 20px rgba(0,0,0,0.3);
         }
         .main-feature:active { transform: scale(0.98); }
         .main-feature::before {
@@ -301,6 +315,11 @@
         .main-feature-cta svg {
             width: 14px;
             height: 14px;
+            animation: arrowBounce 1.5s ease-in-out infinite;
+        }
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(4px); }
         }
         .main-feature-desc {
             font-size: 12px;
@@ -317,11 +336,24 @@
 
         .main-feature-stats {
             display: flex;
-            gap: 16px;
+            gap: 0;
             padding-top: 14px;
             border-top: 1px solid rgba(255,255,255,0.06);
         }
-        .stat-item { flex: 1; }
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .stat-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 2px;
+            bottom: 2px;
+            width: 1px;
+            background: rgba(255,255,255,0.08);
+        }
         .stat-value { font-size: 16px; font-weight: 800; color: #25D366; }
         .stat-label { font-size: 10px; color: #666; margin-top: 2px; }
 
@@ -333,8 +365,8 @@
         }
 
         .feature-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 16px;
             padding: 16px 10px 14px;
             text-align: center;
@@ -342,11 +374,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
-        .feature-card:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
+        .feature-card:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
 
         .feature-card.locked {
-            opacity: 0.65;
+            opacity: 0.7;
         }
 
         .feature-card-icon {
@@ -381,7 +415,7 @@
             right: 8px;
         }
         .badge-locked-icon svg {
-            width: 14px; height: 14px; color: #555;
+            width: 14px; height: 14px; color: rgba(37,211,102,0.45);
         }
 
         .feature-card-desc { display: none; }
@@ -521,6 +555,42 @@
             margin-top: 4px;
         }
 
+        .trial-banner {
+            background: #f5f0e6;
+            padding: 28px 24px 22px;
+            text-align: center;
+            animation: fadeSlideIn 0.5s ease-out;
+        }
+        .trial-banner-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 50%;
+            margin-bottom: 14px;
+            animation: trialPulse 2s ease-in-out infinite;
+        }
+        @keyframes trialPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0.35); }
+            50% { box-shadow: 0 0 0 12px rgba(37,211,102,0); }
+        }
+        .trial-banner h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.3;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+        .trial-banner p {
+            font-size: 14px;
+            color: #6b6b6b;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
         @keyframes fadeSlideIn {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
@@ -533,6 +603,8 @@
         }
 
         @media (max-height: 680px) {
+            .trial-banner { padding: 20px 20px 16px; }
+            .trial-banner h2 { font-size: 18px; }
             .main-feature { padding: 16px; }
             .main-feature-icon { width: 44px; height: 44px; font-size: 22px; }
             .feature-card { padding: 12px 8px 10px; }
@@ -549,6 +621,14 @@
                 <span class="battery-text" id="batteryPct">92</span>
                 <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="18" height="12" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="8" width="13" height="8" rx="1" fill="currentColor"/><rect x="22" y="9" width="2" height="6" rx="1" fill="currentColor"/></svg>
             </div>
+        </div>
+
+        <div class="trial-banner">
+            <div class="trial-banner-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="24" height="24"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            </div>
+            <h2>Parabéns, você ganhou 1 acesso gratuito!</h2>
+            <p>Digite o número abaixo e comece o monitoramento silencioso.</p>
         </div>
 
         <div class="dash-header">
