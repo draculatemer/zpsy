@@ -2,7 +2,7 @@ const ZAPI_INSTANCES = [
     {
         instance: '3EEA70039B0B31BFC5924A7638EE86FD',
         token: '448359FB9C302BCE9D09F8D0',
-        clientToken: 'Fd8be5328288e466eb014c3d6c653dd3aS'
+        clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S'
     }
 ];
 
