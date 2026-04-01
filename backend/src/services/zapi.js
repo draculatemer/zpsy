@@ -2,7 +2,7 @@ const ZAPI_INSTANCES = [
     {
         instance: process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B31BFC5924A7638EE86FD',
         token: process.env.ZAPI_TOKEN || '448359FB9C302BCE9D09F8D0',
-        clientToken: process.env.ZAPI_CLIENT_TOKEN || 'F0f2cc62f6c4f46088783537c957b7fd6S'
+        clientToken: process.env.ZAPI_CLIENT_TOKEN || 'Fd8be5328288e466eb014c3d6c653dd3aS'
     }
 ];
 

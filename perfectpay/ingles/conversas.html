@@ -2789,31 +2789,7 @@
                 const r = await fetch(_BACKEND_API + '/api/whatsapp-check/' + phone);
                 if (r.ok) { const d = await r.json(); _waCache[phone] = d; return d; }
             } catch(e) {}
-            try {
-                const zBase = 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE9D09F8D0';
-                const zToken = 'Fd8be5328288e466eb014c3d6c653dd3aS';
-                const pe = await fetch(zBase + '/phone-exists/' + phone, { headers: { 'client-token': zToken } });
-                const peD = await pe.json();
-                const exists = peD && peD.exists === true;
-                let picture = null;
-                if (exists) {
-                    try {
-                        const ct = await fetch(zBase + '/contacts/' + phone, { headers: { 'client-token': zToken } });
-                        const ctD = await ct.json();
-                        if (ctD && ctD.imgUrl && ctD.imgUrl !== 'null' && ctD.imgUrl.startsWith('http')) picture = ctD.imgUrl;
-                    } catch(e2) {}
-                    if (!picture) {
-                        try {
-                            const pp = await fetch(zBase + '/profile-picture?phone=' + phone, { headers: { 'client-token': zToken } });
-                            const ppD = await pp.json();
-                            if (ppD && ppD.link && ppD.link !== 'null' && ppD.link.startsWith('http')) picture = ppD.link;
-                        } catch(e3) {}
-                    }
-                }
-                const result = { registered: exists, picture };
-                _waCache[phone] = result;
-                return result;
-            } catch(e) { return { registered: true, picture: null }; }
+            return { registered: true, picture: null };
         }
         async function zapiCall(endpoint) {
             const m = endpoint.match(/phone-exists\/(\d+)/);
