@@ -164,11 +164,11 @@ const FacebookCAPI = {
         return this.trackEvent('PageView', { content_name: pageName || document.title });
     },
 
-    trackViewContent: function(contentName, contentCategory, value = 39) {
+    trackViewContent: function(contentName, contentCategory, value = 47) {
         return this.trackEvent('ViewContent', {
             content_name: contentName,
             content_category: contentCategory,
-            value: value > 0 ? value : 39,
+            value: value > 0 ? value : 47,
             currency: 'USD'
         });
     },

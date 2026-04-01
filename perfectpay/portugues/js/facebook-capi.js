@@ -197,11 +197,11 @@ const FacebookCAPI = {
     },
 
     // ViewContent - when user views important content
-    trackViewContent: function(contentName, contentCategory, value = 49) {
+    trackViewContent: function(contentName, contentCategory, value = 47) {
         return this.trackEvent('ViewContent', {
             content_name: contentName,
             content_category: contentCategory,
-            value: value > 0 ? value : 49,
+            value: value > 0 ? value : 47,
             currency: 'USD'
         });
     },
