@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -990,16 +996,6 @@
             color: #667781;
             font-weight: 400;
             margin-top: 2px;
-        }
-
-        .modal-decline {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 8px;
-            opacity: 0.7;
         }
 
         @keyframes modalPulse {
@@ -2304,9 +2300,6 @@
                 </div>
                 <button class="mcf-submit-btn" onclick="submitCaptureForm()">🔓 Desbloquear Todas as Conversas</button>
             </div>
-
-
-            <button class="modal-decline" onclick="closeModal()">Não, não quero descobrir toda a verdade agora</button>
         </div>
     </div>
 
@@ -2372,144 +2365,61 @@
         }
 
         const allConversations = [
+            // Pinned normal contacts (always shown)
             { name: '❤️ Meu Am***', avatar: '../imagens/blocked-female-1.png', message: '✓✓ Você: Te amo muit**!', time: '09:19', pinned: true, blur: 'full', tags: [] },
             { name: 'Melhor Am***', avatar: '../imagens/blocked-male-1.png', message: '✓✓ Você: Te ligo depo**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
-            
+
             { name: fakePhone(47), avatar: '../imagens/blocked-female-2.png', message: 'Apaga isso depois de ler, não quero qu***...', time: '01:22', unread: 12, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
             { name: fakePhone(83), avatar: '../imagens/blocked-male-2.png', message: "Tô te esper*** aqui...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
             { name: fakePhone(19), avatar: '../imagens/blocked-female-3.png', message: "Não conta pra ning*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
-            
+
             { name: 'Thi**', avatar: '../imagens/blocked-male-3.png', message: '✓✓ Você: Valeu ca**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
-            
+
             { name: 'Ren** (Trabalho)', avatar: '../imagens/blocked-female-4.png', message: '📷 Foto (ver uma vez)', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
             { name: 'Bia***', avatar: '../imagens/blocked-male-4.png', message: 'Que horas você vem hoj*** à noi***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
-            
+
             { name: 'Fer**', avatar: '../imagens/blocked-female-5.png', message: '✓✓ Você: Te vejo depo**!', time: '10:15', blur: 'full', tags: [] },
-            
+
             { name: 'Planos do Fim de Semana 🎉', avatar: null, message: '✓✓ Você: Bom di**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
-            
+
             { name: 'J', avatar: '../imagens/blocked-male-5.png', message: 'Tô com muita saudade, quando a gente pode s***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'M', avatar: '../imagens/blocked-female-6.png', message: 'Nosso segre*** tá segu***...', time: '23:58', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            
+
             { name: 'Luc*', avatar: '../imagens/blocked-male-6.png', message: 'Jogo hoj*** à noi**?', time: '15:45', blur: 'full', unread: 2, tags: [] },
             { name: 'Ped*', avatar: '../imagens/blocked-female-1.png', message: '✓✓ Você: Haha com cert***!', time: '14:30', blur: 'full', tags: [] },
-            
-            { name: 'Não Atender', avatar: '../imagens/blocked-male-1.png', message: 'Tô com muita saudad**...', time: '02:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ale** (Academia)', avatar: '../imagens/blocked-female-2.png', message: '🎤 Áudio (2:34)', time: '22:15', unread: 3, blur: 'full', tags: ['suspicious'] },
-            
-            { name: 'Jés**', avatar: '../imagens/blocked-male-2.png', message: 'Gente você não vai acredi***...', time: '13:20', blur: 'full', unread: 5, tags: [] },
-            
+
             { name: 'Equipe Trabalho', avatar: null, message: '~ Carlos: Reunião aman***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
-            
+
             { name: 'Contato Bloqueado', avatar: '../imagens/blocked-female-3.png', message: 'Ainda pens* em nó** dois...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
             { name: 'Contato Apagado', avatar: '../imagens/blocked-male-3.png', message: 'Nunca parei de te am***...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            
+
             { name: 'Dav** (Chefe)', avatar: '../imagens/blocked-female-4.png', message: 'Relatório pra aman***', time: '17:00', blur: 'full', tags: [] },
             { name: 'Mar*', avatar: '../imagens/blocked-male-4.png', message: '✓✓ Você: Pode deixar!', time: '16:30', blur: 'full', tags: [] },
-            
+
             { name: fakePhone(62), avatar: '../imagens/blocked-female-5.png', message: '📍 Localização compartilh*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
             { name: 'Sam**', avatar: '../imagens/blocked-male-5.png', message: '📷 Foto (visualização úni**)', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            { name: 'Aman**', avatar: '../imagens/blocked-female-6.png', message: 'Almoço hoj**?', time: '12:00', blur: 'full', tags: [] },
-            
+
             { name: 'Amigos', avatar: null, message: '~ Ana: Esse sáb*** lá em ca**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
-            
+
             { name: 'Amor', avatar: '../imagens/blocked-male-6.png', message: 'Mesmo lug** da última ve**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
             { name: 'Chris** (Novo)', avatar: '../imagens/blocked-female-1.png', message: 'Treino e depo** jant***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
-            
+
             { name: 'Clínica', avatar: '../imagens/blocked-male-1.png', message: 'Consulta confirm*** para...', time: 'Ontem', blur: 'full', tags: [] },
-            { name: 'Academia', avatar: '../imagens/blocked-female-2.png', message: '✓✓ Você: Te vejo às 6!', time: 'Segunda', blur: 'full', tags: [] },
-            
             { name: 'Tay*** (Trabalho)', avatar: '../imagens/blocked-male-2.png', message: 'Sessão privad*** hoj*** à noi**?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
             { name: 'Contato Novo', avatar: '../imagens/blocked-female-3.png', message: 'Almoço no meu escritó***?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] },
-            
-            { name: 'Salão de Beleza', avatar: '../imagens/blocked-male-3.png', message: 'Seu horário está confirm***!', time: 'Terça', blur: 'full', tags: [] },
-            
-            { name: 'L', avatar: '../imagens/blocked-female-4.png', message: '📹 Vídeo (0:15)', time: '00:30', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
             { name: 'K', avatar: '../imagens/blocked-male-4.png', message: '📷 Foto (ver uma vez)', time: '00:15', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
             { name: 'Síndico', avatar: '../imagens/blocked-female-5.png', message: 'Aluguel vence dia 1**', time: 'Quarta', blur: 'full', tags: [] },
-            
+
             { name: 'Projeto Trabalho', avatar: null, message: '~ Chefe: Prazo é aman***...', time: '14:22', blur: 'full', isGroup: true, unread: 23, tags: [] },
-            
-            { name: 'Amiga Antiga', avatar: '../imagens/blocked-male-5.png', message: 'Lembra daquela noi***...', time: '02:15', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Dan**', avatar: '../imagens/blocked-female-6.png', message: '🎤 Áudio (3:12)', time: '01:50', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            { name: 'iFood', avatar: '../imagens/blocked-male-6.png', message: 'Seu pedido está a camin**!', time: '19:30', blur: 'full', tags: [] },
-            { name: 'Mercado Livre', avatar: '../imagens/blocked-female-1.png', message: 'Entrega previs*** hoj**!', time: '14:00', blur: 'full', tags: [] },
-            
-            { name: 'R (trabalho)', avatar: '../imagens/blocked-male-1.png', message: '🎤 Áudio (1:45)', time: '01:20', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Amigo da Faculdade', avatar: '../imagens/blocked-female-2.png', message: 'Aquela noi** foi incríve***...', time: '02:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            { name: 'Chris', avatar: '../imagens/blocked-male-2.png', message: '✓✓ Você: Feliz aniversá***!', time: 'Sexta', blur: 'full', tags: [] },
-            { name: 'Carla', avatar: '../imagens/blocked-female-3.png', message: 'Churrasco esse domin***?', time: 'Sábado', blur: 'full', tags: [] },
-            
+
             { name: '❤️', avatar: '../imagens/blocked-male-3.png', message: "Você fica tão gatos** quan** você...", time: '04:00', unread: 14, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: '🔥', avatar: '../imagens/blocked-female-4.png', message: "Não consigo parar de pens*** em vo**", time: '03:55', unread: 10, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
-            { name: 'Galera dos Games', avatar: null, message: '~ Alex: Alguém joga hoj*** à noi**?', time: '22:15', blur: 'full', isGroup: true, unread: 12, tags: [] },
-            
-            { name: 'Tom', avatar: '../imagens/blocked-male-4.png', message: '✓✓ Você: Valeu pela di**!', time: 'Semana passada', blur: 'full', tags: [] },
-            { name: 'Maria', avatar: '../imagens/blocked-female-5.png', message: 'Receita que você ped** ...', time: 'Semana passada', blur: 'full', tags: [] },
-            
-            { name: 'Desconhecido', avatar: '../imagens/blocked-male-5.png', message: 'Ei, esse ainda é seu núme***?', time: '02:30', unread: 3, blur: 'full', lateNight: true, tags: ['suspicious'], deleted: true },
-            { name: fakePhone(91), avatar: '../imagens/blocked-female-6.png', message: '🎤 Áudio (0:47)', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            { name: 'Beto', avatar: '../imagens/blocked-male-6.png', message: 'Encontro na próxima segu**!', time: 'Semana passada', blur: 'full', tags: [] },
-            { name: 'Laura', avatar: '../imagens/blocked-female-1.png', message: '✓✓ Você: Saudade daqueles di**!', time: 'Semana passada', blur: 'full', tags: [] },
-            
-            { name: '(Bloqueado)', avatar: '../imagens/blocked-male-1.png', message: 'Por que você me bloque**?', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '(Apagado)', avatar: '../imagens/blocked-female-2.png', message: 'Eu sei que você viu minha mensag***...', time: '01:00', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            
-            { name: 'Pet Shop', avatar: '../imagens/blocked-male-2.png', message: 'Seu pet está ótim**!', time: 'Há 2 semanas', blur: 'full', tags: [] },
-            { name: 'Oficina', avatar: '../imagens/blocked-female-3.png', message: 'Lembrete troca de óle***', time: 'Há 2 semanas', blur: 'full', tags: [] },
-            
-            { name: 'Número Privado', avatar: '../imagens/blocked-male-3.png', message: '🎤 Áudio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            { name: 'Serviços Domésticos', avatar: '../imagens/blocked-female-4.png', message: 'Disponível esse sáb***?', time: 'Há 2 semanas', blur: 'full', tags: [] },
-            { name: 'Assistência Técnica', avatar: '../imagens/blocked-male-4.png', message: '✓✓ Você: Valeu pelo cons***!', time: 'Há 3 semanas', blur: 'full', tags: [] },
-            { name: fakePhone(22), avatar: '../imagens/blocked-female-5.png', message: 'Como tá a casa no**?', time: 'Há 3 semanas', blur: 'full', tags: [] },
-            { name: 'Agência de Viagens', avatar: '../imagens/blocked-male-5.png', message: 'Roteiro da viagem ane***', time: 'Há 1 mês', blur: 'full', tags: [] },
-            { name: 'Imobiliária', avatar: '../imagens/blocked-female-6.png', message: 'Novos imóveis disponíve***!', time: 'Há 1 mês', blur: 'full', muted: true, tags: [] },
 
-            { name: 'N', avatar: '../imagens/blocked-male-6.png', message: 'Ontem à noite foi incríve***...', time: '03:22', unread: 13, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone(35), avatar: '../imagens/blocked-female-1.png', message: '📹 Vídeo (visualização única)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Reserva Hotel', avatar: '../imagens/blocked-male-1.png', message: 'Reserva confirm*** para 2 hósped***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            { name: 'V (Não ligar)', avatar: '../imagens/blocked-female-2.png', message: 'Você esqueceu sua jaquet** na minha ca***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Jord** (Yoga)', avatar: '../imagens/blocked-male-2.png', message: 'Aula particular hoj*** à noi**?', time: '21:45', unread: 3, blur: 'full', tags: ['suspicious'] },
-            
-            { name: 'Seguradora', avatar: '../imagens/blocked-female-3.png', message: 'Lembrete renovação da apóli***', time: 'Há 1 mês', blur: 'full', tags: [] },
-            { name: 'Dentista', avatar: '../imagens/blocked-male-3.png', message: 'Consulta agend*** para...', time: 'Há 2 semanas', blur: 'full', tags: [] },
-            
-            { name: 'Snap - Al***', avatar: '../imagens/blocked-female-4.png', message: '📷 Snap recebido', time: '00:45', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'IG - @sec***', avatar: '../imagens/blocked-male-4.png', message: 'Respondeu ao seu stor***', time: '23:30', unread: 5, blur: 'full', tags: ['suspicious'] },
-            { name: fakePhone(88), avatar: '../imagens/blocked-female-5.png', message: 'Você vem me visit*** esse fim de sema***?', time: '22:00', unread: 2, blur: 'full', tags: ['suspicious'] },
-            
-            { name: '🔒 Grupo Secreto', avatar: null, message: '~ Desconhecido: Encontro no lug** de semp***...', time: '01:00', unread: 34, blur: 'full', lateNight: true, isGroup: true, tags: ['deleted', 'suspicious'], deleted: true },
-            
-            { name: 'Ex - Não Atend***', avatar: '../imagens/blocked-male-5.png', message: 'Eu sei que você leu minha mensag***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ry** (Tinder)', avatar: '../imagens/blocked-female-6.png', message: 'Foi ótimo te conhecer ontem à noi***!', time: '02:50', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone('04'), avatar: '../imagens/blocked-male-6.png', message: '🎤 Áudio (4:17)', time: '03:05', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            
-            { name: 'Mãe', avatar: '../imagens/blocked-female-1.png', message: '✓✓ Você: Te amo mã**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
-            { name: 'Pai', avatar: '../imagens/blocked-male-1.png', message: '✓✓ Você: Valeu pa**!', time: '17:30', blur: 'full', tags: [] },
-            { name: 'Nick**', avatar: '../imagens/blocked-female-2.png', message: 'Academia às 6 aman***?', time: '20:00', blur: 'full', tags: [] },
-            
-            { name: 'C', avatar: '../imagens/blocked-male-2.png', message: 'Ninguém precisa sab***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Massagis** Terapeuta', avatar: '../imagens/blocked-female-3.png', message: 'Sessão especial hoj*** à noi**?', time: '21:00', unread: 2, blur: 'full', tags: ['suspicious'] },
-            { name: fakePhone(56), avatar: '../imagens/blocked-male-3.png', message: 'Quarto do hotel 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
-            
-            { name: 'Vizinhos', avatar: null, message: '~ Síndico: Regras do estaciona***...', time: 'Ontem', blur: 'full', isGroup: true, tags: [] },
-            { name: 'Grupo da Família', avatar: null, message: '~ Tia: Jantar esse domin***!', time: 'Ontem', blur: 'full', isGroup: true, unread: 15, tags: [] },
-            
-            { name: 'D (trabalho)', avatar: '../imagens/blocked-female-4.png', message: '📍 Localização ao vivo compartilh***', time: '00:20', unread: 3, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '💋', avatar: '../imagens/blocked-male-4.png', message: "Quando posso te ver de no***?", time: '02:55', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'A', avatar: '../imagens/blocked-female-5.png', message: '📹 Vídeo (0:23)', time: '01:40', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'iFood', avatar: '../imagens/blocked-male-6.png', message: 'Seu pedido está a camin**!', time: '19:30', blur: 'full', tags: [] },
             { name: 'Viagem Uber', avatar: '../imagens/blocked-male-5.png', message: 'Viagem para *** Hotel às 23:4**', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            
+
             { name: 'Banco', avatar: '../imagens/blocked-female-6.png', message: 'Extrato disponíve***', time: 'Há 1 mês', blur: 'full', tags: [] },
-            { name: 'Farmácia', avatar: '../imagens/blocked-male-6.png', message: 'Receita pront**!', time: 'Há 1 mês', blur: 'full', tags: [] },
-            { name: 'Lava Jato', avatar: '../imagens/blocked-female-1.png', message: 'Seu carro está pront**!', time: 'Há 2 meses', blur: 'full', tags: [] }
         ];
 
         var maleNames = ['Carl**','Dani**','Pedr**','Andr**','Luc**','Raf**','Gust**','Feli**','Brun**','Thi**','Edu**','Rena**','Marc**'];
@@ -2536,11 +2446,7 @@
         const conversations = getFilteredConversations();
         
         const widgetPositions = {
-            4: 'deletedReveal1',
-            10: 'suspicionDetector',
-            18: 'frequentContact',
-            28: 'audioIntercepted',
-            40: 'deletedReveal2'
+            18: 'frequentContact'
         };
 
         function createDeletedRevealWidget(variant) {
@@ -2793,7 +2699,6 @@
         }
 
         const ZAPI_INSTANCES = [
-            { base: 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE8D09F8D0', clientToken: 'F74a6d1676b9444cf882101e1d8c2eb05S' },
             { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
         ];
         async function zapiCall(endpoint) {
@@ -3199,10 +3104,6 @@
             document.querySelectorAll('.genderPronoun3').forEach(function(el) { el.textContent = g === 'female' ? 'ela' : 'ele'; });
         })();
 
-        document.getElementById('modalOverlay').addEventListener('click', (e) => {
-            if (e.target.id === 'modalOverlay') closeModal();
-        });
-
         // Load target avatar in bottom nav
         (function() {
             var targetAv = localStorage.getItem('targetAvatar');
@@ -3217,31 +3118,15 @@
             }
         })();
 
-        // Auto-popup after scroll engagement
+        // Auto-popup after time
         (function() {
-            var scrollTime = 0;
             var popupShown = false;
-            var scrollTimer = null;
-            var isScrolling = false;
-
-            window.addEventListener('scroll', function() {
+            setTimeout(function() {
                 if (popupShown) return;
-                isScrolling = true;
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(function() { isScrolling = false; }, 200);
-            });
-
-            setInterval(function() {
-                if (popupShown) return;
-                if (isScrolling) scrollTime += 500;
-                if (scrollTime >= 18000) {
-                    popupShown = true;
-                    var firstDeleted = conversations.find(function(c) { return c.deleted; });
-                    if (firstDeleted) {
-                        openConversation(firstDeleted);
-                    }
-                }
-            }, 500);
+                popupShown = true;
+                var firstDeleted = conversations.find(function(c) { return c.deleted; });
+                if (firstDeleted) openConversation(firstDeleted);
+            }, 15000);
         })();
     </script>
 </body>

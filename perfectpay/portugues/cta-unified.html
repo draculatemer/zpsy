@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -91,10 +97,6 @@
     <!-- Email Capture Modal -->
     <script src="js/email-capture.js"></script>
     
-    <!-- Matrix Effect -->
-    <script src="js/matrix.js"></script>
-
-    
     <!-- Shared Audio & Vibration Systems -->
     <script src="js/audio-vibration.js"></script>
 
@@ -116,18 +118,6 @@
             color: #E9EDEF;
             min-height: 100vh;
             overflow-x: hidden;
-        }
-
-        /* Matrix Canvas */
-        #matrix-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            pointer-events: none;
-            z-index: 0;
         }
 
         /* Live Counter Bar */
@@ -330,21 +320,6 @@
             font-size: 14px;
             color: #25D366;
             margin-bottom: 8px;
-        }
-
-        .profile-stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .profile-stat {
-            font-size: 12px;
-            color: #8696A0;
-        }
-
-        .profile-stat strong {
-            color: #E9EDEF;
         }
 
         /* Success Badge */
@@ -600,123 +575,6 @@
             background: #25D366;
             border-radius: 1px;
         }
-
-        /* Activity Timeline */
-        .activity-timeline {
-            background: rgba(20,20,20,0.95);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            padding: 0;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            overflow: hidden;
-        }
-        .timeline-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-        }
-        .timeline-header svg { width: 16px; height: 16px; color: #4ade80; }
-        .timeline-header span {
-            font-size: 12px;
-            font-weight: 600;
-            color: #fff;
-            letter-spacing: 0.5px;
-        }
-        .timeline-live-dot {
-            width: 7px; height: 7px;
-            background: #4ade80;
-            border-radius: 50%;
-            animation: pulse-dot 1.5s infinite;
-            margin-left: auto;
-            box-shadow: 0 0 6px rgba(74,222,128,0.6);
-        }
-        .timeline-counter {
-            font-size: 10px;
-            color: #94a3b8;
-            margin-left: 4px;
-        }
-        .timeline-items { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
-        .timeline-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 16px;
-            opacity: 0;
-            transform: translateY(8px);
-            animation: timeline-appear 0.35s forwards;
-            position: relative;
-            transition: background 0.2s;
-        }
-        .timeline-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 52px;
-            right: 16px;
-            height: 1px;
-            background: rgba(255,255,255,0.05);
-        }
-        @keyframes timeline-appear {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .timeline-item:nth-child(1) { animation-delay: 0.15s; }
-        .timeline-item:nth-child(2) { animation-delay: 0.35s; }
-        .timeline-item:nth-child(3) { animation-delay: 0.55s; }
-        .timeline-item:nth-child(4) { animation-delay: 0.75s; }
-        .timeline-item:nth-child(5) { animation-delay: 0.95s; }
-        .timeline-item:nth-child(6) { animation-delay: 1.15s; }
-        .timeline-item:nth-child(7) { animation-delay: 1.35s; }
-        .timeline-item:nth-child(8) { animation-delay: 1.55s; }
-        .timeline-item:nth-child(9) { animation-delay: 1.75s; }
-        .timeline-item-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 13px;
-        }
-        .timeline-item-icon.tl-delete { background: rgba(254,242,242,0.15); }
-        .timeline-item-icon.tl-msg { background: rgba(240,253,244,0.15); }
-        .timeline-item-icon.tl-call { background: rgba(239,246,255,0.15); }
-        .timeline-item-icon.tl-location { background: rgba(254,252,232,0.15); }
-        .timeline-item-icon.tl-online { background: rgba(245,243,255,0.15); }
-        .timeline-item-icon.tl-contact { background: rgba(255,247,237,0.15); }
-        .timeline-item-content { flex: 1; min-width: 0; }
-        .timeline-item-text {
-            font-size: 12.5px;
-            color: #a0aec0;
-            line-height: 1.45;
-        }
-        .timeline-item-text .tl-highlight { color: #ef4444; font-weight: 600; }
-        .timeline-item-text .tl-name { filter: blur(3px); user-select: none; font-weight: 500; }
-        .timeline-item-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 3px;
-        }
-        .timeline-item-time {
-            font-size: 10px;
-            color: #94a3b8;
-        }
-        .tl-tag {
-            font-size: 9px;
-            font-weight: 600;
-            padding: 1px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .tl-tag.danger { background: rgba(239,68,68,0.2); color: #f87171; font-weight: 700; }
-        .tl-tag.warn { background: rgba(245,158,11,0.2); color: #fbbf24; font-weight: 700; }
-        .tl-tag.info { background: rgba(139,92,246,0.2); color: #a78bfa; font-weight: 700; }
 
         /* Chat Preview */
         .chat-preview {
@@ -1672,9 +1530,6 @@
     </style>
 </head>
 <body>
-    <!-- Matrix Canvas -->
-    <canvas id="matrix-canvas"></canvas>
-
     <!-- Live Counter Bar -->
     <div class="live-counter-bar">
         <div class="live-dot"></div>
@@ -1700,12 +1555,6 @@
             </div>
         </div>
 
-        <!-- Logo Section -->
-        <div class="logo-section">
-            <h1 class="main-title">
-                Veja tudo que <span class="gradient">estão apagando</span>
-            </h1>
-        </div>
 
 
         <!-- Profile Card -->
@@ -1719,41 +1568,7 @@
                 <div class="profile-info">
                     <div class="profile-name" id="profileTargetName">Pessoa Alvo</div>
                     <div class="profile-phone" id="targetPhone">+1 (555) 123-4567</div>
-                    <div class="profile-stats">
-                        <span class="profile-stat"><strong id="convCount">--</strong> conversas</span>
-                        <span class="profile-stat"><strong id="msgCount">--</strong> mensagens</span>
-                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Proteção do seu WhatsApp -->
-        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span style="font-size:18px;">🛡️</span>
-                </div>
-                <div>
-                    <div style="font-size:14px;font-weight:600;color:#25D366;">Seu WhatsApp fica protegido, <span id="ctaUserFirstName"></span></div>
-                    <div style="font-size:11px;color:#8e8e93;">100% anônimo • Sem deixar rastros</div>
-                </div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
-                    <span style="color:#25D366;">✓</span> Seu número <strong style="color:#25D366;">nunca é exposto</strong> durante o processo
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
-                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Ele</span> <strong>jamais saberá</strong> que você acessou os dados <span id="ctaGenderPronoun1">dele</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
-                    <span style="color:#25D366;">✓</span> Criptografia militar de 256 bits protege sua identidade
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
-                    <span style="color:#25D366;">✓</span> Não precisa instalar nada no celular <span id="ctaGenderPronoun3">dele</span>
-                </div>
-            </div>
-            <div style="font-size:11px;color:#8e8e93;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
-                🔒 Seus dados são criptografados e nunca compartilhados com terceiros
             </div>
         </div>
 
@@ -1950,7 +1765,7 @@
                 var list = document.getElementById('locationsList');
                 var unlockTxt = lang==='es'?'Desbloquear todas las ubicaciones':lang==='pt'?'Desbloquear todas as localizações':'Unlock all locations';
                 locations.forEach(function(loc, idx){
-                    var blurred = idx >= 2;
+                    var blurred = true;
                     var wrapper = document.createElement('div');
                     wrapper.style.cssText = 'position:relative;' + (blurred ? 'overflow:hidden;border-radius:10px;' : '');
                     var div = document.createElement('div');
@@ -2030,29 +1845,15 @@
             }).catch(function(){
                 fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(g){
                     if (g.city) render(g.city, g.region||g.country_name, dev.device, dev.browser, genLocations(g.city));
+                    else throw new Error('no city');
                 }).catch(function(){
-                    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone||'';
-                    var city = tz.split('/').pop().replace(/_/g,' ');
-                    if (city) { render(city, '', dev.device, dev.browser, genLocations(city)); }
-                    else { renderBlurred(dev); }
+                    renderBlurred(dev);
                 });
             });
         })();
         </script>
 
 
-        </div>
-
-        <!-- Activity Timeline -->
-        <div class="activity-timeline">
-            <div class="timeline-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span>Monitor de Atividade</span>
-                <div class="timeline-live-dot"></div>
-                <span class="timeline-counter" id="tlCounter"></span>
-            </div>
-            <div class="timeline-items" id="timelineItems">
-            </div>
         </div>
 
         <!-- Bonus Section -->
@@ -2137,12 +1938,42 @@
             </div>
         </div>
 
+        <!-- Proteção do seu WhatsApp -->
+        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:18px;">🛡️</span>
+                </div>
+                <div>
+                    <div style="font-size:14px;font-weight:600;color:#25D366;">Seu WhatsApp fica protegido, <span id="ctaUserFirstName"></span></div>
+                    <div style="font-size:11px;color:#8e8e93;">100% anônimo • Sem deixar rastros</div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
+                    <span style="color:#25D366;">✓</span> Seu número <strong style="color:#25D366;">nunca é exposto</strong> durante o processo
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
+                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Ele</span> <strong>jamais saberá</strong> que você acessou os dados <span id="ctaGenderPronoun1">dele</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
+                    <span style="color:#25D366;">✓</span> Criptografia militar de 256 bits protege sua identidade
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e5e5ea;">
+                    <span style="color:#25D366;">✓</span> Não precisa instalar nada no celular <span id="ctaGenderPronoun3">dele</span>
+                </div>
+            </div>
+            <div style="font-size:11px;color:#8e8e93;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
+                🔒 Seus dados são criptografados e nunca compartilhados com terceiros
+            </div>
+        </div>
+
         <!-- Pricing -->
         <div class="pricing-section" id="pricing">
-            <div class="discount-badge" data-ab-discount>77% OFF - TEMPO LIMITADO</div>
+            <div class="discount-badge" data-ab-discount>91% OFF - TEMPO LIMITADO</div>
             <div class="price-original" data-ab-original-price>R$297</div>
-            <div class="price-current" data-ab-price>R$47</div>
-            <div class="price-savings" data-ab-savings>Você economiza R$250 hoje!</div>
+            <div class="price-current" data-ab-price>R$27</div>
+            <div class="price-savings" data-ab-savings>Você economiza R$270 hoje!</div>
             <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Pagamento único • <strong style="color:#25D366;">Acesso vitalício</strong></div>
             <div class="price-info">Pagamento único • Acesso instantâneo • Garantia de 30 dias</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Liberar acesso completo ao Whats Spy">
@@ -2332,16 +2163,6 @@
 
     <!-- Activity Notification - Removido -->
 
-    <!-- Matrix Effect - Initialized from shared module -->
-    <script>
-        // Initialize Matrix Effect from shared module
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof MatrixEffect !== 'undefined') {
-                MatrixEffect.init('matrix-canvas', { chars: '01', frameInterval: 100 });
-            }
-        });
-    </script>
-
     <!-- Main Script -->
     <script>
         // Detect gender from URL parameter or localStorage
@@ -2495,9 +2316,6 @@
         };
 
         // Random stats
-        document.getElementById('convCount').textContent = Math.floor(Math.random() * 30) + 35;
-        document.getElementById('msgCount').textContent = (Math.random() * 2 + 0.8).toFixed(1) + 'k';
-
         // Live viewers counter
         function updateLiveViewers() {
             const el = document.getElementById('liveViewers');
@@ -2660,7 +2478,7 @@
             
             // Pass Facebook IDs for CAPI attribution (fallback if lead matching fails)
             const checkoutFbc = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbc() : localStorage.getItem('_fbc');
-            const checkoutFbp = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbp() : localStorage.getItem('_fbp');
+            const checkoutFbp = (typeof FacebookCAPI !== 'undefined') ? FacebookCAPI.getFbp() : ((document.cookie.match(/_fbp=([^;]+)/)||[])[1] || localStorage.getItem('_fbp'));
             if (checkoutFbc) {
                 checkoutUrl += '&zs_fbc=' + encodeURIComponent(checkoutFbc);
                 // Also pass raw fbclid for maximum compatibility
@@ -2771,96 +2589,6 @@
             cl.innerHTML = html;
         })();
 
-        // Activity Timeline
-        function buildTimeline() {
-            var p = window.location.pathname;
-            var lang = 'en';
-            if (p.indexOf('/espanhol/') !== -1) lang = 'es';
-            else if (p.indexOf('/portugues/') !== -1) lang = 'pt';
-            else if (p.indexOf('/frances/') !== -1) lang = 'fr';
-
-            var g = (typeof gender !== 'undefined') ? gender : 'male';
-            var isFemale = (g === 'female');
-
-            var contactName = isFemale
-                ? (lang==='es' ? '<span class="tl-name">Carlos M.</span>' : (lang==='pt' ? '<span class="tl-name">Rafael M.</span>' : (lang==='fr' ? '<span class="tl-name">Lucas M.</span>' : '<span class="tl-name">Jordan M.</span>')))
-                : (lang==='es' ? '<span class="tl-name">Valentina R.</span>' : (lang==='pt' ? '<span class="tl-name">Fernanda R.</span>' : (lang==='fr' ? '<span class="tl-name">Camille R.</span>' : '<span class="tl-name">Ashley R.</span>')));
-
-            var he = isFemale ? 'She' : 'He';
-            var his = isFemale ? 'Her' : 'His';
-            var their = isFemale ? 'her' : 'his';
-            var elEs = isFemale ? 'Ella' : 'Él';
-            var suEs = isFemale ? 'su' : 'su';
-            var elePt = isFemale ? 'Ela' : 'Ele';
-            var delePt = isFemale ? 'dela' : 'dele';
-
-            var eventsEN = [
-                { icon: '🗑', cls: 'tl-delete', text: he + ' deleted <span class="tl-highlight">23 messages</span> from chat with ' + contactName + ' at <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'suspicious', days: 0 },
-                { icon: '📷', cls: 'tl-msg', text: he + ' received <span class="tl-highlight">4 photos</span> from ' + contactName + ' — opened and <span class="tl-highlight">auto-deleted in 3 seconds</span>', tag: 'danger', tagText: 'auto-delete', days: 0 },
-                { icon: '🔇', cls: 'tl-contact', text: he + ' set notifications from ' + contactName + ' to <span class="tl-highlight">silent mode</span> — conversation <span class="tl-highlight">archived</span>', tag: 'danger', tagText: 'hidden', days: 1 },
-                { icon: '📍', cls: 'tl-location', text: his + ' GPS detected at <span class="tl-highlight">unknown address</span> — <span class="tl-name">12.4 km</span> from home at <span class="tl-highlight">11:47 PM</span>', tag: 'danger', tagText: 'critical', days: 2 },
-                { icon: '📱', cls: 'tl-call', text: he + ' made <span class="tl-highlight">8 calls</span> to ' + contactName + ' in the last 48h — average duration <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frequent', days: 2 },
-                { icon: '🟣', cls: 'tl-online', text: he + ' was online for <span class="tl-highlight">47 min</span> between 1:00 AM - 1:47 AM — <span class="tl-highlight">zero messages sent to you</span>', tag: 'warn', tagText: 'ghost mode', days: 3 },
-                { icon: '🔒', cls: 'tl-contact', text: he + ' renamed ' + contactName + ' from <span class="tl-name">"Babe 💕"</span> to <span class="tl-name">"Company Driver"</span>', tag: 'danger', tagText: 'disguised', days: 4 },
-                { icon: '💬', cls: 'tl-msg', text: he + ' created a <span class="tl-highlight">secret chat</span> with disappearing messages — <span class="tl-highlight">set to 5 seconds</span>', tag: 'danger', tagText: 'encrypted', days: 5 },
-                { icon: '🔕', cls: 'tl-delete', text: he + ' changed your contact name from <span class="tl-name">"❤️"</span> to <span class="tl-name">"Work colleague"</span> on ' + their + ' phone', tag: 'danger', tagText: 'alert', days: 6 }
-            ];
-
-            var eventsES = [
-                { icon: '🗑', cls: 'tl-delete', text: elEs + ' eliminó <span class="tl-highlight">23 mensajes</span> del chat con ' + contactName + ' a las <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'sospechoso', days: 0 },
-                { icon: '📷', cls: 'tl-msg', text: elEs + ' recibió <span class="tl-highlight">4 fotos</span> de ' + contactName + ' — abrió y <span class="tl-highlight">auto-eliminó en 3 segundos</span>', tag: 'danger', tagText: 'auto-borrado', days: 0 },
-                { icon: '🔇', cls: 'tl-contact', text: elEs + ' puso notificaciones de ' + contactName + ' en <span class="tl-highlight">modo silencioso</span> — conversación <span class="tl-highlight">archivada</span>', tag: 'danger', tagText: 'oculto', days: 1 },
-                { icon: '📍', cls: 'tl-location', text: 'GPS de ' + elEs.toLowerCase() + ' detectado en <span class="tl-highlight">dirección desconocida</span> — <span class="tl-name">12.4 km</span> de casa a las <span class="tl-highlight">11:47 PM</span>', tag: 'danger', tagText: 'crítico', days: 2 },
-                { icon: '📱', cls: 'tl-call', text: elEs + ' hizo <span class="tl-highlight">8 llamadas</span> a ' + contactName + ' en las últimas 48h — duración promedio <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frecuente', days: 2 },
-                { icon: '🟣', cls: 'tl-online', text: elEs + ' estuvo en línea <span class="tl-highlight">47 min</span> entre 1:00 AM - 1:47 AM — <span class="tl-highlight">cero mensajes enviados a ti</span>', tag: 'warn', tagText: 'modo oculto', days: 3 },
-                { icon: '🔒', cls: 'tl-contact', text: elEs + ' renombró a ' + contactName + ' de <span class="tl-name">"Amor 💕"</span> a <span class="tl-name">"Chofer Empresa"</span>', tag: 'danger', tagText: 'disfrazado', days: 4 },
-                { icon: '💬', cls: 'tl-msg', text: elEs + ' creó un <span class="tl-highlight">chat secreto</span> con mensajes que desaparecen — <span class="tl-highlight">configurado a 5 segundos</span>', tag: 'danger', tagText: 'encriptado', days: 5 },
-                { icon: '🔕', cls: 'tl-delete', text: elEs + ' cambió tu nombre de contacto de <span class="tl-name">"❤️"</span> a <span class="tl-name">"Colega de trabajo"</span> en ' + suEs + ' teléfono', tag: 'danger', tagText: 'alerta', days: 6 }
-            ];
-
-            var eventsPT = [
-                { icon: '🗑', cls: 'tl-delete', text: elePt + ' apagou <span class="tl-highlight">23 mensagens</span> da conversa com ' + contactName + ' às <span class="tl-highlight">2:14 AM</span>', tag: 'danger', tagText: 'suspeito', days: 0 },
-                { icon: '📷', cls: 'tl-msg', text: elePt + ' recebeu <span class="tl-highlight">4 fotos</span> de ' + contactName + ' — abriu e <span class="tl-highlight">auto-apagou em 3 segundos</span>', tag: 'danger', tagText: 'auto-apagado', days: 0 },
-                { icon: '🔇', cls: 'tl-contact', text: elePt + ' colocou notificações de ' + contactName + ' em <span class="tl-highlight">modo silencioso</span> — conversa <span class="tl-highlight">arquivada</span>', tag: 'danger', tagText: 'oculto', days: 1 },
-                { icon: '📍', cls: 'tl-location', text: 'GPS ' + delePt + ' detectado em <span class="tl-highlight">endereço desconhecido</span> — <span class="tl-name">12.4 km</span> de casa às <span class="tl-highlight">23:47</span>', tag: 'danger', tagText: 'crítico', days: 2 },
-                { icon: '📱', cls: 'tl-call', text: elePt + ' fez <span class="tl-highlight">8 ligações</span> para ' + contactName + ' nas últimas 48h — duração média <span class="tl-highlight">17 min</span>', tag: 'warn', tagText: 'frequente', days: 2 },
-                { icon: '🟣', cls: 'tl-online', text: elePt + ' ficou online por <span class="tl-highlight">47 min</span> entre 1:00 AM - 1:47 AM — <span class="tl-highlight">zero mensagens enviadas para você</span>', tag: 'warn', tagText: 'modo fantasma', days: 3 },
-                { icon: '🔒', cls: 'tl-contact', text: elePt + ' renomeou ' + contactName + ' de <span class="tl-name">"Amor 💕"</span> para <span class="tl-name">"Motorista Empresa"</span>', tag: 'danger', tagText: 'disfarçado', days: 4 },
-                { icon: '💬', cls: 'tl-msg', text: elePt + ' criou um <span class="tl-highlight">chat secreto</span> com mensagens temporárias — <span class="tl-highlight">configurado para 5 segundos</span>', tag: 'danger', tagText: 'encriptado', days: 5 },
-                { icon: '🔕', cls: 'tl-delete', text: elePt + ' mudou seu nome de contato de <span class="tl-name">"❤️"</span> para <span class="tl-name">"Colega de trabalho"</span> no celular ' + delePt, tag: 'danger', tagText: 'alerta', days: 6 }
-            ];
-
-            var events = lang === 'es' ? eventsES : (lang === 'pt' ? eventsPT : eventsEN);
-            var alertsLabel = lang === 'es' ? 'alertas' : (lang === 'pt' ? 'alertas' : 'alerts');
-
-            var container = document.getElementById('timelineItems');
-            var counterEl = document.getElementById('tlCounter');
-            if (!container) return;
-            if (counterEl) counterEl.textContent = events.length + ' ' + alertsLabel;
-
-            container.innerHTML = events.map(function(e) {
-                var agoText;
-                if (e.days === 0) {
-                    agoText = lang === 'es' ? 'hace unas horas' : (lang === 'pt' ? 'há poucas horas' : 'a few hours ago');
-                } else if (e.days === 1) {
-                    agoText = lang === 'es' ? 'hace 1 d\u00eda' : (lang === 'pt' ? 'h\u00e1 1 dia' : '1 day ago');
-                } else {
-                    agoText = lang === 'es' ? 'hace ' + e.days + ' d\u00edas' : (lang === 'pt' ? 'há ' + e.days + ' dias' : e.days + ' days ago');
-                }
-                return '<div class="timeline-item">' +
-                    '<div class="timeline-item-icon ' + e.cls + '">' + e.icon + '</div>' +
-                    '<div class="timeline-item-content">' +
-                        '<div class="timeline-item-text">' + e.text + '</div>' +
-                        '<div class="timeline-item-meta">' +
-                            '<span class="timeline-item-time">' + agoText + '</span>' +
-                            '<span class="tl-tag ' + e.tag + '">' + e.tagText + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-            }).join('');
-        }
-        buildTimeline();
-
         // Animate suspicion bar
         setTimeout(() => {
             const bar = document.getElementById('suspicionBar');
@@ -2958,7 +2686,7 @@
     </script>
     <div id="floatingCta" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:1000; padding:10px 16px 12px; background:linear-gradient(to top, rgba(0,0,0,0.97), rgba(0,0,0,0.9)); backdrop-filter:blur(12px); border-top:1px solid rgba(37,211,102,0.3);">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; padding:0 4px;">
-            <span style="font-size:13px; color:#e5e5ea; font-weight:600;"><span style="text-decoration:line-through;color:#8e8e93;font-weight:400;">R$297</span> → <span style="color:#25D366;">R$47</span></span>
+            <span style="font-size:13px; color:#e5e5ea; font-weight:600;"><span style="text-decoration:line-through;color:#8e8e93;font-weight:400;">R$297</span> → <span style="color:#25D366;">R$27</span></span>
             <span style="font-size:11px; color:#8e8e93;">pagamento único • garantia 30 dias</span>
         </div>
         <button onclick="handlePurchase()" style="width:100%; padding:14px; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; font-size:16px; font-weight:700; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(37,211,102,0.5); animation:floatPulse 2s infinite;">

@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
+    })();
+    </script>
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
     <meta charset="utf-8">
     <meta name="facebook-domain-verification" content="88bg7nb3af9s66oo1b7oekmo287t2i" />
@@ -300,22 +316,6 @@
             opacity: 0.8;
         }
 
-        .forgot-link {
-            text-align: center;
-            margin-top: 4px;
-        }
-
-        .forgot-link a {
-            color: #8e8e93;
-            font-size: 14px;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .forgot-link a:hover {
-            color: #25D366;
-        }
-
         .bottom-trust {
             display: flex;
             align-items: center;
@@ -444,10 +444,6 @@
             <button class="login-btn" id="loginBtn" onclick="handleLogin()">
                 Sign In
             </button>
-
-            <div class="forgot-link">
-                <a href="#">¿Olvidaste tu contraseña?</a>
-            </div>
         </div>
 
         <!-- Bottom Trust -->
@@ -580,7 +576,7 @@
                     fbIds.fbp = FacebookCAPI.getFbp();
                 } else {
                     fbIds.fbc = localStorage.getItem('_fbc') || null;
-                    fbIds.fbp = localStorage.getItem('_fbp') || null;
+                    fbIds.fbp = (document.cookie.match(/_fbp=([^;]+)/)||[])[1] || localStorage.getItem('_fbp') || null;
                 }
                 leadData.fbc = fbIds.fbc;
                 leadData.fbp = fbIds.fbp;
@@ -635,7 +631,6 @@
                 document.getElementById('loginEmail').value = savedEmail;
                 document.querySelector('.brand-tagline').textContent = '¡Bienvenido de nuevo, ' + savedName.split(' ')[0] + '!';
                 document.getElementById('loginBtn').textContent = 'Continuar';
-                document.querySelector('.forgot-link').style.display = 'none';
                 window._isReturningUser = true;
             }
         })();

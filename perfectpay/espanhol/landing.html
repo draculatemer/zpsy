@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -96,9 +102,6 @@
     <script src="js/tracking-utils.js" defer></script>
     <script src="js/funnel-tracking.js" defer></script>
     
-    <!-- Efecto Matrix -->
-    <script src="js/matrix.js"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -125,18 +128,6 @@
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
-        }
-
-        /* Efecto Lluvia Matrix */
-        #matrix-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.12;
-            pointer-events: none;
         }
 
         /* Contenedor Principal */
@@ -521,22 +512,7 @@
     </style>
 </head>
 <body>
-    <!-- Canvas Lluvia Matrix -->
-    <canvas id="matrix-canvas"></canvas>
-
     <div class="container">
-        <!-- Título Principal -->
-        <div class="headline">
-            <h1>Mereces <span>La Verdad</span></h1>
-            <p>Accede a <strong>mensajes eliminados</strong>, fotos ocultas y conversaciones secretas. Descubre lo que te están ocultando.</p>
-        </div>
-
-        <!-- Insignia de Estadísticas -->
-        <div class="stats-badge">
-            <div class="dot"></div>
-            <span id="statsCounter">3.892 actividades sospechosas detectadas hoy</span>
-        </div>
-
         <!-- Tarjeta Principal -->
         <div class="main-card">
 
@@ -596,23 +572,6 @@
                 </svg>
                 <span>Indetectable</span>
             </div>
-        </div>
-
-<!-- Micro Testimonial -->
-        <div class="micro-testimonial">
-            "Descubrí 47 mensajes borrados en menos de 2 minutos. La verdad estaba ahí." — <strong>Usuario Verificado ★★★★★</strong>
-        </div>
-
-        <!-- Contador de Usuarios -->
-        <div class="users-counter">
-            <div class="users-avatars">
-                <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
-                <div class="avatar avatar-more">+2k</div>
-            </div>
-            <p><strong id="liveUsersCount">189 personas</strong> están usando Whats Spy ahora mismo</p>
         </div>
     </div>
 
@@ -690,29 +649,6 @@
         if (genderParam === 'male' || genderParam === 'female') {
             selectGender(genderParam);
         }
-
-        // Inicializar Efecto Matrix desde módulo compartido
-        if (typeof MatrixEffect !== 'undefined') {
-            MatrixEffect.init('matrix-canvas');
-        }
-
-        // Actualización dinámica de estadísticas
-        function updateStats() {
-            const base = 480;
-            const random = Math.floor(Math.random() * 61) - 30;
-            document.getElementById('statsCounter').textContent = 
-                (base + random).toLocaleString('es-ES') + ' actividades sospechosas detectadas hoy';
-        }
-        setInterval(updateStats, 5000);
-
-        // Actualización dinámica de usuarios en vivo
-        function updateLiveUsers() {
-            const base = 189;
-            const random = Math.floor(Math.random() * 41) - 20;
-            const el = document.getElementById('liveUsersCount');
-            if (el) el.textContent = (base + random).toLocaleString('es-ES') + ' personas';
-        }
-        setInterval(updateLiveUsers, 8000);
 
         // Animación de agitar para validación
         const style = document.createElement('style');

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->

@@ -1,28 +1,46 @@
 const ZAPI_INSTANCES = [
     {
-        instance: process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B31BFC5924A7638EE86FD',
-        token: process.env.ZAPI_TOKEN || '448359FB9C302BCE8D09F8D0',
-        clientToken: process.env.ZAPI_CLIENT_TOKEN || 'F74a6d1676b9444cf882101e1d8c2eb05S'
-    },
-    {
         instance: '3E7938F228CBB0978267A6F61CAAA8C7',
         token: '983F7A4EF1F159FAD3C42B05',
         clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S'
     }
 ];
 
+// Track dead instances to skip them for 10 minutes instead of retrying every call
+const deadInstances = new Map();
+const DEAD_INSTANCE_TTL = 10 * 60 * 1000;
+
 async function zapiRequest(endpoint, options = {}) {
     for (const inst of ZAPI_INSTANCES) {
+        const instKey = inst.instance.slice(0, 8);
+
+        const deadUntil = deadInstances.get(inst.instance);
+        if (deadUntil && Date.now() < deadUntil) {
+            console.log(`Z-API instance ${instKey}... skipped (marked dead until ${new Date(deadUntil).toISOString()})`);
+            continue;
+        }
+
         try {
             const base = `https://api.z-api.io/instances/${inst.instance}/token/${inst.token}`;
             const url = `${base}/${endpoint}`;
             const headers = { 'Client-Token': inst.clientToken, ...options.headers };
             const r = await fetch(url, { ...options, headers });
             const data = await r.json();
-            if (!data.error && r.ok) return { data, ok: true, instance: inst.instance.slice(0, 8) };
-            console.log(`Z-API instance ${inst.instance.slice(0,8)}... returned error for ${endpoint}, trying next`);
+
+            if (!data.error && r.ok) {
+                deadInstances.delete(inst.instance);
+                return { data, ok: true, instance: instKey };
+            }
+
+            console.log(`Z-API instance ${instKey}... returned error for ${endpoint}: ${JSON.stringify(data).slice(0, 200)}, trying next`);
+
+            if (data.error === 'Instance not found' || r.status === 404 || r.status === 401) {
+                deadInstances.set(inst.instance, Date.now() + DEAD_INSTANCE_TTL);
+                console.log(`Z-API instance ${instKey}... marked as dead for 10 min`);
+            }
         } catch (e) {
-            console.log(`Z-API instance ${inst.instance.slice(0,8)}... failed for ${endpoint}: ${e.message}`);
+            console.log(`Z-API instance ${instKey}... failed for ${endpoint}: ${e.message}`);
+            deadInstances.set(inst.instance, Date.now() + DEAD_INSTANCE_TTL);
         }
     }
     return { data: null, ok: false };

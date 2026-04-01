@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
@@ -503,16 +509,6 @@
 <body>
 
     <div class="container">
-        <div class="headline">
-            <h1>Mereces <span>La Verdad</span></h1>
-            <p>Accede a <strong>mensajes eliminados</strong>, fotos ocultas y conversaciones secretas. Descubre lo que te están ocultando.</p>
-        </div>
-
-        <div class="stats-badge">
-            <div class="dot"></div>
-            <span id="statsCounter">3.892 actividades sospechosas detectadas hoy</span>
-        </div>
-
         <div class="main-card">
             <div class="gender-section">
                 <div class="gender-label">Quiero espiar el WhatsApp de un...</div>
@@ -567,22 +563,6 @@
                 </svg>
                 <span>Indetectable</span>
             </div>
-        </div>
-
-<!-- Micro Testimonial -->
-        <div class="micro-testimonial">
-            "Descubrí 47 mensajes borrados en menos de 2 minutos. La verdad estaba ahí." — <strong>Usuario Verificado ★★★★★</strong>
-        </div>
-
-        <div class="users-counter">
-            <div class="users-avatars">
-                <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
-                <div class="avatar avatar-more">+2k</div>
-            </div>
-            <p><strong id="liveUsersCount">189 personas</strong> están usando Whats Spy ahora mismo</p>
         </div>
     </div>
 
@@ -640,22 +620,6 @@
         if (genderParam === 'male' || genderParam === 'female') {
             selectGender(genderParam);
         }
-
-        function updateStats() {
-            const base = 480;
-            const random = Math.floor(Math.random() * 61) - 30;
-            document.getElementById('statsCounter').textContent = 
-                (base + random).toLocaleString('es-ES') + ' actividades sospechosas detectadas hoy';
-        }
-        setInterval(updateStats, 5000);
-
-        function updateLiveUsers() {
-            const base = 189;
-            const random = Math.floor(Math.random() * 41) - 20;
-            const el = document.getElementById('liveUsersCount');
-            if (el) el.textContent = (base + random).toLocaleString('es-ES') + ' personas';
-        }
-        setInterval(updateLiveUsers, 8000);
 
         const style = document.createElement('style');
         style.textContent = `

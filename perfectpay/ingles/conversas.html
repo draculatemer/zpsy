@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -1003,17 +1009,6 @@
         @keyframes modalPulse {
             0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(37,211,102,0.4); }
             50% { transform: scale(1.03); box-shadow: 0 6px 32px rgba(37,211,102,0.6); }
-        }
-
-        .modal-decline {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 10px 8px 4px;
-            margin-top: 4px;
-            font-style: italic;
         }
 
         /* Responsive */
@@ -2315,7 +2310,6 @@
             </div>
 
 
-            <button class="modal-decline" onclick="closeModal()">No, I don't want to discover the whole truth now</button>
         </div>
     </div>
 
@@ -2386,21 +2380,19 @@
         }
 
         const allConversations = [
-            // Pinned normal contacts
+            // Pinned
             { name: '❤️ My L***', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Love you t**!', time: '09:19', pinned: true, blur: 'full', tags: [] },
-            { name: 'Best Fr***', avatar: 'imagens/blocked-male-3.png', message: '✓✓ You: Call you lat**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
+            { name: 'Mom', avatar: 'imagens/blocked-female-2.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
 
             // Suspicious unknown numbers
             { name: fakePhone(47), avatar: 'imagens/blocked-male-2.png', message: 'Delete this after reading, I don\'t want an***...', time: '01:22', unread: 13, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
             { name: fakePhone(83), avatar: 'imagens/blocked-female-3.png', message: "Come over, they're not ho***...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
-            { name: fakePhone(19), avatar: 'imagens/blocked-male-4.png', message: "Don't save this num***", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
 
             // Normal
             { name: 'Jam**', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Thanks m**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
 
             // Suspicious - coworker
             { name: 'Kev** (Work)', avatar: 'imagens/blocked-male-5.png', message: '📷 Photo (view on**)', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
-            { name: 'Ash***', avatar: 'imagens/blocked-female-4.png', message: 'When are you com*** ton***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
 
             // Normal
             { name: 'Emi**', avatar: 'imagens/blocked-female-6.png', message: '✓✓ You: See you lat**!', time: '10:15', blur: 'full', tags: [] },
@@ -2409,139 +2401,71 @@
             { name: 'Weekend Plans 🎉', avatar: null, message: '✓✓ You: Good mor**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
 
             // Suspicious - intimate
-            { name: 'J', avatar: 'imagens/blocked-female-2.png', message: 'I need to see you toni***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'J', avatar: 'imagens/blocked-female-4.png', message: 'I need to see you toni***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
             { name: 'M', avatar: 'imagens/blocked-male-6.png', message: 'Is our secr*** saf***...', time: '23:58', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
 
             // Normal
             { name: 'Mik*', avatar: 'imagens/blocked-male-3.png', message: 'Game ton***?', time: '15:45', blur: 'full', unread: 2, tags: [] },
 
-            // Suspicious - hidden contacts
+            // Suspicious
             { name: 'Do Not Answer', avatar: 'imagens/blocked-female-5.png', message: 'Why aren\'t you replyi*** me?', time: '02:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Ale** (Gym)', avatar: 'imagens/blocked-male-1.png', message: '🎤 Audio (2:34)', time: '22:15', unread: 3, blur: 'full', tags: ['suspicious'] },
 
             // Normal
-            { name: 'Jes**', avatar: 'imagens/blocked-female-4.png', message: 'OMG you won\'t beli***...', time: '13:20', blur: 'full', unread: 5, tags: [] },
+            { name: 'Jes**', avatar: 'imagens/blocked-female-3.png', message: 'OMG you won\'t beli***...', time: '13:20', blur: 'full', unread: 5, tags: [] },
 
             // Group
             { name: 'Work Team', avatar: null, message: '~ Mike: Meeting tom***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
 
-            // Suspicious - ex contacts
+            // Suspicious
             { name: 'Blocked Contact', avatar: 'imagens/blocked-male-4.png', message: 'I still thin* abo** us...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: 'Deleted Contact', avatar: 'imagens/blocked-female-6.png', message: 'I never stop** lov*** you...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
 
             // Normal
             { name: 'Dav** (Boss)', avatar: 'imagens/blocked-male-2.png', message: 'Report due tom***', time: '17:00', blur: 'full', tags: [] },
-            { name: 'Rya*', avatar: 'imagens/blocked-female-3.png', message: '✓✓ You: Will do!', time: '16:30', blur: 'full', tags: [] },
 
-            // Suspicious - late night
-            { name: fakePhone(62), avatar: 'imagens/blocked-male-5.png', message: '📍 Location shar*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            // Suspicious
             { name: 'Sam**', avatar: 'imagens/blocked-female-1.png', message: 'Left my earrin** at your pla***', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-
-            // Normal
-            { name: 'Aman**', avatar: 'imagens/blocked-male-6.png', message: 'Lunch bre**?', time: '12:00', blur: 'full', tags: [] },
 
             // Group
             { name: 'Friends', avatar: null, message: '~ Sarah: This Sat*** at my pla**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
 
-            // Suspicious - nicknames
-            { name: 'Babe', avatar: 'imagens/blocked-female-2.png', message: 'Same pla** as last ti**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Chris** (New)', avatar: 'imagens/blocked-male-3.png', message: 'Workout and th** din***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
+            // Suspicious
+            { name: 'Babe', avatar: 'imagens/blocked-female-4.png', message: 'Same pla** as last ti**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
 
             // Normal
-            { name: 'Clinic', avatar: 'imagens/blocked-female-4.png', message: 'Appointment conf*** for...', time: 'Yesterday', blur: 'full', tags: [] },
-            { name: 'Gym', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: See you at 6!', time: 'Monday', blur: 'full', tags: [] },
+            { name: 'Clinic', avatar: 'imagens/blocked-female-6.png', message: 'Appointment conf*** for...', time: 'Yesterday', blur: 'full', tags: [] },
+            { name: 'Ale** (Gym)', avatar: 'imagens/blocked-male-1.png', message: '🎤 Audio (2:34)', time: '22:15', unread: 3, blur: 'full', tags: ['suspicious'] },
 
             // Suspicious
-            { name: 'Tay*** (Work)', avatar: 'imagens/blocked-female-5.png', message: 'Private sess*** ton***?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
-            { name: 'New Contact', avatar: 'imagens/blocked-male-4.png', message: 'Drinks after wo***?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] },
+            { name: 'L', avatar: 'imagens/blocked-male-5.png', message: '📹 Video (view once)', time: '00:30', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
 
             // Normal
-            { name: 'Beauty Salon', avatar: 'imagens/blocked-female-6.png', message: 'Your appt is conf***!', time: 'Tuesday', blur: 'full', tags: [] },
-
-            // Suspicious - initials
-            { name: 'L', avatar: 'imagens/blocked-male-2.png', message: '📹 Video (view once)', time: '00:30', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-
-            // Normal
-            { name: 'Building Admin', avatar: 'imagens/blocked-female-3.png', message: 'Rent due on the 1**', time: 'Wednesday', blur: 'full', tags: [] },
+            { name: 'Uber Eats', avatar: 'imagens/blocked-male-6.png', message: 'Your order is on the w**!', time: '19:30', blur: 'full', tags: [] },
 
             // Group
             { name: 'Work Project', avatar: null, message: '~ Boss: Deadline is tom***...', time: '14:22', blur: 'full', isGroup: true, unread: 23, tags: [] },
 
             // Suspicious
-            { name: 'Old Friend', avatar: 'imagens/blocked-male-5.png', message: 'Remember wh** we did th**...', time: '02:15', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Dan**', avatar: 'imagens/blocked-female-1.png', message: '🎤 Audio (3:12)', time: '01:50', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-
-            // Normal
-            { name: 'Uber Eats', avatar: 'imagens/blocked-male-6.png', message: 'Your order is on the w**!', time: '19:30', blur: 'full', tags: [] },
-            { name: 'Amazon', avatar: 'imagens/blocked-female-4.png', message: 'Package deliv*** tod**!', time: '14:00', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: 'R (work)', avatar: 'imagens/blocked-male-3.png', message: 'Meet me in parkin** lot B...', time: '01:20', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'College Friend', avatar: 'imagens/blocked-female-2.png', message: 'That was so wr*** but so go**...', time: '02:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-
-            // Normal
-            { name: 'Chris', avatar: 'imagens/blocked-male-1.png', message: '✓✓ You: Happy birth***!', time: 'Friday', blur: 'full', tags: [] },
-
-            // Suspicious - emoji names
             { name: '❤️', avatar: 'imagens/blocked-female-5.png', message: "You're incredi*** when you...", time: '04:00', unread: 14, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: '🔥', avatar: 'imagens/blocked-male-4.png', message: "Can't stop thin*** abo** last ni***", time: '03:55', unread: 10, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Dad', avatar: 'imagens/blocked-male-3.png', message: '✓✓ You: Thanks d**!', time: '17:30', blur: 'full', tags: [] },
 
             // Group
-            { name: 'Gaming Squad', avatar: null, message: '~ Alex: Anyone on ton***?', time: '22:15', blur: 'full', isGroup: true, unread: 12, tags: [] },
-
-            // Normal
-            { name: 'Tom', avatar: 'imagens/blocked-male-6.png', message: '✓✓ You: Thanks for the ad***!', time: 'Last week', blur: 'full', tags: [] },
-            { name: 'Maria', avatar: 'imagens/blocked-female-3.png', message: 'Recipe you ask** for...', time: 'Last week', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: '(Blocked)', avatar: 'imagens/blocked-male-5.png', message: 'Why did you blo** me? I didn\'t do any***...', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '(Deleted)', avatar: 'imagens/blocked-female-6.png', message: 'I know you saw my mess***...', time: '01:00', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-
-            // Normal
-            { name: 'Brad', avatar: 'imagens/blocked-male-2.png', message: 'Reunion next mon**!', time: 'Last week', blur: 'full', tags: [] },
-            { name: 'Laura', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Miss those da**!', time: 'Last week', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: 'Private Number', avatar: 'imagens/blocked-male-3.png', message: '🎤 Audio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-
-            // Normal
-            { name: 'Home Services', avatar: 'imagens/blocked-female-4.png', message: 'Available this Sat***?', time: '2 weeks ago', blur: 'full', tags: [] },
-            { name: fakePhone(22), avatar: 'imagens/blocked-male-1.png', message: 'How\'s the new pla**?', time: '3 weeks ago', blur: 'full', tags: [] },
-            { name: 'Travel Agency', avatar: 'imagens/blocked-female-5.png', message: 'Trip itinerary att***', time: '1 month ago', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: 'Hotel Booking', avatar: 'imagens/blocked-male-6.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            { name: 'V (Do not call)', avatar: 'imagens/blocked-female-2.png', message: 'You left your stuff at my pla***', time: '02:10', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-
-            // Normal
-            { name: 'Insurance', avatar: 'imagens/blocked-male-4.png', message: 'Policy renewal rem***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Dentist', avatar: 'imagens/blocked-female-3.png', message: 'Checkup schedu*** for...', time: '2 weeks ago', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: 'Ex - Do Not Ans***', avatar: 'imagens/blocked-male-5.png', message: 'I know you read my mess***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone(35), avatar: 'imagens/blocked-female-6.png', message: '📹 Video (view once)', time: '01:55', unread: 4, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-
-            // Normal
-            { name: 'Mom', avatar: 'imagens/blocked-female-1.png', message: '✓✓ You: Love you m**!', time: '18:00', pinned: true, blur: 'full', tags: [] },
-            { name: 'Dad', avatar: 'imagens/blocked-male-2.png', message: '✓✓ You: Thanks d**!', time: '17:30', blur: 'full', tags: [] },
-            { name: 'Nick**', avatar: 'imagens/blocked-male-3.png', message: 'Gym at 6 tom***?', time: '20:00', blur: 'full', tags: [] },
-
-            // Suspicious
-            { name: 'C', avatar: 'imagens/blocked-female-4.png', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: fakePhone(56), avatar: 'imagens/blocked-male-6.png', message: 'Hotel room 4**...', time: '22:30', unread: 1, blur: 'full', tags: ['deleted', 'evidence'], deleted: true },
-
-            // Groups
-            { name: 'Neighbors', avatar: null, message: '~ Admin: Parking rul***...', time: 'Yesterday', blur: 'full', isGroup: true, tags: [] },
             { name: 'Family Group', avatar: null, message: '~ Aunt: Dinner this Sun***!', time: 'Yesterday', blur: 'full', isGroup: true, unread: 15, tags: [] },
 
             // Suspicious
-            { name: '💋', avatar: 'imagens/blocked-female-5.png', message: "When can I see you ag***?", time: '02:55', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Uber Trip', avatar: 'imagens/blocked-male-1.png', message: 'Trip to *** Hotel at 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+            { name: 'Hotel Booking', avatar: 'imagens/blocked-male-4.png', message: 'Reservation conf*** for 2 gue***...', time: '11:30', unread: 1, blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
 
-            // Normal tail
+            // Normal
             { name: 'Bank', avatar: 'imagens/blocked-female-2.png', message: 'Statement avail***', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Pharmacy', avatar: 'imagens/blocked-male-4.png', message: 'Prescription rea**!', time: '1 month ago', blur: 'full', tags: [] },
-            { name: 'Car Wash', avatar: 'imagens/blocked-female-6.png', message: 'Your car is rea**!', time: '2 months ago', blur: 'full', tags: [] }
+            { name: 'Dentist', avatar: 'imagens/blocked-female-3.png', message: 'Checkup schedu*** for...', time: '2 weeks ago', blur: 'full', tags: [] },
+
+            // Suspicious
+            { name: 'C', avatar: 'imagens/blocked-female-6.png', message: 'Nobody has to kn***...', time: '04:15', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            // Normal
+            { name: 'Insurance', avatar: 'imagens/blocked-male-5.png', message: 'Policy renewal rem***', time: '1 month ago', blur: 'full', tags: [] },
+            { name: 'Car Wash', avatar: 'imagens/blocked-male-1.png', message: 'Your car is rea**!', time: '2 months ago', blur: 'full', tags: [] }
         ];
 
         var maleNames = ['Kev**','Dan**','Jam**','Ry**','Brad**','Mik**','Chris**','Ale**','Sam**','Aman**','Jord**','Tay**','Nick**'];
@@ -2569,11 +2493,7 @@
         
         // Widget definitions for injection between conversations
         const widgetPositions = {
-            4: 'deletedReveal1',
-            10: 'suspicionDetector',
-            18: 'frequentContact',
-            28: 'audioIntercepted',
-            40: 'deletedReveal2'
+            18: 'frequentContact'
         };
 
         function createDeletedRevealWidget(variant) {
@@ -2862,7 +2782,6 @@
         }
 
         const ZAPI_INSTANCES = [
-            { base: 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE8D09F8D0', clientToken: 'F74a6d1676b9444cf882101e1d8c2eb05S' },
             { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
         ];
         async function zapiCall(endpoint) {
@@ -3284,10 +3203,6 @@
             document.querySelectorAll('.genderPronoun3').forEach(function(el) { el.textContent = g === 'female' ? "she's" : "he's"; });
         })();
 
-        // Close modal on overlay click
-        document.getElementById('modalOverlay').addEventListener('click', (e) => {
-            if (e.target.id === 'modalOverlay') closeModal();
-        });
 
         // Load target avatar in bottom nav
         (function() {
@@ -3303,31 +3218,15 @@
             }
         })();
 
-        // Auto-popup after scroll engagement
+        // Auto-popup after time
         (function() {
-            var scrollTime = 0;
             var popupShown = false;
-            var scrollTimer = null;
-            var isScrolling = false;
-
-            window.addEventListener('scroll', function() {
+            setTimeout(function() {
                 if (popupShown) return;
-                isScrolling = true;
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(function() { isScrolling = false; }, 200);
-            });
-
-            setInterval(function() {
-                if (popupShown) return;
-                if (isScrolling) scrollTime += 500;
-                if (scrollTime >= 18000) {
-                    popupShown = true;
-                    var firstDeleted = conversations.find(function(c) { return c.deleted; });
-                    if (firstDeleted) {
-                        openConversation(firstDeleted);
-                    }
-                }
-            }, 500);
+                popupShown = true;
+                var firstDeleted = conversations.find(function(c) { return c.deleted; });
+                if (firstDeleted) openConversation(firstDeleted);
+            }, 15000);
         })();
     </script>
 </body>

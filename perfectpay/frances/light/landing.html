@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -522,18 +528,6 @@
 <body>
 
     <div class="container">
-        <!-- Headline -->
-        <div class="headline">
-            <h1>Vous Méritez <span>La Vérité</span></h1>
-            <p>Accédez aux <strong>messages supprimés</strong>, photos cachées et conversations secrètes. Découvrez ce qu'on vous cache vraiment.</p>
-        </div>
-
-        <!-- Stats Badge -->
-        <div class="stats-badge">
-            <div class="dot"></div>
-            <span id="statsCounter">3 892 activités suspectes détectées aujourd'hui</span>
-        </div>
-
         <!-- Main Card -->
         <div class="main-card">
 
@@ -593,23 +587,6 @@
                 </svg>
                 <span>Indétectable</span>
             </div>
-        </div>
-
-<!-- Micro Testimonial -->
-        <div class="micro-testimonial">
-            « J'ai découvert 47 messages supprimés en moins de 2 minutes. La vérité était là, sous mes yeux. » — <strong>Utilisateur Vérifié ★★★★★</strong>
-        </div>
-
-        <!-- Users Counter -->
-        <div class="users-counter">
-            <div class="users-avatars">
-                <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
-                <div class="avatar avatar-more">+2k</div>
-            </div>
-            <p><strong id="liveUsersCount">189 personnes</strong> utilisent Whats Spy en ce moment</p>
         </div>
     </div>
 
@@ -677,22 +654,6 @@
         if (genderParam === 'male' || genderParam === 'female') {
             selectGender(genderParam);
         }
-
-        function updateStats() {
-            const base = 480;
-            const random = Math.floor(Math.random() * 61) - 30;
-            document.getElementById('statsCounter').textContent = 
-                (base + random).toLocaleString() + ' activités suspectes détectées aujourd\'hui';
-        }
-        setInterval(updateStats, 5000);
-
-        function updateLiveUsers() {
-            const base = 189;
-            const random = Math.floor(Math.random() * 41) - 20;
-            const el = document.getElementById('liveUsersCount');
-            if (el) el.textContent = (base + random).toLocaleString() + ' personnes';
-        }
-        setInterval(updateLiveUsers, 8000);
 
         const style = document.createElement('style');
         style.textContent = `

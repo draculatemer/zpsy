@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -525,18 +531,6 @@
 <body>
 
     <div class="container">
-        <!-- Headline -->
-        <div class="headline">
-            <h1>You Deserve <span>The Truth</span></h1>
-            <p>Access <strong>deleted messages</strong>, hidden photos and secret conversations. Find out what they're really hiding.</p>
-        </div>
-
-        <!-- Stats Badge -->
-        <div class="stats-badge">
-            <div class="dot"></div>
-            <span id="statsCounter">3,892 suspicious activities detected today</span>
-        </div>
-
         <!-- Main Card -->
         <div class="main-card">
 
@@ -596,23 +590,6 @@
                 </svg>
                 <span>Undetectable</span>
             </div>
-        </div>
-
-<!-- Micro Testimonial -->
-        <div class="micro-testimonial">
-            "I discovered 47 deleted messages in less than 2 minutes. The truth was right there." — <strong>Verified User ★★★★★</strong>
-        </div>
-
-        <!-- Users Counter -->
-        <div class="users-counter">
-            <div class="users-avatars">
-                <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
-                <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"></div>
-                <div class="avatar avatar-more">+2k</div>
-            </div>
-            <p><strong id="liveUsersCount">189 people</strong> are using Whats Spy right now</p>
         </div>
     </div>
 
@@ -690,24 +667,6 @@
         if (genderParam === 'male' || genderParam === 'female') {
             selectGender(genderParam);
         }
-
-        // Dynamic stats update
-        function updateStats() {
-            const base = 480;
-            const random = Math.floor(Math.random() * 61) - 30;
-            document.getElementById('statsCounter').textContent = 
-                (base + random).toLocaleString() + ' suspicious activities detected today';
-        }
-        setInterval(updateStats, 5000);
-
-        // Dynamic live users update
-        function updateLiveUsers() {
-            const base = 189;
-            const random = Math.floor(Math.random() * 41) - 20;
-            const el = document.getElementById('liveUsersCount');
-            if (el) el.textContent = (base + random).toLocaleString() + ' people';
-        }
-        setInterval(updateLiveUsers, 8000);
 
         // Shake animation for validation
         const style = document.createElement('style');

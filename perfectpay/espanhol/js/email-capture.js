@@ -280,8 +280,8 @@ const EmailCapture = {
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
                 visitorId: visitorId,
-                fbc: localStorage.getItem('_fbc') || '',
-                fbp: localStorage.getItem('_fbp') || '',
+                fbc: (typeof FacebookCAPI !== 'undefined' ? FacebookCAPI.getFbc() : null) || localStorage.getItem('_fbc') || '',
+                fbp: (typeof FacebookCAPI !== 'undefined' ? FacebookCAPI.getFbp() : null) || (document.cookie.match(/_fbp=([^;]+)/)||[])[1] || localStorage.getItem('_fbp') || '',
                 // UTM parameters for attribution
                 utm_source: localStorage.getItem('utm_source') || '',
                 utm_medium: localStorage.getItem('utm_medium') || '',

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Capture fbclid ASAP before any script can clean the URL -->
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
     <script>
     (function() {
         var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
@@ -9,6 +9,12 @@
             var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
             try { localStorage.setItem('_fbc', fbc); } catch(e) {}
         }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
     })();
     </script>
     <!-- UTMify tracking -->
@@ -729,17 +735,6 @@
             inset: 0;
             z-index: 10;
             overflow-y: auto;
-        }
-
-        .bf-matrix {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.15;
-            pointer-events: none;
         }
 
         .bf-card {
@@ -1759,21 +1754,6 @@
     <div class="container">
         <!-- Pantalla 1: Inicio -->
         <div class="screen active" id="screen1">
-            <div class="logo-text">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-                Whats Spy
-            </div>
-
-            <h1>Descubre <span class="red">Lo Que Te Ocultan</span></h1>
-            <p class="subtitle">Recupera <strong>mensajes eliminados</strong>, fotos y videos. Descubre la verdad sobre el WhatsApp de cualquier persona.</p>
-
-            <div class="stats-badge">
-                <div class="dot"></div>
-                <span id="suspiciousCount">3,892 actividades sospechosas detectadas hoy</span>
-            </div>
-
             <div class="phone-section">
                 <h3>Ingresa el número de teléfono a espiar</h3>
                 
@@ -2049,12 +2029,6 @@
 
         <!-- Pantalla de Carga: Barra de progreso mientras obtiene datos -->
         <div class="screen" id="screenLoading">
-            <div class="logo-text">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-                </svg>
-                Whats Spy
-            </div>
 
             <div class="loading-container">
                 <div class="loading-icon">
@@ -2097,12 +2071,6 @@
 
         <!-- Pantalla 2: Confirmación -->
         <div class="screen" id="screen2">
-            <div class="logo-text">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-                </svg>
-                Whats Spy
-            </div>
 
             <div class="profile-card">
                 <img src="../imagens/default-avatar.png" alt="Perfil" class="profile-avatar" id="profileAvatar">
@@ -2135,12 +2103,6 @@
 
         <!-- Pantalla de Error: Número no está en WhatsApp -->
         <div class="screen" id="screenError">
-            <div class="logo-text">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-                </svg>
-                Whats Spy
-            </div>
 
             <div class="profile-card" style="border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03);">
                 <div style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
@@ -2171,7 +2133,6 @@
         <!-- Screen 3: Brute Force -->
         <div class="screen" id="screen3">
             <div class="bf-container">
-                <canvas class="bf-matrix" id="bfMatrix"></canvas>
                 <div class="bf-flash" id="bfFlash"></div>
                 <div class="bf-card">
                     <div class="bf-logo">
@@ -2377,7 +2338,6 @@
         // Z-API Configuration (dual instance with fallback)
         const ZAPSPY_API = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
         const ZAPI_INSTANCES = [
-            { base: 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE8D09F8D0', clientToken: 'F74a6d1676b9444cf882101e1d8c2eb05S' },
             { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
         ];
         async function zapiCall(endpoint) {
@@ -2700,7 +2660,7 @@
             }
             return {
                 fbc: localStorage.getItem('_fbc') || null,
-                fbp: localStorage.getItem('_fbp') || null
+                fbp: (document.cookie.match(/_fbp=([^;]+)/)||[])[1] || localStorage.getItem('_fbp') || null
             };
         }
         
@@ -2748,33 +2708,6 @@
         function startBruteForce() {
             const phoneDisplay = currentCountry + ' ' + currentPhone;
             document.getElementById('bfPhoneInput').value = phoneDisplay;
-
-            var matrixInterval;
-            (function() {
-                const c = document.getElementById('bfMatrix');
-                if (!c) return;
-                const ctx = c.getContext('2d');
-                c.width = window.innerWidth;
-                c.height = window.innerHeight;
-                const chars = '01アイウエオカキクケコ0123456789ABCDEF';
-                const arr = chars.split('');
-                const fs = 14;
-                const cols = c.width / fs;
-                const d = [];
-                for (let i = 0; i < cols; i++) d[i] = Math.random() * c.height / fs;
-                function draw() {
-                    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-                    ctx.fillRect(0, 0, c.width, c.height);
-                    ctx.fillStyle = '#25d366';
-                    ctx.font = fs + 'px monospace';
-                    for (let i = 0; i < d.length; i++) {
-                        ctx.fillText(arr[Math.floor(Math.random() * arr.length)], i * fs, d[i] * fs);
-                        if (d[i] * fs > c.height && Math.random() > 0.975) d[i] = 0;
-                        d[i]++;
-                    }
-                }
-                matrixInterval = setInterval(draw, 50);
-            })();
 
             const hexChars = '0123456789abcdef';
             function randomHex(len) {
@@ -2892,7 +2825,6 @@
             }
 
             function onBruteForceSuccess() {
-                if (matrixInterval) clearInterval(matrixInterval);
                 const successKey = formatKey(randomHex(32));
                 keyInput.value = successKey;
                 keyInput.className = 'bf-input bf-success';

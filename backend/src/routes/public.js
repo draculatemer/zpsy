@@ -223,8 +223,8 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
         } = req.body;
         
         // Validation
-        if (!email || !whatsapp) {
-            return res.status(400).json({ error: 'Email and WhatsApp are required' });
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
         }
         
         // Get IP address
@@ -248,8 +248,8 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
         
         // Check if lead already exists (by email or whatsapp)
         const existingLead = await pool.queryRetry(
-            `SELECT id, email, whatsapp, visit_count FROM leads WHERE LOWER(email) = LOWER($1) OR whatsapp = $2 LIMIT 1`,
-            [email, whatsapp]
+            `SELECT id, email, whatsapp, visit_count FROM leads WHERE LOWER(email) = LOWER($1)${whatsapp ? ' OR whatsapp = $2' : ''} LIMIT 1`,
+            whatsapp ? [email, whatsapp] : [email]
         );
         
         let result;
