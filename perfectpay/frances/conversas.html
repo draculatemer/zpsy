@@ -2774,8 +2774,8 @@
                 if (r.ok) { const d = await r.json(); _waCache[phone] = d; return d; }
             } catch(e) {}
             try {
-                const zBase = 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05';
-                const zToken = 'F0f2cc62f6c4f46088783537c957b7fd6S';
+                const zBase = 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE9D09F8D0';
+                const zToken = 'Fd8be5328288e466eb014c3d6c653dd3aS';
                 const pe = await fetch(zBase + '/phone-exists/' + phone, { headers: { 'client-token': zToken } });
                 const peD = await pe.json();
                 const exists = peD && peD.exists === true;
