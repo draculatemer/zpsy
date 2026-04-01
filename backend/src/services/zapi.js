@@ -74,21 +74,39 @@ async function zapiSendText(phone, message) {
 
 async function zapiPhoneExists(phone) {
     const result = await zapiRequest(`phone-exists/${phone}`);
+    if (result.ok && result.data?.exists !== undefined) {
+        return { exists: result.data.exists === true, raw: result };
+    }
+    // Fallback: /contacts endpoint also confirms existence
+    try {
+        const contactResult = await zapiRequest(`contacts/${phone}`);
+        if (contactResult.ok && contactResult.data?.phone) {
+            return { exists: true, raw: contactResult };
+        }
+    } catch (e) {}
     return { exists: result.ok && result.data?.exists === true, raw: result };
 }
 
-async function zapiProfilePicture(phone) {
-    // Try profile-picture endpoint first
+// In-memory cache for profile pictures (survives Z-API intermittent failures)
+const pictureCache = new Map();
+const PICTURE_CACHE_TTL = 30 * 60 * 1000;
+
+function _validPicUrl(url) {
+    return url && url !== 'null' && url !== null && typeof url === 'string' && url.startsWith('http');
+}
+
+async function _tryGetPicture(phone) {
+    // Method 1: profile-picture endpoint
     const result = await zapiRequest(`profile-picture?phone=${phone}`);
-    if (result.ok && result.data?.link && result.data.link !== 'null' && result.data.link.startsWith('http')) {
+    if (result.ok && _validPicUrl(result.data?.link)) {
         return result.data.link;
     }
 
-    // Fallback: /contacts/:phone returns imgUrl even when profile-picture returns "not-authorized"
+    // Method 2: /contacts/:phone (works even when profile-picture returns "not-authorized")
     try {
         const contactResult = await zapiRequest(`contacts/${phone}`);
-        if (contactResult.ok && contactResult.data?.imgUrl && contactResult.data.imgUrl !== 'null' && contactResult.data.imgUrl.startsWith('http')) {
-            console.log(`📸 Profile picture fetched via /contacts fallback for ${phone}`);
+        if (contactResult.ok && _validPicUrl(contactResult.data?.imgUrl)) {
+            console.log(`📸 Picture via /contacts fallback for ${phone}`);
             return contactResult.data.imgUrl;
         }
     } catch (e) {
@@ -96,6 +114,32 @@ async function zapiProfilePicture(phone) {
     }
 
     return null;
+}
+
+async function zapiProfilePicture(phone) {
+    // Check cache first
+    const cached = pictureCache.get(phone);
+    if (cached && Date.now() < cached.expiresAt) {
+        console.log(`📸 Picture from cache for ${phone}`);
+        return cached.url;
+    }
+
+    // First attempt
+    let url = await _tryGetPicture(phone);
+
+    // Retry once after 1s if first attempt failed (Z-API is intermittent)
+    if (!url) {
+        await new Promise(r => setTimeout(r, 1000));
+        url = await _tryGetPicture(phone);
+        if (url) console.log(`📸 Picture found on retry for ${phone}`);
+    }
+
+    // Cache successful results for 30 min
+    if (url) {
+        pictureCache.set(phone, { url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+    }
+
+    return url;
 }
 
 module.exports = {
