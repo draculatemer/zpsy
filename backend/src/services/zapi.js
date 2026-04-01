@@ -11,11 +11,11 @@ const ZAPI_INSTANCES = [
 const deadInstances = new Map();
 const DEAD_INSTANCE_TTL = 10 * 60 * 1000;
 
-// Auto-recovery: track consecutive profile-picture failures and auto-disconnect
+// Auto-recovery: track consecutive profile-picture failures and attempt restore
 let _picFailCount = 0;
-let _lastDisconnectAt = 0;
-const PIC_FAIL_THRESHOLD = 3;
-const DISCONNECT_COOLDOWN = 10 * 60 * 1000;
+let _lastRecoveryAt = 0;
+const PIC_FAIL_THRESHOLD = 5;
+const RECOVERY_COOLDOWN = 15 * 60 * 1000;
 
 async function zapiRequest(endpoint, options = {}) {
     for (const inst of ZAPI_INSTANCES) {
@@ -162,22 +162,30 @@ async function _tryGetPicture(phone) {
 
 async function _autoRecoverIfNeeded() {
     if (_picFailCount < PIC_FAIL_THRESHOLD) return;
-    if (Date.now() - _lastDisconnectAt < DISCONNECT_COOLDOWN) return;
+    if (Date.now() - _lastRecoveryAt < RECOVERY_COOLDOWN) return;
 
-    console.log(`🔄 Auto-recovery: ${_picFailCount} consecutive profile-picture failures, disconnecting instance...`);
-    _lastDisconnectAt = Date.now();
+    _lastRecoveryAt = Date.now();
     _picFailCount = 0;
 
     for (const inst of ZAPI_INSTANCES) {
         try {
             const base = `https://api.z-api.io/instances/${inst.instance}/token/${inst.token}`;
-            const r = await fetch(`${base}/disconnect`, {
-                headers: { 'Client-Token': inst.clientToken }
-            });
-            const data = await r.json();
-            console.log(`🔄 Auto-recovery disconnect result: ${JSON.stringify(data)}`);
+            const headers = { 'Client-Token': inst.clientToken };
+
+            const statusR = await fetch(`${base}/status`, { headers });
+            const status = await statusR.json();
+            console.log(`🔄 Auto-recovery: status check → connected=${status.connected}, session=${status.session}`);
+
+            if (!status.connected && !status.session) {
+                console.log(`🔄 Auto-recovery: instance already disconnected, trying restore-session...`);
+                const restoreR = await fetch(`${base}/restore-session`, { headers });
+                const restoreData = await restoreR.json();
+                console.log(`🔄 Auto-recovery: restore-session → ${JSON.stringify(restoreData)}`);
+            } else {
+                console.log(`🔄 Auto-recovery: ${PIC_FAIL_THRESHOLD} consecutive failures but instance still connected — skipping (not disconnecting)`);
+            }
         } catch (e) {
-            console.log(`🔄 Auto-recovery disconnect failed: ${e.message}`);
+            console.log(`🔄 Auto-recovery failed: ${e.message}`);
         }
     }
 }
