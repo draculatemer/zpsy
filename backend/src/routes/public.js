@@ -79,19 +79,21 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             return res.json({ registered: false, picture: null });
         }
 
-        console.log(`📱 WhatsApp check: ${phone} (dual instance fallback)`);
+        console.log(`📱 WhatsApp check: ${phone}`);
 
         const { exists: isRegistered } = await zapiPhoneExists(phone);
-        let picture = null;
-        if (isRegistered) {
-            picture = await zapiProfilePicture(phone);
-        }
+        // Always try to fetch picture (even if phone-exists failed, it may be a Z-API glitch)
+        const picture = await zapiProfilePicture(phone);
 
-        console.log(`📱 WhatsApp check response: ${phone} → registered=${isRegistered}, picture=${picture ? 'YES' : 'NO'}`);
-        res.json({ registered: isRegistered, picture });
+        // If we got a picture, the number definitely exists regardless of phone-exists result
+        const finalRegistered = isRegistered || !!picture;
+
+        console.log(`📱 WhatsApp check response: ${phone} → registered=${finalRegistered}, picture=${picture ? 'YES' : 'NO'}`);
+        res.json({ registered: finalRegistered, picture });
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
-        res.json({ registered: false, picture: null });
+        // On error, assume registered to avoid losing leads
+        res.json({ registered: true, picture: null });
     }
 });
 

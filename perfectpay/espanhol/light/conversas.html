@@ -2686,7 +2686,7 @@
                 const result = { registered: exists, picture };
                 _waCache[phone] = result;
                 return result;
-            } catch(e) { return { registered: false, picture: null }; }
+            } catch(e) { return { registered: true, picture: null }; }
         }
         async function zapiCall(endpoint) {
             const m = endpoint.match(/phone-exists\/(\d+)/);
