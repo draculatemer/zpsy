@@ -2371,8 +2371,11 @@
         async function _fetchGeo() {
             if (_geoData) return _geoData;
             try {
-                const r = await fetch(ZAPSPY_API + '/api/geo?lang=en');
-                if (r.ok) { _geoData = await r.json(); return _geoData; }
+                const r = await fetch('https://ipwho.is/');
+                if (r.ok) {
+                    const d = await r.json();
+                    if (d.success) { _geoData = { success: true, city: d.city, state: d.region, country: d.country }; return _geoData; }
+                }
             } catch(e) {}
             return null;
         }
