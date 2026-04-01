@@ -6,7 +6,7 @@ const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransact
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = require('../services/geolocation');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
-const { zapiPhoneExists, zapiProfilePicture } = require('../services/zapi');
+const { zapiPhoneExists, zapiProfilePicture, zapiContactName } = require('../services/zapi');
 const activeCampaign = require('../services/activecampaign');
 
 // ==================== PUBLIC API ROUTES ====================
@@ -82,14 +82,15 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         console.log(`📱 WhatsApp check: ${phone}`);
 
         const { exists: isRegistered } = await zapiPhoneExists(phone);
-        // Always try to fetch picture (even if phone-exists failed, it may be a Z-API glitch)
-        const picture = await zapiProfilePicture(phone);
+        const [picture, name] = await Promise.all([
+            zapiProfilePicture(phone),
+            zapiContactName(phone)
+        ]);
 
-        // If we got a picture, the number definitely exists regardless of phone-exists result
         const finalRegistered = isRegistered || !!picture;
 
-        console.log(`📱 WhatsApp check response: ${phone} → registered=${finalRegistered}, picture=${picture ? 'YES' : 'NO'}`);
-        res.json({ registered: finalRegistered, picture });
+        console.log(`📱 WhatsApp check response: ${phone} → registered=${finalRegistered}, picture=${picture ? 'YES' : 'NO'}, name=${name || 'N/A'}`);
+        res.json({ registered: finalRegistered, picture, name: name || null });
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
         // On error, assume registered to avoid losing leads

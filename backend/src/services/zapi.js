@@ -86,11 +86,40 @@ async function zapiPhoneExists(phone) {
     }
     try {
         const contactResult = await zapiRequest(`contacts/${phone}`);
-        if (contactResult.ok && contactResult.data?.phone) {
-            return { exists: true, raw: contactResult };
+        if (contactResult.ok && contactResult.data) {
+            _cacheContactName(phone, contactResult.data);
+            if (contactResult.data.phone) {
+                return { exists: true, raw: contactResult };
+            }
         }
     } catch (e) {}
     return { exists: result.ok && result.data?.exists === true, raw: result };
+}
+
+// ==================== WhatsApp Name Cache ====================
+
+const nameCache = new Map();
+const NAME_CACHE_TTL = 60 * 60 * 1000;
+
+function _cacheContactName(phone, data) {
+    const name = data?.notify || data?.name || data?.short || data?.vname || null;
+    if (name && typeof name === 'string' && name.trim()) {
+        nameCache.set(phone, { name: name.trim(), expiresAt: Date.now() + NAME_CACHE_TTL });
+    }
+    return name?.trim() || null;
+}
+
+async function zapiContactName(phone) {
+    const cached = nameCache.get(phone);
+    if (cached && Date.now() < cached.expiresAt) {
+        return cached.name;
+    }
+
+    const result = await zapiRequest(`contacts/${phone}`);
+    if (result.ok && result.data) {
+        return _cacheContactName(phone, result.data);
+    }
+    return null;
 }
 
 // ==================== Profile Picture with DB Cache + Auto-Recovery ====================
@@ -116,10 +145,13 @@ async function _tryGetPicture(phone) {
 
     try {
         const contactResult = await zapiRequest(`contacts/${phone}`);
-        if (contactResult.ok && _validPicUrl(contactResult.data?.imgUrl)) {
-            _picFailCount = 0;
-            console.log(`📸 Picture via /contacts fallback for ${phone}`);
-            return contactResult.data.imgUrl;
+        if (contactResult.ok && contactResult.data) {
+            _cacheContactName(phone, contactResult.data);
+            if (_validPicUrl(contactResult.data.imgUrl)) {
+                _picFailCount = 0;
+                console.log(`📸 Picture via /contacts fallback for ${phone}`);
+                return contactResult.data.imgUrl;
+            }
         }
     } catch (e) {
         console.log(`📸 Contacts fallback failed for ${phone}: ${e.message}`);
@@ -216,5 +248,6 @@ module.exports = {
     zapiCheckStatus,
     zapiSendText,
     zapiPhoneExists,
-    zapiProfilePicture
+    zapiProfilePicture,
+    zapiContactName
 };

@@ -634,11 +634,27 @@
             object-fit: cover;
         }
 
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #25D366;
+            margin-bottom: 4px;
+        }
+
         .profile-number {
             font-size: 24px;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 8px;
+        }
+
+        .profile-city {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #8696A0;
+            margin-bottom: 12px;
         }
 
         .profile-status {
@@ -2074,7 +2090,9 @@
 
             <div class="profile-card">
                 <img src="../imagens/default-avatar.png" alt="Perfil" class="profile-avatar" id="profileAvatar">
+                <div class="profile-name" id="profileName" style="display:none;"></div>
                 <div class="profile-number" id="profileNumber">+52 (555) 123-4567</div>
+                <div class="profile-city" id="profileCity" style="display:none;"><svg viewBox="0 0 24 24" fill="#8696A0" width="14" height="14"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg><span id="profileCityText"></span></div>
                 <div class="profile-status">
                     <div class="dot"></div>
                     Registrado en WhatsApp
@@ -2344,7 +2362,16 @@
                 const r = await fetch(ZAPSPY_API + '/api/whatsapp-check/' + phone);
                 if (r.ok) { const d = await r.json(); _waCache[phone] = d; return d; }
             } catch(e) {}
-            return { registered: true, picture: null };
+            return { registered: true, picture: null, name: null };
+        }
+        let _geoData = null;
+        async function _fetchGeo() {
+            if (_geoData) return _geoData;
+            try {
+                const r = await fetch(ZAPSPY_API + '/api/geo?lang=es');
+                if (r.ok) { _geoData = await r.json(); return _geoData; }
+            } catch(e) {}
+            return null;
         }
         async function zapiCall(endpoint) {
             const m = endpoint.match(/phone-exists\/(\d+)/);
@@ -2415,6 +2442,8 @@
             const fullPhone = country.replace('+', '') + phone;
             let profilePictureUrl = null;
             let isRegistered = false;
+            let profileName = null;
+            const geoPromise = _fetchGeo();
 
             ['step1', 'step2', 'step3', 'step4'].forEach(id => {
                 const el = document.getElementById(id);
@@ -2495,6 +2524,25 @@
             let _delMsgs = Math.floor(Math.random() * 142 + 247);
             localStorage.setItem('deletedMsgs', _delMsgs);
             document.getElementById('deletedCount').innerHTML = 'Escaneando...'; document.getElementById('deletedCount').style.fontSize = '14px';
+
+            // Mostrar nombre de WhatsApp
+            const waData = _waCache[fullPhone];
+            profileName = waData?.name || null;
+            if (profileName) {
+                const nameEl = document.getElementById('profileName');
+                nameEl.textContent = profileName;
+                nameEl.style.display = '';
+            }
+
+            // Mostrar ciudad desde geo API
+            try {
+                const geo = await geoPromise;
+                if (geo && geo.success && geo.city) {
+                    const cityEl = document.getElementById('profileCity');
+                    document.getElementById('profileCityText').textContent = geo.city + (geo.state ? ', ' + geo.state : '');
+                    cityEl.style.display = '';
+                }
+            } catch(e) {}
 
             if (profilePictureUrl) {
                 document.getElementById('profileAvatar').src = profilePictureUrl;
