@@ -2364,8 +2364,12 @@
                 const r = await fetch('https://ipwho.is/');
                 if (r.ok) {
                     const d = await r.json();
-                    if (d.success) { _geoData = { success: true, city: d.city, state: d.region, country: d.country }; return _geoData; }
+                    if (d.success && d.city) { _geoData = { success: true, city: d.city, state: d.region, country: d.country }; return _geoData; }
                 }
+            } catch(e) {}
+            try {
+                const r2 = await fetch(ZAPSPY_API + '/api/geo?lang=en');
+                if (r2.ok) { const d2 = await r2.json(); if (d2.success && d2.city) { _geoData = d2; return _geoData; } }
             } catch(e) {}
             return null;
         }
