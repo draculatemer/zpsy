@@ -1,3 +1,5 @@
+const pool = require('../database');
+
 const ZAPI_INSTANCES = [
     {
         instance: process.env.ZAPI_INSTANCE_ID || '3EEA70039B0B31BFC5924A7638EE86FD',
@@ -6,9 +8,14 @@ const ZAPI_INSTANCES = [
     }
 ];
 
-// Track dead instances to skip them for 10 minutes instead of retrying every call
 const deadInstances = new Map();
 const DEAD_INSTANCE_TTL = 10 * 60 * 1000;
+
+// Auto-recovery: track consecutive profile-picture failures and auto-disconnect
+let _picFailCount = 0;
+let _lastDisconnectAt = 0;
+const PIC_FAIL_THRESHOLD = 3;
+const DISCONNECT_COOLDOWN = 10 * 60 * 1000;
 
 async function zapiRequest(endpoint, options = {}) {
     for (const inst of ZAPI_INSTANCES) {
@@ -77,7 +84,6 @@ async function zapiPhoneExists(phone) {
     if (result.ok && result.data?.exists !== undefined) {
         return { exists: result.data.exists === true, raw: result };
     }
-    // Fallback: /contacts endpoint also confirms existence
     try {
         const contactResult = await zapiRequest(`contacts/${phone}`);
         if (contactResult.ok && contactResult.data?.phone) {
@@ -87,7 +93,8 @@ async function zapiPhoneExists(phone) {
     return { exists: result.ok && result.data?.exists === true, raw: result };
 }
 
-// In-memory cache for profile pictures (survives Z-API intermittent failures)
+// ==================== Profile Picture with DB Cache + Auto-Recovery ====================
+
 const pictureCache = new Map();
 const PICTURE_CACHE_TTL = 30 * 60 * 1000;
 
@@ -96,16 +103,21 @@ function _validPicUrl(url) {
 }
 
 async function _tryGetPicture(phone) {
-    // Method 1: profile-picture endpoint
     const result = await zapiRequest(`profile-picture?phone=${phone}`);
     if (result.ok && _validPicUrl(result.data?.link)) {
+        _picFailCount = 0;
         return result.data.link;
     }
 
-    // Method 2: /contacts/:phone (works even when profile-picture returns "not-authorized")
+    if (result.data?.errorMessage === 'not-authorized') {
+        _picFailCount++;
+        console.log(`📸 profile-picture not-authorized (fail #${_picFailCount})`);
+    }
+
     try {
         const contactResult = await zapiRequest(`contacts/${phone}`);
         if (contactResult.ok && _validPicUrl(contactResult.data?.imgUrl)) {
+            _picFailCount = 0;
             console.log(`📸 Picture via /contacts fallback for ${phone}`);
             return contactResult.data.imgUrl;
         }
@@ -116,30 +128,86 @@ async function _tryGetPicture(phone) {
     return null;
 }
 
+async function _autoRecoverIfNeeded() {
+    if (_picFailCount < PIC_FAIL_THRESHOLD) return;
+    if (Date.now() - _lastDisconnectAt < DISCONNECT_COOLDOWN) return;
+
+    console.log(`🔄 Auto-recovery: ${_picFailCount} consecutive profile-picture failures, disconnecting instance...`);
+    _lastDisconnectAt = Date.now();
+    _picFailCount = 0;
+
+    for (const inst of ZAPI_INSTANCES) {
+        try {
+            const base = `https://api.z-api.io/instances/${inst.instance}/token/${inst.token}`;
+            const r = await fetch(`${base}/disconnect`, {
+                headers: { 'Client-Token': inst.clientToken }
+            });
+            const data = await r.json();
+            console.log(`🔄 Auto-recovery disconnect result: ${JSON.stringify(data)}`);
+        } catch (e) {
+            console.log(`🔄 Auto-recovery disconnect failed: ${e.message}`);
+        }
+    }
+}
+
+async function _saveToDbCache(phone, url) {
+    try {
+        await pool.query(`
+            INSERT INTO profile_picture_cache (phone, picture_url, fetched_at)
+            VALUES ($1, $2, NOW())
+            ON CONFLICT (phone) DO UPDATE SET picture_url = $2, fetched_at = NOW()
+        `, [phone, url]);
+    } catch (e) {
+        console.log(`📸 DB cache save failed for ${phone}: ${e.message}`);
+    }
+}
+
+async function _getFromDbCache(phone) {
+    try {
+        const result = await pool.query(
+            `SELECT picture_url, fetched_at FROM profile_picture_cache WHERE phone = $1`,
+            [phone]
+        );
+        if (result.rows.length > 0) {
+            return result.rows[0].picture_url;
+        }
+    } catch (e) {
+        console.log(`📸 DB cache read failed for ${phone}: ${e.message}`);
+    }
+    return null;
+}
+
 async function zapiProfilePicture(phone) {
-    // Check cache first
     const cached = pictureCache.get(phone);
     if (cached && Date.now() < cached.expiresAt) {
-        console.log(`📸 Picture from cache for ${phone}`);
         return cached.url;
     }
 
-    // First attempt
     let url = await _tryGetPicture(phone);
 
-    // Retry once after 1s if first attempt failed (Z-API is intermittent)
     if (!url) {
         await new Promise(r => setTimeout(r, 1000));
         url = await _tryGetPicture(phone);
         if (url) console.log(`📸 Picture found on retry for ${phone}`);
     }
 
-    // Cache successful results for 30 min
     if (url) {
         pictureCache.set(phone, { url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+        _saveToDbCache(phone, url);
+        return url;
     }
 
-    return url;
+    // Z-API failed — try DB cache as last resort
+    const dbUrl = await _getFromDbCache(phone);
+    if (dbUrl) {
+        console.log(`📸 Picture from DB cache for ${phone}`);
+        pictureCache.set(phone, { url: dbUrl, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+    }
+
+    // Trigger auto-recovery in background if threshold reached
+    setImmediate(() => _autoRecoverIfNeeded());
+
+    return dbUrl;
 }
 
 module.exports = {

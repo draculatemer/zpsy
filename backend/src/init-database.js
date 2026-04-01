@@ -533,6 +533,15 @@ async function _initDatabaseCore() {
             console.log('✅ Default admin user created');
         }
         
+        // Create profile picture cache table (resilient to Z-API intermittent failures)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS profile_picture_cache (
+                phone VARCHAR(50) PRIMARY KEY,
+                picture_url TEXT NOT NULL,
+                fetched_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        
         console.log('✅ Database ready');
         
         // ==================== CLEANUP: Remove duplicate refund_requests ====================
