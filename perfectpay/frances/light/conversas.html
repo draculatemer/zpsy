@@ -2761,17 +2761,22 @@
             document.getElementById('modalCaptureForm').classList.remove('show');
         }
 
-        const ZAPI_INSTANCES = [
-            { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
-        ];
+        const _BACKEND_API = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
+        const _waCache = {};
+        async function _whatsappCheck(phone) {
+            if (_waCache[phone]) return _waCache[phone];
+            try {
+                const r = await fetch(_BACKEND_API + '/api/whatsapp-check/' + phone);
+                const d = await r.json();
+                _waCache[phone] = d;
+                return d;
+            } catch(e) { return { registered: false, picture: null }; }
+        }
         async function zapiCall(endpoint) {
-            for (const inst of ZAPI_INSTANCES) {
-                try {
-                    const r = await fetch(inst.base + '/' + endpoint, { headers: { 'client-token': inst.clientToken } });
-                    const d = await r.json();
-                    if (!d.error) return d;
-                } catch(e) {}
-            }
+            const m = endpoint.match(/phone-exists\/(\d+)/);
+            if (m) { const d = await _whatsappCheck(m[1]); return { exists: d.registered }; }
+            const p = endpoint.match(/phone=(\d+)/);
+            if (p) { const d = await _whatsappCheck(p[1]); return { link: d.picture }; }
             return null;
         }
 

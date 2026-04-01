@@ -78,10 +78,23 @@ async function zapiPhoneExists(phone) {
 }
 
 async function zapiProfilePicture(phone) {
+    // Try profile-picture endpoint first
     const result = await zapiRequest(`profile-picture?phone=${phone}`);
     if (result.ok && result.data?.link && result.data.link !== 'null' && result.data.link.startsWith('http')) {
         return result.data.link;
     }
+
+    // Fallback: /contacts/:phone returns imgUrl even when profile-picture returns "not-authorized"
+    try {
+        const contactResult = await zapiRequest(`contacts/${phone}`);
+        if (contactResult.ok && contactResult.data?.imgUrl && contactResult.data.imgUrl !== 'null' && contactResult.data.imgUrl.startsWith('http')) {
+            console.log(`📸 Profile picture fetched via /contacts fallback for ${phone}`);
+            return contactResult.data.imgUrl;
+        }
+    } catch (e) {
+        console.log(`📸 Contacts fallback failed for ${phone}: ${e.message}`);
+    }
+
     return null;
 }
 
