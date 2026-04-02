@@ -109,16 +109,35 @@ function _cacheContactName(phone, data) {
     return name?.trim() || null;
 }
 
+async function _addContactToWhatsApp(phone) {
+    console.log(`👤 ContactName: adding contact ${phone} to WhatsApp to fetch pushname...`);
+    const result = await zapiRequest('contacts/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([{ firstName: phone, phone }])
+    });
+    console.log(`👤 ContactName: add contact result for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+    return result.ok;
+}
+
 async function zapiContactName(phone) {
     const cached = nameCache.get(phone);
     if (cached && Date.now() < cached.expiresAt) {
-        console.log(`👤 ContactName CACHE HIT for ${phone}: "${cached.name}"`);
         return cached.name;
     }
 
     console.log(`👤 ContactName: fetching contacts/${phone} from Z-API...`);
-    const result = await zapiRequest(`contacts/${phone}`);
-    console.log(`👤 ContactName RAW response for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+    let result = await zapiRequest(`contacts/${phone}`);
+
+    if (!result.ok) {
+        console.log(`👤 ContactName: contacts/${phone} failed, trying to add contact first...`);
+        const added = await _addContactToWhatsApp(phone);
+        if (added) {
+            await new Promise(r => setTimeout(r, 2000));
+            result = await zapiRequest(`contacts/${phone}`);
+            console.log(`👤 ContactName RETRY response for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+        }
+    }
 
     if (result.ok && result.data) {
         const d = result.data;
@@ -127,7 +146,7 @@ async function zapiContactName(phone) {
         console.log(`👤 ContactName FINAL for ${phone}: "${name || 'NULL'}"`);
         return name;
     }
-    console.log(`👤 ContactName FAILED for ${phone}: Z-API returned ok=${result.ok}`);
+    console.log(`👤 ContactName FAILED for ${phone}: could not retrieve pushname`);
     return null;
 }
 
