@@ -1,11 +1,15 @@
 (function() {
     var COUNTDOWN_KEY = 'accessExpiresAt';
     var SLOTS_KEY = 'accessSlots';
+    var DURATION = 15 * 60 * 1000;
 
     var expiresAt = localStorage.getItem(COUNTDOWN_KEY);
-    if (!expiresAt) return;
+    if (!expiresAt || isNaN(parseInt(expiresAt))) {
+        expiresAt = Date.now() + DURATION;
+        localStorage.setItem(COUNTDOWN_KEY, String(expiresAt));
+        localStorage.setItem(SLOTS_KEY, String(Math.floor(Math.random() * 3) + 2));
+    }
     expiresAt = parseInt(expiresAt);
-    if (isNaN(expiresAt)) return;
 
     var remaining = expiresAt - Date.now();
     if (remaining <= 0) return;
