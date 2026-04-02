@@ -2801,7 +2801,28 @@
         function acceptResponsibility() {
             var cb = document.getElementById('rpCheckbox');
             if (!cb || !cb.checked) return;
-            closeResponsibilityPopup();
+            var modal = document.querySelector('.rp-modal');
+            if (modal) {
+                var lang = (document.documentElement.lang || '').substring(0, 2).toLowerCase();
+                var msgs = {
+                    en: ['Redirecting to secure checkout...', 'Please wait, do not close this page.'],
+                    es: ['Redirigiendo al checkout seguro...', 'Por favor espera, no cierres esta página.'],
+                    fr: ['Redirection vers le paiement sécurisé...', 'Veuillez patienter, ne fermez pas cette page.'],
+                    pt: ['Redirecionando para o checkout seguro...', 'Por favor aguarde, não feche esta página.']
+                };
+                var m = msgs[lang] || msgs.en;
+                modal.innerHTML = '<div style="text-align:center;padding:48px 24px;">' +
+                    '<div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.1);border-top-color:#e91e63;border-radius:50%;animation:rp-spin .8s linear infinite;margin:0 auto;"></div>' +
+                    '<h3 style="color:#fff;margin:24px 0 8px;font-size:18px;">' + m[0] + '</h3>' +
+                    '<p style="color:rgba(255,255,255,0.5);font-size:13px;">' + m[1] + '</p>' +
+                    '</div>';
+                if (!document.getElementById('rpSpinStyle')) {
+                    var s = document.createElement('style');
+                    s.id = 'rpSpinStyle';
+                    s.textContent = '@keyframes rp-spin{to{transform:rotate(360deg)}}';
+                    document.head.appendChild(s);
+                }
+            }
             proceedToCheckout();
         }
         
