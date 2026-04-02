@@ -101,22 +101,40 @@ async function zapiPhoneExists(phone) {
 const nameCache = new Map();
 const NAME_CACHE_TTL = 60 * 60 * 1000;
 
-function _cacheContactName(phone, data) {
-    const name = data?.notify || data?.name || data?.short || data?.vname || null;
-    if (name && typeof name === 'string' && name.trim()) {
-        nameCache.set(phone, { name: name.trim(), expiresAt: Date.now() + NAME_CACHE_TTL });
+function _isJustPhoneNumber(str, phone) {
+    if (!str || typeof str !== 'string') return true;
+    const cleaned = str.replace(/[\s\-\+\(\)\.]/g, '');
+    if (/^\d+$/.test(cleaned)) return true;
+    if (cleaned === phone) return true;
+    if (str.trim() === '.' || str.trim() === '_') return true;
+    return false;
+}
+
+function _extractName(phone, data) {
+    const candidates = [data?.notify, data?.name, data?.short, data?.vname];
+    for (const c of candidates) {
+        if (c && typeof c === 'string' && c.trim() && !_isJustPhoneNumber(c, phone)) {
+            return c.trim();
+        }
     }
-    return name?.trim() || null;
+    return null;
+}
+
+function _cacheContactName(phone, data) {
+    const name = _extractName(phone, data);
+    if (name) {
+        nameCache.set(phone, { name, expiresAt: Date.now() + NAME_CACHE_TTL });
+    }
+    return name;
 }
 
 async function _addContactToWhatsApp(phone) {
-    console.log(`👤 ContactName: adding contact ${phone} to WhatsApp to fetch pushname...`);
     const result = await zapiRequest('contacts/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([{ firstName: phone, phone }])
+        body: JSON.stringify([{ firstName: '.', phone }])
     });
-    console.log(`👤 ContactName: add contact result for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+    console.log(`👤 ContactAdd ${phone}: ok=${result.ok}`);
     return result.ok;
 }
 
@@ -126,27 +144,39 @@ async function zapiContactName(phone) {
         return cached.name;
     }
 
-    console.log(`👤 ContactName: fetching contacts/${phone} from Z-API...`);
+    console.log(`👤 ContactName: fetching contacts/${phone}...`);
     let result = await zapiRequest(`contacts/${phone}`);
 
-    if (!result.ok) {
-        console.log(`👤 ContactName: contacts/${phone} failed, trying to add contact first...`);
-        const added = await _addContactToWhatsApp(phone);
-        if (added) {
-            await new Promise(r => setTimeout(r, 2000));
-            result = await zapiRequest(`contacts/${phone}`);
-            console.log(`👤 ContactName RETRY response for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+    if (result.ok && result.data) {
+        const name = _cacheContactName(phone, result.data);
+        if (name) {
+            console.log(`👤 ContactName OK for ${phone}: "${name}"`);
+            return name;
         }
     }
 
-    if (result.ok && result.data) {
-        const d = result.data;
-        console.log(`👤 ContactName FIELDS for ${phone}: notify="${d.notify || ''}", name="${d.name || ''}", short="${d.short || ''}", vname="${d.vname || ''}", about="${d.about || ''}"`);
-        const name = _cacheContactName(phone, result.data);
-        console.log(`👤 ContactName FINAL for ${phone}: "${name || 'NULL'}"`);
-        return name;
+    console.log(`👤 ContactName: adding contact ${phone} then retrying...`);
+    const added = await _addContactToWhatsApp(phone);
+    if (!added) {
+        console.log(`👤 ContactName FAILED for ${phone}: could not add contact`);
+        return null;
     }
-    console.log(`👤 ContactName FAILED for ${phone}: could not retrieve pushname`);
+
+    for (const delay of [3000, 5000]) {
+        await new Promise(r => setTimeout(r, delay));
+        result = await zapiRequest(`contacts/${phone}`);
+        if (result.ok && result.data) {
+            const d = result.data;
+            console.log(`👤 ContactName RETRY (${delay}ms) for ${phone}: notify="${d.notify || ''}", name="${d.name || ''}", short="${d.short || ''}", vname="${d.vname || ''}", about="${d.about || ''}"`);
+            const name = _cacheContactName(phone, result.data);
+            if (name) {
+                console.log(`👤 ContactName FOUND for ${phone}: "${name}"`);
+                return name;
+            }
+        }
+    }
+
+    console.log(`👤 ContactName: pushname unavailable for ${phone}`);
     return null;
 }
 
