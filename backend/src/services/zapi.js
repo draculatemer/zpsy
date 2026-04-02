@@ -112,13 +112,22 @@ function _cacheContactName(phone, data) {
 async function zapiContactName(phone) {
     const cached = nameCache.get(phone);
     if (cached && Date.now() < cached.expiresAt) {
+        console.log(`👤 ContactName CACHE HIT for ${phone}: "${cached.name}"`);
         return cached.name;
     }
 
+    console.log(`👤 ContactName: fetching contacts/${phone} from Z-API...`);
     const result = await zapiRequest(`contacts/${phone}`);
+    console.log(`👤 ContactName RAW response for ${phone}: ok=${result.ok}, data=${JSON.stringify(result.data)}`);
+
     if (result.ok && result.data) {
-        return _cacheContactName(phone, result.data);
+        const d = result.data;
+        console.log(`👤 ContactName FIELDS for ${phone}: notify="${d.notify || ''}", name="${d.name || ''}", short="${d.short || ''}", vname="${d.vname || ''}", about="${d.about || ''}"`);
+        const name = _cacheContactName(phone, result.data);
+        console.log(`👤 ContactName FINAL for ${phone}: "${name || 'NULL'}"`);
+        return name;
     }
+    console.log(`👤 ContactName FAILED for ${phone}: Z-API returned ok=${result.ok}`);
     return null;
 }
 

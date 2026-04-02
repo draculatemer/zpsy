@@ -148,8 +148,8 @@ const EmailCapture = {
         modal.setAttribute('aria-labelledby', 'captureModalTitle');
         modal.innerHTML = `
             <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px);">
-                <div style="background: linear-gradient(135deg, #1F2C33, #111B21); border-radius: 20px; padding: 28px 24px; max-width: 380px; width: 100%; text-align: center; border: 2px solid rgba(37, 211, 102, 0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #25D366, #128C7E); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <div style="background: linear-gradient(135deg, #1F2C33, #111B21); border-radius: 20px; padding: 28px 24px; max-width: 380px; width: 100%; text-align: center; border: 2px solid rgba(233, 30, 99, 0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #e91e63, #c2185b); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
                         </svg>
@@ -157,7 +157,7 @@ const EmailCapture = {
                     
                     <h3 id="captureModalTitle" style="color: #E9EDEF; font-size: 22px; font-weight: 700; margin-bottom: 12px;">¿Dónde enviamos tu informe?</h3>
                     <p style="color: #8696A0; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
-                        Después de la compra, enviaremos el <strong style="color: #25D366;">informe completo de espionaje</strong> con todos los mensajes recuperados, fotos y ubicaciones a tu email y WhatsApp.
+                        Después de la compra, enviaremos el <strong style="color: #e91e63;">informe completo de espionaje</strong> con todos los mensajes recuperados, fotos y ubicaciones a tu email y WhatsApp.
                     </p>
                     
                     <form id="captureForm" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
@@ -208,7 +208,7 @@ const EmailCapture = {
                                     aria-label="Tu número de WhatsApp"
                                     style="width: 100%; padding: 16px 16px 16px 44px; background: #111B21; border: 2px solid #2a3942; border-radius: 12px; color: #E9EDEF; font-size: 16px; outline: none; transition: border-color 0.3s; box-sizing: border-box;"
                                 >
-                                <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #25D366;" viewBox="0 0 24 24" fill="currentColor">
+                                <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #e91e63;" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                                 </svg>
                             </div>
@@ -216,14 +216,14 @@ const EmailCapture = {
                         
                         <button 
                             type="submit" 
-                            style="width: 100%; padding: 18px; background: linear-gradient(135deg, #25D366, #128C7E); border: none; border-radius: 12px; color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);"
+                            style="width: 100%; padding: 18px; background: linear-gradient(135deg, #e91e63, #c2185b); border: none; border-radius: 12px; color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3);"
                         >
                             Continuar al Pago Seguro →
                         </button>
                     </form>
                     
                     <p style="font-size: 11px; color: #667781; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e91e63" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
@@ -323,7 +323,7 @@ const EmailCapture = {
             const input = document.getElementById(id);
             if (input) {
                 input.addEventListener('focus', () => {
-                    input.style.borderColor = '#25D366';
+                    input.style.borderColor = '#e91e63';
                 });
                 input.addEventListener('blur', () => {
                     input.style.borderColor = '#2a3942';

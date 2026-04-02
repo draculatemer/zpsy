@@ -93,7 +93,7 @@ const MatrixEffect = {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Draw characters
-        this.ctx.fillStyle = '#25d366';
+        this.ctx.fillStyle = '#e91e63';
         this.ctx.font = this.fontSize + 'px monospace';
 
         for (let i = 0; i < this.drops.length; i++) {

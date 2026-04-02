@@ -1,8 +1,8 @@
 /* Whats Spy - Remarketing Pages Shared Styles */
 
 :root {
-    --green-primary: #25D366;
-    --green-dark: #128C7E;
+    --green-primary: #e91e63;
+    --green-dark: #c2185b;
     --green-light: #34eb7a;
     --bg-dark: #000000;
     --bg-primary: #0a0a0a;
@@ -76,8 +76,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 .rmk-alert-banner.success {
-    background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(18, 140, 126, 0.1));
-    border-color: rgba(37, 211, 102, 0.3);
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.15), rgba(18, 140, 126, 0.1));
+    border-color: rgba(233, 30, 99, 0.3);
 }
 
 .rmk-alert-dot {
@@ -126,7 +126,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .rmk-card-icon.red { background: rgba(255, 59, 48, 0.15); color: var(--red-alert); }
-.rmk-card-icon.green { background: rgba(37, 211, 102, 0.15); color: var(--green-primary); }
+.rmk-card-icon.green { background: rgba(233, 30, 99, 0.15); color: var(--green-primary); }
 .rmk-card-icon.orange { background: rgba(255, 149, 0, 0.15); color: var(--orange-alert); }
 .rmk-card-icon.blue { background: rgba(52, 183, 241, 0.15); color: var(--blue-check); }
 
@@ -154,7 +154,7 @@ a { text-decoration: none; color: inherit; }
 /* ========== Target Info ========== */
 .rmk-target-card {
     background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-    border: 1px solid rgba(37, 211, 102, 0.2);
+    border: 1px solid rgba(233, 30, 99, 0.2);
     border-radius: 16px;
     padding: 16px;
     display: flex;
@@ -331,12 +331,12 @@ a { text-decoration: none; color: inherit; }
 .rmk-cta.primary {
     background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
     color: #fff;
-    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3);
 }
 
 .rmk-cta.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 28px rgba(37, 211, 102, 0.4);
+    box-shadow: 0 6px 28px rgba(233, 30, 99, 0.4);
 }
 
 .rmk-cta.danger {
@@ -530,8 +530,8 @@ a { text-decoration: none; color: inherit; }
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(37, 211, 102, 0.05);
-    border: 1px solid rgba(37, 211, 102, 0.15);
+    background: rgba(233, 30, 99, 0.05);
+    border: 1px solid rgba(233, 30, 99, 0.15);
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 16px;
@@ -760,7 +760,7 @@ a { text-decoration: none; color: inherit; }
     background: rgba(17, 27, 33, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(37, 211, 102, 0.2);
+    border: 1px solid rgba(233, 30, 99, 0.2);
     border-radius: 12px;
     padding: 10px 14px;
     display: flex;
@@ -775,7 +775,7 @@ a { text-decoration: none; color: inherit; }
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(37, 211, 102, 0.15);
+    background: rgba(233, 30, 99, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -869,8 +869,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 .rmk-compare-col.highlight {
-    border-color: rgba(37, 211, 102, 0.4);
-    background: linear-gradient(145deg, rgba(37, 211, 102, 0.08), var(--bg-secondary));
+    border-color: rgba(233, 30, 99, 0.4);
+    background: linear-gradient(145deg, rgba(233, 30, 99, 0.08), var(--bg-secondary));
     position: relative;
 }
 
@@ -938,7 +938,7 @@ a { text-decoration: none; color: inherit; }
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(37, 211, 102, 0.1);
+    background: rgba(233, 30, 99, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1026,8 +1026,8 @@ a { text-decoration: none; color: inherit; }
 }
 
 @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(37, 211, 102, 0.2); }
-    50% { box-shadow: 0 0 40px rgba(37, 211, 102, 0.4); }
+    0%, 100% { box-shadow: 0 0 20px rgba(233, 30, 99, 0.2); }
+    50% { box-shadow: 0 0 40px rgba(233, 30, 99, 0.4); }
 }
 
 @keyframes countdownPulse {

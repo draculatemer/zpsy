@@ -2,6 +2,7 @@
     'use strict';
 
     var DEST = (window.location.pathname.indexOf('/quiz/') !== -1) ? '../bridge.html' : 'bridge.html';
+    var _fromPhone = (window.location.search.indexOf('from_phone=true') !== -1);
     var TOTAL = 8;
     var ANALYSIS_MS = 10000;
 
@@ -18,36 +19,36 @@
     ];
 
     var SIGNAL_MAP = {
-        2: { a: 'Protection extrême du téléphone — comportement typique de quelqu\'un qui cache des conversations', b: 'Téléphone toujours en silencieux — schéma de dissimulation des notifications' },
-        3: { a: 'Activité suspecte sur les réseaux sociaux — profils cachés ou conversations supprimées', b: 'Temps excessif sur les réseaux sociaux sans transparence' },
-        4: { a: 'Changement radical de routine — nouvelles excuses inexplicables', b: 'Petites incohérences dans la routine — emplois du temps et histoires qui ne collent pas' },
-        5: { a: 'Froideur émotionnelle et distance dans l\'intimité', b: 'Oscillation émotionnelle — schéma de culpabilité et de compensation' },
-        6: { a: 'Gentillesse excessive sans raison — comportement classique de compensation de culpabilité', b: 'Moments isolés de culpabilité apparente' },
-        7: { a: 'Provocation de conflits pour justifier la distance', b: 'Irritabilité et impatience accrues sans raison' },
-        8: { a: 'Forte intuition que quelque chose est caché', b: 'Doute persistant et insécurité constante' }
+        2: { a: 'Motif légitime : soupçon fondé nécessitant une investigation', b: 'Doutes initiaux nécessitant un éclaircissement' },
+        3: { a: 'Préparation émotionnelle confirmée pour recevoir des informations sensibles', b: 'Préparation partielle — suivi recommandé' },
+        4: { a: 'Exposition prolongée au stress émotionnel — cas prioritaire', b: 'Impact récent mais croissant sur la santé mentale' },
+        5: { a: 'Engagement total de confidentialité et d\'utilisation responsable confirmé', b: 'Engagement partiel de confidentialité' },
+        6: { a: 'Méthodes alternatives épuisées — nécessité prouvée', b: 'Hésitation à agir par peur de la confrontation' },
+        7: { a: 'Profil de réaction responsable et contrôlée', b: 'Intention de chercher la vérité avant d\'agir' },
+        8: { a: 'Acceptation complète des conditions et responsabilités', b: 'Acceptation avec réserves — profil prudent' }
     };
 
     var LEVELS = {
         high: {
-            label: 'RISQUE ÉLEVÉ',
-            color: '#ef4444',
-            headline: 'Votre relation présente de multiples signes critiques d\'infidélité.',
-            diag: 'Vos réponses révèlent un <strong>schéma cohérent et alarmant</strong>. Les signes que vous avez décrits apparaissent ensemble dans <strong>87% des cas confirmés d\'infidélité</strong>. Ce n\'est pas de l\'anxiété. Ce n\'est pas de l\'insécurité. C\'est votre instinct qui reconnaît un schéma réel — et il ne se trompe presque jamais.',
-            stat: '87%'
+            label: 'ACCÈS IMMÉDIAT APPROUVÉ',
+            color: '#22c55e',
+            headline: 'Vérification terminée. Vous avez été approuvé(e) pour un accès immédiat.',
+            diag: 'Vos réponses démontrent un <strong>besoin réel et une maturité émotionnelle</strong> pour utiliser cet outil. Votre profil remplit tous les critères de sécurité. <strong>Accès accordé sans restrictions</strong> — profitez-en tant que votre place est réservée.',
+            stat: '97%'
         },
         moderate: {
-            label: 'RISQUE MODÉRÉ',
+            label: 'ACCÈS APPROUVÉ',
             color: '#f59e0b',
-            headline: 'Il y a des signes préoccupants que vous ne pouvez pas ignorer.',
-            diag: 'Votre profil révèle des <strong>signes modérés mais significatifs</strong>. Dans 64% des cas avec ce profil, le soupçon a été confirmé par la suite. La différence entre ceux qui ont découvert à temps et ceux qui ont découvert trop tard tenait à <strong>une seule décision : agir maintenant ou attendre</strong>.',
-            stat: '64%'
+            headline: 'Vérification terminée. Votre accès a été accordé.',
+            diag: 'Votre profil remplit les <strong>critères minimaux de sécurité</strong>. Bien que certaines réponses indiquent une hésitation, nous avons identifié un besoin réel. <strong>Votre accès a été approuvé</strong> — mais il est limité et peut expirer à tout moment.',
+            stat: '83%'
         },
         low: {
-            label: 'ATTENTION',
-            color: '#22c55e',
-            headline: 'Peu de signes détectés — mais quelque chose vous a amené(e) ici.',
-            diag: 'Les indicateurs sont faibles, mais le fait que vous soyez arrivé(e) jusqu\'ici révèle un <strong>doute qui ne disparaîtra pas tout seul</strong>. Dans 38% des cas avec ce profil, quelque chose était caché. La seule façon d\'avoir la paix est de <strong>savoir avec certitude</strong>.',
-            stat: '38%'
+            label: 'ACCÈS CONDITIONNEL',
+            color: '#f59e0b',
+            headline: 'Vérification terminée. Accès accordé avec restrictions.',
+            diag: 'Bien que vos réponses indiquent une urgence moindre, le fait que vous soyez arrivé(e) jusqu\'ici démontre un <strong>besoin qui ne peut être ignoré</strong>. Votre accès a été accordé sous conditions — <strong>agissez maintenant avant qu\'il n\'expire</strong>.',
+            stat: '64%'
         }
     };
 
@@ -59,9 +60,23 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        personalizeGreeting();
         typewriteHook();
         bindAll();
     });
+
+    function personalizeGreeting() {
+        var el = document.getElementById('hookGreeting');
+        if (!el) return;
+        var name = '';
+        try { name = localStorage.getItem('userName') || ''; } catch(e) {}
+        if (name) {
+            var first = name.trim().split(' ')[0];
+            first = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+            el.innerHTML = '<span>' + first + '</span>, nous devons vérifier votre accès.';
+            el.style.display = '';
+        }
+    }
 
     function typewriteHook() {
         var el = document.getElementById('hookTitle');
@@ -114,7 +129,17 @@
 
     function bindAll() {
         document.getElementById('btnStart').addEventListener('click', function() {
-            goToScene(1);
+            var startScene = 1;
+            if (_fromPhone) {
+                var gp = new URLSearchParams(window.location.search).get('gender');
+                if (gp) {
+                    state.gender = gp;
+                    state.answers[1] = { value: gp, points: 0 };
+                    localStorage.setItem('targetGender', gp);
+                    startScene = 2;
+                }
+            }
+            goToScene(startScene);
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.trackEvent('QuizStarted', { content_name: 'Quiz' });
             } else if (typeof fbq === 'function') {
@@ -256,7 +281,8 @@
         document.getElementById('resLevel').textContent = level.label;
         document.getElementById('resLevel').style.color = c;
         document.getElementById('resHeadline').textContent = level.headline;
-        document.getElementById('resStat').textContent = level.stat;
+        var resStatEl = document.getElementById('resStat');
+        if (resStatEl) resStatEl.textContent = level.stat;
         document.getElementById('resNumber').style.color = c;
         document.querySelector('.res-pct').style.color = c;
 
@@ -308,12 +334,19 @@
             }
         } catch(e) { console.error('URL build error:', e); }
 
+        if (_fromPhone) {
+            var gp = state.gender || localStorage.getItem('targetGender') || '';
+            url = '../phone.html?resume=true' + (gp ? '&gender=' + gp : '');
+        }
+
         goToScene('result');
 
         var ctaF = document.getElementById('ctaFinal');
         var ctaS = document.getElementById('ctaSecondary');
         if (ctaF) { ctaF.href = url; ctaF.onclick = function() { window.location.href = url; }; }
         if (ctaS) { ctaS.href = url; ctaS.onclick = function() { window.location.href = url; }; }
+
+        startAccessCountdown();
 
         setTimeout(function() {
             arc.style.strokeDashoffset = offset;
@@ -333,6 +366,43 @@
         } else if (typeof fbq === 'function') {
             fbq('trackCustom', 'QuizCompleted', quizData);
         }
+    }
+
+    function startAccessCountdown() {
+        var COUNTDOWN_KEY = 'accessExpiresAt';
+        var SLOTS_KEY = 'accessSlots';
+        var DURATION = 15 * 60 * 1000;
+
+        var expiresAt = localStorage.getItem(COUNTDOWN_KEY);
+        if (!expiresAt) {
+            expiresAt = Date.now() + DURATION;
+            localStorage.setItem(COUNTDOWN_KEY, expiresAt);
+            localStorage.setItem(SLOTS_KEY, Math.floor(Math.random() * 3) + 2);
+        }
+        expiresAt = parseInt(expiresAt);
+
+        var box = document.getElementById('resCountdownBox');
+        var timerEl = document.getElementById('countdownTimer');
+        var slotsEl = document.getElementById('countdownSlots');
+        if (!box || !timerEl) return;
+
+        var slots = parseInt(localStorage.getItem(SLOTS_KEY)) || 3;
+        if (slotsEl) slotsEl.textContent = slots;
+
+        box.style.display = '';
+
+        function tick() {
+            var remaining = Math.max(0, expiresAt - Date.now());
+            var mins = Math.floor(remaining / 60000);
+            var secs = Math.floor((remaining % 60000) / 1000);
+            timerEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+            if (mins < 5) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+
+            if (remaining > 0) setTimeout(tick, 1000);
+        }
+        tick();
     }
 
     function countUp(id, from, to, duration) {

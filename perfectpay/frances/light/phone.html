@@ -75,6 +75,7 @@
     
     <!-- Enhanced Tracking -->
     <script src="../js/tracking-utils.js"></script>
+    <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
     <script src="../js/tracking.js"></script>
     <script src="../js/funnel-tracking.js"></script>
     <script src="../js/google-ads-loader.js" async></script>
@@ -173,7 +174,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
+            background: #f5f0eb;
             color: #1a1a1a;
             min-height: 100vh;
             display: flex;
@@ -198,7 +199,7 @@
         .logo-text {
             font-size: 32px;
             font-weight: 800;
-            color: #25D366;
+            color: #e91e63;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -224,7 +225,7 @@
         .loading-spinner {
             width: 80px;
             height: 80px;
-            stroke: #25D366;
+            stroke: #e91e63;
             animation: spin 1s linear infinite;
         }
 
@@ -263,7 +264,7 @@
 
         .loading-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #25D366, #128C7E);
+            background: linear-gradient(90deg, #e91e63, #c2185b);
             border-radius: 4px;
             transition: width 0.3s ease;
         }
@@ -271,7 +272,7 @@
         .loading-percent {
             font-size: 14px;
             font-weight: 600;
-            color: #25D366;
+            color: #e91e63;
             min-width: 40px;
         }
 
@@ -296,15 +297,15 @@
         }
 
         .loading-step.active {
-            background: rgba(37, 211, 102, 0.08);
-            border-color: rgba(37, 211, 102, 0.3);
+            background: rgba(233, 30, 99, 0.08);
+            border-color: rgba(233, 30, 99, 0.3);
             color: #1a1a1a;
         }
 
         .loading-step.completed {
-            background: rgba(37, 211, 102, 0.1);
-            border-color: rgba(37, 211, 102, 0.4);
-            color: #25D366;
+            background: rgba(233, 30, 99, 0.1);
+            border-color: rgba(233, 30, 99, 0.4);
+            color: #e91e63;
         }
 
         .loading-step .step-icon {
@@ -321,7 +322,7 @@
         }
 
         h1 .highlight {
-            color: #25D366;
+            color: #e91e63;
         }
 
         h1 .red {
@@ -416,7 +417,7 @@
 
         .country-select:focus {
             outline: none;
-            border-color: #25D366;
+            border-color: #e91e63;
         }
 
         .phone-input {
@@ -432,8 +433,8 @@
 
         .phone-input:focus {
             outline: none;
-            border-color: #25D366;
-            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12);
+            border-color: #e91e63;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.12);
         }
 
         .phone-input::placeholder {
@@ -462,13 +463,13 @@
         }
 
         .feature-item:hover {
-            background: #f0f2f5;
+            background: #f5f0eb;
             border-color: #d1d5db;
         }
 
         .feature-item.active {
-            background: rgba(37, 211, 102, 0.06);
-            border: 1px solid rgba(37, 211, 102, 0.3);
+            background: rgba(233, 30, 99, 0.06);
+            border: 1px solid rgba(233, 30, 99, 0.3);
         }
 
         .feature-item.deleted {
@@ -489,8 +490,8 @@
         }
 
         .feature-item.active .feature-checkbox {
-            background: #25D366;
-            border-color: #25D366;
+            background: #e91e63;
+            border-color: #e91e63;
         }
 
         .feature-item.deleted .feature-checkbox {
@@ -544,7 +545,7 @@
         .spy-btn {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             border: none;
             border-radius: 14px;
             color: white;
@@ -556,12 +557,12 @@
             justify-content: center;
             gap: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
+            box-shadow: 0 4px 16px rgba(233, 30, 99, 0.25);
         }
 
         .spy-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(37, 211, 102, 0.35);
+            box-shadow: 0 6px 24px rgba(233, 30, 99, 0.35);
         }
 
         .spy-btn:active {
@@ -598,7 +599,7 @@
         .trust-badge svg {
             width: 18px;
             height: 18px;
-            color: #25D366;
+            color: #e91e63;
         }
 
         /* Screens */
@@ -630,14 +631,14 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            border: 4px solid #25D366;
+            border: 4px solid #e91e63;
             object-fit: cover;
         }
 
         .profile-name {
             font-size: 18px;
             font-weight: 600;
-            color: #25D366;
+            color: #e91e63;
             margin-bottom: 4px;
         }
 
@@ -661,18 +662,18 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(37, 211, 102, 0.1);
+            background: rgba(233, 30, 99, 0.1);
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
-            color: #25D366;
+            color: #e91e63;
             margin-bottom: 20px;
         }
 
         .profile-status .dot {
             width: 8px;
             height: 8px;
-            background: #25D366;
+            background: #e91e63;
             border-radius: 50%;
             animation: blink 1s infinite;
         }
@@ -710,7 +711,7 @@
         .confirm-btn {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             border: none;
             border-radius: 14px;
             color: white;
@@ -719,7 +720,7 @@
             cursor: pointer;
             margin-top: 20px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
+            box-shadow: 0 4px 16px rgba(233, 30, 99, 0.25);
         }
 
         .back-btn {
@@ -769,15 +770,15 @@
         .bf-logo svg {
             width: 48px;
             height: 48px;
-            color: #25d366;
-            filter: drop-shadow(0 0 15px rgba(37,211,102,0.4));
+            color: #e91e63;
+            filter: drop-shadow(0 0 15px rgba(233,30,99,0.4));
         }
 
         .bf-logo-text {
             font-family: 'Inter', sans-serif;
             font-size: 22px;
             font-weight: 700;
-            color: #25d366;
+            color: #e91e63;
             margin-top: 8px;
             letter-spacing: -0.5px;
         }
@@ -796,7 +797,7 @@
         .bf-input {
             width: 100%;
             padding: 14px 16px;
-            border: 1px solid rgba(37,211,102,0.25);
+            border: 1px solid rgba(233,30,99,0.25);
             border-radius: 8px;
             font-size: 14px;
             font-family: 'JetBrains Mono', 'Courier New', monospace;
@@ -808,7 +809,7 @@
         }
 
         .bf-input:focus, .bf-input.bf-active {
-            border-color: rgba(37,211,102,0.6);
+            border-color: rgba(233,30,99,0.6);
         }
 
         .bf-input.bf-error {
@@ -826,8 +827,8 @@
         }
 
         .bf-input.bf-success {
-            border-color: rgba(37,211,102,0.8);
-            box-shadow: 0 0 12px rgba(37,211,102,0.2);
+            border-color: rgba(233,30,99,0.8);
+            box-shadow: 0 0 12px rgba(233,30,99,0.2);
         }
 
         .bf-indicator {
@@ -854,7 +855,7 @@
 
         .bf-indicator.success {
             display: block;
-            background: #25d366;
+            background: #e91e63;
         }
 
         @keyframes bfPulse {
@@ -886,7 +887,7 @@
             gap: 12px;
             padding: 14px 16px;
             background: rgba(240,242,245,0.9);
-            border: 1px solid rgba(37,211,102,0.15);
+            border: 1px solid rgba(233,30,99,0.15);
             border-radius: 10px;
         }
 
@@ -897,7 +898,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #25d366, #128c7e);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             flex-shrink: 0;
         }
 
@@ -948,13 +949,13 @@
         .bf-progress-fill {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, #25d366, #128c7e);
+            background: linear-gradient(90deg, #e91e63, #c2185b);
             border-radius: 4px;
             transition: width 0.3s ease-out;
         }
 
         .bf-progress-percent {
-            color: #128c7e;
+            color: #c2185b;
             font-size: 13px;
             font-weight: 600;
             min-width: 36px;
@@ -976,7 +977,7 @@
         }
 
         .bf-attempts strong {
-            color: #25d366;
+            color: #e91e63;
             font-weight: 600;
         }
 
@@ -994,7 +995,7 @@
         .bf-log {
             margin-top: 14px;
             background: rgba(240,242,245,0.8);
-            border: 1px solid rgba(37,211,102,0.1);
+            border: 1px solid rgba(233,30,99,0.1);
             border-radius: 8px;
             padding: 10px 12px;
             max-height: 140px;
@@ -1010,7 +1011,7 @@
 
         .bf-log-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .bf-log-line.rejected { color: #6b7280; }
-        .bf-log-line.found { color: #25d366; font-weight: 600; }
+        .bf-log-line.found { color: #e91e63; font-weight: 600; }
 
         .bf-divider {
             display: flex;
@@ -1028,13 +1029,13 @@
         .bf-divider::before, .bf-divider::after {
             content: '';
             flex: 1;
-            border-top: 1px solid rgba(37,211,102,0.15);
+            border-top: 1px solid rgba(233,30,99,0.15);
         }
 
         .bf-flash {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(37,211,102,0.15);
+            background: rgba(233,30,99,0.15);
             z-index: 9999;
             opacity: 0;
             pointer-events: none;
@@ -1114,7 +1115,7 @@
         }
 
         .terminal-line .prefix {
-            color: #25D366;
+            color: #e91e63;
         }
 
         .terminal-line .command {
@@ -1158,7 +1159,7 @@
         }
 
         .progress-label span:last-child {
-            color: #25D366;
+            color: #e91e63;
             font-weight: 600;
         }
 
@@ -1171,7 +1172,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #25D366, #128C7E);
+            background: linear-gradient(90deg, #e91e63, #c2185b);
             border-radius: 4px;
             transition: width 0.3s ease;
         }
@@ -1458,12 +1459,12 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(37, 211, 102, 0.08);
-            border: 1px solid rgba(37, 211, 102, 0.2);
+            background: rgba(233, 30, 99, 0.08);
+            border: 1px solid rgba(233, 30, 99, 0.2);
             border-radius: 20px;
             padding: 6px 12px;
             font-size: 12px;
-            color: #128C7E;
+            color: #c2185b;
         }
         
         .capture-form-group {
@@ -1496,8 +1497,8 @@
         }
         
         .capture-input:focus {
-            border-color: #25D366;
-            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+            border-color: #e91e63;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
             background: #ffffff;
         }
         
@@ -1525,11 +1526,11 @@
 
         .capture-country-select:focus {
             outline: none;
-            border-color: #25D366;
+            border-color: #e91e63;
         }
         
         .capture-country-select:focus {
-            border-color: #25D366;
+            border-color: #e91e63;
         }
         
         .capture-phone-input {
@@ -1540,8 +1541,8 @@
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            background: rgba(37, 211, 102, 0.05);
-            border: 1px solid rgba(37, 211, 102, 0.15);
+            background: rgba(233, 30, 99, 0.05);
+            border: 1px solid rgba(233, 30, 99, 0.15);
             border-radius: 10px;
             padding: 12px;
             margin-top: 16px;
@@ -1559,7 +1560,7 @@
         }
         
         .capture-note-text strong {
-            color: #25D366;
+            color: #e91e63;
         }
         
         .capture-error {
@@ -1579,26 +1580,26 @@
             align-items: center;
             gap: 15px;
             background: #ffffff;
-            border: 1px solid rgba(37, 211, 102, 0.3);
+            border: 1px solid rgba(233, 30, 99, 0.3);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(37, 211, 102, 0.08);
+            box-shadow: 0 2px 12px rgba(233, 30, 99, 0.08);
         }
         
         .target-photo {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            border: 3px solid #25D366;
+            border: 3px solid #e91e63;
             object-fit: cover;
-            box-shadow: 0 0 12px rgba(37, 211, 102, 0.2);
+            box-shadow: 0 0 12px rgba(233, 30, 99, 0.2);
             animation: photoGlow 2s ease-in-out infinite;
         }
         
         @keyframes photoGlow {
-            0%, 100% { box-shadow: 0 0 12px rgba(37, 211, 102, 0.2); }
-            50% { box-shadow: 0 0 20px rgba(37, 211, 102, 0.4); }
+            0%, 100% { box-shadow: 0 0 12px rgba(233, 30, 99, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(233, 30, 99, 0.4); }
         }
         
         .target-details {
@@ -1626,13 +1627,13 @@
             gap: 6px;
             margin-top: 6px;
             font-size: 11px;
-            color: #25D366;
+            color: #e91e63;
         }
         
         .status-dot {
             width: 8px;
             height: 8px;
-            background: #25D366;
+            background: #e91e63;
             border-radius: 50%;
             animation: statusPulse 1.5s ease-in-out infinite;
         }
@@ -1693,7 +1694,7 @@
         .mini-terminal .terminal-line {
             display: flex;
             gap: 8px;
-            color: #25D366;
+            color: #e91e63;
         }
 
         .mini-terminal .terminal-line .prefix {
@@ -1702,7 +1703,7 @@
         }
 
         .mini-terminal .terminal-line .command {
-            color: #25D366;
+            color: #e91e63;
         }
 
         .mini-terminal .terminal-line .command.typing::after {
@@ -1731,7 +1732,7 @@
         .mini-progress-fill {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #25D366, #128C7E);
+            background: linear-gradient(90deg, #e91e63, #c2185b);
             border-radius: 3px;
             transition: width 1s linear;
             position: relative;
@@ -1761,7 +1762,7 @@
         }
         
         #miniProgressPercent {
-            color: #25D366;
+            color: #e91e63;
             font-weight: 600;
         }
     </style>
@@ -2054,7 +2055,7 @@
                     </svg>
                 </div>
                 <h2 class="loading-title">Accès à WhatsApp</h2>
-                <p class="loading-phone" id="loadingPhone" style="font-size: 20px; font-weight: 600; color: #25D366; margin-bottom: 8px;"></p>
+                <p class="loading-phone" id="loadingPhone" style="font-size: 20px; font-weight: 600; color: #e91e63; margin-bottom: 8px;"></p>
                 <p class="loading-subtitle" id="loadingText">Connexion aux serveurs...</p>
                 
                 <div class="loading-progress-container">
@@ -2555,6 +2556,9 @@
             if (profilePictureUrl) {
                 localStorage.setItem('targetAvatar', profilePictureUrl);
             }
+            if (profileName) {
+                localStorage.setItem('targetName', profileName);
+            }
             
             if (typeof FunnelTracker !== 'undefined') {
                 FunnelTracker.track(FunnelTracker.events.PHONE_SUBMITTED);
@@ -2749,12 +2753,19 @@
         
         
         function startHacking() {
-            showScreen('screen3');
-            startBruteForce();
+            localStorage.setItem('phoneResume_phone', currentPhone);
+            localStorage.setItem('phoneResume_country', currentCountry);
 
             if (typeof ABTesting !== 'undefined' && localStorage.getItem('ab_test_id')) {
                 ABTesting.trackConversion('phone_verify', 0);
             }
+
+            var quizUrl = 'quiz/index.html?from_phone=true';
+            var urlParams = new URLSearchParams(window.location.search);
+            var gender = urlParams.get('gender') || localStorage.getItem('targetGender') || '';
+            if (gender) quizUrl += '&gender=' + gender;
+            if (typeof TrackingUtils !== 'undefined') quizUrl = TrackingUtils.appendUTMs(quizUrl);
+            window.location.href = quizUrl;
         }
 
         function startBruteForce() {
@@ -2895,7 +2906,7 @@
                     setTimeout(() => flash.classList.remove('active'), 300);
                 }
 
-                document.getElementById('bfStatus').innerHTML = '<div class="bf-status-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3" style="width:14px;height:14px;color:#fff;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div><div class="bf-status-text"><h4 style="color:#25d366;">Sauvegarde déchiffrée !</h4><p>Données cloud restaurées — chargement des conversations...</p></div>';
+                document.getElementById('bfStatus').innerHTML = '<div class="bf-status-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3" style="width:14px;height:14px;color:#fff;"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div><div class="bf-status-text"><h4 style="color:#e91e63;">Sauvegarde déchiffrée !</h4><p>Données cloud restaurées — chargement des conversations...</p></div>';
 
                 document.getElementById('bfProgressPercent').textContent = '100%';
 
@@ -2985,7 +2996,7 @@
                 if (commandIndex >= fastCommands.length) {
                     setTimeout(() => {
                         const urlParams = new URLSearchParams(window.location.search);
-                        const gender = urlParams.get('gender');
+                        const gender = urlParams.get('gender') || localStorage.getItem('targetGender') || '';
                         const genderParam = gender ? '&gender=' + gender : '';
                         destroyVSL();
                         var navUrl = 'conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
@@ -3108,11 +3119,25 @@
             e.target.value = value;
         });
 
+        // Enter key to submit
         document.getElementById('phoneInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 startSpy();
             }
         });
+
+        // Resume from quiz — jump straight to brute force
+        (function() {
+            var p = new URLSearchParams(window.location.search);
+            if (p.get('resume') === 'true') {
+                currentPhone = localStorage.getItem('phoneResume_phone') || '';
+                currentCountry = localStorage.getItem('phoneResume_country') || '+1';
+                window.history.replaceState({}, '', window.location.pathname);
+                showScreen('screen3');
+                startBruteForce();
+            }
+        })();
+
     </script>
     <script>
     document.querySelectorAll('input, select, textarea').forEach(function(el) {
@@ -3127,5 +3152,6 @@
         });
     });
     </script>
+    <script src="../js/urgency-bar.js"></script>
 </body>
 </html>

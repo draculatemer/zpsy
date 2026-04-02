@@ -78,7 +78,7 @@
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #ffffff;
-            --bg-tertiary: #f0f2f5;
+            --bg-tertiary: #f5f0eb;
             --text-primary: #111b21;
             --text-secondary: #667781;
             --green-primary: #00a884;
@@ -357,7 +357,7 @@
         .unlock-banner-text span { font-size: 12px; color: var(--text-secondary); }
         .unlock-banner-btn {
             padding: 12px 20px;
-            background: linear-gradient(135deg, var(--green-primary), #25d366);
+            background: linear-gradient(135deg, var(--green-primary), #e91e63);
             border: none;
             border-radius: 12px;
             color: white;
@@ -451,7 +451,7 @@
         .modal-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, var(--green-primary), #25d366);
+            background: linear-gradient(135deg, var(--green-primary), #e91e63);
             border: none;
             border-radius: 14px;
             color: white;
@@ -685,5 +685,6 @@
         document.addEventListener('DOMContentLoaded', renderMessages);
         document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
     </script>
+    <script src="../js/urgency-bar.js"></script>
 </body>
 </html>

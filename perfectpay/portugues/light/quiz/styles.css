@@ -6,7 +6,7 @@
 
 :root {
     --black: #ffffff;
-    --bg: #fafafa;
+    --bg: #f5f0eb;
     --surface: #ffffff;
     --surface-2: #f5f5f5;
     --surface-3: #eeeeee;
@@ -18,10 +18,10 @@
     --white-08: rgba(0,0,0,0.07);
     --white-04: rgba(0,0,0,0.03);
 
-    --green: #128C7E;
-    --green-dim: #0d6e4f;
-    --green-10: rgba(18,140,126,0.08);
-    --green-20: rgba(18,140,126,0.15);
+    --green: #e91e63;
+    --green-dim: #c2185b;
+    --green-10: rgba(233,30,99,0.08);
+    --green-20: rgba(233,30,99,0.15);
 
     --red: #dc2626;
     --red-bg: rgba(220,38,38,0.06);
@@ -212,6 +212,32 @@ body {
     animation: fadeUp 0.6s var(--ease) 0.6s both;
 }
 
+.hook-greeting {
+    font-size: clamp(22px, 6vw, 30px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s var(--ease) 0.3s both;
+}
+
+.hook-greeting span {
+    background: linear-gradient(135deg, var(--green), #6ee7b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hook-warning {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444;
+    border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 28px;
+    font-size: 12.5px; line-height: 1.6; color: var(--white-60);
+    animation: fadeUp 0.6s var(--ease) 0.7s both; text-align: left;
+}
+.hook-warning strong { color: #f87171; }
+.hook-warning-icon { flex-shrink: 0; width: 20px; height: 20px; color: #ef4444; margin-top: 2px; }
+
 .btn-main {
     display: flex; align-items: center; justify-content: center; gap: 12px;
     width: 100%; max-width: 360px; padding: 20px 32px;
@@ -328,7 +354,7 @@ body {
 .opt-main { font-size: 15px; font-weight: 600; display: block; }
 .opt-sub { font-size: 12px; color: var(--white-45); display: block; margin-top: 2px; line-height: 1.4; }
 
-.opt-left { display: flex; gap: 14px; flex: 1; align-items: flex-start; padding-right: 80px; }
+.opt-left { display: flex; gap: 14px; flex: 1; align-items: flex-start; min-width: 0; }
 
 .opt-emoji-sm {
     font-size: 22px; width: 40px; height: 40px;
@@ -340,9 +366,16 @@ body {
 .opt-left .opt-sub { font-size: 13px; color: var(--white-45); line-height: 1.5; margin-top: 4px; }
 
 .opt-tag {
-    position: absolute; bottom: 10px; right: 12px;
-    font-size: 9px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.8px; padding: 3px 8px; border-radius: 4px;
+    flex-shrink: 0;
+    align-self: center;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-left: auto;
 }
 
 .opt-tag--red    { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
@@ -580,9 +613,64 @@ body {
 @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); } 50% { box-shadow: 0 0 0 6px rgba(220,38,38,0); } }
 .res-urgency strong { color: var(--red); }
 
+/* Countdown box */
+.res-countdown-box {
+    background: var(--surface);
+    border: 1px solid var(--green-20);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+    animation: fadeUp 0.6s var(--ease) both;
+}
+
+.countdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--white-45);
+    margin-bottom: 8px;
+}
+
+.countdown-pulse {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s ease infinite;
+}
+
+.countdown-timer {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--green);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.countdown-timer.urgent {
+    color: var(--red);
+    animation: levelFlash 1s ease infinite;
+}
+
+.countdown-slots {
+    font-size: 13px;
+    color: var(--white-70);
+}
+
+.countdown-slots strong {
+    color: var(--red);
+}
+
 /* =================== RESPONSIVE =================== */
 @media (max-width: 480px) {
-    .opt-left { padding-right: 50px; }
+    .opt { flex-wrap: wrap; }
     .opt-left .opt-main { font-size: 13px; }
     .opt-left .opt-sub { font-size: 12px; }
     .opt-tag { font-size: 8px; padding: 2px 6px; }
@@ -596,7 +684,6 @@ body {
 @media (max-width: 380px) {
     .stage { padding: 0 16px; }
     .opt { padding: 12px 12px; }
-    .opt-left { padding-right: 40px; }
     .opt-left .opt-main { font-size: 12.5px; }
     .opt-left .opt-sub { font-size: 11px; }
     .opt-emoji-sm { font-size: 18px; width: 34px; height: 34px; }
@@ -617,8 +704,6 @@ body {
 }
 
 @media (max-width: 340px) {
-    .opt-left { padding-right: 10px; }
-    .opt-tag { position: static; margin-top: 6px; display: inline-block; }
     .opt-left .opt-main { font-size: 12px; }
     .opt-left .opt-sub { font-size: 10.5px; }
     .hook-title { font-size: 24px; min-height: 80px; }

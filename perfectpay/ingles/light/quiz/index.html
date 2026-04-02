@@ -62,6 +62,7 @@
 
     <script src="../../js/tracking-utils.js"></script>
     <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
+    <script src="../../js/tracking.js"></script>
     <script src="../../js/facebook-capi.js" defer></script>
 </head>
 <body>
@@ -79,18 +80,20 @@
 
         <section class="scene active" data-scene="0">
             <div class="scene-body scene-body--center">
-                <div class="hook-badge"><span class="badge-pulse"></span><span>127,493 people have already taken this test</span></div>
-                <h1 class="hook-title" id="hookTitle"></h1>
-                <p class="hook-sub">There are <strong>7 behaviors</strong> that appear in almost every case of cheating — and most people only recognize them when it's already too late. <strong>This test reveals if they're happening right now, right in front of you.</strong></p>
-                <p class="hook-micro">8 questions. 2 minutes. Could change everything.</p>
+                <h1 class="hook-title" id="hookTitle" style="display:none"></h1>
+                <p class="hook-greeting" id="hookGreeting" style="display:none"></p>
+                <div class="hook-warning">
+                    <svg class="hook-warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <div><strong>RESTRICTED ACCESS</strong><br>This tool reveals deleted messages, hidden conversations, and real-time location. Due to its power, <strong>access is extremely limited</strong>. Only a few slots remain today.<br><br>To proceed, we need to <strong>verify your intent</strong>. Your answers determine whether access will be approved.</div>
+                </div>
                 <button class="btn-main" id="btnStart">
-                    <span class="btn-main-text">Take the Test Now</span>
+                    <span class="btn-main-text">Begin Access Verification</span>
                     <span class="btn-main-arrow">→</span>
                 </button>
                 <div class="hook-trust">
                     <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Encrypted</div>
-                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 100% Anonymous</div>
-                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2 Minutes</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Anonymous</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2 Min</div>
                 </div>
             </div>
         </section>
@@ -107,93 +110,226 @@
             </div>
         </section>
 
+        <!-- ====== Q2: MOTIVATION ====== -->
         <section class="scene" data-scene="2">
             <div class="scene-body">
                 <div class="scene-step">Step 2 of 8</div>
-                <h2 class="scene-title">Has their phone become <em>off-limits</em>?</h2>
-                <p class="scene-desc">In 94% of confirmed cheating cases, the first thing that changed was how they handled their phone. That's not a coincidence.</p>
+                <h2 class="scene-title">What is your main reason for wanting access to this <em>tool</em>?</h2>
+                <p class="scene-desc">We need to understand your situation. Misuse can result in <strong>serious legal consequences</strong>.</p>
                 <div class="opts">
-                    <button class="opt" data-q="2" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🔐</span><div><span class="opt-main">"If I touch their phone, it's World War III."</span><span class="opt-sub">Changed the password, takes it to the bathroom, sleeps holding it. If I get close, they lock the screen in my face.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="2" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🔇</span><div><span class="opt-main">"Always face down, always on silent."</span><span class="opt-sub">Notifications disabled. Only replies to messages when I'm far away. When the phone rings, they give that nervous look.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="2" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">📱</span><div><span class="opt-main">"Uses it normally, nothing to hide."</span><span class="opt-sub">Phone unlocked, no strange behavior.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="2" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🔍</span><div>
+                            <span class="opt-main">"I have strong reasons to believe I'm being cheated on."</span>
+                            <span class="opt-sub">I need concrete proof to protect myself. The situation has gone too far to ignore.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="2" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">🤔</span><div>
+                            <span class="opt-main">"I have doubts and want to clear them."</span>
+                            <span class="opt-sub">The situation is getting worse and I need answers before it's too late.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="2" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">👀</span><div>
+                            <span class="opt-main">"Just curiosity."</span>
+                            <span class="opt-sub">I want to see what the tool can do.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q3: EMOTIONAL READINESS ====== -->
         <section class="scene" data-scene="3">
             <div class="scene-body">
                 <div class="scene-step">Step 3 of 8</div>
-                <h2 class="scene-title">What about <em>social media</em>?</h2>
-                <p class="scene-desc">Instagram, TikTok, Facebook. That's where 73% of modern infidelity cases begin. An "innocent" like that turns into a DM conversation.</p>
+                <h2 class="scene-title">This tool reveals <em>deleted messages</em>, hidden conversations, and real-time location. Are you prepared?</h2>
+                <p class="scene-desc">Many people aren't ready for what they discover. <strong>We need to make sure you are.</strong></p>
                 <div class="opts">
-                    <button class="opt" data-q="3" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">👻</span><div><span class="opt-main">"They have accounts I don't know about, or hide things from me."</span><span class="opt-sub">Follows suspicious people, likes photos that bother me, or simply won't let me see. I've found fake profiles or deleted conversations.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="3" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">📲</span><div><span class="opt-main">"Spends way too much time on their phone, but I don't know with whom."</span><span class="opt-sub">Hours on social media, but when I ask what they're looking at, they change the subject or quickly close the app.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="3" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">👍</span><div><span class="opt-main">"Nothing strange on social media."</span><span class="opt-sub">Open, transparent, no suspicious online behavior.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="3" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">💪</span><div>
+                            <span class="opt-main">"Yes. I'd rather face a painful truth than live in comfortable doubt."</span>
+                            <span class="opt-sub">I'm ready to face whatever comes. I need the truth to make a decision.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="3" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">😰</span><div>
+                            <span class="opt-main">"I think so, but I'm scared of what I might find."</span>
+                            <span class="opt-sub">The uncertainty is consuming me, but confronting reality is frightening.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="3" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🤷</span><div>
+                            <span class="opt-main">"I'm not sure — I haven't thought about it deeply."</span>
+                            <span class="opt-sub">I haven't reflected on the consequences yet.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q4: DURATION OF SUFFERING ====== -->
         <section class="scene" data-scene="4">
             <div class="scene-body">
                 <div class="scene-step">Step 4 of 8</div>
-                <h2 class="scene-title">Have <em>new excuses</em> appeared?</h2>
-                <p class="scene-desc">"Going out with friends." "Working overtime." "Started going to the gym." Excuses appear out of nowhere when someone needs time they <strong>can't explain</strong>.</p>
+                <h2 class="scene-title">How long has this situation been affecting your <em>mental health</em>?</h2>
+                <p class="scene-desc">The duration of emotional stress exposure is a <strong>critical factor</strong> in our assessment.</p>
                 <div class="opts">
-                    <button class="opt" data-q="4" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🚩</span><div><span class="opt-main">"Yes, their life changed overnight."</span><span class="opt-sub">Overtime that never existed, "friends" I don't know, outings with no explanation. Started dressing up more for no apparent reason.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="4" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🤔</span><div><span class="opt-main">"Some things just don't add up."</span><span class="opt-sub">It's not drastic, but there are details that don't make sense. Strange hours, vague answers, a different scent.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="4" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">✅</span><div><span class="opt-main">"The routine is the same."</span><span class="opt-sub">No noticeable changes in daily life.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="4" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">😩</span><div>
+                            <span class="opt-main">"Weeks or months. It's destroying me."</span>
+                            <span class="opt-sub">I can't sleep, eat, or focus. The doubt consumes every second of my day.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="4" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">📈</span><div>
+                            <span class="opt-main">"It started recently, but it's getting worse each day."</span>
+                            <span class="opt-sub">I feel the situation escalating and need to act before it gets worse.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="4" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">😐</span><div>
+                            <span class="opt-main">"It doesn't really affect me that much."</span>
+                            <span class="opt-sub">I can deal with the situation normally.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q5: CONFIDENTIALITY COMMITMENT ====== -->
         <section class="scene" data-scene="5">
             <div class="scene-body">
                 <div class="scene-step">Step 5 of 8</div>
-                <h2 class="scene-title">Do you still <em>connect</em> physically?</h2>
-                <p class="scene-desc">This question hurts. But intimacy is the most honest thermometer of a relationship. <strong>When it changes for no reason, there's always someone else involved.</strong></p>
+                <h2 class="scene-title">Do you commit to <em>never sharing</em> this tool with anyone?</h2>
+                <p class="scene-desc">Leaking this tool puts the entire operation at risk. <strong>We take this extremely seriously.</strong></p>
                 <div class="opts">
-                    <button class="opt" data-q="5" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">💔</span><div><span class="opt-main">"It feels like I'm living with a stranger."</span><span class="opt-sub">We barely touch. We sleep with our backs turned. Conversations turn into fights. The house is silence and distance.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="5" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">🎭</span><div><span class="opt-main">"One moment they're loving, the next they're ice cold."</span><span class="opt-sub">Alternates between excessive affection and total coldness. One day they hug me as if asking for forgiveness, the next they won't even look at me.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="5" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">❤️</span><div><span class="opt-main">"We're good and connected."</span><span class="opt-sub">Intimacy remains healthy and consistent.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="5" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🔒</span><div>
+                            <span class="opt-main">"Absolutely. This is personal and I understand the responsibility."</span>
+                            <span class="opt-sub">I will never disclose the existence or functionality of this tool to anyone.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="5" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">🤝</span><div>
+                            <span class="opt-main">"Yes, but I might recommend it to someone in the same situation."</span>
+                            <span class="opt-sub">I know people who are also suffering and might need this.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="5" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🚫</span><div>
+                            <span class="opt-main">"I can't guarantee that."</span>
+                            <span class="opt-sub">I might share it with other people.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q6: PREVIOUS ATTEMPTS ====== -->
         <section class="scene" data-scene="6">
             <div class="scene-body">
                 <div class="scene-step">Step 6 of 8</div>
-                <h2 class="scene-title">Random <em>gifts</em>? Being <em>too nice</em>?</h2>
-                <p class="scene-desc">Guilt makes people do strange things. A cheating partner often <strong>compensates with gifts, compliments, or sudden attention</strong> — trying to ease their own conscience.</p>
+                <h2 class="scene-title">Have you tried other methods to <em>discover the truth</em>?</h2>
+                <p class="scene-desc">People who have exhausted other options demonstrate <strong>genuine need</strong> for access.</p>
                 <div class="opts">
-                    <button class="opt" data-q="6" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">🎁</span><div><span class="opt-main">"Yes, they're being way too sweet for no reason."</span><span class="opt-sub">Unexpected gifts, compliments that didn't exist before, forced kindness. It feels like they're trying to make up for something.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="6" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😶</span><div><span class="opt-main">"There are suspicious moments of 'guilt'."</span><span class="opt-sub">Sometimes they do something very out of the ordinary, as if carrying a guilty conscience. Then they go back to normal.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="6" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🙂</span><div><span class="opt-main">"Normal behavior, nothing over the top."</span><span class="opt-sub">Haven't noticed any pattern of compensation or guilt.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="6" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🔄</span><div>
+                            <span class="opt-main">"Yes — I've tried everything. Nothing worked."</span>
+                            <span class="opt-sub">I've checked messages, asked directly, talked to friends. I'm out of options and this is my last resort.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="6" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">😔</span><div>
+                            <span class="opt-main">"I've thought about it, but I'm afraid of confrontation."</span>
+                            <span class="opt-sub">I know I need to act, but confronting directly could make everything worse.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="6" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🆕</span><div>
+                            <span class="opt-main">"No, this is my first attempt."</span>
+                            <span class="opt-sub">I haven't explored other alternatives yet.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q7: RESPONSIBLE USE ====== -->
         <section class="scene" data-scene="7">
             <div class="scene-body">
                 <div class="scene-step">Step 7 of 8</div>
-                <h2 class="scene-title">Do they start <em>fights over nothing</em>?</h2>
-                <p class="scene-desc">One of the most common unconscious strategies: <strong>create conflict to justify distance</strong>. Fight, leave the house, and gain free time without needing to explain.</p>
+                <h2 class="scene-title">If the tool confirms your suspicions, <em>what will you do</em>?</h2>
+                <p class="scene-desc">We assess whether the user will have a <strong>responsible reaction</strong> to the information obtained.</p>
                 <div class="opts">
-                    <button class="opt" data-q="7" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">💥</span><div><span class="opt-main">"Yes, anything turns into an argument."</span><span class="opt-sub">It seems like they look for reasons to fight. After the fight, they disappear for hours. When they come back, they act like nothing happened.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="7" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😤</span><div><span class="opt-main">"They're more irritable and impatient."</span><span class="opt-sub">They don't exactly start fights, but have much less patience with me. It feels like I'm annoying just by existing.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="7" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🤝</span><div><span class="opt-main">"No unusual fights."</span><span class="opt-sub">We communicate well, no exaggerated conflicts.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="7" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🛡️</span><div>
+                            <span class="opt-main">"Make a calm, informed decision to protect myself."</span>
+                            <span class="opt-sub">I will use the information responsibly to protect myself and my family.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="7" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">❓</span><div>
+                            <span class="opt-main">"I don't know yet, but I need the truth first."</span>
+                            <span class="opt-sub">I want to understand the real situation before deciding anything.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="7" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">💢</span><div>
+                            <span class="opt-main">"I'd probably confront them immediately."</span>
+                            <span class="opt-sub">I'm not sure I could control myself when faced with proof.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- ====== Q8: FINAL COMMITMENT ====== -->
         <section class="scene" data-scene="8">
             <div class="scene-body">
-                <div class="scene-step">Last question</div>
-                <h2 class="scene-title">Now close your eyes and tell me:</h2>
-                <p class="scene-desc">Forget everything you've rationalized. Forget the excuses you made up to calm yourself down. <strong>That voice that wakes you up at 3 AM, that tightens your chest when their phone buzzes — what does it say?</strong></p>
+                <div class="scene-step">Final Verification</div>
+                <h2 class="scene-title">Do you understand that this access is <em>limited, monitored, and irreversible</em> once activated?</h2>
+                <p class="scene-desc">By proceeding, you accept <strong>full responsibility</strong> for the use of the information revealed.</p>
                 <div class="opts">
-                    <button class="opt" data-q="8" data-v="a" data-p="15"><div class="opt-left"><span class="opt-emoji-sm">⚠️</span><div><span class="opt-main">"I know something's wrong. I <em>feel</em> it."</span><span class="opt-sub">It's a certainty that lives in my body. It tightens my chest. It steals my sleep. Something is being hidden and I need to know the truth.</span></div></div><span class="opt-tag opt-tag--red">Severe</span></button>
-                    <button class="opt" data-q="8" data-v="b" data-p="10"><div class="opt-left"><span class="opt-emoji-sm">😔</span><div><span class="opt-main">"The doubt is eating me alive."</span><span class="opt-sub">I'm not absolutely sure, but the insecurity is destroying me. I can't live like this anymore. I need peace.</span></div></div><span class="opt-tag opt-tag--yellow">Warning</span></button>
-                    <button class="opt" data-q="8" data-v="c" data-p="0"><div class="opt-left"><span class="opt-emoji-sm">🙂</span><div><span class="opt-main">"I think I'm overthinking it."</span><span class="opt-sub">It's probably all in my head. But I want to clear the doubt once and for all.</span></div></div><span class="opt-tag opt-tag--green">Normal</span></button>
+                    <button class="opt" data-q="8" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">✅</span><div>
+                            <span class="opt-main">"Yes. I accept full responsibility and I'm ready."</span>
+                            <span class="opt-sub">I understand the terms and I'm prepared to proceed with access activation.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Approved</span>
+                    </button>
+                    <button class="opt" data-q="8" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">⚖️</span><div>
+                            <span class="opt-main">"I understand, but I still have some hesitation."</span>
+                            <span class="opt-sub">I accept the terms, but the decision isn't easy.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Under Review</span>
+                    </button>
+                    <button class="opt" data-q="8" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">⏸️</span><div>
+                            <span class="opt-main">"I need more time to think."</span>
+                            <span class="opt-sub">I don't feel ready to make this decision right now.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Requires Justification</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -217,12 +353,12 @@
                 <h2 class="res-headline" id="resHeadline">Analysis result</h2>
 
                 <div class="res-diagnosis" id="resDiagnosis">
-                    <div class="diag-header"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Your Personal Diagnosis</div>
+                    <div class="diag-header"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Verification Result</div>
                     <p id="diagText"></p>
                 </div>
 
                 <div class="res-signals" id="resSignals">
-                    <div class="signals-header">Signals Detected in Your Case:</div>
+                    <div class="signals-header">Criteria Met:</div>
                     <div class="signals-list" id="signalsList"></div>
                 </div>
 
@@ -235,33 +371,24 @@
                     </div>
                 </div>
 
-                <div class="res-break"><div class="break-line"></div><span>The Solution</span><div class="break-line"></div></div>
-
-                <div class="res-solution">
-                    <p>There's a tool that accesses your partner's WhatsApp in a <strong>100% anonymous and invisible</strong> way. It finds:</p>
-                    <div class="solution-grid">
-                        <div class="solution-item"><span class="solution-icon">💬</span><span>Deleted messages</span></div>
-                        <div class="solution-item"><span class="solution-icon">👤</span><span>Hidden contacts</span></div>
-                        <div class="solution-item"><span class="solution-icon">📸</span><span>Deleted photos & videos</span></div>
-                        <div class="solution-item"><span class="solution-icon">🕐</span><span>Activity timestamps</span></div>
-                    </div>
-                </div>
-
-                <div class="res-stat-row">
-                    <div class="res-stat"><span class="res-stat-num" id="resStat">87%</span><span class="res-stat-label">confirmed suspicion<br>with this profile</span></div>
-                    <div class="res-stat"><span class="res-stat-num">2 min</span><span class="res-stat-label">to access<br>the evidence</span></div>
-                    <div class="res-stat"><span class="res-stat-num">127k</span><span class="res-stat-label">people already<br>used it</span></div>
-                </div>
-
                 <a href="#" class="cta-final" id="ctaFinal">
                     <div class="cta-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
                     <div class="cta-text"><strong>Access the Tool Now</strong><span>100% anonymous and invisible verification</span></div>
                     <span class="cta-arrow">→</span>
                 </a>
 
-                <div class="res-urgency"><span class="urgency-dot"></span><strong>Every minute counts.</strong> Messages, photos, and voice notes are being deleted right now. The longer you wait, the less evidence remains.</div>
+                <div class="res-countdown-box" id="resCountdownBox" style="display:none">
+                    <div class="countdown-header">
+                        <span class="countdown-pulse"></span>
+                        <span>Your access expires in:</span>
+                    </div>
+                    <div class="countdown-timer" id="countdownTimer">14:59</div>
+                    <div class="countdown-slots">Only <strong id="countdownSlots">3</strong> slots remaining</div>
+                </div>
 
-                <a href="#" class="cta-secondary" id="ctaSecondary">I Want to Discover the Truth Now →</a>
+                <div class="res-urgency"><span class="urgency-dot"></span><strong>Warning:</strong> Your access has been approved, but it's temporary. After the timer expires, your slot will be released to the next person in line.</div>
+
+                <a href="#" class="cta-secondary" id="ctaSecondary">Secure My Access Now →</a>
             </div>
         </section>
 

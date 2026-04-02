@@ -95,12 +95,12 @@
     .queue-user-row{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(255,255,255,.3)}
     .queue-user-item{padding:3px 0;opacity:0;animation:fadeInUser .5s ease forwards}
     @keyframes fadeInUser{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
-    .vip-unlock{display:none;margin-top:16px;padding:16px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(0,200,83,.06),rgba(37,211,102,.1));border:1px solid rgba(37,211,102,.3)}
+    .vip-unlock{display:none;margin-top:16px;padding:16px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(0,200,83,.06),rgba(233,30,99,.1));border:1px solid rgba(233,30,99,.3)}
     .vip-unlock.visible{display:block;animation:vipAppear .7s cubic-bezier(.22,1,.36,1)}
     @keyframes vipAppear{0%{opacity:0;transform:translateY(20px) scale(.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
     .vip-unlock-icon{font-size:26px;display:block;margin-bottom:6px;animation:rocketBounce .6s ease-in-out infinite alternate}
     @keyframes rocketBounce{0%{transform:translateY(0)}100%{transform:translateY(-5px)}}
-    .vip-unlock-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:#25D366;margin-bottom:4px;letter-spacing:.5px}
+    .vip-unlock-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:#e91e63;margin-bottom:4px;letter-spacing:.5px}
     .vip-unlock-text{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.5}
     .vip-unlock-text strong{color:#fff}
     .page{opacity:0;pointer-events:none}
@@ -323,7 +323,7 @@
             var item=document.createElement('div');
             item.className='queue-user-item';
             item.textContent='✅ '+name+' — processed (VIP member)';
-            item.style.color='rgba(37,211,102,.5)';
+            item.style.color='rgba(233,30,99,.5)';
             if(feed.children.length>2)feed.removeChild(feed.firstChild);
             feed.appendChild(item);
         }
@@ -337,7 +337,7 @@
                 vipShown=true;
                 vip.classList.add('visible');
                 speed.textContent='VIP Available';
-                speed.style.color='#25D366';
+                speed.style.color='#e91e63';
                 if(navigator.vibrate)navigator.vibrate([150,80,150]);
             }
 

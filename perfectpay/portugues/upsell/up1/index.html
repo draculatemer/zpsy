@@ -95,7 +95,7 @@
             top: -50%; left: -50%;
             width: 200%; height: 200%;
             background: radial-gradient(circle at 30% 50%, rgba(0, 200, 83, 0.04) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 50%, rgba(37, 211, 102, 0.03) 0%, transparent 50%);
+                        radial-gradient(circle at 70% 50%, rgba(233, 30, 99, 0.03) 0%, transparent 50%);
             animation: bgPulse 4s ease-in-out infinite;
         }
         @keyframes bgPulse {
@@ -109,7 +109,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(37, 211, 102, 0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.6), transparent);
             animation: scanLine 3s linear infinite;
         }
         @keyframes scanLine {
@@ -164,7 +164,7 @@
             height: 100%;
             width: 0%;
             border-radius: 20px;
-            background: linear-gradient(90deg, #25D366, #00c853, #25D366);
+            background: linear-gradient(90deg, #e91e63, #00c853, #e91e63);
             background-size: 200% 100%;
             animation: shimmer 1.5s linear infinite;
             transition: width 0.5s ease;
@@ -229,15 +229,15 @@
             border: 2px solid rgba(255,255,255,0.15);
         }
         .loading-step.active .step-icon.pending {
-            border-color: #25D366;
-            background: rgba(37, 211, 102, 0.1);
+            border-color: #e91e63;
+            background: rgba(233, 30, 99, 0.1);
         }
         .loading-step.active .step-icon.pending::after {
             content: '';
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #25D366;
+            background: #e91e63;
             animation: pulse 1s ease-in-out infinite;
         }
         @keyframes pulse {
@@ -245,8 +245,8 @@
             50% { transform: scale(1.05); opacity: 0.8; }
         }
         .loading-step .step-icon.check {
-            background: #25D366;
-            border: 2px solid #25D366;
+            background: #e91e63;
+            border: 2px solid #e91e63;
             color: #fff;
             font-size: 13px;
             animation: checkPop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -332,7 +332,7 @@
             position: absolute;
             width: 3px;
             height: 3px;
-            background: rgba(37, 211, 102, 0.3);
+            background: rgba(233, 30, 99, 0.3);
             border-radius: 50%;
             pointer-events: none;
         }

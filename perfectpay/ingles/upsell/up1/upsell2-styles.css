@@ -91,9 +91,9 @@ body {
 .hero-icon { width: 88px; height: 88px; margin: 24px auto 8px; position: relative; }
 .hero-icon .whatsapp-icon {
     width: 88px; height: 88px; border-radius: 50%;
-    background: #25d366;
-    border: 6px solid #128c7e;
-    box-shadow: 0 15px 40px rgba(37, 211, 102, .3);
+    background: #e91e63;
+    border: 6px solid #c2185b;
+    box-shadow: 0 15px 40px rgba(233, 30, 99, .3);
     display: flex;
     align-items: center;
     justify-content: center;

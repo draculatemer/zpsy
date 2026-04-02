@@ -2,6 +2,7 @@
     'use strict';
 
     var DEST = (window.location.pathname.indexOf('/quiz/') !== -1) ? '../bridge.html' : 'bridge.html';
+    var _fromPhone = (window.location.search.indexOf('from_phone=true') !== -1);
     var TOTAL = 8;
     var ANALYSIS_MS = 10000;
 
@@ -18,36 +19,36 @@
     ];
 
     var SIGNAL_MAP = {
-        2: { a: 'Proteção extrema do celular — comportamento típico de quem esconde conversas', b: 'Celular sempre no silencioso — padrão de ocultação de notificações' },
-        3: { a: 'Atividade suspeita em redes sociais — perfis ocultos ou conversas apagadas', b: 'Tempo excessivo em redes sociais sem transparência' },
-        4: { a: 'Mudança drástica de rotina — pretextos novos e inexplicáveis', b: 'Pequenas inconsistências na rotina — horários e histórias que não batem' },
-        5: { a: 'Frieza emocional e distância na intimidade', b: 'Oscilação emocional — padrão de culpa e compensação' },
-        6: { a: 'Gentilezas excessivas sem motivo — comportamento clássico de compensação por culpa', b: 'Momentos isolados de culpa aparente' },
-        7: { a: 'Provocação de conflitos para justificar distância', b: 'Aumento de irritabilidade e impaciência sem causa' },
-        8: { a: 'Intuição forte de que algo está sendo escondido', b: 'Dúvida persistente e insegurança constante' }
+        2: { a: 'Motivo legítimo: suspeita fundamentada que requer investigação', b: 'Dúvidas iniciais que requerem esclarecimento' },
+        3: { a: 'Preparo emocional confirmado para receber informações sensíveis', b: 'Preparo parcial — necessita acompanhamento' },
+        4: { a: 'Exposição prolongada a estresse emocional — caso prioritário', b: 'Impacto recente mas crescente na saúde mental' },
+        5: { a: 'Compromisso total de sigilo e uso responsável confirmado', b: 'Compromisso parcial de confidencialidade' },
+        6: { a: 'Métodos alternativos esgotados — necessidade comprovada', b: 'Hesitação em agir por medo de confronto' },
+        7: { a: 'Perfil de reação responsável e controlada', b: 'Intenção de buscar a verdade antes de agir' },
+        8: { a: 'Aceitação completa dos termos e responsabilidades', b: 'Aceitação com ressalvas — perfil cauteloso' }
     };
 
     var LEVELS = {
         high: {
-            label: 'ALTO RISCO',
-            color: '#ef4444',
-            headline: 'Seu relacionamento apresenta múltiplos sinais críticos de infidelidade.',
-            diag: 'Suas respostas revelam um <strong>padrão consistente e alarmante</strong>. Os sinais que você descreveu aparecem juntos em <strong>87% dos casos que se confirmaram como traição</strong>. Isso não é ansiedade. Não é insegurança. É o seu instinto reconhecendo um padrão real — e ele quase nunca erra.',
-            stat: '87%'
+            label: 'ACESSO IMEDIATO APROVADO',
+            color: '#22c55e',
+            headline: 'Verificação concluída. Você foi aprovado(a) para acesso imediato.',
+            diag: 'Suas respostas demonstram <strong>necessidade genuína e maturidade emocional</strong> para utilizar esta ferramenta. Seu perfil atende a todos os critérios de segurança. <strong>Acesso liberado sem restrições</strong> — aproveite enquanto sua vaga está reservada.',
+            stat: '97%'
         },
         moderate: {
-            label: 'RISCO MODERADO',
+            label: 'ACESSO APROVADO',
             color: '#f59e0b',
-            headline: 'Existem sinais preocupantes que você não pode ignorar.',
-            diag: 'Seu perfil revela <strong>sinais moderados mas significativos</strong>. Em 64% dos casos com esse perfil, a suspeita se confirmou depois. A diferença entre quem descobriu a tempo e quem descobriu tarde demais foi <strong>uma decisão: agir agora ou esperar</strong>.',
-            stat: '64%'
+            headline: 'Verificação concluída. Seu acesso foi liberado.',
+            diag: 'Seu perfil atende aos <strong>critérios mínimos de segurança</strong>. Embora algumas respostas indiquem hesitação, identificamos necessidade real. <strong>Seu acesso foi aprovado</strong> — mas é limitado e pode expirar a qualquer momento.',
+            stat: '83%'
         },
         low: {
-            label: 'ATENÇÃO',
-            color: '#22c55e',
-            headline: 'Poucos sinais detectados — mas algo te trouxe até aqui.',
-            diag: 'Os indicadores são baixos, mas o fato de você ter chegado até aqui revela uma <strong>dúvida que não vai embora sozinha</strong>. Em 38% dos casos com esse perfil, havia algo sendo escondido. A única forma de ter paz é <strong>ter certeza</strong>.',
-            stat: '38%'
+            label: 'ACESSO CONDICIONAL',
+            color: '#f59e0b',
+            headline: 'Verificação concluída. Acesso liberado com restrições.',
+            diag: 'Embora suas respostas indiquem menor urgência, o fato de ter chegado até aqui demonstra uma <strong>necessidade que não pode ser ignorada</strong>. Seu acesso foi liberado condicionalmente — <strong>aja agora antes que expire</strong>.',
+            stat: '64%'
         }
     };
 
@@ -59,9 +60,23 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        personalizeGreeting();
         typewriteHook();
         bindAll();
     });
+
+    function personalizeGreeting() {
+        var el = document.getElementById('hookGreeting');
+        if (!el) return;
+        var name = '';
+        try { name = localStorage.getItem('userName') || ''; } catch(e) {}
+        if (name) {
+            var first = name.trim().split(' ')[0];
+            first = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+            el.innerHTML = '<span>' + first + '</span>, precisamos verificar seu acesso.';
+            el.style.display = '';
+        }
+    }
 
     // ── Typewriter ──
     function typewriteHook() {
@@ -116,7 +131,17 @@
     // ── Bind ──
     function bindAll() {
         document.getElementById('btnStart').addEventListener('click', function() {
-            goToScene(1);
+            var startScene = 1;
+            if (_fromPhone) {
+                var gp = new URLSearchParams(window.location.search).get('gender');
+                if (gp) {
+                    state.gender = gp;
+                    state.answers[1] = { value: gp, points: 0 };
+                    localStorage.setItem('targetGender', gp);
+                    startScene = 2;
+                }
+            }
+            goToScene(startScene);
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.trackEvent('QuizStarted', { content_name: 'Quiz' });
             } else if (typeof fbq === 'function') {
@@ -325,12 +350,19 @@
             }
         } catch(e) { console.error('URL build error:', e); }
 
+        if (_fromPhone) {
+            var gp = state.gender || localStorage.getItem('targetGender') || '';
+            url = '../phone.html?resume=true' + (gp ? '&gender=' + gp : '');
+        }
+
         goToScene('result');
 
         var ctaF = document.getElementById('ctaFinal');
         var ctaS = document.getElementById('ctaSecondary');
         if (ctaF) { ctaF.href = url; ctaF.onclick = function() { window.location.href = url; }; }
         if (ctaS) { ctaS.href = url; ctaS.onclick = function() { window.location.href = url; }; }
+
+        startAccessCountdown();
 
         setTimeout(function() {
             if (arc) {
@@ -355,6 +387,43 @@
                 fbq('trackCustom', 'QuizCompleted', quizData);
             }
         } catch(e) { console.error('Quiz tracking error:', e); }
+    }
+
+    function startAccessCountdown() {
+        var COUNTDOWN_KEY = 'accessExpiresAt';
+        var SLOTS_KEY = 'accessSlots';
+        var DURATION = 15 * 60 * 1000;
+
+        var expiresAt = localStorage.getItem(COUNTDOWN_KEY);
+        if (!expiresAt) {
+            expiresAt = Date.now() + DURATION;
+            localStorage.setItem(COUNTDOWN_KEY, expiresAt);
+            localStorage.setItem(SLOTS_KEY, Math.floor(Math.random() * 3) + 2);
+        }
+        expiresAt = parseInt(expiresAt);
+
+        var box = document.getElementById('resCountdownBox');
+        var timerEl = document.getElementById('countdownTimer');
+        var slotsEl = document.getElementById('countdownSlots');
+        if (!box || !timerEl) return;
+
+        var slots = parseInt(localStorage.getItem(SLOTS_KEY)) || 3;
+        if (slotsEl) slotsEl.textContent = slots;
+
+        box.style.display = '';
+
+        function tick() {
+            var remaining = Math.max(0, expiresAt - Date.now());
+            var mins = Math.floor(remaining / 60000);
+            var secs = Math.floor((remaining % 60000) / 1000);
+            timerEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+            if (mins < 5) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+
+            if (remaining > 0) setTimeout(tick, 1000);
+        }
+        tick();
     }
 
     function countUp(id, from, to, duration) {

@@ -6,8 +6,8 @@
 /* ========== CSS Variables ========== */
 :root {
     /* Primary Colors */
-    --green-primary: #25D366;
-    --green-dark: #128C7E;
+    --green-primary: #e91e63;
+    --green-dark: #c2185b;
     --green-light: #34eb7a;
     
     /* Background Colors */
@@ -110,12 +110,12 @@ img[loading="lazy"][src]:not([src=""]) {
 .btn-primary {
     background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
     color: white;
-    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
 }
 
 .btn-primary:active {
@@ -135,7 +135,7 @@ img[loading="lazy"][src]:not([src=""]) {
 /* Cards */
 .card {
     background: var(--bg-card);
-    border: 1px solid rgba(37, 211, 102, 0.2);
+    border: 1px solid rgba(233, 30, 99, 0.2);
     border-radius: 16px;
     padding: 20px;
 }
@@ -158,9 +158,9 @@ img[loading="lazy"][src]:not([src=""]) {
 }
 
 .badge-success {
-    background: rgba(37, 211, 102, 0.15);
+    background: rgba(233, 30, 99, 0.15);
     color: var(--green-primary);
-    border: 1px solid rgba(37, 211, 102, 0.3);
+    border: 1px solid rgba(233, 30, 99, 0.3);
 }
 
 .badge-warning {

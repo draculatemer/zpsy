@@ -75,7 +75,8 @@
     <!-- End Meta Pixel Code -->
 
     <!-- Enhanced Tracking -->
-    <script src="../js/tracking-utils.js" defer></script>
+    <script src="../js/tracking-utils.js"></script>
+    <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
     <script src="../js/tracking.js"></script>
     <script src="../js/funnel-tracking.js" defer></script>
     <script src="../js/facebook-capi.js" defer></script>
@@ -93,8 +94,6 @@
         });
     </script>
     
-    <!-- Email Capture Modal -->
-    <script src="../js/email-capture.js"></script>
     
     <!-- Shared Audio & Vibration Systems -->
     <script src="../js/audio-vibration.js"></script>
@@ -256,7 +255,7 @@
         }
 
         .main-title .gradient {
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -282,7 +281,7 @@
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             padding: 3px;
             flex-shrink: 0;
             position: relative;
@@ -295,7 +294,7 @@
             left: -4px;
             right: -4px;
             bottom: -4px;
-            border: 2px solid #25D366;
+            border: 2px solid #e91e63;
             border-radius: 50%;
             animation: profile-ring 2s infinite;
             opacity: 0;
@@ -338,30 +337,58 @@
 
         .profile-phone {
             font-size: 14px;
-            color: #128C7E;
-            margin-bottom: 8px;
+            color: #c2185b;
+            margin-bottom: 4px;
+        }
+
+        .profile-location {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #667781;
         }
 
         /* Success Badge */
         .success-badge {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: linear-gradient(135deg, rgba(233, 30, 99, 0.06), rgba(233, 30, 99, 0.02));
+            border: 1px solid rgba(233, 30, 99, 0.12);
             border-radius: 16px;
-            padding: 16px;
+            padding: 20px;
             text-align: center;
             margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(233, 30, 99, 0.03), transparent);
+            animation: badge-sweep 4s linear infinite;
+        }
+
+        @keyframes badge-sweep {
+            to { transform: rotate(360deg); }
         }
 
         .badge-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #16a34a;
+            font-size: 16px;
+            font-weight: 800;
+            color: #e91e63;
             margin-bottom: 8px;
+            letter-spacing: -0.3px;
+            position: relative;
         }
 
         .badge-text {
-            font-size: 14px;
+            font-size: 13px;
             color: #6c757d;
+            position: relative;
         }
 
         /* Trust Badges */
@@ -388,7 +415,7 @@
         .trust-badge svg {
             width: 14px;
             height: 14px;
-            color: #25D366;
+            color: #e91e63;
         }
 
         /* Features */
@@ -419,7 +446,7 @@
         .feature-icon {
             width: 22px;
             height: 22px;
-            color: #25D366;
+            color: #e91e63;
         }
 
         .feature-title {
@@ -479,6 +506,94 @@
             color: white;
         }
 
+
+        /* Dating Profiles */
+        .dating-profiles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dating-profile-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 12px;
+        }
+
+        .dp-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .dp-tinder { background: linear-gradient(135deg, #FE3C72, #FF6B6B); }
+        .dp-bumble { background: linear-gradient(135deg, #FFC629, #FFD700); }
+        .dp-hinge { background: linear-gradient(135deg, #ddd, #bbb); color: #333; font-weight: 800; font-size: 16px; }
+        .dp-onlyfans { background: linear-gradient(135deg, #00AFF0, #008CBA); }
+
+        .dp-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dp-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dp-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dp-found {
+            background: rgba(233, 30, 99, 0.15);
+            color: #e91e63;
+        }
+
+        .dp-not-found {
+            background: rgba(142, 142, 147, 0.15);
+            color: #8e8e93;
+        }
+
+        .dp-detail {
+            font-size: 11px;
+            color: #8696A0;
+            line-height: 1.5;
+        }
+
+        .dp-detail.blurred {
+            filter: blur(4px);
+            user-select: none;
+        }
+
+        .dp-photo {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px);
+            flex-shrink: 0;
+        }
 
         /* Chat Preview */
         .chat-preview {
@@ -633,7 +748,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            background: rgba(37,211,102,0.08);
+            background: rgba(233,30,99,0.08);
             border-radius: 16px;
             padding: 4px 10px;
             filter: blur(1px);
@@ -647,7 +762,7 @@
         }
         .conv-audio-bar span {
             width: 2.5px;
-            background: #25D366;
+            background: #e91e63;
             border-radius: 1px;
         }
 
@@ -656,7 +771,7 @@
             background: #ffffff;
             border: 1px solid #fecaca;
             border-radius: 16px;
-            padding: 16px;
+            padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
@@ -688,9 +803,11 @@
         }
 
         .suspicion-score {
-            font-size: 28px;
-            font-weight: 800;
+            font-size: 32px;
+            font-weight: 900;
             color: #dc2626;
+            text-shadow: 0 0 20px rgba(255, 59, 48, 0.15);
+            font-variant-numeric: tabular-nums;
         }
 
         .suspicion-bar {
@@ -735,7 +852,7 @@
             background: #ffffff;
             border: 1px solid #fed7aa;
             border-radius: 16px;
-            padding: 16px;
+            padding: 18px;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -828,7 +945,7 @@
             background: #ffffff;
             border: 1px solid #fecaca;
             border-radius: 16px;
-            padding: 16px;
+            padding: 20px;
             margin-bottom: 20px;
             position: relative;
             overflow: hidden;
@@ -915,14 +1032,14 @@
         /* Pricing Section */
         .pricing-section {
             background: #ffffff;
-            border: 2px solid #25D366;
+            border: 2px solid #e91e63;
             border-radius: 20px;
             padding: 24px 20px;
             text-align: center;
             margin-bottom: 24px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.12);
+            box-shadow: 0 4px 16px rgba(233, 30, 99, 0.12);
         }
 
         .pricing-section::before {
@@ -979,7 +1096,7 @@
         .cta-button {
             width: 100%;
             padding: 22px 24px;
-            background: linear-gradient(135deg, #25D366 0%, #20BA5C 50%, #128C7E 100%);
+            background: linear-gradient(135deg, #e91e63 0%, #d81b60 50%, #c2185b 100%);
             border: none;
             border-radius: 16px;
             color: white;
@@ -991,7 +1108,7 @@
             letter-spacing: 1px;
             animation: megaPulse 2s ease-in-out infinite;
             box-shadow: 
-                0 4px 14px rgba(37, 211, 102, 0.3),
+                0 4px 14px rgba(233, 30, 99, 0.3),
                 0 2px 6px rgba(0, 0, 0, 0.08);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
@@ -1002,13 +1119,13 @@
             0%, 100% { 
                 transform: scale(1);
                 box-shadow: 
-                    0 4px 14px rgba(37, 211, 102, 0.3),
+                    0 4px 14px rgba(233, 30, 99, 0.3),
                     0 2px 6px rgba(0, 0, 0, 0.08);
             }
             50% { 
                 transform: scale(1.03);
                 box-shadow: 
-                    0 6px 20px rgba(37, 211, 102, 0.4),
+                    0 6px 20px rgba(233, 30, 99, 0.4),
                     0 4px 10px rgba(0, 0, 0, 0.1);
             }
         }
@@ -1016,7 +1133,7 @@
         .cta-button:hover {
             transform: scale(1.05);
             box-shadow: 
-                0 8px 24px rgba(37, 211, 102, 0.5),
+                0 8px 24px rgba(233, 30, 99, 0.5),
                 0 4px 12px rgba(0, 0, 0, 0.12);
             animation: none;
         }
@@ -1075,7 +1192,7 @@
         .cta-subtext svg {
             width: 14px;
             height: 14px;
-            color: #25D366;
+            color: #e91e63;
         }
 
         /* Bonus Section */
@@ -1162,7 +1279,7 @@
         }
 
         .bonus-icon.monitor {
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             color: white;
         }
 
@@ -1269,20 +1386,22 @@
         }
 
         .testimonial-avatar-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            font-style: normal;
         }
-        .testimonial-avatar-icon.tav-1 { background: #dbeafe; }
-        .testimonial-avatar-icon.tav-2 { background: #fce7f3; }
-        .testimonial-avatar-icon.tav-3 { background: #dcfce7; }
-        .testimonial-avatar-icon.tav-4 { background: #fef3c7; }
-        .testimonial-avatar-icon.tav-5 { background: #ede9fe; }
+        .testimonial-avatar-icon.tav-1 { background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; }
+        .testimonial-avatar-icon.tav-2 { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #fff; }
+        .testimonial-avatar-icon.tav-3 { background: linear-gradient(135deg, #22c55e, #4ade80); color: #fff; }
+        .testimonial-avatar-icon.tav-4 { background: linear-gradient(135deg, #ef4444, #f87171); color: #fff; }
+        .testimonial-avatar-icon.tav-5 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
 
         .testimonial-info {
             flex: 1;
@@ -1537,7 +1656,7 @@
         .access-expiry-fill {
             height: 100%;
             width: 100%;
-            background: linear-gradient(90deg, #25D366, #25D366);
+            background: linear-gradient(90deg, #e91e63, #e91e63);
             transition: width 1s linear, background 1s ease;
             border-radius: 0 2px 2px 0;
         }
@@ -1657,7 +1776,7 @@
         .exit-cta {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
             border: none;
             border-radius: 12px;
             color: white;
@@ -1727,14 +1846,18 @@
                 <div class="profile-info">
                     <div class="profile-name" id="profileTargetName">Personne Cible</div>
                     <div class="profile-phone" id="targetPhone">+** (***) ***-4567</div>
+                    <div class="profile-location" id="profileLocation" style="display:none;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12" style="width:12px;height:12px;flex-shrink:0;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+                        <span id="profileLocationText"></span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Success Badge -->
         <div class="success-badge">
-            <div class="badge-title">Nous avons tout trouvé.</div>
-            <div class="badge-text">Voyez ce qu'on vous cache :</div>
+            <div class="badge-title">Analyse Terminée — Alertes Détectées</div>
+            <div class="badge-text">Aperçu de ce qui vous est caché :</div>
         </div>
 
         <!-- Suspicion Detector -->
@@ -1742,11 +1865,9 @@
             <div class="suspicion-header">
                 <div class="suspicion-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
-                    <span>⚠️ Indice de Suspicion</span>
+                    <span>Analyse de Risque</span>
                 </div>
                 <div class="suspicion-score" id="suspicionScore">87%</div>
             </div>
@@ -1755,15 +1876,15 @@
             </div>
             <div class="suspicion-details">
                 <div class="suspicion-item">
-                    <span class="suspicion-item-label">🌙 Messages supprimés la nuit</span>
+                    <span class="suspicion-item-label">🕐 Messages effacés entre 00h–05h</span>
                     <span class="suspicion-item-value high">34%</span>
                 </div>
                 <div class="suspicion-item">
-                    <span class="suspicion-item-label">👤 Conversations avec des contacts cachés</span>
+                    <span class="suspicion-item-label">👻 Conversations avec des numéros non enregistrés</span>
                     <span class="suspicion-item-value high">28%</span>
                 </div>
                 <div class="suspicion-item">
-                    <span class="suspicion-item-label">📸 Photos envoyées et supprimées</span>
+                    <span class="suspicion-item-label">🗑️ Médias ouverts une fois, puis effacés</span>
                     <span class="suspicion-item-value high">25%</span>
                 </div>
             </div>
@@ -1775,9 +1896,9 @@
                 <img id="frequentContactImg" src="../imagens/mulher1.jpg" alt="Frequent contact photo" loading="lazy" onerror="this.src='../imagens/default-avatar.png'">
             </div>
             <div class="frequent-contact-info">
-                <div class="frequent-contact-label">🔥 Contact le Plus Fréquent</div>
+                <div class="frequent-contact-label">⚠️ CONTACT SIGNALÉ — ACTIVITÉ MAXIMALE</div>
                 <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J***</span><span class="hidden">S***</span></div>
-                <div class="frequent-contact-stats"><span id="ctaTotalMsgs">847</span> messages ce mois • <strong><span id="ctaDeletedMsgs">289</span> SUPPRIMÉS</strong></div>
+                <div class="frequent-contact-stats"><span id="ctaTotalMsgs">1 062</span> messages ce mois • <strong><span id="ctaDeletedMsgs">317</span> SUPPRIMÉS</strong></div>
             </div>
             <div class="frequent-contact-badge">
                 <span>🔒</span>
@@ -1793,14 +1914,14 @@
                     <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
                     <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                 </svg>
-                <span>🚨 Dernier Message Supprimé Récupéré</span>
+                <span>RÉCUPÉRÉ DU CACHE SUPPRIMÉ</span>
             </div>
             <div class="deleted-message-content" id="deletedMessageContent">
-                "Chéri(e), ne dis pas à <span class="blocked">██████</span> qu'on a <span class="blocked">████████</span> hier au <span class="blocked">██████</span>..."
+                "Je n'arrête pas de penser à <span class="blocked">████████</span>. Quand est-ce que tu viens ? Ne laisse pas <span class="blocked">██████</span> voir ça..."
             </div>
             <div class="deleted-message-footer">
-                <span class="deleted-message-time">Supprimé hier à 23h47</span>
-                <span class="deleted-message-unlock">🔓 Débloquer pour révéler le message complet</span>
+                <span class="deleted-message-time">Récupéré du cache • Effacé à 03h24</span>
+                <span class="deleted-message-unlock">🔓 Déverrouiller le message</span>
             </div>
         </div>
 
@@ -1819,20 +1940,20 @@
                 </div>
                 <div class="chat-preview">
                     <div class="chat-message received">
-                        <div class="chat-bubble locked">Hey chéri(e), tu viens ce soir ?</div>
+                        <div class="chat-bubble locked">Quand est-ce que je peux te revoir ?</div>
                     </div>
                     <div class="chat-message sent">
-                        <div class="chat-bubble locked">Oui ! J'ai trop hâte de te revoir...</div>
+                        <div class="chat-bubble locked">Demain soir, même endroit que la dernière fois ?</div>
                     </div>
                     <div class="chat-message received">
-                        <div class="chat-bubble locked">J'ai une surprise pour toi</div>
+                        <div class="chat-bubble locked">J'ai hâte. Tu me manques déjà...</div>
                     </div>
                     <div class="chat-message received" id="typingIndicator" style="opacity: 0; transition: opacity 0.3s;">
-                        <div class="chat-bubble" style="background: rgba(37, 211, 102, 0.15); padding: 8px 12px;">
+                        <div class="chat-bubble" style="background: rgba(233, 30, 99, 0.15); padding: 8px 12px;">
                             <div class="typing-dots" style="display: flex; gap: 4px;">
-                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out;"></span>
-                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.2s;"></span>
-                                <span style="width: 6px; height: 6px; background: #25D366; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.4s;"></span>
+                                <span style="width: 6px; height: 6px; background: #e91e63; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out;"></span>
+                                <span style="width: 6px; height: 6px; background: #e91e63; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.2s;"></span>
+                                <span style="width: 6px; height: 6px; background: #e91e63; border-radius: 50%; animation: typingDot 1.4s infinite ease-in-out 0.4s;"></span>
                             </div>
                         </div>
                     </div>
@@ -1857,6 +1978,20 @@
                 <div class="media-grid" id="mediaGrid">
                     <!-- Media items will be dynamically inserted based on gender -->
                 </div>
+            </div>
+
+            <!-- Dating Profiles Detected -->
+            <div class="feature-item">
+                <div class="feature-header">
+                    <div class="feature-title-row">
+                        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>
+                        </svg>
+                        <h3 class="feature-title">Profils de Rencontre</h3>
+                    </div>
+                    <p class="feature-desc">Profils trouvés liés à ce numéro sur les plateformes de rencontre.</p>
+                </div>
+                <div class="dating-profiles-list" id="datingProfilesList"></div>
             </div>
 
         <!-- Suspicious Locations -->
@@ -2085,43 +2220,13 @@
             </div>
         </div>
 
-        <!-- Protection de votre WhatsApp -->
-        <div id="userExposedSection" style="display:none;margin:16px 0;padding:16px;background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:14px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span style="font-size:18px;">🛡️</span>
-                </div>
-                <div>
-                    <div style="font-size:14px;font-weight:600;color:#128C7E;">Votre WhatsApp reste protégé, <span id="ctaUserFirstName"></span></div>
-                    <div style="font-size:11px;color:#667781;">100% anonyme • Aucune trace laissée</div>
-                </div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> Votre numéro n'est <strong style="color:#128C7E;">jamais exposé</strong> pendant le processus
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> <span id="ctaGenderPronoun2">Il/Elle</span> ne saura <strong>jamais</strong> que vous avez accédé à <span id="ctaGenderPronoun1">ses</span> données
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> Chiffrement militaire 256 bits protège votre identité
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#111b21;">
-                    <span style="color:#25D366;">✓</span> Aucune installation requise sur <span id="ctaGenderPronoun3">son</span> téléphone
-                </div>
-            </div>
-            <div style="font-size:11px;color:#667781;text-align:center;padding-top:6px;border-top:1px solid rgba(37,211,102,0.15);">
-                🔒 Vos données sont chiffrées et jamais partagées avec des tiers
-            </div>
-        </div>
-
         <!-- Pricing -->
         <div class="pricing-section" id="pricing">
             <div class="discount-badge" data-ab-discount>86% DE RÉDUCTION - TEMPS LIMITÉ</div>
             <div class="price-original" data-ab-original-price>€197</div>
             <div class="price-current" data-ab-price>€27</div>
             <div class="price-savings" data-ab-savings>Vous économisez €170 aujourd'hui !</div>
-            <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Paiement unique • <strong style="color:#25D366;">Accès à vie</strong></div>
+            <div style="font-size:13px;color:#8e8e93;margin-top:2px;">Paiement unique • <strong style="color:#e91e63;">Accès à vie</strong></div>
             <div class="price-info">Paiement unique • Accès instantané • Garantie 30 jours</div>
             <button class="cta-button" onclick="handlePurchase()" aria-label="Débloquer l'accès complet à Whats Spy">
                 <span class="cta-button-icon">🔓</span> Débloquer l'Accès Complet<br><span id="ctaBtnPhone" style="font-size:12px;font-weight:400;opacity:0.85;"></span>
@@ -2157,16 +2262,16 @@
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar-icon tav-1">🔍</div>
+                    <div class="testimonial-avatar-icon tav-1">S</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">user_8***2k</div>
+                        <div class="testimonial-name">Sophie L.</div>
                         <div class="testimonial-meta-row">
                             <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
                             <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
                 </div>
-                <p class="testimonial-text">J'avais un pressentiment depuis des mois que quelque chose n'allait pas. Il cachait toujours son téléphone, quittait la pièce pour envoyer des messages. J'ai trouvé des <em>conversations supprimées avec le même contact</em> remontant à des semaines. Des messages qu'il jurait n'avoir jamais envoyés. J'avais enfin la preuve de ce que je ressentais.</p>
+                <p class="testimonial-text">Je savais que quelque chose n'allait pas. Il emmenait son téléphone partout, même aux toilettes. Quand j'ai utilisé ceci, j'ai trouvé <em>des semaines de conversations supprimées avec le même numéro</em>. Des messages qu'il jurait n'avoir jamais envoyés. J'ai enfin arrêté de douter de moi-même.</p>
                 <div class="testimonial-footer">
                     <span class="testimonial-time">Il y a 2 jours • 🇫🇷</span>
                     <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 124 utile</span>
@@ -2175,35 +2280,35 @@
 
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar-icon tav-2">💔</div>
+                    <div class="testimonial-avatar-icon tav-2">T</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">anon_***91</div>
+                        <div class="testimonial-name">Thomas M.</div>
                         <div class="testimonial-meta-row">
                             <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
                             <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
                 </div>
-                <p class="testimonial-text">Elle disait toujours « c'est juste un collègue ». J'ai vu des <em>photos échangées puis supprimées</em>, des appels tard dans la nuit à 1h du matin, et un contact enregistré sous un faux nom. Tout ce dont j'avais besoin était là. Douloureux mais nécessaire.</p>
+                <p class="testimonial-text">« C'est juste un collègue » qu'elle répétait. J'ai trouvé <em>des photos partagées puis supprimées</em>, des appels à 2h du matin et un contact enregistré sous un faux nom. Tout était là, noir sur blanc. Ça a fait mal, mais j'avais besoin de savoir.</p>
                 <div class="testimonial-footer">
-                    <span class="testimonial-time">Il y a 8 heures • 🇧🇪</span>
+                    <span class="testimonial-time">Il y a 5 heures • 🇧🇪</span>
                     <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 89 utile</span>
                 </div>
             </div>
             <div class="testimonial-item">
                 <div class="testimonial-header">
-                    <div class="testimonial-avatar-icon tav-4">🔒</div>
+                    <div class="testimonial-avatar-icon tav-4">C</div>
                     <div class="testimonial-info">
-                        <div class="testimonial-name">anon_***4r</div>
+                        <div class="testimonial-name">Camille D.</div>
                         <div class="testimonial-meta-row">
                             <span class="testimonial-verified"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Achat Vérifié</span>
                             <span class="testimonial-stars">★★★★★</span>
                         </div>
                     </div>
                 </div>
-                <p class="testimonial-text">J'ai failli ne pas l'acheter. J'avais peur de ce que j'allais trouver. Il s'avère qu'elle avait <em>toute une vie secrète sur WhatsApp</em> — des contacts bloqués, des messages vocaux supprimés, des photos que je n'étais jamais censé voir. Ça fait mal, mais au moins maintenant je connais la vérité.</p>
+                <p class="testimonial-text">J'ai hésité une semaine avant de l'utiliser. Une partie de moi ne voulait pas savoir. Mais il avait <em>toute une vie cachée sur WhatsApp</em> — des contacts bloqués, des messages vocaux supprimés, des photos que je n'aurais jamais dû voir. La vérité fait mal, mais vivre dans l'ignorance était pire.</p>
                 <div class="testimonial-footer">
-                    <span class="testimonial-time">Il y a 3 jours • 🇨🇭</span>
+                    <span class="testimonial-time">Il y a 3 jours • 🇫🇷</span>
                     <span class="testimonial-helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M2 11h4l3 9h6l3-9h4"/></svg> 156 utile</span>
                 </div>
             </div>
@@ -2276,7 +2381,7 @@
         <!-- Security Badges -->
         <div class="security-badges">
             <div class="security-badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e91e63" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
                 SSL Sécurisé
             </div>
             <div class="security-badge">
@@ -2340,11 +2445,11 @@
 
         if (gender === 'female') {
             // User spying on female, show male photos
-            frequentContactImg.src = '../imagens/homem1.jpg';
+            frequentContactImg.src = '../imagens/spy-male-7.jpg';
             frequentContactName.innerHTML = '<span class="hidden">M***</span><span class="hidden">J***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
-                    <img src="../imagens/blocked-male-1.png" alt="">
+                    <img src="../imagens/spy-male-1.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2353,7 +2458,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-male-2.png" alt="">
+                    <img src="../imagens/spy-male-2.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2362,7 +2467,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-male-3.png" alt="">
+                    <img src="../imagens/spy-male-3.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2371,7 +2476,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-male-5.png" alt="">
+                    <img src="../imagens/spy-male-4.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2380,7 +2485,16 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-male-4.png" alt="">
+                    <img src="../imagens/spy-male-5.jpg" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/spy-male-6.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2391,11 +2505,11 @@
             `;
         } else {
             // User spying on male (default), show female photos
-            frequentContactImg.src = '../imagens/mulher1.jpg';
+            frequentContactImg.src = '../imagens/spy-female-7.jpg';
             frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">S***</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
-                    <img src="../imagens/blocked-female-1.png" alt="">
+                    <img src="../imagens/spy-female-1.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2404,7 +2518,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-female-2.png" alt="">
+                    <img src="../imagens/spy-female-2.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2413,7 +2527,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-female-3.png" alt="">
+                    <img src="../imagens/spy-female-3.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2422,7 +2536,7 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-female-5.png" alt="">
+                    <img src="../imagens/spy-female-4.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2431,7 +2545,16 @@
                     </div>
                 </div>
                 <div class="media-item">
-                    <img src="../imagens/blocked-female-4.png" alt="">
+                    <img src="../imagens/spy-female-5.jpg" alt="">
+                    <div class="media-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="media-item">
+                    <img src="../imagens/spy-female-6.jpg" alt="">
                     <div class="media-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2510,7 +2633,7 @@
                 html += '<img class="conv-avatar" src="../imagens/' + c.img + '" alt="">';
                 html += '<div class="conv-body"><div class="conv-name">' + c.name + '</div>';
                 if (c.msg === 'audio') {
-                    html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#25D366" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
+                    html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#e91e63" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
                 } else {
                     html += '<div class="conv-msg">' + c.msg + '</div>';
                 }
@@ -2523,24 +2646,72 @@
             cl.innerHTML = html;
         })();
 
-        // Load target phone from localStorage
-        const targetPhone = localStorage.getItem('targetPhone') || '+** (***) ***-4567';
-        document.getElementById('targetPhone').textContent = targetPhone;
-        var btnPhone = document.getElementById('ctaBtnPhone');
-        if (btnPhone) btnPhone.textContent = '📱 ' + targetPhone;
+        // Populate dating profiles
+        var datingList = document.getElementById('datingProfilesList');
+        if (datingList) {
+            var dpPhotos = gender === 'female'
+                ? ['../imagens/spy-male-3.jpg', '../imagens/spy-male-4.jpg', '', '../imagens/spy-male-5.jpg']
+                : ['../imagens/spy-female-3.jpg', '../imagens/spy-female-4.jpg', '', '../imagens/spy-female-5.jpg'];
 
-        const targetNameEl = document.getElementById('profileTargetName');
-        if (targetNameEl) {
-            const savedPhone = localStorage.getItem('targetPhone');
-            if (savedPhone) {
-                const masked = savedPhone.substring(0, 4) + '****' + savedPhone.substring(savedPhone.length - 2);
-                targetNameEl.textContent = masked;
-            }
+            var dpData = [
+                { name: 'Tinder', icon: '🔥', cls: 'dp-tinder', found: true,
+                  lines: ['Profil enregistré avec ce numéro', '4 photos téléchargées · Activité récente'] },
+                { name: 'Bumble', icon: '🐝', cls: 'dp-bumble', found: true,
+                  lines: ['Profil de rencontre vérifié', 'Galerie photos · Historique de connexions'] },
+                { name: 'Hinge', icon: 'H', cls: 'dp-hinge', found: false,
+                  lines: ['Aucun profil actif détecté', 'Numéro non lié au compte'] },
+                { name: 'OnlyFans', icon: '🔒', cls: 'dp-onlyfans', found: true,
+                  lines: ['Compte enregistré', 'Contenu publié · Données d\'abonnés'] }
+            ];
+
+            datingList.innerHTML = dpData.map(function(d, i) {
+                var photoHtml = '';
+                if (d.found && dpPhotos[i]) {
+                    photoHtml = '<div class="dp-photo" style="background-image:url(' + dpPhotos[i] + ')"></div>';
+                }
+                return '<div class="dating-profile-card">' +
+                    '<div class="dp-icon ' + d.cls + '">' + d.icon + '</div>' +
+                    '<div class="dp-info">' +
+                        '<div class="dp-name">' + d.name + ' <span class="dp-badge ' + (d.found ? 'dp-found' : 'dp-not-found') + '">' + (d.found ? 'VÉRIFIÉ' : 'NON TROUVÉ') + '</span></div>' +
+                        '<div class="dp-detail blurred">' + d.lines[0] + '</div>' +
+                        '<div class="dp-detail blurred">' + d.lines[1] + '</div>' +
+                    '</div>' +
+                    photoHtml +
+                '</div>';
+            }).join('');
         }
 
+        // Load target info from localStorage
+        var savedPhone = localStorage.getItem('targetPhone') || '+** (***) ***-4567';
+        var savedName = localStorage.getItem('targetName');
+        var savedCity = localStorage.getItem('userCity');
+        var savedState = localStorage.getItem('userState');
+
+        var nameEl = document.getElementById('profileTargetName');
+        var phoneEl = document.getElementById('targetPhone');
+        var locEl = document.getElementById('profileLocation');
+        var locText = document.getElementById('profileLocationText');
+
+        if (savedName) {
+            nameEl.textContent = savedName;
+            phoneEl.textContent = savedPhone;
+        } else {
+            var masked = savedPhone.substring(0, 4) + '****' + savedPhone.substring(savedPhone.length - 2);
+            nameEl.textContent = masked;
+            phoneEl.textContent = savedPhone;
+        }
+
+        if (savedCity && locEl && locText) {
+            locText.textContent = savedCity + (savedState ? ', ' + savedState : '');
+            locEl.style.display = 'flex';
+        }
+
+        var btnPhone = document.getElementById('ctaBtnPhone');
+        if (btnPhone) btnPhone.textContent = '📱 ' + savedPhone;
+
         // Load target avatar from localStorage
-        const targetAvatar = localStorage.getItem('targetAvatar');
-        const avatarImg = document.getElementById('targetAvatar');
+        var targetAvatar = localStorage.getItem('targetAvatar');
+        var avatarImg = document.getElementById('targetAvatar');
         if (targetAvatar && targetAvatar !== 'null' && targetAvatar.startsWith('http')) {
             avatarImg.src = targetAvatar;
         } else {
@@ -2585,25 +2756,55 @@
             element.parentElement.classList.toggle('open');
         }
 
-        // Handle purchase - check if already captured lead data
         function handlePurchase() {
-            const existingEmail = localStorage.getItem('userEmail');
-            const existingWhatsApp = localStorage.getItem('userWhatsApp');
-            
-            // If already captured on phone page, go directly to checkout
-            if (existingEmail && existingWhatsApp) {
-                proceedToCheckout();
-                return;
+            showResponsibilityPopup();
+        }
+
+        function showResponsibilityPopup() {
+            var popup = document.getElementById('responsibilityPopup');
+            if (!popup) { proceedToCheckout(); return; }
+
+            var cb = document.getElementById('rpCheckbox');
+            var btn = document.getElementById('rpAcceptBtn');
+            if (cb) { cb.checked = false; }
+            if (btn) { btn.disabled = true; btn.classList.remove('rp-active'); }
+
+            popup.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            var nameEl = document.getElementById('rpUserName');
+            var uName = localStorage.getItem('userName') || '';
+            if (uName && nameEl) {
+                var firstName = uName.trim().split(' ')[0];
+                firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                nameEl.textContent = firstName;
             }
-            
-            // Otherwise show email capture modal
-            if (typeof EmailCapture !== 'undefined') {
-                EmailCapture.show(function(userData) {
-                    proceedToCheckout();
-                });
-            } else {
-                proceedToCheckout();
+
+            var slotsEl = document.getElementById('rpSlots');
+            var slots = parseInt(localStorage.getItem('accessSlots')) || 3;
+            if (slotsEl) slotsEl.textContent = slots;
+        }
+
+        function closeResponsibilityPopup() {
+            var popup = document.getElementById('responsibilityPopup');
+            if (popup) popup.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function toggleRpAccept() {
+            var cb = document.getElementById('rpCheckbox');
+            var btn = document.getElementById('rpAcceptBtn');
+            if (cb && btn) {
+                btn.disabled = !cb.checked;
+                btn.classList.toggle('rp-active', cb.checked);
             }
+        }
+
+        function acceptResponsibility() {
+            var cb = document.getElementById('rpCheckbox');
+            if (!cb || !cb.checked) return;
+            closeResponsibilityPopup();
+            proceedToCheckout();
         }
         
         // Proceed to checkout with all tracking
@@ -2727,7 +2928,7 @@
                 const pct = Math.max(0, 100 - (elapsed / totalDuration) * 100);
                 fill.style.width = pct + '%';
                 if (pct > 60) {
-                    fill.style.background = 'linear-gradient(90deg, #25D366, #25D366)';
+                    fill.style.background = 'linear-gradient(90deg, #e91e63, #e91e63)';
                 } else if (pct > 30) {
                     fill.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
                 } else {
@@ -3043,54 +3244,229 @@
             }
         })();
 
-        // Populate WhatsApp protection section
-        (function() {
-            var uName = localStorage.getItem('userName');
-            var section = document.getElementById('userExposedSection');
-            if (section) {
-                section.style.display = 'block';
-                if (uName) {
-                    var firstName = uName.trim().split(' ')[0];
-                    firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-                    var el = document.getElementById('ctaUserFirstName');
-                    if (el) el.textContent = firstName;
-                }
-            }
-        })();
-
-        // Set gender pronouns
-        (function() {
-            var g = (typeof gender !== 'undefined') ? gender : 'male';
-            if (g === 'female') {
-                var p1 = document.getElementById('ctaGenderPronoun1'); if (p1) p1.textContent = 'ses';
-                var p2 = document.getElementById('ctaGenderPronoun2'); if (p2) p2.textContent = 'Elle';
-                var p3 = document.getElementById('ctaGenderPronoun3'); if (p3) p3.textContent = 'son';
-            } else {
-                var p1 = document.getElementById('ctaGenderPronoun1'); if (p1) p1.textContent = 'ses';
-                var p2 = document.getElementById('ctaGenderPronoun2'); if (p2) p2.textContent = 'Il';
-                var p3 = document.getElementById('ctaGenderPronoun3'); if (p3) p3.textContent = 'son';
-            }
-        })();
-
     </script>
-    <div id="floatingCta" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:1000; padding:10px 16px 12px; background:linear-gradient(to top, rgba(0,0,0,0.97), rgba(0,0,0,0.9)); backdrop-filter:blur(12px); border-top:1px solid rgba(37,211,102,0.3);">
+
+    <!-- Responsibility Popup -->
+    <div id="responsibilityPopup" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div class="rp-modal">
+            <button class="rp-close" onclick="closeResponsibilityPopup()" aria-label="Fermer">✕</button>
+            <div class="rp-icon">⚠️</div>
+            <h2 class="rp-title"><span id="rpUserName">Utilisateur</span>, lisez ceci avant de continuer.</h2>
+            <p class="rp-text">Vous êtes sur le point d'accéder à un <strong>outil bêta restreint</strong> capable de récupérer des messages supprimés, de suivre la localisation en temps réel et d'exposer des conversations cachées — le tout <strong>sans être détecté</strong>.</p>
+            <div class="rp-warning">Toute utilisation abusive entraînera la <strong>révocation immédiate et permanente</strong> de l'accès.</div>
+            <p class="rp-text rp-fee">Les frais uniques couvrent l'infrastructure de serveurs cryptés et le routage sécurisé des données. WhatsSpy fonctionne à capacité limitée pendant cette phase bêta.</p>
+            <div class="rp-slots">
+                <span class="rp-slots-dot"></span>
+                Seulement <strong id="rpSlots">3</strong> places d'accès bêta restantes
+            </div>
+            <div class="rp-blacklist-warning">
+                <strong>⛔ Important :</strong> En acceptant et en passant au paiement, vous réservez l'une des places restantes. Si vous <strong>ne finalisez pas le paiement</strong>, votre accès sera <strong>définitivement bloqué</strong> sur tous nos systèmes et vos données seront ajoutées à notre <strong>liste noire restreinte</strong>. Cette action est irréversible.
+            </div>
+            <label class="rp-checkbox-label" for="rpCheckbox">
+                <input type="checkbox" id="rpCheckbox" onchange="toggleRpAccept()">
+                <span class="rp-checkmark"></span>
+                <span>Je comprends les risques et j'accepte <strong>l'entière responsabilité</strong> de l'utilisation de cet outil.</span>
+            </label>
+            <button class="rp-accept-btn" id="rpAcceptBtn" disabled onclick="acceptResponsibility()">
+                J'accepte — Procéder au paiement →
+            </button>
+        </div>
+    </div>
+    <style>
+        .rp-modal {
+            background: #1a1a1e;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 32px 24px;
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            animation: rpSlideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @keyframes rpSlideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .rp-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #8e8e93;
+            font-size: 18px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .rp-close:hover { background: rgba(255,255,255,0.08); }
+        .rp-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
+        .rp-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin: 0 0 16px;
+            line-height: 1.3;
+        }
+        .rp-text {
+            font-size: 14px;
+            color: #b0b0b5;
+            line-height: 1.6;
+            margin: 0 0 12px;
+            text-align: center;
+        }
+        .rp-text strong { color: #e5e5ea; }
+        .rp-warning {
+            background: rgba(255,59,48,0.08);
+            border: 1px solid rgba(255,59,48,0.2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 0 0 12px;
+            line-height: 1.5;
+        }
+        .rp-warning strong { color: #ff453a; }
+        .rp-fee { font-size: 13px; color: #8e8e93; }
+        .rp-confirm-section { margin: 16px 0 8px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+        .rp-confirm-title { font-size: 13px; font-weight: 600; color: #e5e5ea; margin-bottom: 12px; }
+        .rp-field { margin-bottom: 10px; }
+        .rp-field:last-of-type { margin-bottom: 0; }
+        .rp-field-label { display: block; font-size: 11px; color: #8e8e93; margin-bottom: 4px; font-weight: 500; }
+        .rp-input { width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .rp-input:focus { border-color: #e91e63; }
+        .rp-input::placeholder { color: #555; }
+        .rp-field-error { font-size: 12px; color: #ff453a; margin-top: 8px; min-height: 16px; }
+        .rp-slots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #ff9500;
+            font-weight: 600;
+            margin: 16px 0;
+        }
+        .rp-slots strong { color: #ff9500; }
+        .rp-slots-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff3b30;
+            animation: rpPulse 1.5s infinite;
+        }
+        @keyframes rpPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .rp-blacklist-warning {
+            background: rgba(255, 59, 48, 0.08);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .rp-blacklist-warning strong {
+            color: #FF3B30;
+        }
+        .rp-checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            margin: 16px 0;
+            transition: border-color 0.2s;
+        }
+        .rp-checkbox-label:hover { border-color: rgba(233,30,99,0.3); }
+        .rp-checkbox-label input[type="checkbox"] { display: none; }
+        .rp-checkmark {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-top: 1px;
+        }
+        .rp-checkbox-label input:checked ~ .rp-checkmark {
+            background: #e91e63;
+            border-color: #e91e63;
+        }
+        .rp-checkbox-label input:checked ~ .rp-checkmark::after {
+            content: '✓';
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .rp-checkbox-label span:last-child {
+            font-size: 13px;
+            color: #b0b0b5;
+            line-height: 1.5;
+        }
+        .rp-checkbox-label span:last-child strong { color: #e5e5ea; }
+        .rp-accept-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: default;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.06);
+            color: #555;
+        }
+        .rp-accept-btn.rp-active {
+            background: linear-gradient(135deg,#e91e63,#c2185b);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(233,30,99,0.4);
+        }
+        .rp-accept-btn.rp-active:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(233,30,99,0.5);
+        }
+    </style>
+
+    <!-- Floating CTA for Mobile -->
+    <div id="floatingCta" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:1000; padding:10px 16px 12px; background:linear-gradient(to top, rgba(0,0,0,0.97), rgba(0,0,0,0.9)); backdrop-filter:blur(12px); border-top:1px solid rgba(233,30,99,0.3);">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; padding:0 4px;">
-            <span style="font-size:13px; color:#e5e5ea; font-weight:600;"><span style="text-decoration:line-through;color:#8e8e93;font-weight:400;">€197</span> → <span style="color:#25D366;">€27</span></span>
+            <span style="font-size:13px; color:#e5e5ea; font-weight:600;"><span style="text-decoration:line-through;color:#8e8e93;font-weight:400;">€197</span> → <span style="color:#e91e63;">€27</span></span>
             <span style="font-size:11px; color:#8e8e93;">paiement unique • garantie 30 jours</span>
         </div>
-        <button onclick="handlePurchase()" style="width:100%; padding:14px; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; font-size:16px; font-weight:700; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(37,211,102,0.5); animation:floatPulse 2s infinite;">
+        <button onclick="handlePurchase()" style="width:100%; padding:14px; background:linear-gradient(135deg,#e91e63,#c2185b); color:#fff; font-size:16px; font-weight:700; border:none; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px rgba(233,30,99,0.5); animation:floatPulse 2s infinite;">
             🔓 Débloquer l'Accès Complet
         </button>
     </div>
     <style>
         @keyframes floatPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(37,211,102,0.5); }
-            50% { transform: scale(1.02); box-shadow: 0 4px 30px rgba(37,211,102,0.7); }
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(233,30,99,0.5); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 30px rgba(233,30,99,0.7); }
         }
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
     </style>
+    <script src="../js/urgency-bar.js"></script>
 </body>
 </html>

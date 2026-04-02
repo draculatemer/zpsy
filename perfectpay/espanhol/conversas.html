@@ -35,6 +35,7 @@
     
     <!-- Enhanced Tracking -->
     <script src="js/tracking-utils.js"></script>
+    <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
     
@@ -111,8 +112,8 @@
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --text-muted: #636366;
-            --green-primary: #25d366;
-            --green-dark: #128c7e;
+            --green-primary: #e91e63;
+            --green-dark: #c2185b;
             --blue-check: #34b7f1;
             --red-alert: #ff3b30;
             --orange-alert: #ff9500;
@@ -876,15 +877,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(37,211,102,0.15);
+            background: rgba(233,30,99,0.15);
             color: var(--green-primary);
             font-size: 18px;
             font-weight: 700;
         }
 
         @keyframes modalPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(37,211,102,0.4); }
-            50% { transform: scale(1.03); box-shadow: 0 6px 32px rgba(37,211,102,0.6); }
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(233,30,99,0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 6px 32px rgba(233,30,99,0.6); }
         }
 
         .modal-btn {
@@ -991,7 +992,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(37, 211, 102, 0.1);
+            background: rgba(233, 30, 99, 0.1);
             padding: 8px 12px;
             border-radius: 20px;
             margin-top: 4px;
@@ -1600,8 +1601,8 @@
 
         /* Inline widget: Audio Intercepted */
         .widget-audio {
-            background: rgba(37,211,102,0.08);
-            border: 1px solid rgba(37,211,102,0.2);
+            background: rgba(233,30,99,0.08);
+            border: 1px solid rgba(233,30,99,0.2);
             border-radius: 16px;
             padding: 14px 20px;
             margin: 8px 16px;
@@ -1730,118 +1731,6 @@
             line-height: 1.5;
         }
 
-        /* ========== MODAL CAPTURE FORM ========== */
-        .modal-capture-form {
-            display: none;
-            text-align: left;
-            margin-top: 16px;
-        }
-        .modal-capture-form.show {
-            display: block;
-        }
-        .modal-capture-form .mcf-group {
-            margin-bottom: 12px;
-        }
-        .modal-capture-form .mcf-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 500;
-            color: #8696a0;
-            margin-bottom: 6px;
-        }
-        .modal-capture-form .mcf-input {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(31, 44, 52, 0.8);
-            border: 1px solid rgba(59, 74, 84, 0.5);
-            border-radius: 10px;
-            color: #E9EDEF;
-            font-size: 15px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s, background 0.2s;
-            box-sizing: border-box;
-        }
-        .modal-capture-form .mcf-input:focus {
-            border-color: #25D366;
-            background: rgba(31, 44, 52, 1);
-        }
-        .modal-capture-form .mcf-input::placeholder {
-            color: #8696a0;
-        }
-        .modal-capture-form .mcf-phone-row {
-            display: flex;
-            gap: 8px;
-        }
-        .modal-capture-form .mcf-country {
-            min-width: 85px;
-            padding: 12px 10px;
-            background-color: rgba(31, 44, 52, 0.8);
-            border: 1px solid rgba(59, 74, 84, 0.5);
-            border-radius: 10px;
-            color: #E9EDEF;
-            font-size: 15px;
-            font-family: inherit;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238696a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-        }
-        .modal-capture-form .mcf-country:focus {
-            border-color: #25D366;
-            background-color: rgba(31, 44, 52, 1);
-        }
-        .modal-capture-form .mcf-phone-input {
-            flex: 1;
-        }
-        .modal-capture-form .mcf-error {
-            color: #ef4444;
-            font-size: 11px;
-            margin-top: 4px;
-            display: none;
-        }
-        .modal-capture-form .mcf-error.visible {
-            display: block;
-        }
-        .modal-capture-form .mcf-note {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            background: rgba(37,211,102,0.05);
-            border: 1px solid rgba(37,211,102,0.15);
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 12px;
-            font-size: 11px;
-            color: #8696a0;
-            line-height: 1.4;
-        }
-        .modal-capture-form .mcf-note strong {
-            color: #25D366;
-        }
-        .mcf-submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 14px;
-            transition: transform 0.2s;
-        }
-        .mcf-submit-btn:active {
-            transform: scale(0.97);
-        }
-        @keyframes mcfShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
 
     </style>
 </head>
@@ -1995,8 +1884,8 @@
             <p class="modal-text" id="modalText">Esta conversación contiene <strong>mensajes eliminados</strong> y contenido sospechoso.</p>
 
 
-            <div id="modalDataSummary" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 12px;margin:10px 0 6px;">
-                <div style="font-size:11px;color:#25D366;font-weight:600;margin-bottom:6px;">📊 Datos recuperados de este número:</div>
+            <div id="modalDataSummary" style="background:rgba(233,30,99,0.08);border:1px solid rgba(233,30,99,0.2);border-radius:10px;padding:10px 12px;margin:10px 0 6px;">
+                <div style="font-size:11px;color:#e91e63;font-weight:600;margin-bottom:6px;">📊 Datos recuperados de este número:</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px;color:#e5e5ea;">
                     <span>🗑️ <strong id="modalDeleted">--</strong> msgs eliminados</span>
                     <span>📸 <strong id="modalMedia">--</strong> medios ocultos</span>
@@ -2006,248 +1895,9 @@
             </div>
 
 
-            <button class="modal-btn" id="modalCTA" onclick="goToCTA()" style="animation:modalPulse 2s infinite;">
+            <button class="modal-btn" id="modalCTA" onclick="goToCTAPage()" style="animation:modalPulse 2s infinite;">
                 🔓 Desbloquear Todas las Conversaciones
             </button>
-            <!-- Capture Form in Modal -->
-            <div class="modal-capture-form" id="modalCaptureForm">
-                <div class="mcf-user-info" id="mcfUserInfo" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none;">
-                    <div style="font-size:12px;color:#8696a0;margin-bottom:2px;">Conectado como:</div>
-                    <div style="font-size:14px;color:#e9edef;font-weight:600;" id="mcfUserDisplay"></div>
-                </div>
-                <div class="mcf-group">
-                    <label class="mcf-label">Tu número de WhatsApp</label>
-                    <div class="mcf-phone-row">
-                        <select class="mcf-country" id="mcfCountry">
-                            <option value="+1">🇺🇸 +1</option>
-                            <option value="+1">🇨🇦 +1</option>
-                            <option value="+7">🇷🇺 +7</option>
-                            <option value="+7">🇰🇿 +7</option>
-                            <option value="+20">🇪🇬 +20</option>
-                            <option value="+27">🇿🇦 +27</option>
-                            <option value="+30">🇬🇷 +30</option>
-                            <option value="+31">🇳🇱 +31</option>
-                            <option value="+32">🇧🇪 +32</option>
-                            <option value="+33">🇫🇷 +33</option>
-                            <option value="+34">🇪🇸 +34</option>
-                            <option value="+36">🇭🇺 +36</option>
-                            <option value="+39">🇮🇹 +39</option>
-                            <option value="+40">🇷🇴 +40</option>
-                            <option value="+41">🇨🇭 +41</option>
-                            <option value="+43">🇦🇹 +43</option>
-                            <option value="+44">🇬🇧 +44</option>
-                            <option value="+45">🇩🇰 +45</option>
-                            <option value="+46">🇸🇪 +46</option>
-                            <option value="+47">🇳🇴 +47</option>
-                            <option value="+48">🇵🇱 +48</option>
-                            <option value="+49">🇩🇪 +49</option>
-                            <option value="+51">🇵🇪 +51</option>
-                            <option value="+52">🇲🇽 +52</option>
-                            <option value="+53">🇨🇺 +53</option>
-                            <option value="+54">🇦🇷 +54</option>
-                            <option value="+55">🇧🇷 +55</option>
-                            <option value="+56">🇨🇱 +56</option>
-                            <option value="+57">🇨🇴 +57</option>
-                            <option value="+58">🇻🇪 +58</option>
-                            <option value="+60">🇲🇾 +60</option>
-                            <option value="+61">🇦🇺 +61</option>
-                            <option value="+62">🇮🇩 +62</option>
-                            <option value="+63">🇵🇭 +63</option>
-                            <option value="+64">🇳🇿 +64</option>
-                            <option value="+65">🇸🇬 +65</option>
-                            <option value="+66">🇹🇭 +66</option>
-                            <option value="+81">🇯🇵 +81</option>
-                            <option value="+82">🇰🇷 +82</option>
-                            <option value="+84">🇻🇳 +84</option>
-                            <option value="+86">🇨🇳 +86</option>
-                            <option value="+90">🇹🇷 +90</option>
-                            <option value="+91">🇮🇳 +91</option>
-                            <option value="+92">🇵🇰 +92</option>
-                            <option value="+93">🇦🇫 +93</option>
-                            <option value="+94">🇱🇰 +94</option>
-                            <option value="+95">🇲🇲 +95</option>
-                            <option value="+98">🇮🇷 +98</option>
-                            <option value="+212">🇲🇦 +212</option>
-                            <option value="+213">🇩🇿 +213</option>
-                            <option value="+216">🇹🇳 +216</option>
-                            <option value="+218">🇱🇾 +218</option>
-                            <option value="+220">🇬🇲 +220</option>
-                            <option value="+221">🇸🇳 +221</option>
-                            <option value="+224">🇬🇳 +224</option>
-                            <option value="+225">🇨🇮 +225</option>
-                            <option value="+226">🇧🇫 +226</option>
-                            <option value="+227">🇳🇪 +227</option>
-                            <option value="+228">🇹🇬 +228</option>
-                            <option value="+229">🇧🇯 +229</option>
-                            <option value="+230">🇲🇺 +230</option>
-                            <option value="+231">🇱🇷 +231</option>
-                            <option value="+232">🇸🇱 +232</option>
-                            <option value="+233">🇬🇭 +233</option>
-                            <option value="+234">🇳🇬 +234</option>
-                            <option value="+235">🇹🇩 +235</option>
-                            <option value="+236">🇨🇫 +236</option>
-                            <option value="+237">🇨🇲 +237</option>
-                            <option value="+238">🇨🇻 +238</option>
-                            <option value="+239">🇸🇹 +239</option>
-                            <option value="+240">🇬🇶 +240</option>
-                            <option value="+241">🇬🇦 +241</option>
-                            <option value="+242">🇨🇬 +242</option>
-                            <option value="+243">🇨🇩 +243</option>
-                            <option value="+244">🇦🇴 +244</option>
-                            <option value="+245">🇬🇼 +245</option>
-                            <option value="+248">🇸🇨 +248</option>
-                            <option value="+249">🇸🇩 +249</option>
-                            <option value="+250">🇷🇼 +250</option>
-                            <option value="+251">🇪🇹 +251</option>
-                            <option value="+252">🇸🇴 +252</option>
-                            <option value="+253">🇩🇯 +253</option>
-                            <option value="+254">🇰🇪 +254</option>
-                            <option value="+255">🇹🇿 +255</option>
-                            <option value="+256">🇺🇬 +256</option>
-                            <option value="+257">🇧🇮 +257</option>
-                            <option value="+258">🇲🇿 +258</option>
-                            <option value="+260">🇿🇲 +260</option>
-                            <option value="+261">🇲🇬 +261</option>
-                            <option value="+262">🇷🇪 +262</option>
-                            <option value="+263">🇿🇼 +263</option>
-                            <option value="+264">🇳🇦 +264</option>
-                            <option value="+265">🇲🇼 +265</option>
-                            <option value="+266">🇱🇸 +266</option>
-                            <option value="+267">🇧🇼 +267</option>
-                            <option value="+268">🇸🇿 +268</option>
-                            <option value="+269">🇰🇲 +269</option>
-                            <option value="+290">🇸🇭 +290</option>
-                            <option value="+291">🇪🇷 +291</option>
-                            <option value="+297">🇦🇼 +297</option>
-                            <option value="+351">🇵🇹 +351</option>
-                            <option value="+352">🇱🇺 +352</option>
-                            <option value="+353">🇮🇪 +353</option>
-                            <option value="+354">🇮🇸 +354</option>
-                            <option value="+355">🇦🇱 +355</option>
-                            <option value="+356">🇲🇹 +356</option>
-                            <option value="+357">🇨🇾 +357</option>
-                            <option value="+358">🇫🇮 +358</option>
-                            <option value="+359">🇧🇬 +359</option>
-                            <option value="+370">🇱🇹 +370</option>
-                            <option value="+371">🇱🇻 +371</option>
-                            <option value="+372">🇪🇪 +372</option>
-                            <option value="+373">🇲🇩 +373</option>
-                            <option value="+374">🇦🇲 +374</option>
-                            <option value="+375">🇧🇾 +375</option>
-                            <option value="+376">🇦🇩 +376</option>
-                            <option value="+377">🇲🇨 +377</option>
-                            <option value="+378">🇸🇲 +378</option>
-                            <option value="+380">🇺🇦 +380</option>
-                            <option value="+381">🇷🇸 +381</option>
-                            <option value="+382">🇲🇪 +382</option>
-                            <option value="+383">🇽🇰 +383</option>
-                            <option value="+385">🇭🇷 +385</option>
-                            <option value="+386">🇸🇮 +386</option>
-                            <option value="+387">🇧🇦 +387</option>
-                            <option value="+389">🇲🇰 +389</option>
-                            <option value="+420">🇨🇿 +420</option>
-                            <option value="+421">🇸🇰 +421</option>
-                            <option value="+423">🇱🇮 +423</option>
-                            <option value="+501">🇧🇿 +501</option>
-                            <option value="+502">🇬🇹 +502</option>
-                            <option value="+503">🇸🇻 +503</option>
-                            <option value="+504">🇭🇳 +504</option>
-                            <option value="+505">🇳🇮 +505</option>
-                            <option value="+506">🇨🇷 +506</option>
-                            <option value="+507">🇵🇦 +507</option>
-                            <option value="+509">🇭🇹 +509</option>
-                            <option value="+590">🇬🇵 +590</option>
-                            <option value="+591">🇧🇴 +591</option>
-                            <option value="+592">🇬🇾 +592</option>
-                            <option value="+593">🇪🇨 +593</option>
-                            <option value="+594">🇬🇫 +594</option>
-                            <option value="+595">🇵🇾 +595</option>
-                            <option value="+596">🇲🇶 +596</option>
-                            <option value="+597">🇸🇷 +597</option>
-                            <option value="+598">🇺🇾 +598</option>
-                            <option value="+599">🇧🇶 +599</option>
-                            <option value="+670">🇹🇱 +670</option>
-                            <option value="+673">🇧🇳 +673</option>
-                            <option value="+674">🇳🇷 +674</option>
-                            <option value="+675">🇵🇬 +675</option>
-                            <option value="+676">🇹🇴 +676</option>
-                            <option value="+677">🇸🇧 +677</option>
-                            <option value="+678">🇻🇺 +678</option>
-                            <option value="+679">🇫🇯 +679</option>
-                            <option value="+680">🇵🇼 +680</option>
-                            <option value="+681">🇼🇫 +681</option>
-                            <option value="+682">🇨🇰 +682</option>
-                            <option value="+683">🇳🇺 +683</option>
-                            <option value="+685">🇼🇸 +685</option>
-                            <option value="+686">🇰🇮 +686</option>
-                            <option value="+687">🇳🇨 +687</option>
-                            <option value="+688">🇹🇻 +688</option>
-                            <option value="+689">🇵🇫 +689</option>
-                            <option value="+690">🇹🇰 +690</option>
-                            <option value="+691">🇫🇲 +691</option>
-                            <option value="+692">🇲🇭 +692</option>
-                            <option value="+850">🇰🇵 +850</option>
-                            <option value="+852">🇭🇰 +852</option>
-                            <option value="+853">🇲🇴 +853</option>
-                            <option value="+855">🇰🇭 +855</option>
-                            <option value="+856">🇱🇦 +856</option>
-                            <option value="+880">🇧🇩 +880</option>
-                            <option value="+886">🇹🇼 +886</option>
-                            <option value="+960">🇲🇻 +960</option>
-                            <option value="+961">🇱🇧 +961</option>
-                            <option value="+962">🇯🇴 +962</option>
-                            <option value="+963">🇸🇾 +963</option>
-                            <option value="+964">🇮🇶 +964</option>
-                            <option value="+965">🇰🇼 +965</option>
-                            <option value="+966">🇸🇦 +966</option>
-                            <option value="+967">🇾🇪 +967</option>
-                            <option value="+968">🇴🇲 +968</option>
-                            <option value="+970">🇵🇸 +970</option>
-                            <option value="+971">🇦🇪 +971</option>
-                            <option value="+972">🇮🇱 +972</option>
-                            <option value="+973">🇧🇭 +973</option>
-                            <option value="+974">🇶🇦 +974</option>
-                            <option value="+975">🇧🇹 +975</option>
-                            <option value="+976">🇲🇳 +976</option>
-                            <option value="+977">🇳🇵 +977</option>
-                            <option value="+992">🇹🇯 +992</option>
-                            <option value="+993">🇹🇲 +993</option>
-                            <option value="+994">🇦🇿 +994</option>
-                            <option value="+995">🇬🇪 +995</option>
-                            <option value="+996">🇰🇬 +996</option>
-                            <option value="+998">🇺🇿 +998</option>
-                            <option value="+1242">🇧🇸 +1242</option>
-                            <option value="+1246">🇧🇧 +1246</option>
-                            <option value="+1264">🇦🇮 +1264</option>
-                            <option value="+1268">🇦🇬 +1268</option>
-                            <option value="+1284">🇻🇬 +1284</option>
-                            <option value="+1340">🇻🇮 +1340</option>
-                            <option value="+1345">🇰🇾 +1345</option>
-                            <option value="+1441">🇧🇲 +1441</option>
-                            <option value="+1473">🇬🇩 +1473</option>
-                            <option value="+1649">🇹🇨 +1649</option>
-                            <option value="+1664">🇲🇸 +1664</option>
-                            <option value="+1721">🇸🇽 +1721</option>
-                            <option value="+1758">🇱🇨 +1758</option>
-                            <option value="+1767">🇩🇲 +1767</option>
-                            <option value="+1784">🇻🇨 +1784</option>
-                            <option value="+1787">🇵🇷 +1787</option>
-                            <option value="+1809">🇩🇴 +1809</option>
-                            <option value="+1868">🇹🇹 +1868</option>
-                            <option value="+1869">🇰🇳 +1869</option>
-                            <option value="+1876">🇯🇲 +1876</option>
-                            <option value="+5999">🇨🇼 +5999</option>
-                        </select>
-                        <input type="tel" class="mcf-input mcf-phone-input" id="mcfWhatsApp" placeholder="Tu número">
-                    </div>
-                    <div class="mcf-error" id="mcfWhatsAppError">Por favor ingresa tu número de WhatsApp</div>
-                </div>
-                <div class="mcf-note">
-                    <span>📩</span>
-                    <span>Recibirás todas las <strong>conversaciones, fotos, videos y ubicaciones</strong> recuperadas en tu email y WhatsApp, además de acceso completo a la app <strong>Whats Spy</strong>.</span>
-                </div>
-                <button class="mcf-submit-btn" onclick="submitCaptureForm()">🔓 Desbloquear Todas las Conversaciones</button>
-            </div>
         </div>
     </div>
 
@@ -2266,7 +1916,7 @@
     <script>
         // Obtener el género que se está espiando desde la URL
         const urlParams = new URLSearchParams(window.location.search);
-        const targetGender = urlParams.get('gender') || 'female'; // default: espiando a mujer
+        const targetGender = urlParams.get('gender') || localStorage.getItem('targetGender') || 'male';
         
         // Determinar qué género debe aparecer como contactos sospechosos
         // Si espía a MUJER (novia) -> contactos sospechosos deben ser HOMBRES
@@ -2319,38 +1969,38 @@
         }
 
         const allConversations = [
-            { name: '❤️ Mi Am**', avatar: 'imagens/blocked-male-1.png', message: '✓✓ Tú: ¡Te qui**o!', time: '09:19', pinned: true, blur: 'full', tags: [] },
-            { name: 'Mejor Am***', avatar: 'imagens/blocked-female-2.png', message: '✓✓ Tú: ¡Te llamo lue**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
-            { name: fakePhone(47), avatar: 'imagens/blocked-male-3.png', message: 'Borra esto después de leer, no quiero qu***...', time: '01:22', unread: 12, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: fakePhone(83), avatar: 'imagens/blocked-female-4.png', message: "Te esp*** aquí...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: 'Car***', avatar: 'imagens/blocked-female-6.png', message: '✓✓ Tú: ¡Gracias am**o!', time: '08:30', blur: 'full', tags: [] },
-            { name: 'Pab** (Trabajo)', avatar: 'imagens/blocked-male-2.png', message: '📷 Foto', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Luc**', avatar: 'imagens/blocked-male-4.png', message: '✓✓ Tú: ¡Nos vem** luego!', time: '10:15', blur: 'full', tags: [] },
+            { name: '❤️ Mi Am**', avatar: 'imagens/spy-male-1.jpg', message: '✓✓ Tú: ¡Te qui**o!', time: '09:19', pinned: true, blur: 'full', tags: [] },
+            { name: 'Mejor Am***', avatar: 'imagens/spy-female-2.jpg', message: '✓✓ Tú: ¡Te llamo lue**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
+            { name: fakePhone(47), avatar: 'imagens/spy-male-3.jpg', message: 'Borra esto después de leer, no quiero qu***...', time: '01:22', unread: 12, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: fakePhone(83), avatar: 'imagens/spy-female-4.jpg', message: "Te esp*** aquí...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            { name: 'Car***', avatar: 'imagens/spy-female-6.jpg', message: '✓✓ Tú: ¡Gracias am**o!', time: '08:30', blur: 'full', tags: [] },
+            { name: 'Pab** (Trabajo)', avatar: 'imagens/spy-male-2.jpg', message: '📷 Foto', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Luc**', avatar: 'imagens/spy-male-4.jpg', message: '✓✓ Tú: ¡Nos vem** luego!', time: '10:15', blur: 'full', tags: [] },
             { name: 'Planes Finde 🎉', avatar: null, message: '✓✓ Tú: ¡Buenos dí**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
-            { name: 'J', avatar: 'imagens/blocked-female-3.png', message: 'Te extraño mucho, ¿cuándo podemos v***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Mig**', avatar: 'imagens/blocked-female-5.png', message: '¿Partido esta noc**?', time: '15:45', blur: 'full', unread: 2, tags: [] },
+            { name: 'J', avatar: 'imagens/spy-female-3.jpg', message: 'Te extraño mucho, ¿cuándo podemos v***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Mig**', avatar: 'imagens/spy-female-5.jpg', message: '¿Partido esta noc**?', time: '15:45', blur: 'full', unread: 2, tags: [] },
             { name: 'Equipo Trabajo', avatar: null, message: '~ Miguel: ¿Reunión mañ***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
-            { name: 'Contacto Bloqueado', avatar: 'imagens/blocked-male-5.png', message: 'Todavía pien** en nosot***...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: 'Contacto Eliminado', avatar: 'imagens/blocked-female-6.png', message: 'Nunca dejé de ama***...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
-            { name: 'Dieg* (Jefe)', avatar: 'imagens/blocked-male-2.png', message: 'Informe para mañ***', time: '17:00', blur: 'full', tags: [] },
-            { name: 'Andr**', avatar: 'imagens/blocked-female-1.png', message: '✓✓ Tú: ¡Lo haré!', time: '16:30', blur: 'full', tags: [] },
-            { name: fakePhone(62), avatar: 'imagens/blocked-male-4.png', message: '📍 Ubicación compart***', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Carm**', avatar: 'imagens/blocked-male-6.png', message: '¿Almuerzo?', time: '12:00', blur: 'full', tags: [] },
+            { name: 'Contacto Bloqueado', avatar: 'imagens/spy-male-5.jpg', message: 'Todavía pien** en nosot***...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            { name: 'Contacto Eliminado', avatar: 'imagens/spy-female-6.jpg', message: 'Nunca dejé de ama***...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            { name: 'Dieg* (Jefe)', avatar: 'imagens/spy-male-2.jpg', message: 'Informe para mañ***', time: '17:00', blur: 'full', tags: [] },
+            { name: 'Andr**', avatar: 'imagens/spy-female-1.jpg', message: '✓✓ Tú: ¡Lo haré!', time: '16:30', blur: 'full', tags: [] },
+            { name: fakePhone(62), avatar: 'imagens/spy-male-4.jpg', message: '📍 Ubicación compart***', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: 'Carm**', avatar: 'imagens/spy-male-6.jpg', message: '¿Almuerzo?', time: '12:00', blur: 'full', tags: [] },
             { name: 'Amigos', avatar: null, message: '~ Sara: ¡Este sáb*** en mi ca**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
-            { name: 'Amor', avatar: 'imagens/blocked-female-5.png', message: '¿Mismo lugar que la última v**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Chris** (Nuevo)', avatar: 'imagens/blocked-male-1.png', message: '¿Ejercicio y luego cen***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
-            { name: 'Clínica', avatar: 'imagens/blocked-female-2.png', message: 'Cita confirmada para...', time: 'Ayer', blur: 'full', tags: [] },
-            { name: 'Gimnasio', avatar: 'imagens/blocked-male-3.png', message: '✓✓ Tú: ¡Nos vemos a las 6!', time: 'Lunes', blur: 'full', tags: [] },
-            { name: 'Tay*** (Trabajo)', avatar: 'imagens/blocked-female-4.png', message: '¿Sesión privada esta noc**?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
+            { name: 'Amor', avatar: 'imagens/spy-female-5.jpg', message: '¿Mismo lugar que la última v**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Chris** (Nuevo)', avatar: 'imagens/spy-male-1.jpg', message: '¿Ejercicio y luego cen***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
+            { name: 'Clínica', avatar: 'imagens/spy-female-2.jpg', message: 'Cita confirmada para...', time: 'Ayer', blur: 'full', tags: [] },
+            { name: 'Gimnasio', avatar: 'imagens/spy-male-3.jpg', message: '✓✓ Tú: ¡Nos vemos a las 6!', time: 'Lunes', blur: 'full', tags: [] },
+            { name: 'Tay*** (Trabajo)', avatar: 'imagens/spy-female-4.jpg', message: '¿Sesión privada esta noc**?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
             { name: '🔒 Grupo Secreto', avatar: null, message: '~ Desconocido: Nos vemos en el lug***...', time: '01:00', unread: 34, blur: 'full', lateNight: true, isGroup: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Ex - No Contest***', avatar: 'imagens/blocked-female-3.png', message: 'Sé que leíste mi mensa***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
-            { name: 'Viaje Uber', avatar: 'imagens/blocked-female-3.png', message: 'Viaje al Hotel *** a las 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
-            { name: 'Número Privado', avatar: 'imagens/blocked-female-6.png', message: '🎤 Audio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: '(Bloqueado)', avatar: 'imagens/blocked-female-2.png', message: '¿Por qué me bloqu***?', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
-            { name: 'Banco', avatar: 'imagens/blocked-male-6.png', message: 'Estado de cuenta disponib***', time: 'Hace 1 mes', blur: 'full', tags: [] },
-            { name: 'Farmacia', avatar: 'imagens/blocked-female-5.png', message: '¡Receta list**!', time: 'Hace 1 mes', blur: 'full', tags: [] },
-            { name: fakePhone(91), avatar: 'imagens/blocked-male-1.png', message: '🎤 Audio (1:22)', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
-            { name: 'Contacto Nuevo', avatar: 'imagens/blocked-male-5.png', message: '¿Almuerzo en mi ofici**?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] }
+            { name: 'Ex - No Contest***', avatar: 'imagens/spy-female-3.jpg', message: 'Sé que leíste mi mensa***...', time: '03:40', unread: 19, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Viaje Uber', avatar: 'imagens/spy-female-3.jpg', message: 'Viaje al Hotel *** a las 11:4** PM', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+            { name: 'Número Privado', avatar: 'imagens/spy-female-6.jpg', message: '🎤 Audio (5:23)', time: '02:00', unread: 1, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: '(Bloqueado)', avatar: 'imagens/spy-female-2.jpg', message: '¿Por qué me bloqu***?', time: '04:30', unread: 22, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Banco', avatar: 'imagens/spy-male-6.jpg', message: 'Estado de cuenta disponib***', time: 'Hace 1 mes', blur: 'full', tags: [] },
+            { name: 'Farmacia', avatar: 'imagens/spy-female-5.jpg', message: '¡Receta list**!', time: 'Hace 1 mes', blur: 'full', tags: [] },
+            { name: fakePhone(91), avatar: 'imagens/spy-male-1.jpg', message: '🎤 Audio (1:22)', time: '03:15', unread: 1, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: 'Contacto Nuevo', avatar: 'imagens/spy-male-5.jpg', message: '¿Almuerzo en mi ofici**?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] }
         ];
 
         var maleNames = ['Carl**','Dani**','Mig**','Andr**','Jorg**','Pedr**','Ale**','Santi**','Dieg**','Manu**','Fern**','Gabr**','Vic**'];
@@ -2636,125 +2286,15 @@
             document.getElementById('modalOverlay').classList.remove('show');
             document.getElementById('modalCTA').style.display = '';
             document.getElementById('modalDataSummary').style.display = '';
-            document.getElementById('modalCaptureForm').classList.remove('show');
         }
 
-        const _BACKEND_API = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
-        const _waCache = {};
-        async function _whatsappCheck(phone) {
-            if (_waCache[phone]) return _waCache[phone];
-            try {
-                const r = await fetch(_BACKEND_API + '/api/whatsapp-check/' + phone);
-                if (r.ok) { const d = await r.json(); _waCache[phone] = d; return d; }
-            } catch(e) {}
-            return { registered: true, picture: null };
-        }
-        async function zapiCall(endpoint) {
-            const m = endpoint.match(/phone-exists\/(\d+)/);
-            if (m) { const d = await _whatsappCheck(m[1]); return { exists: d.registered }; }
-            const p = endpoint.match(/phone=(\d+)/);
-            if (p) { const d = await _whatsappCheck(p[1]); return { link: d.picture }; }
-            return null;
-        }
-
-        function goToCTA() {
-            document.getElementById('modalCTA').style.display = 'none';
-            document.getElementById('modalDataSummary').style.display = 'none';
-            document.getElementById('modalCaptureForm').classList.add('show');
-            var sn = localStorage.getItem('userName');
-            var se = localStorage.getItem('userEmail');
-            var sp = localStorage.getItem('userPhoneNumber');
-            if (sn && se) {
-                var infoEl = document.getElementById('mcfUserInfo');
-                if (infoEl) { infoEl.style.display = 'block'; }
-                var dispEl = document.getElementById('mcfUserDisplay');
-                if (dispEl) { dispEl.textContent = sn + ' • ' + se; }
-            }
-            if (sp) document.getElementById('mcfWhatsApp').value = sp;
-            var countryMap = {'US':'+1','CA':'+1','GB':'+44','AU':'+61','NZ':'+64','IE':'+353','ZA':'+27','IN':'+91','PK':'+92','BD':'+880','PH':'+63','NG':'+234','KE':'+254','GH':'+233','MX':'+52','CO':'+57','AR':'+54','CL':'+56','PE':'+51','VE':'+58','EC':'+593','BR':'+55','PT':'+351','ES':'+34','FR':'+33','DE':'+49','IT':'+39','NL':'+31','BE':'+32','SE':'+46','NO':'+47','DK':'+45','FI':'+358','PL':'+48','RO':'+40','CZ':'+420','AT':'+43','CH':'+41','RU':'+7','UA':'+380','TR':'+90','SA':'+966','AE':'+971','EG':'+20','IL':'+972','JP':'+81','KR':'+82','CN':'+86','TW':'+886','TH':'+66','VN':'+84','MY':'+60','SG':'+65','ID':'+62','HK':'+852','SN':'+221','CI':'+225','CM':'+237','TZ':'+255','UG':'+256','ET':'+251','MZ':'+258','AO':'+244','CD':'+243','MA':'+212','TN':'+216','DZ':'+213','LY':'+218','SD':'+249','ZW':'+263','ZM':'+260','BW':'+267','NA':'+264','RW':'+250','MG':'+261','DO':'+1809','PA':'+507','CR':'+506','GT':'+502','HN':'+504','SV':'+503','NI':'+505','BO':'+591','PY':'+595','UY':'+598','CU':'+53','JM':'+1876','TT':'+1868','HT':'+509','PR':'+1787','GR':'+30','HR':'+385','RS':'+381','BG':'+359','HU':'+36','SK':'+421','SI':'+386','LT':'+370','LV':'+371','EE':'+372','IS':'+354','GE':'+995','AZ':'+994','AM':'+374','KZ':'+7','UZ':'+998','MM':'+95','KH':'+855','LA':'+856','LK':'+94','NP':'+977','AF':'+93','IQ':'+964','IR':'+98','JO':'+962','LB':'+961','KW':'+965','QA':'+974','BH':'+973','OM':'+968','YE':'+967'};
-            var cc = localStorage.getItem('userCountryCode') || localStorage.getItem('detectedCountry');
-            if (cc && countryMap[cc]) {
-                var dialCode = countryMap[cc];
-                var sel = document.getElementById('mcfCountry');
-                for (var i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === dialCode) { sel.selectedIndex = i; break; }
-                }
-            }
-        }
-
-        async function submitCaptureForm() {
-            var name = localStorage.getItem('userName') || '';
-            var email = localStorage.getItem('userEmail') || '';
-            var country = document.getElementById('mcfCountry').value;
-            var whatsapp = document.getElementById('mcfWhatsApp').value.trim();
-
-            document.getElementById('mcfWhatsAppError').classList.remove('visible');
-
-            if (!whatsapp || whatsapp.length < 6) {
-                document.getElementById('mcfWhatsAppError').classList.add('visible');
-                document.getElementById('modalCaptureForm').style.animation = 'mcfShake 0.4s ease';
-                setTimeout(function() { document.getElementById('modalCaptureForm').style.animation = ''; }, 500);
-                return;
-            }
-
-            try {
-                var fullPhone = (country + whatsapp).replace(/\+/g, '');
-                var phoneCheck = await zapiCall('phone-exists/' + fullPhone);
-                if (phoneCheck && phoneCheck.exists === false) {
-                    document.getElementById('mcfWhatsAppError').textContent = 'Este número no está registrado en WhatsApp';
-                    document.getElementById('mcfWhatsAppError').classList.add('visible');
-                    return;
-                }
-            } catch(e) {}
-
-            localStorage.setItem('userWhatsApp', country + whatsapp);
-            localStorage.setItem('userCountryCode', country);
-            localStorage.setItem('userPhoneNumber', whatsapp);
-
-            try {
-                var userFullPhone = (country + whatsapp).replace(/\+/g, '');
-                var picData = await zapiCall('profile-picture?phone=' + userFullPhone);
-                if (picData && picData.link && picData.link !== 'null' && picData.link !== null && picData.link.startsWith('http')) {
-                    localStorage.setItem('userAvatar', picData.link);
-                }
-            } catch(e) {}
-
-            var visitorId = localStorage.getItem('funnelVisitorId');
-            if (!visitorId) {
-                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('funnelVisitorId', visitorId);
-            }
-
-            var ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
-            try {
-                fetch(ZAPSPY_API_URL + '/api/leads', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        whatsapp: country + whatsapp,
-                        targetPhone: localStorage.getItem('targetPhone') || '',
-                        targetGender: localStorage.getItem('targetGender') || '',
-                        country_code: localStorage.getItem('userCountryCode') || '',
-                        city: localStorage.getItem('userCity') || '',
-                        state: localStorage.getItem('userState') || '',
-                        pageUrl: window.location.href,
-                        funnelLanguage: 'es',
-                        funnelSource: 'conversations',
-                        timestamp: new Date().toISOString(),
-                        userAgent: navigator.userAgent,
-                        referrer: document.referrer,
-                        visitorId: visitorId
-                    })
-                }).catch(function() {});
-            } catch(e) {}
-
+        function goToCTAPage() {
             const urlParams = new URLSearchParams(window.location.search);
-            const gender = urlParams.get('gender');
-            var navUrl = 'cta-unified.html?gender=' + (gender || targetGender || 'male');
-            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
+            const g = urlParams.get('gender') || (typeof targetGender !== 'undefined' ? targetGender : '') || 'male';
+            var url = 'cta-unified.html?gender=' + g;
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(url) : url;
         }
+
 
         // Timer countdown with localStorage persistence
         var timerStorageKey = 'convTimerEnd';
@@ -2878,7 +2418,7 @@
                 const textEl = item.querySelector('.conversation-text');
                 if (textEl) {
                     const originalText = textEl.textContent;
-                    textEl.innerHTML = '<span style="color: #25d366; font-style: italic;">escribiendo...</span>';
+                    textEl.innerHTML = '<span style="color: #e91e63; font-style: italic;">escribiendo...</span>';
                     textEl.style.filter = 'none';
                     setTimeout(() => {
                         textEl.textContent = originalText;
@@ -2912,7 +2452,7 @@
                             <span style="font-size:11px;color:#ff3b30;margin-left:auto;flex-shrink:0;">ahora</span>
                         </div>
                         <div class="conversation-preview">
-                            <span class="conversation-text" style="color:#25d366;font-style:italic;">escribiendo...</span>
+                            <span class="conversation-text" style="color:#e91e63;font-style:italic;">escribiendo...</span>
                         </div>
                         <div class="conversation-tags">
                             <span class="tag evidence">🔴 EN VIVO</span>
@@ -3045,6 +2585,10 @@
                 var navImg = document.getElementById('navAvatar');
                 var navFallback = document.getElementById('navAvatarFallback');
                 if (navImg) {
+                    navImg.onerror = function() {
+                        navImg.style.display = 'none';
+                        if (navFallback) navFallback.style.display = '';
+                    };
                     navImg.src = targetAv;
                     navImg.style.display = 'block';
                     if (navFallback) navFallback.style.display = 'none';
@@ -3091,5 +2635,6 @@
             document.querySelectorAll('.genderPronoun3').forEach(function(el) { el.textContent = 'te oculta'; });
         })();
     </script>
+    <script src="js/urgency-bar.js"></script>
 </body>
 </html>

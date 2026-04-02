@@ -2,6 +2,7 @@
     'use strict';
 
     var DEST = (window.location.pathname.indexOf('/quiz/') !== -1) ? '../bridge.html' : 'bridge.html';
+    var _fromPhone = (window.location.search.indexOf('from_phone=true') !== -1);
     var TOTAL = 8;
     var ANALYSIS_MS = 10000;
 
@@ -18,36 +19,36 @@
     ];
 
     var SIGNAL_MAP = {
-        2: { a: 'Protección extrema del celular — comportamiento típico de quien esconde conversaciones', b: 'Celular siempre en silencio — patrón de ocultación de notificaciones' },
-        3: { a: 'Actividad sospechosa en redes sociales — perfiles ocultos o conversaciones borradas', b: 'Tiempo excesivo en redes sociales sin transparencia' },
-        4: { a: 'Cambio drástico de rutina — pretextos nuevos e inexplicables', b: 'Pequeñas inconsistencias en la rutina — horarios e historias que no cuadran' },
-        5: { a: 'Frialdad emocional y distancia en la intimidad', b: 'Oscilación emocional — patrón de culpa y compensación' },
-        6: { a: 'Amabilidades excesivas sin motivo — comportamiento clásico de compensación por culpa', b: 'Momentos aislados de culpa aparente' },
-        7: { a: 'Provocación de conflictos para justificar distancia', b: 'Aumento de irritabilidad e impaciencia sin causa' },
-        8: { a: 'Intuición fuerte de que algo está siendo ocultado', b: 'Duda persistente e inseguridad constante' }
+        2: { a: 'Motivo legítimo: sospecha fundamentada que requiere investigación', b: 'Dudas iniciales que requieren aclaración' },
+        3: { a: 'Preparación emocional confirmada para recibir información sensible', b: 'Preparación parcial — requiere seguimiento' },
+        4: { a: 'Exposición prolongada a estrés emocional — caso prioritario', b: 'Impacto reciente pero creciente en la salud mental' },
+        5: { a: 'Compromiso total de confidencialidad y uso responsable confirmado', b: 'Compromiso parcial de confidencialidad' },
+        6: { a: 'Métodos alternativos agotados — necesidad comprobada', b: 'Hesitación para actuar por miedo a la confrontación' },
+        7: { a: 'Perfil de reacción responsable y controlada', b: 'Intención de buscar la verdad antes de actuar' },
+        8: { a: 'Aceptación completa de los términos y responsabilidades', b: 'Aceptación con reservas — perfil cauteloso' }
     };
 
     var LEVELS = {
         high: {
-            label: 'ALTO RIESGO',
-            color: '#ef4444',
-            headline: 'Tu relación presenta múltiples señales críticas de infidelidad.',
-            diag: 'Tus respuestas revelan un <strong>patrón consistente y alarmante</strong>. Las señales que describiste aparecen juntas en el <strong>87% de los casos que se confirmaron como infidelidad</strong>. Esto no es ansiedad. No es inseguridad. Es tu instinto reconociendo un patrón real — y casi nunca se equivoca.',
-            stat: '87%'
+            label: 'ACCESO INMEDIATO APROBADO',
+            color: '#22c55e',
+            headline: 'Verificación completada. Has sido aprobado/a para acceso inmediato.',
+            diag: 'Tus respuestas demuestran <strong>necesidad genuina y madurez emocional</strong> para utilizar esta herramienta. Tu perfil cumple todos los criterios de seguridad. <strong>Acceso liberado sin restricciones</strong> — aprovecha mientras tu plaza está reservada.',
+            stat: '97%'
         },
         moderate: {
-            label: 'RIESGO MODERADO',
+            label: 'ACCESO APROBADO',
             color: '#f59e0b',
-            headline: 'Existen señales preocupantes que no puedes ignorar.',
-            diag: 'Tu perfil revela <strong>señales moderadas pero significativas</strong>. En el 64% de los casos con este perfil, la sospecha se confirmó después. La diferencia entre quienes descubrieron a tiempo y quienes descubrieron demasiado tarde fue <strong>una decisión: actuar ahora o esperar</strong>.',
-            stat: '64%'
+            headline: 'Verificación completada. Tu acceso ha sido liberado.',
+            diag: 'Tu perfil cumple los <strong>criterios mínimos de seguridad</strong>. Aunque algunas respuestas indican hesitación, identificamos necesidad real. <strong>Tu acceso ha sido aprobado</strong> — pero es limitado y puede expirar en cualquier momento.',
+            stat: '83%'
         },
         low: {
-            label: 'ATENCIÓN',
-            color: '#22c55e',
-            headline: 'Pocas señales detectadas — pero algo te trajo hasta aquí.',
-            diag: 'Los indicadores son bajos, pero el hecho de que hayas llegado hasta aquí revela una <strong>duda que no se va sola</strong>. En el 38% de los casos con este perfil, había algo siendo ocultado. La única forma de tener paz es <strong>tener certeza</strong>.',
-            stat: '38%'
+            label: 'ACCESO CONDICIONAL',
+            color: '#f59e0b',
+            headline: 'Verificación completada. Acceso liberado con restricciones.',
+            diag: 'Aunque tus respuestas indican menor urgencia, el hecho de haber llegado hasta aquí demuestra una <strong>necesidad que no puede ser ignorada</strong>. Tu acceso ha sido liberado condicionalmente — <strong>actúa ahora antes de que expire</strong>.',
+            stat: '64%'
         }
     };
 
@@ -59,9 +60,23 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+        personalizeGreeting();
         typewriteHook();
         bindAll();
     });
+
+    function personalizeGreeting() {
+        var el = document.getElementById('hookGreeting');
+        if (!el) return;
+        var name = '';
+        try { name = localStorage.getItem('userName') || ''; } catch(e) {}
+        if (name) {
+            var first = name.trim().split(' ')[0];
+            first = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+            el.innerHTML = '<span>' + first + '</span>, necesitamos verificar tu acceso.';
+            el.style.display = '';
+        }
+    }
 
     function typewriteHook() {
         var el = document.getElementById('hookTitle');
@@ -114,7 +129,17 @@
 
     function bindAll() {
         document.getElementById('btnStart').addEventListener('click', function() {
-            goToScene(1);
+            var startScene = 1;
+            if (_fromPhone) {
+                var gp = new URLSearchParams(window.location.search).get('gender');
+                if (gp) {
+                    state.gender = gp;
+                    state.answers[1] = { value: gp, points: 0 };
+                    localStorage.setItem('targetGender', gp);
+                    startScene = 2;
+                }
+            }
+            goToScene(startScene);
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.trackEvent('QuizStarted', { content_name: 'Quiz' });
             } else if (typeof fbq === 'function') {
@@ -256,7 +281,8 @@
         document.getElementById('resLevel').textContent = level.label;
         document.getElementById('resLevel').style.color = c;
         document.getElementById('resHeadline').textContent = level.headline;
-        document.getElementById('resStat').textContent = level.stat;
+        var resStatEl = document.getElementById('resStat');
+        if (resStatEl) resStatEl.textContent = level.stat;
         document.getElementById('resNumber').style.color = c;
         document.querySelector('.res-pct').style.color = c;
 
@@ -308,12 +334,19 @@
             }
         } catch(e) { console.error('URL build error:', e); }
 
+        if (_fromPhone) {
+            var gp = state.gender || localStorage.getItem('targetGender') || '';
+            url = '../phone.html?resume=true' + (gp ? '&gender=' + gp : '');
+        }
+
         goToScene('result');
 
         var ctaF = document.getElementById('ctaFinal');
         var ctaS = document.getElementById('ctaSecondary');
         if (ctaF) { ctaF.href = url; ctaF.onclick = function() { window.location.href = url; }; }
         if (ctaS) { ctaS.href = url; ctaS.onclick = function() { window.location.href = url; }; }
+
+        startAccessCountdown();
 
         setTimeout(function() {
             arc.style.strokeDashoffset = offset;
@@ -333,6 +366,43 @@
         } else if (typeof fbq === 'function') {
             fbq('trackCustom', 'QuizCompleted', quizData);
         }
+    }
+
+    function startAccessCountdown() {
+        var COUNTDOWN_KEY = 'accessExpiresAt';
+        var SLOTS_KEY = 'accessSlots';
+        var DURATION = 15 * 60 * 1000;
+
+        var expiresAt = localStorage.getItem(COUNTDOWN_KEY);
+        if (!expiresAt) {
+            expiresAt = Date.now() + DURATION;
+            localStorage.setItem(COUNTDOWN_KEY, expiresAt);
+            localStorage.setItem(SLOTS_KEY, Math.floor(Math.random() * 3) + 2);
+        }
+        expiresAt = parseInt(expiresAt);
+
+        var box = document.getElementById('resCountdownBox');
+        var timerEl = document.getElementById('countdownTimer');
+        var slotsEl = document.getElementById('countdownSlots');
+        if (!box || !timerEl) return;
+
+        var slots = parseInt(localStorage.getItem(SLOTS_KEY)) || 3;
+        if (slotsEl) slotsEl.textContent = slots;
+
+        box.style.display = '';
+
+        function tick() {
+            var remaining = Math.max(0, expiresAt - Date.now());
+            var mins = Math.floor(remaining / 60000);
+            var secs = Math.floor((remaining % 60000) / 1000);
+            timerEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+            if (mins < 5) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+
+            if (remaining > 0) setTimeout(tick, 1000);
+        }
+        tick();
     }
 
     function countUp(id, from, to, duration) {

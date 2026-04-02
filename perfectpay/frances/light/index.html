@@ -97,7 +97,7 @@
 
         html, body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f2f2f7;
+            background: #f5f0eb;
             color: #1c1c1e;
             min-height: 100vh;
             overflow-x: hidden;
@@ -106,7 +106,7 @@
         .login-bg {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: #f2f2f7;
+            background: #f5f0eb;
             overflow: hidden;
             z-index: 0;
         }
@@ -116,8 +116,8 @@
             top: 0; left: 0; right: 0; bottom: 0;
             opacity: 0.08;
             background-image:
-                linear-gradient(rgba(37, 211, 102, 0.15) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(37, 211, 102, 0.15) 1px, transparent 1px);
+                linear-gradient(rgba(233, 30, 99, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(233, 30, 99, 0.15) 1px, transparent 1px);
             background-size: 40px 40px;
         }
 
@@ -129,7 +129,7 @@
 
         .circuit-line {
             position: absolute;
-            background: linear-gradient(90deg, transparent, rgba(37, 211, 102, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.1), transparent);
             height: 1px;
             animation: circuitFlow 8s linear infinite;
         }
@@ -162,7 +162,7 @@
             height: 100px;
             margin-bottom: 20px;
             animation: floatShield 3s ease-in-out infinite;
-            filter: drop-shadow(0 10px 30px rgba(37, 211, 102, 0.3));
+            filter: drop-shadow(0 10px 30px rgba(233, 30, 99, 0.3));
         }
 
         @keyframes floatShield {
@@ -171,16 +171,17 @@
         }
 
         .brand-name {
-            font-size: 20px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.5px;
+            text-align: center;
             color: #1c1c1e;
             margin-bottom: 6px;
             animation: fadeInUp 0.6s ease-out 0.2s both;
         }
 
         .brand-name .dot {
-            color: #25D366;
+            color: #e91e63;
         }
 
         .brand-tagline {
@@ -234,9 +235,9 @@
         }
 
         .login-input:focus {
-            border-color: #25D366;
+            border-color: #e91e63;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
         }
 
         .input-error {
@@ -281,7 +282,7 @@
         .login-btn {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(135deg, #25D366, #128C7E);
+            background: linear-gradient(135deg, #e91e63, #c2185b);
             border: none;
             border-radius: 14px;
             color: #fff;
@@ -354,7 +355,7 @@
         @media (max-height: 650px) {
             .container { padding: 20px; }
             .shield-logo { width: 70px; height: 70px; margin-bottom: 12px; }
-            .brand-name { font-size: 17px; }
+            .brand-name { font-size: 22px; }
             .brand-tagline { margin-bottom: 24px; }
             .bottom-trust { margin-top: 30px; }
         }
@@ -378,10 +379,10 @@
             <defs>
                 <linearGradient id="shieldGrad" x1="20" y1="10" x2="100" y2="130">
                     <stop offset="0%" stop-color="#34eb7a"/>
-                    <stop offset="100%" stop-color="#128C7E"/>
+                    <stop offset="100%" stop-color="#c2185b"/>
                 </linearGradient>
                 <linearGradient id="shieldInner" x1="30" y1="20" x2="90" y2="120">
-                    <stop offset="0%" stop-color="#25D366"/>
+                    <stop offset="0%" stop-color="#e91e63"/>
                     <stop offset="100%" stop-color="#0d6e4f"/>
                 </linearGradient>
             </defs>
