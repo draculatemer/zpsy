@@ -76,25 +76,18 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
     try {
         const phone = req.params.phone.replace(/\D/g, '');
         if (!phone || phone.length < 8) {
-            return res.json({ registered: false, picture: null });
+            return res.json({ registered: true, picture: null, name: null });
         }
 
         console.log(`📱 WhatsApp check: ${phone}`);
 
-        const { exists: isRegistered } = await zapiPhoneExists(phone);
-        const [picture, name] = await Promise.all([
-            zapiProfilePicture(phone),
-            zapiContactName(phone)
-        ]);
+        const picture = await zapiProfilePicture(phone);
 
-        const finalRegistered = isRegistered || !!picture;
-
-        console.log(`📱 WhatsApp check response: ${phone} → registered=${finalRegistered}, picture=${picture ? 'YES' : 'NO'}, name=${name || 'N/A'}`);
-        res.json({ registered: finalRegistered, picture, name: name || null });
+        console.log(`📱 WhatsApp check response: ${phone} → picture=${picture ? 'YES' : 'NO'}`);
+        res.json({ registered: true, picture, name: null });
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
-        // On error, assume registered to avoid losing leads
-        res.json({ registered: true, picture: null });
+        res.json({ registered: true, picture: null, name: null });
     }
 });
 
@@ -314,32 +307,7 @@ router.post('/api/leads', leadLimiter, async (req, res) => {
         invalidateCache('trends');
         invalidateCache('traffic-sources');
         
-        // Auto-verify WhatsApp for new leads (async - does not block response)
-        if (isNewLead && whatsapp && result.rows[0]?.id) {
-            const leadId = result.rows[0].id;
-            const cleanPhone = whatsapp.replace(/\D/g, '');
-            if (cleanPhone.length >= 10) {
-                setImmediate(async () => {
-                    try {
-                        const { exists: isRegistered } = await zapiPhoneExists(cleanPhone);
-                        const profilePicture = isRegistered ? await zapiProfilePicture(cleanPhone) : null;
-                        
-                        await pool.query(`
-                            UPDATE leads SET 
-                                whatsapp_verified = $1,
-                                whatsapp_verified_at = NOW(),
-                                whatsapp_profile_pic = $2,
-                                updated_at = NOW()
-                            WHERE id = $3
-                        `, [isRegistered, profilePicture, leadId]);
-                        
-                        console.log(`📱 Auto-verified WhatsApp for lead #${leadId}: ${cleanPhone} → ${isRegistered ? '✓ Valid' : '✕ Invalid'}${profilePicture ? ' (with pic)' : ''}`);
-                    } catch (verifyError) {
-                        console.log(`📱 Auto-verify WhatsApp failed for lead #${leadId}:`, verifyError.message);
-                    }
-                });
-            }
-        }
+        // Auto-verify removed to protect WhatsApp from bans (too many Z-API calls)
         
         // ==================== ACTIVECAMPAIGN: Lead Captured ====================
         // Send lead to ActiveCampaign (async, non-blocking)
