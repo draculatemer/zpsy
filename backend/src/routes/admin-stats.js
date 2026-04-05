@@ -2805,4 +2805,108 @@ router.get('/api/admin/gads-purchase-logs', authenticateToken, async (req, res) 
     }
 });
 
+// ==================== CAPI MONITOR ====================
+
+router.get('/api/admin/capi-monitor', authenticateToken, async (req, res) => {
+    try {
+        const days = parseInt(req.query.days) || 14;
+
+        // Daily breakdown by event type and language
+        const daily = await pool.query(`
+            SELECT 
+                DATE(created_at) as day,
+                event_name,
+                funnel_language,
+                COUNT(*) as total,
+                SUM(CASE WHEN fb_success THEN 1 ELSE 0 END) as success,
+                SUM(CASE WHEN blocked_reason IS NOT NULL THEN 1 ELSE 0 END) as blocked
+            FROM capi_event_logs
+            WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+            GROUP BY DATE(created_at), event_name, funnel_language
+            ORDER BY day DESC, event_name
+        `, [days]);
+
+        // Today vs yesterday summary
+        const summary = await pool.query(`
+            SELECT 
+                CASE 
+                    WHEN created_at >= DATE_TRUNC('day', NOW()) THEN 'today'
+                    WHEN created_at >= DATE_TRUNC('day', NOW()) - INTERVAL '1 day' AND created_at < DATE_TRUNC('day', NOW()) THEN 'yesterday'
+                    ELSE 'older'
+                END as period,
+                COUNT(*) as total,
+                SUM(CASE WHEN fb_success THEN 1 ELSE 0 END) as success,
+                COUNT(DISTINCT event_name) as event_types
+            FROM capi_event_logs
+            WHERE created_at >= NOW() - INTERVAL '7 days'
+            GROUP BY period
+        `);
+
+        // Breakdown by language today
+        const byLang = await pool.query(`
+            SELECT 
+                COALESCE(funnel_language, 'en') as lang,
+                event_name,
+                COUNT(*) as total,
+                SUM(CASE WHEN fb_success THEN 1 ELSE 0 END) as success
+            FROM capi_event_logs
+            WHERE created_at >= DATE_TRUNC('day', NOW())
+            GROUP BY funnel_language, event_name
+            ORDER BY total DESC
+        `);
+
+        res.json({ daily: daily.rows, summary: summary.rows, byLanguage: byLang.rows });
+    } catch (error) {
+        console.error('CAPI monitor error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== WHATSAPP STATS ====================
+
+router.get('/api/admin/whatsapp-stats', authenticateToken, async (req, res) => {
+    try {
+        const days = parseInt(req.query.days) || 30;
+
+        // Daily stats
+        const daily = await pool.query(`
+            SELECT 
+                DATE(created_at) as day,
+                COUNT(*) as total_checks,
+                SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) as with_picture,
+                ROUND(100.0 * SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as success_rate
+            FROM whatsapp_check_logs
+            WHERE created_at >= NOW() - ($1 || ' days')::INTERVAL
+            GROUP BY DATE(created_at)
+            ORDER BY day DESC
+        `, [days]);
+
+        // Today summary
+        const today = await pool.query(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) as with_picture,
+                ROUND(100.0 * SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as success_rate
+            FROM whatsapp_check_logs
+            WHERE created_at >= DATE_TRUNC('day', NOW())
+        `);
+
+        // Recent checks (last 50, phone masked)
+        const recent = await pool.query(`
+            SELECT 
+                CONCAT(LEFT(phone, 4), '****', RIGHT(phone, 3)) as phone_masked,
+                has_picture,
+                created_at
+            FROM whatsapp_check_logs
+            ORDER BY created_at DESC
+            LIMIT 50
+        `);
+
+        res.json({ daily: daily.rows, today: today.rows[0], recent: recent.rows });
+    } catch (error) {
+        console.error('WhatsApp stats error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

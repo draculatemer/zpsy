@@ -3291,6 +3291,99 @@
                             </table>
                         </div>
                     </div>
+                    <!-- ==================== CAPI MONITOR ==================== -->
+                    <div class="data-panel" style="margin-bottom: 24px;">
+                        <div class="panel-header" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));">
+                            <div class="panel-title"><h2>📡 CAPI Monitor (Eventos do Frontend)</h2></div>
+                            <button class="btn-secondary" style="padding: 6px 12px;" onclick="loadCAPIMonitor()">🔄</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div class="stats-grid" style="margin-bottom: 20px;">
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📊</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="capiMonitorToday">-</div>
+                                        <div class="stat-label">Eventos Hoje</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">📈</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="capiMonitorYesterday">-</div>
+                                        <div class="stat-label">Eventos Ontem</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">✅</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="capiMonitorSuccessRate">-</div>
+                                        <div class="stat-label">Taxa de Sucesso</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📅</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="capiMonitor7d">-</div>
+                                        <div class="stat-label">Últimos 7 dias</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <canvas id="capiMonitorChart" height="220"></canvas>
+                            </div>
+                            <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Breakdown por Idioma (Hoje)</h3>
+                            <div style="overflow-x: auto;">
+                                <table class="data-table">
+                                    <thead><tr><th>Idioma</th><th>PageView</th><th>ViewContent</th><th>Lead</th><th>IC</th><th>AddToCart</th><th>Purchase</th><th>Sucesso %</th></tr></thead>
+                                    <tbody id="capiMonitorLangTable"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Carregando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== WHATSAPP PHOTOS ==================== -->
+                    <div class="data-panel" style="margin-bottom: 24px;">
+                        <div class="panel-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));">
+                            <div class="panel-title"><h2>📱 WhatsApp Photos</h2></div>
+                            <button class="btn-secondary" style="padding: 6px 12px;" onclick="loadWhatsAppStats()">🔄</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div class="stats-grid" style="margin-bottom: 20px;">
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🔍</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waStatsTotal">-</div>
+                                        <div class="stat-label">Verificações Hoje</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">📸</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waStatsWithPic">-</div>
+                                        <div class="stat-label">Fotos Encontradas</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📊</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waStatsRate">-</div>
+                                        <div class="stat-label">Taxa de Sucesso</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <canvas id="waStatsChart" height="200"></canvas>
+                            </div>
+                            <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Últimas Verificações</h3>
+                            <div style="overflow-x: auto; max-height: 320px; overflow-y: auto;">
+                                <table class="data-table">
+                                    <thead style="position: sticky; top: 0;"><tr><th>Telefone</th><th>Foto</th><th>Horário</th></tr></thead>
+                                    <tbody id="waStatsRecentTable"><tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Carregando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 
                 <!-- Tab: A/B Tests -->
@@ -4882,7 +4975,7 @@ Estou aqui para esclarecer tudo! 😊`
                 loadGadsConfig();
             }
             else if (tabName === 'users') loadUsers();
-            else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); }
+            else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); loadCAPIMonitor(); loadWhatsAppStats(); }
             else if (tabName === 'abtests') loadABTests();
             else if (tabName === 'emailautomations') loadACDashboard();
             if (window.innerWidth <= 768 && document.body.classList.contains('sidebar-open')) toggleSidebarMobile();
@@ -11135,6 +11228,142 @@ Estou aqui para esclarecer tudo! 😊`
             document.querySelector(`.pixel-filter[data-filter="${filterType}"]`)?.classList.add('active');
             loadPixelStats();
             loadPurchaseCAPILogs();
+        }
+
+        // ==================== CAPI MONITOR ====================
+        let capiMonitorChartInstance = null;
+        async function loadCAPIMonitor() {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/capi-monitor?days=14`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (!res.ok) throw new Error('Erro');
+                const data = await res.json();
+
+                const todayData = data.summary.find(s => s.period === 'today') || { total: 0, success: 0 };
+                const yesterdayData = data.summary.find(s => s.period === 'yesterday') || { total: 0, success: 0 };
+                const olderData = data.summary.find(s => s.period === 'older') || { total: 0, success: 0 };
+                const total7d = [todayData, yesterdayData, olderData].reduce((s, d) => s + parseInt(d.total || 0), 0);
+                const success7d = [todayData, yesterdayData, olderData].reduce((s, d) => s + parseInt(d.success || 0), 0);
+
+                document.getElementById('capiMonitorToday').textContent = parseInt(todayData.total || 0).toLocaleString();
+                document.getElementById('capiMonitorYesterday').textContent = parseInt(yesterdayData.total || 0).toLocaleString();
+                document.getElementById('capiMonitor7d').textContent = total7d.toLocaleString();
+                document.getElementById('capiMonitorSuccessRate').textContent = total7d > 0 ? Math.round(100 * success7d / total7d) + '%' : '-';
+
+                // Chart
+                const dayMap = {};
+                data.daily.forEach(row => {
+                    if (!dayMap[row.day]) dayMap[row.day] = {};
+                    dayMap[row.day][row.event_name] = (dayMap[row.day][row.event_name] || 0) + parseInt(row.total);
+                });
+                const days = Object.keys(dayMap).sort();
+                const eventTypes = ['PageView', 'ViewContent', 'Lead', 'InitiateCheckout', 'AddToCart', 'Purchase'];
+                const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+                const datasets = eventTypes.map((evt, i) => ({
+                    label: evt,
+                    data: days.map(d => dayMap[d][evt] || 0),
+                    backgroundColor: colors[i] + '99',
+                    borderColor: colors[i],
+                    borderWidth: 1
+                }));
+
+                const ctx = document.getElementById('capiMonitorChart');
+                if (capiMonitorChartInstance) capiMonitorChartInstance.destroy();
+                capiMonitorChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: days.map(d => { var p = d.split('-'); return p[2] + '/' + p[1]; }),
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, beginAtZero: true }
+                        }
+                    }
+                });
+
+                // Language table
+                const langs = { en: {}, es: {}, fr: {}, pt: {} };
+                data.byLanguage.forEach(row => {
+                    var l = row.lang || 'en';
+                    if (!langs[l]) langs[l] = {};
+                    langs[l][row.event_name] = { total: parseInt(row.total), success: parseInt(row.success) };
+                });
+                const langFlags = { en: '🇺🇸', es: '🇪🇸', fr: '🇫🇷', pt: '🇧🇷' };
+                var langHtml = '';
+                Object.keys(langs).forEach(function(l) {
+                    var d = langs[l];
+                    var allTotal = Object.values(d).reduce(function(s, v) { return s + v.total; }, 0);
+                    var allSuccess = Object.values(d).reduce(function(s, v) { return s + v.success; }, 0);
+                    if (allTotal === 0) return;
+                    var rate = allTotal > 0 ? Math.round(100 * allSuccess / allTotal) : 0;
+                    langHtml += '<tr><td>' + (langFlags[l] || '') + ' ' + l.toUpperCase() + '</td>';
+                    eventTypes.forEach(function(evt) {
+                        langHtml += '<td>' + ((d[evt] && d[evt].total) || 0) + '</td>';
+                    });
+                    langHtml += '<td><span class="status-badge" style="background:rgba(16,185,129,0.15);color:#10b981;">' + rate + '%</span></td></tr>';
+                });
+                document.getElementById('capiMonitorLangTable').innerHTML = langHtml || '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Sem dados ainda. Os dados começam a aparecer após o deploy.</td></tr>';
+            } catch (e) {
+                console.error('CAPI monitor error:', e);
+                document.getElementById('capiMonitorLangTable').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
+            }
+        }
+
+        // ==================== WHATSAPP STATS ====================
+        let waStatsChartInstance = null;
+        async function loadWhatsAppStats() {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/whatsapp-stats?days=14`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (!res.ok) throw new Error('Erro');
+                const data = await res.json();
+
+                var t = data.today || { total: 0, with_picture: 0, success_rate: 0 };
+                document.getElementById('waStatsTotal').textContent = parseInt(t.total || 0).toLocaleString();
+                document.getElementById('waStatsWithPic').textContent = parseInt(t.with_picture || 0).toLocaleString();
+                document.getElementById('waStatsRate').textContent = t.success_rate ? t.success_rate + '%' : '0%';
+
+                // Chart
+                var days = (data.daily || []).sort(function(a, b) { return a.day < b.day ? -1 : 1; });
+                var labels = days.map(function(d) { var p = d.day.split('-'); return p[2] + '/' + p[1]; });
+                var totals = days.map(function(d) { return parseInt(d.total_checks); });
+                var withPic = days.map(function(d) { return parseInt(d.with_picture); });
+
+                var ctx = document.getElementById('waStatsChart');
+                if (waStatsChartInstance) waStatsChartInstance.destroy();
+                waStatsChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Total Checks', data: totals, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                            { label: 'Com Foto', data: withPic, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Recent table
+                var html = '';
+                (data.recent || []).forEach(function(r) {
+                    var badge = r.has_picture
+                        ? '<span class="status-badge" style="background:rgba(16,185,129,0.15);color:#10b981;">✅ SIM</span>'
+                        : '<span class="status-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">❌ NÃO</span>';
+                    var dt = new Date(r.created_at);
+                    var time = dt.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+                    html += '<tr><td style="font-family:monospace;">' + r.phone_masked + '</td><td>' + badge + '</td><td>' + time + '</td></tr>';
+                });
+                document.getElementById('waStatsRecentTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Sem dados ainda</td></tr>';
+            } catch (e) {
+                console.error('WhatsApp stats error:', e);
+                document.getElementById('waStatsRecentTable').innerHTML = '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
+            }
         }
 
         async function exportPixelStatsCSV() {

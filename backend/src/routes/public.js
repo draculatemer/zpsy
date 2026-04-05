@@ -83,6 +83,13 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         const picture = await zapiProfilePicture(phone);
 
         console.log(`📱 WhatsApp check response: ${phone} → picture=${picture ? 'YES' : 'NO'}`);
+
+        const checkIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        pool.query(
+            `INSERT INTO whatsapp_check_logs (phone, has_picture, picture_url, ip_address) VALUES ($1, $2, $3, $4)`,
+            [phone, !!picture, picture || null, checkIp]
+        ).catch(() => {});
+
         res.json({ registered: true, picture, name: null });
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
@@ -488,6 +495,15 @@ const capiHandler = async (req, res) => {
         // Send to Facebook CAPI with eventId for deduplication
         const results = await sendToFacebookCAPI(eventName, userData, customData, eventSourceUrl, eventId, options);
         
+        // Log to capi_event_logs (fire-and-forget)
+        const fbSuccess = results && results.length > 0 && results.some(r => r.success);
+        const fbReceived = results ? results.reduce((sum, r) => sum + (r.events_received || 0), 0) : 0;
+        pool.query(
+            `INSERT INTO capi_event_logs (event_name, event_id, funnel_language, ip_address, user_agent, fb_success, fb_events_received)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [eventName, eventId || null, funnelLanguage || 'en', ipAddress, (userAgent || '').substring(0, 500), fbSuccess, fbReceived]
+        ).catch(() => {});
+
         res.json({ 
             success: true, 
             message: `Event ${eventName} sent to CAPI`,

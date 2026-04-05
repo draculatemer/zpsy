@@ -542,6 +542,37 @@ async function _initDatabaseCore() {
             );
         `);
         
+        // CAPI event logs for monitoring dashboard
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS capi_event_logs (
+                id SERIAL PRIMARY KEY,
+                event_name VARCHAR(50) NOT NULL,
+                event_id VARCHAR(200),
+                funnel_language VARCHAR(10),
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                fb_success BOOLEAN DEFAULT FALSE,
+                fb_events_received INTEGER DEFAULT 0,
+                blocked_reason VARCHAR(50),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_created ON capi_event_logs (created_at);`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_name ON capi_event_logs (event_name);`);
+
+        // WhatsApp photo check logs for monitoring dashboard
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS whatsapp_check_logs (
+                id SERIAL PRIMARY KEY,
+                phone VARCHAR(50) NOT NULL,
+                has_picture BOOLEAN DEFAULT FALSE,
+                picture_url TEXT,
+                ip_address VARCHAR(45),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_wa_check_logs_created ON whatsapp_check_logs (created_at);`);
+
         console.log('✅ Database ready');
         
         // ==================== CLEANUP: Remove duplicate refund_requests ====================
