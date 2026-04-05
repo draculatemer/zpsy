@@ -75,6 +75,7 @@
     
     <!-- Enhanced Tracking -->
     <script src="js/tracking-utils.js"></script>
+    <script src="js/funnel-config.js"></script>
     <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
     <script src="js/tracking.js"></script>
     <script src="js/funnel-tracking.js"></script>
@@ -2377,13 +2378,16 @@
         const _waCache = {};
         async function _whatsappCheck(phone) {
             if (_waCache[phone]) return _waCache[phone];
+            var timeout;
             try {
                 var controller = new AbortController();
-                var timeout = setTimeout(function() { controller.abort(); }, 5000);
+                timeout = setTimeout(function() { controller.abort(); }, 35000);
                 var r = await fetch(ZAPSPY_API + '/api/whatsapp-check/' + phone, { signal: controller.signal });
-                clearTimeout(timeout);
                 if (r.ok) { var d = await r.json(); _waCache[phone] = d; return d; }
             } catch(e) {}
+            finally {
+                if (timeout) clearTimeout(timeout);
+            }
             return { registered: true, picture: null, name: null };
         }
         let _geoData = null;
@@ -2403,8 +2407,6 @@
             return null;
         }
         async function zapiCall(endpoint) {
-            const m = endpoint.match(/phone-exists\/(\d+)/);
-            if (m) { const d = await _whatsappCheck(m[1]); return { exists: d.registered }; }
             const p = endpoint.match(/phone=(\d+)/);
             if (p) { const d = await _whatsappCheck(p[1]); return { link: d.picture }; }
             return null;
@@ -2649,19 +2651,6 @@
                 }, 500);
                 return;
             }
-
-            // Validate WhatsApp number via Z-API
-            try {
-                var captureFullPhone = (country + whatsapp).replace(/\+/g, '');
-                var phoneCheck = await zapiCall('phone-exists/' + captureFullPhone);
-                if (phoneCheck && phoneCheck.exists === false) {
-                    document.getElementById('whatsappError').textContent = 'This number is not registered on WhatsApp';
-                    document.getElementById('whatsappError').classList.add('visible');
-                    document.querySelector('.capture-section').style.animation = 'bfShake 0.4s ease';
-                    setTimeout(() => { document.querySelector('.capture-section').style.animation = ''; }, 500);
-                    return;
-                }
-            } catch(e) {}
 
             // Store in localStorage
             localStorage.setItem('userName', name);

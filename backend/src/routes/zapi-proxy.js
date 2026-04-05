@@ -3,10 +3,6 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware');
 const { zapiProfilePicture } = require('../services/zapi');
 
-router.get('/phone-exists/:phone', async (req, res) => {
-    res.json({ exists: true });
-});
-
 router.get('/profile-picture/:phone', authenticateToken, async (req, res) => {
     try {
         const picture = await zapiProfilePicture(req.params.phone);

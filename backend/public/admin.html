@@ -6264,12 +6264,6 @@ Estou aqui para esclarecer tudo! 😊`
                             <div style="margin-top:4px;color:#888;word-break:break-all;">${data.tests?.statusWithClientToken?.response || data.tests?.statusWithClientToken?.error || 'N/A'}</div>
                         </div>
                         
-                        <h3 style="color:#10b981;margin:16px 0 8px;">🧪 Teste: phone-exists (número teste)</h3>
-                        <div style="background:#0d1117;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;">
-                            <div>HTTP: <span style="color:${data.tests?.phoneExistsTest?.httpStatus === 200 ? '#10b981' : '#ef4444'};">${data.tests?.phoneExistsTest?.httpStatus || 'N/A'}</span></div>
-                            <div style="margin-top:4px;color:#888;word-break:break-all;">${data.tests?.phoneExistsTest?.response || data.tests?.phoneExistsTest?.error || 'N/A'}</div>
-                        </div>
-                        
                         <h3 style="color:#f59e0b;margin:20px 0 8px;">🔗 Teste com URL do Painel Z-API</h3>
                         <p style="font-size:12px;color:#888;margin:0 0 8px;">Cole a URL completa da "API da instância" do painel Z-API:</p>
                         <input id="zapiCustomUrl" type="text" placeholder="https://api.z-api.io/instances/.../token/.../send-text" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-family:monospace;font-size:12px;box-sizing:border-box;margin-bottom:8px;" />

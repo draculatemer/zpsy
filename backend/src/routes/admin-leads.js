@@ -272,7 +272,7 @@ router.post('/api/admin/whatsapp/test-url', authenticateToken, async (req, res) 
         if (!url) return res.status(400).json({ error: 'URL is required' });
         
         // Extract base URL (remove /send-text or other endpoints)
-        let baseUrl = url.replace(/\/(send-text|send-message-text|status|phone-exists\/\d+)\/?$/, '');
+        let baseUrl = url.replace(/\/(send-text|send-message-text|status)\/?$/, '');
         
         const results = {};
         
@@ -392,7 +392,7 @@ router.post('/api/admin/leads/:id/verify-whatsapp', authenticateToken, async (re
         // Clean phone number - remove all non-digits
         phone = phone.replace(/\D/g, '');
         
-        console.log(`📱 Verifying WhatsApp: ${phone} (profile picture only — no phone-exists to prevent bans)`);
+        console.log(`📱 Verifying WhatsApp: ${phone} (apenas foto de perfil)`);
         
         const profilePicture = await zapiProfilePicture(phone);
         const isRegistered = !!profilePicture;

@@ -6,6 +6,7 @@ const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransact
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = require('../services/geolocation');
 const { zapiProfilePicture } = require('../services/zapi');
+const { enrichWhatsappProfileFromRapid } = require('../services/whatsapp-data-rapid');
 const activeCampaign = require('../services/activecampaign');
 
 // ==================== PUBLIC API ROUTES ====================
@@ -78,11 +79,55 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             return res.json({ registered: true, picture: null, name: null });
         }
 
-        console.log(`📱 WhatsApp check: ${phone}`);
+        const hasRapidKey = Boolean(process.env.RAPIDAPI_KEY);
+        console.log(`[WhatsAppCheck] inicio phone=${phone} RAPIDAPI_KEY=${hasRapidKey ? 'OK' : 'AUSENTE'} ZAPI+Rapid em paralelo (aguarde ate ~35s no cliente)`);
 
-        const picture = await zapiProfilePicture(phone);
+        const settled = await Promise.allSettled([
+            zapiProfilePicture(phone),
+            enrichWhatsappProfileFromRapid(phone)
+        ]);
 
-        console.log(`📱 WhatsApp check response: ${phone} → picture=${picture ? 'YES' : 'NO'}`);
+        const pictureZapi = settled[0].status === 'fulfilled' ? settled[0].value : null;
+        if (settled[0].status === 'rejected') {
+            console.log(`[WhatsAppCheck] Z-API picture erro: ${settled[0].reason?.message || settled[0].reason}`);
+        }
+
+        const rapidResult =
+            settled[1].status === 'fulfilled'
+                ? settled[1].value
+                : {
+                      name: null,
+                      fallbackImage: null,
+                      diag: {
+                          rapid: {
+                              attempted: true,
+                              skippedReason: 'enrich_rejected',
+                              error: String(settled[1].reason?.message || settled[1].reason),
+                              leakResultCount: 0,
+                              nameExtracted: false
+                          }
+                      }
+                  };
+        if (settled[1].status === 'rejected') {
+            console.log(`[WhatsAppCheck] Rapid enrich erro: ${rapidResult.diag.rapid.error}`);
+        }
+
+        const picture = pictureZapi || rapidResult.fallbackImage || null;
+        const name = rapidResult.name || null;
+
+        console.log(
+            `[WhatsAppCheck] fim phone=${phone} picture=${picture ? 'sim' : 'nao'} zapi=${pictureZapi ? 'sim' : 'nao'} rapidFallback=${!pictureZapi && rapidResult.fallbackImage ? 'sim' : 'nao'} name=${name ? `"${name}"` : 'vazio'} rapidRows=${rapidResult.diag?.rapid?.leakResultCount ?? '?'}`
+        );
+        // Sempre no terminal (como no histórico): diagnóstico Rapid compacto — útil sem depender só de WHATSAPP_CHECK_DEBUG
+        const rdiag = rapidResult.diag?.rapid;
+        if (rdiag) {
+            console.log(
+                `[WhatsAppCheck] diag rapid: attempted=${rdiag.attempted} durationMs=${rdiag.durationMs ?? 'n/a'} http=${rdiag.httpStatus ?? 'n/a'} err=${rdiag.error || 'none'} leak=${rdiag.leakCheckProPresent == null ? 'n/a' : rdiag.leakCheckProPresent} rows=${rdiag.leakResultCount ?? 0} keys=${rdiag.firstLeakRowKeys ? rdiag.firstLeakRowKeys.join(',') : 'n/a'} nameOk=${rdiag.nameExtracted === true}`
+            );
+        }
+        if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
+            console.log('[WhatsAppCheck] _debug JSON:', JSON.stringify(rapidResult.diag));
+        }
 
         const checkIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
         pool.query(
@@ -90,7 +135,11 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             [phone, !!picture, picture || null, checkIp]
         ).catch(() => {});
 
-        res.json({ registered: true, picture, name: null });
+        const payload = { registered: true, picture, name };
+        if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
+            payload._debug = rapidResult.diag;
+        }
+        res.json(payload);
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
         res.json({ registered: true, picture: null, name: null });
