@@ -1,0 +1,3045 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
+    })();
+    </script>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b141a">
+    <title>WhatsApp</title>
+    <link rel="shortcut icon" href="imagens/icon-site.png">
+    
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="css/global.css">
+    
+    <!-- Shared Audio & Vibration Systems -->
+    <script src="js/audio-vibration.js"></script>
+    
+    <!-- Enhanced Tracking -->
+    <script src="js/tracking-utils.js"></script>
+    <script src="js/tracking.js"></script>
+    <script src="js/funnel-tracking.js"></script>
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    // Advanced Matching - get user data from localStorage
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    
+    fbq('init', '820651673268238', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=820651673268238&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/facebook-capi.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Conversations List');
+                FacebookCAPI.trackViewContent('Conversations List', 'Funnel Step', 47);
+            }
+        });
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #1c1c1e;
+            --bg-tertiary: #2c2c2e;
+            --bg-conversation: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --text-muted: #636366;
+            --green-primary: #25d366;
+            --green-dark: #128c7e;
+            --blue-check: #34b7f1;
+            --red-alert: #ff3b30;
+            --orange-alert: #ff9500;
+            --divider: #38383a;
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Status Bar - iOS Style */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px 10px;
+            padding-top: calc(14px + var(--safe-area-top));
+            background: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .status-time {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-icons svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .battery-icon {
+            width: 27px;
+            height: 13px;
+            border: 1.5px solid var(--text-primary);
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            width: 3px;
+            height: 7px;
+            background: var(--text-primary);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .battery-level {
+            height: 100%;
+            width: 25%;
+            background: #ff3b30;
+            border-radius: 2px;
+        }
+
+        .battery-percent {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Header - WhatsApp iOS Style */
+        .header {
+            padding: 0 20px 16px;
+            background: var(--bg-primary);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .header-menu {
+            width: 34px;
+            height: 34px;
+            background: none;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .header-menu svg {
+            width: 4px;
+            height: 16px;
+        }
+
+        .header-title {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .header-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-actions svg {
+            width: 26px;
+            height: 26px;
+            color: var(--green-primary);
+        }
+
+        .btn-new-chat {
+            width: 32px;
+            height: 32px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-new-chat svg {
+            width: 18px;
+            height: 18px;
+            color: white !important;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+
+        .search-bar svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .search-bar span {
+            font-size: 17px;
+            color: var(--text-muted);
+        }
+
+        /* Filters - WhatsApp iOS Style */
+        .filters {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-notice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            margin: 0 16px 8px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            border-left: 3px solid #8a8d91;
+            font-size: 11.5px;
+            color: #8a8d91;
+            line-height: 1.4;
+        }
+        .filter-notice svg {
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .filter-notice strong {
+            color: #adb5bd;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--green-primary);
+            color: white;
+        }
+
+        .filter-btn .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .filter-btn.active .badge {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            margin: 12px 16px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.15), rgba(255, 149, 0, 0.1));
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            border-radius: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-height: auto;
+        }
+
+        .alert-banner svg {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            color: var(--red-alert);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-banner-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .alert-banner-text strong {
+            display: block;
+            font-size: 14px;
+            color: var(--red-alert);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .alert-banner-text span {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: block;
+            line-height: 1.4;
+        }
+
+        /* Conversations List */
+        .conversations-list {
+            padding-bottom: 180px;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 14px;
+            cursor: default;
+            transition: background 0.15s;
+            border-bottom: 0.5px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .conversation-item:active {
+            background: var(--bg-tertiary);
+        }
+
+        .conversation-item.deleted-conv {
+            border-left: 3px solid var(--red-alert);
+        }
+
+        /* Avatar */
+        .avatar-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--bg-tertiary);
+        }
+
+        .avatar.blurred {
+            filter: blur(8px);
+        }
+
+        .avatar.semi-blurred {
+            filter: blur(4px);
+        }
+
+        .avatar-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .avatar-badge.deleted {
+            background: var(--red-alert);
+        }
+
+        .avatar-badge.suspicious {
+            background: var(--orange-alert);
+        }
+
+        .avatar-badge.lock {
+            background: var(--bg-tertiary);
+        }
+
+        .avatar-badge svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+        }
+
+        /* Group Avatar */
+        .group-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .group-avatar svg {
+            width: 28px;
+            height: 28px;
+            color: var(--text-muted);
+        }
+
+        .group-avatar.blurred {
+            filter: blur(4px);
+        }
+
+        /* Conversation Content */
+        .conversation-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-name {
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .conversation-name.blurred {
+            filter: blur(4px);
+        }
+
+        .conversation-name.semi-blurred {
+            filter: blur(2px);
+        }
+
+
+        .conversation-preview {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .conversation-preview svg {
+            width: 18px;
+            height: 12px;
+            color: var(--blue-check);
+            flex-shrink: 0;
+        }
+
+        .conversation-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .conversation-text.blurred {
+            filter: blur(5px);
+        }
+
+        .conversation-text.semi-blurred {
+            filter: blur(2px);
+        }
+
+        /* Tags */
+        .conversation-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tag.deleted {
+            background: rgba(255, 59, 48, 0.2);
+            color: var(--red-alert);
+        }
+
+        .tag.suspicious {
+            background: rgba(255, 149, 0, 0.2);
+            color: var(--orange-alert);
+        }
+
+        .tag.evidence {
+            background: rgba(255, 59, 48, 0.3);
+            color: var(--red-alert);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Right Side Badges */
+        .conversation-badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .unread-badge {
+            min-width: 22px;
+            height: 22px;
+            background: var(--green-primary);
+            color: white;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+        }
+
+        .unread-badge.alert {
+            background: var(--red-alert);
+        }
+
+        .icon-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pin-icon svg, .mute-icon svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+        }
+
+        /* Bottom Navigation - WhatsApp iOS Style */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 0.5px solid var(--divider);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 6px;
+            padding-bottom: calc(6px + var(--safe-area-bottom));
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            padding: 4px 12px;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .nav-item svg {
+            width: 28px;
+            height: 28px;
+            color: var(--text-muted);
+        }
+
+        .nav-item.active svg {
+            color: #ffffff;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .nav-item.active span {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: 0;
+            right: 6px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--red-alert);
+            color: white;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+
+        .nav-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .modal-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .modal-text strong {
+            color: var(--red-alert);
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--green-primary);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 15px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .modal-pricing {
+            background: linear-gradient(135deg, rgba(37,211,102,0.1), rgba(18,140,126,0.08));
+            border: 1px solid rgba(37, 211, 102, 0.25);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .modal-price-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .modal-price-old {
+            font-size: 17px;
+            color: #636366;
+            text-decoration: line-through;
+            font-weight: 400;
+        }
+
+        .modal-price-new {
+            font-size: 40px;
+            font-weight: 900;
+            color: #25d366;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .modal-price-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff3b30, #ff6b6b);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-guarantee {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .modal-guarantee-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+
+        .modal-guarantee-text {
+            font-size: 12px;
+            color: #e9edef;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .modal-guarantee-text span {
+            display: block;
+            font-size: 10px;
+            color: #8696a0;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        @keyframes modalPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(37,211,102,0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 6px 32px rgba(37,211,102,0.6); }
+        }
+
+        /* Responsive */
+        @media (max-width: 380px) {
+            .header-title {
+                font-size: 28px;
+            }
+            .conversation-name {
+                font-size: 15px;
+            }
+            .conversation-preview {
+                font-size: 13px;
+            }
+            .conversation-avatar {
+                width: 50px;
+                height: 50px;
+            }
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .status-bar {
+                padding: 8px 20px 6px;
+            }
+            .header {
+                padding: 8px 20px 12px;
+            }
+            .header-title {
+                font-size: 28px;
+            }
+            .conversation-item {
+                padding: 10px 20px;
+            }
+        }
+
+        /* ========== AUDIO PREVIEW ========== */
+        .audio-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(37, 211, 102, 0.1);
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin-top: 4px;
+        }
+
+        .audio-play-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .audio-play-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--green-primary);
+            animation: audio-pulse 1.5s infinite;
+        }
+
+        @keyframes audio-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .audio-play-btn svg {
+            width: 14px;
+            height: 14px;
+            color: white;
+            margin-left: 2px;
+        }
+
+        .audio-waveform {
+            flex: 1;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .audio-bar {
+            width: 3px;
+            background: var(--green-primary);
+            border-radius: 2px;
+            animation: wave 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes wave {
+            from { height: 4px; }
+            to { height: 20px; }
+        }
+
+        .audio-duration {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .audio-lock {
+            font-size: 10px;
+            color: var(--red-alert);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ========== DELETED MESSAGE REVEAL ========== */
+        .deleted-message-reveal {
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.15), rgba(255, 149, 0, 0.1));
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 12px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .deleted-message-reveal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .deleted-message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .deleted-message-header svg {
+            width: 20px;
+            height: 20px;
+            color: var(--red-alert);
+        }
+
+        .deleted-message-header span {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .deleted-message-content {
+            font-size: 15px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .deleted-message-content .blocked {
+            background: var(--text-primary);
+            color: var(--text-primary);
+            border-radius: 2px;
+            padding: 0 2px;
+            user-select: none;
+        }
+
+        .deleted-message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .deleted-message-time {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .deleted-message-unlock {
+            font-size: 11px;
+            color: var(--green-primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ========== SUSPICION DETECTOR ========== */
+        .suspicion-detector {
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.1), rgba(0, 0, 0, 0.3));
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 12px 20px;
+        }
+
+        .suspicion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .suspicion-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suspicion-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--red-alert);
+        }
+
+        .suspicion-title span {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+        }
+
+        .suspicion-score {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--red-alert);
+        }
+
+        .suspicion-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .suspicion-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--orange-alert), var(--red-alert));
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .suspicion-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .suspicion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .suspicion-item-label {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .suspicion-item-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .suspicion-item-value.high {
+            color: var(--red-alert);
+        }
+
+        /* ========== FREQUENT CONTACT ========== */
+        .frequent-contact {
+            background: linear-gradient(135deg, rgba(255, 149, 0, 0.15), rgba(255, 59, 48, 0.1));
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .frequent-contact-avatar {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+
+        .frequent-contact-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            filter: blur(8px);
+        }
+
+        .frequent-contact-avatar::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .frequent-contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .frequent-contact-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--orange-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .frequent-contact-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .frequent-contact-name .hidden {
+            background: var(--text-primary);
+            color: var(--text-primary);
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        .frequent-contact-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .frequent-contact-stats strong {
+            color: var(--red-alert);
+        }
+
+        .frequent-contact-badge {
+            background: var(--red-alert);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .frequent-contact-badge span {
+            display: block;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        /* ========== BLURRED PHOTO PREVIEW ========== */
+        .photo-preview {
+            position: relative;
+            width: 100%;
+            max-width: 200px;
+            margin-top: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            filter: blur(15px);
+        }
+
+        .photo-preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .photo-preview-overlay svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .photo-preview-overlay span {
+            font-size: 11px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .photo-count-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,59,48,0.9);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        /* Fade-in animation for conversations */
+        .conversation-item.fade-in {
+            opacity: 0;
+            transform: translateY(8px);
+            animation: convFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes convFadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inline widget: Suspicion Detector */
+        .widget-suspicion {
+            background: linear-gradient(135deg, rgba(255,59,48,0.08), rgba(255,149,0,0.06));
+            border: 1px solid rgba(255,59,48,0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 8px 16px;
+        }
+
+        .widget-suspicion .ws-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .widget-suspicion .ws-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .widget-suspicion .ws-score {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--red-alert);
+        }
+
+        .widget-suspicion .ws-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .widget-suspicion .ws-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange-alert), var(--red-alert));
+            border-radius: 3px;
+            transition: width 1.5s ease;
+        }
+
+        .widget-suspicion .ws-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .widget-suspicion .ws-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .widget-suspicion .ws-row-label { color: var(--text-secondary); }
+        .widget-suspicion .ws-row-value { color: var(--text-primary); font-weight: 600; }
+        .widget-suspicion .ws-row-value.danger { color: var(--red-alert); }
+
+        /* Inline widget: Deleted Message Reveal */
+        .widget-deleted-reveal {
+            background: linear-gradient(135deg, rgba(255,59,48,0.1), rgba(255,149,0,0.06));
+            border: 1px solid rgba(255,59,48,0.25);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin: 8px 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .widget-deleted-reveal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .widget-deleted-reveal .wdr-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: blink 1.5s infinite;
+        }
+
+        .widget-deleted-reveal .wdr-content {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-style: italic;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-content .blocked {
+            background: var(--text-primary);
+            color: var(--text-primary);
+            border-radius: 2px;
+            padding: 0 3px;
+            user-select: none;
+        }
+
+        .widget-deleted-reveal .wdr-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 11px;
+            position: relative;
+        }
+
+        .widget-deleted-reveal .wdr-time { color: var(--text-muted); }
+        .widget-deleted-reveal .wdr-unlock { color: var(--green-primary); font-weight: 600; }
+
+        /* Inline widget: Frequent Contact Alert */
+        .widget-frequent {
+            background: linear-gradient(135deg, rgba(255,149,0,0.12), rgba(255,59,48,0.06));
+            border: 1px solid rgba(255,149,0,0.3);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+
+        .widget-frequent .wf-avatar {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+
+        .widget-frequent .wf-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            filter: blur(8px);
+        }
+
+        .widget-frequent .wf-avatar::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+        }
+
+        .widget-frequent .wf-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .widget-frequent .wf-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--orange-alert);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .widget-frequent .wf-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 2px 0;
+        }
+
+        .widget-frequent .wf-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .widget-frequent .wf-stats strong { color: var(--red-alert); }
+
+        .widget-frequent .wf-badge {
+            background: var(--red-alert);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 8px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .widget-frequent .wf-badge span {
+            display: block;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        /* Inline widget: Audio Intercepted */
+        .widget-audio {
+            background: rgba(37,211,102,0.08);
+            border: 1px solid rgba(37,211,102,0.2);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin: 8px 16px;
+            cursor: pointer;
+        }
+
+        .widget-audio .wa-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-transform: uppercase;
+        }
+
+        .widget-audio .wa-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-audio .wa-play-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--green-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .widget-audio .wa-play-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--green-primary);
+            animation: audio-pulse 1.5s infinite;
+        }
+
+        .widget-audio .wa-waveform {
+            flex: 1;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .widget-audio .wa-bar {
+            width: 3px;
+            background: var(--green-primary);
+            border-radius: 2px;
+            opacity: 0.6;
+        }
+
+        .widget-audio .wa-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .widget-audio .wa-duration { color: var(--text-muted); }
+        .widget-audio .wa-lock { color: var(--red-alert); display: flex; align-items: center; gap: 4px; }
+
+        /* Screenshot Warning Overlay */
+        .screenshot-warning {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .screenshot-warning.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .screenshot-warning .sw-icon {
+            width: 72px;
+            height: 72px;
+            background: var(--red-alert);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: iconBounce 0.6s ease;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .screenshot-warning .sw-icon svg {
+            width: 36px;
+            height: 36px;
+            color: white;
+        }
+
+        .screenshot-warning .sw-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--red-alert);
+            text-align: center;
+        }
+
+        .screenshot-warning .sw-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+/* ========== MODAL CAPTURE FORM ========== */
+.modal-capture-form {
+    display: none;
+    text-align: left;
+    margin-top: 16px;
+}
+.modal-capture-form.show {
+    display: block;
+}
+.modal-capture-form .mcf-group {
+    margin-bottom: 12px;
+}
+.modal-capture-form .mcf-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #8696a0;
+    margin-bottom: 6px;
+}
+.modal-capture-form .mcf-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(31, 44, 52, 0.8);
+    border: 1px solid rgba(59, 74, 84, 0.5);
+    border-radius: 10px;
+    color: #E9EDEF;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.modal-capture-form .mcf-input:focus {
+    border-color: #25D366;
+    background: rgba(31, 44, 52, 1);
+}
+.modal-capture-form .mcf-input::placeholder {
+    color: #8696a0;
+}
+.modal-capture-form .mcf-phone-row {
+            display: flex;
+    gap: 8px;
+}
+.modal-capture-form .mcf-country {
+    min-width: 85px;
+    padding: 12px 10px;
+    background-color: rgba(31, 44, 52, 0.8);
+    border: 1px solid rgba(59, 74, 84, 0.5);
+    border-radius: 10px;
+    color: #E9EDEF;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+            cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238696a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+.modal-capture-form .mcf-country:focus {
+    border-color: #25D366;
+}
+.modal-capture-form .mcf-phone-input {
+            flex: 1;
+}
+.modal-capture-form .mcf-error {
+    color: #ef4444;
+    font-size: 11px;
+    margin-top: 4px;
+    display: none;
+}
+.modal-capture-form .mcf-error.visible {
+    display: block;
+}
+.modal-capture-form .mcf-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(37,211,102,0.05);
+    border: 1px solid rgba(37,211,102,0.15);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #8696a0;
+    line-height: 1.4;
+}
+.modal-capture-form .mcf-note strong {
+    color: #25D366;
+}
+.mcf-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: #fff;
+            border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+            cursor: pointer;
+    margin-top: 14px;
+    transition: transform 0.2s;
+}
+.mcf-submit-btn:active {
+    transform: scale(0.97);
+}
+@keyframes mcfShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time" id="currentTime">16:52</span>
+        <div class="status-icons">
+            <!-- Signal -->
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="1" y="14" width="4" height="8" rx="1"/>
+                <rect x="7" y="10" width="4" height="12" rx="1"/>
+                <rect x="13" y="6" width="4" height="16" rx="1" opacity="0.3"/>
+                <rect x="19" y="2" width="4" height="20" rx="1" opacity="0.3"/>
+            </svg>
+            <!-- WiFi -->
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 18c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-4.9-2.3l1.4 1.4C9.4 18 10.6 18.5 12 18.5s2.6-.5 3.5-1.4l1.4-1.4c-1.3-1.3-3.1-2.1-4.9-2.1s-3.6.8-4.9 2.1zm-2.8-2.8l1.4 1.4C7.3 16 9.5 17 12 17s4.7-1 6.3-2.7l1.4-1.4C17.5 10.7 14.9 9.5 12 9.5S6.5 10.7 4.3 12.9z"/>
+            </svg>
+            <!-- Battery -->
+            <div class="battery">
+                <span class="battery-percent">25</span>
+                <div class="battery-icon">
+                    <div class="battery-level"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-top">
+            <div class="header-menu">
+                <svg viewBox="0 0 4 16" fill="currentColor">
+                    <circle cx="2" cy="2" r="1.5"/>
+                    <circle cx="2" cy="8" r="1.5"/>
+                    <circle cx="2" cy="14" r="1.5"/>
+                </svg>
+            </div>
+            <h1 class="header-title">Conversas</h1>
+            <div class="header-actions">
+                <button>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                </button>
+                <button class="btn-new-chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <span>Pergunte à Meta IA ou Pesquise</span>
+        </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div class="alert-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div class="alert-banner-text">
+            <strong id="deletedAlert">Carregando...</strong>
+            <span>Conversas apagadas para esconder algo de você</span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterConversations('all', this)">Todos</button>
+        <button class="filter-btn" onclick="filterConversations('unread', this)">Não lidos</button>
+        <button class="filter-btn" onclick="filterConversations('favorites', this)">Favoritos</button>
+        <button class="filter-btn" onclick="filterConversations('groups', this)">Grupos</button>
+    </div>
+
+    <!-- Filter Notice -->
+    <div class="filter-notice" id="filterNotice">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8d91" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        <span>Mostrando apenas conversas com <strong>atividade suspeita</strong> detectada. <span id="filteredOutCount">312</span> conversas normais foram filtradas.</span>
+    </div>
+
+    <!-- Conversations List -->
+    <div class="conversations-list" id="conversationsList"></div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>Atualizações</span>
+        </div>
+        <div class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <span>Ligações</span>
+            <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Comunidades</span>
+        </div>
+        <div class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+            <span>Conversas</span>
+            <span class="nav-badge">99+</span>
+        </div>
+        <div class="nav-item" id="navYou">
+            <img id="navAvatar" class="nav-avatar" src="" alt="" style="display:none;">
+            <svg id="navAvatarFallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M20 21a8 8 0 1 0-16 0"/>
+            </svg>
+            <span>Você</span>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header-row">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h3 class="modal-title">Conversa Bloqueada</h3>
+            </div>
+            <p class="modal-text" id="modalText">Esta conversa contém <strong>mensagens apagadas</strong> e conteúdo suspeito.</p>
+
+            <div id="modalDataSummary" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 12px;margin:10px 0 6px;">
+                <div style="font-size:11px;color:#25D366;font-weight:600;margin-bottom:6px;">📊 Dados recuperados deste número:</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px;color:#e5e5ea;">
+                    <span>🗑️ <strong id="modalDeleted">--</strong> msgs deletadas</span>
+                    <span>📸 <strong id="modalMedia">--</strong> mídias ocultas</span>
+                    <span>👤 <strong id="modalContacts">--</strong> contatos secretos</span>
+                    <span>🌙 <strong id="modalNight">--</strong> chats noturnos</span>
+                </div>
+            </div>
+
+            <button class="modal-btn" id="modalCTA" onclick="goToCTA()" style="animation:modalPulse 2s infinite;">
+                🔓 Desbloquear Todas as Conversas
+            </button>
+            <div class="modal-capture-form" id="modalCaptureForm">
+                <div class="mcf-user-info" id="mcfUserInfo" style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none;">
+                    <div style="font-size:12px;color:#8696a0;margin-bottom:2px;">Conectado como:</div>
+                    <div style="font-size:14px;color:#e9edef;font-weight:600;" id="mcfUserDisplay"></div>
+                </div>
+                <div class="mcf-group">
+                    <label class="mcf-label">Seu número de WhatsApp</label>
+                    <div class="mcf-phone-row">
+                        <select class="mcf-country" id="mcfCountry">
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+1">🇨🇦 +1</option>
+                            <option value="+7">🇷🇺 +7</option>
+                            <option value="+7">🇰🇿 +7</option>
+                            <option value="+20">🇪🇬 +20</option>
+                            <option value="+27">🇿🇦 +27</option>
+                            <option value="+30">🇬🇷 +30</option>
+                            <option value="+31">🇳🇱 +31</option>
+                            <option value="+32">🇧🇪 +32</option>
+                            <option value="+33">🇫🇷 +33</option>
+                            <option value="+34">🇪🇸 +34</option>
+                            <option value="+36">🇭🇺 +36</option>
+                            <option value="+39">🇮🇹 +39</option>
+                            <option value="+40">🇷🇴 +40</option>
+                            <option value="+41">🇨🇭 +41</option>
+                            <option value="+43">🇦🇹 +43</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+45">🇩🇰 +45</option>
+                            <option value="+46">🇸🇪 +46</option>
+                            <option value="+47">🇳🇴 +47</option>
+                            <option value="+48">🇵🇱 +48</option>
+                            <option value="+49">🇩🇪 +49</option>
+                            <option value="+51">🇵🇪 +51</option>
+                            <option value="+52">🇲🇽 +52</option>
+                            <option value="+53">🇨🇺 +53</option>
+                            <option value="+54">🇦🇷 +54</option>
+                            <option value="+55">🇧🇷 +55</option>
+                            <option value="+56">🇨🇱 +56</option>
+                            <option value="+57">🇨🇴 +57</option>
+                            <option value="+58">🇻🇪 +58</option>
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+61">🇦🇺 +61</option>
+                            <option value="+62">🇮🇩 +62</option>
+                            <option value="+63">🇵🇭 +63</option>
+                            <option value="+64">🇳🇿 +64</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+66">🇹🇭 +66</option>
+                            <option value="+81">🇯🇵 +81</option>
+                            <option value="+82">🇰🇷 +82</option>
+                            <option value="+84">🇻🇳 +84</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+90">🇹🇷 +90</option>
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+92">🇵🇰 +92</option>
+                            <option value="+93">🇦🇫 +93</option>
+                            <option value="+94">🇱🇰 +94</option>
+                            <option value="+95">🇲🇲 +95</option>
+                            <option value="+98">🇮🇷 +98</option>
+                            <option value="+212">🇲🇦 +212</option>
+                            <option value="+213">🇩🇿 +213</option>
+                            <option value="+216">🇹🇳 +216</option>
+                            <option value="+218">🇱🇾 +218</option>
+                            <option value="+220">🇬🇲 +220</option>
+                            <option value="+221">🇸🇳 +221</option>
+                            <option value="+224">🇬🇳 +224</option>
+                            <option value="+225">🇨🇮 +225</option>
+                            <option value="+226">🇧🇫 +226</option>
+                            <option value="+227">🇳🇪 +227</option>
+                            <option value="+228">🇹🇬 +228</option>
+                            <option value="+229">🇧🇯 +229</option>
+                            <option value="+230">🇲🇺 +230</option>
+                            <option value="+231">🇱🇷 +231</option>
+                            <option value="+232">🇸🇱 +232</option>
+                            <option value="+233">🇬🇭 +233</option>
+                            <option value="+234">🇳🇬 +234</option>
+                            <option value="+235">🇹🇩 +235</option>
+                            <option value="+236">🇨🇫 +236</option>
+                            <option value="+237">🇨🇲 +237</option>
+                            <option value="+238">🇨🇻 +238</option>
+                            <option value="+239">🇸🇹 +239</option>
+                            <option value="+240">🇬🇶 +240</option>
+                            <option value="+241">🇬🇦 +241</option>
+                            <option value="+242">🇨🇬 +242</option>
+                            <option value="+243">🇨🇩 +243</option>
+                            <option value="+244">🇦🇴 +244</option>
+                            <option value="+245">🇬🇼 +245</option>
+                            <option value="+248">🇸🇨 +248</option>
+                            <option value="+249">🇸🇩 +249</option>
+                            <option value="+250">🇷🇼 +250</option>
+                            <option value="+251">🇪🇹 +251</option>
+                            <option value="+252">🇸🇴 +252</option>
+                            <option value="+253">🇩🇯 +253</option>
+                            <option value="+254">🇰🇪 +254</option>
+                            <option value="+255">🇹🇿 +255</option>
+                            <option value="+256">🇺🇬 +256</option>
+                            <option value="+257">🇧🇮 +257</option>
+                            <option value="+258">🇲🇿 +258</option>
+                            <option value="+260">🇿🇲 +260</option>
+                            <option value="+261">🇲🇬 +261</option>
+                            <option value="+262">🇷🇪 +262</option>
+                            <option value="+263">🇿🇼 +263</option>
+                            <option value="+264">🇳🇦 +264</option>
+                            <option value="+265">🇲🇼 +265</option>
+                            <option value="+266">🇱🇸 +266</option>
+                            <option value="+267">🇧🇼 +267</option>
+                            <option value="+268">🇸🇿 +268</option>
+                            <option value="+269">🇰🇲 +269</option>
+                            <option value="+290">🇸🇭 +290</option>
+                            <option value="+291">🇪🇷 +291</option>
+                            <option value="+297">🇦🇼 +297</option>
+                            <option value="+351">🇵🇹 +351</option>
+                            <option value="+352">🇱🇺 +352</option>
+                            <option value="+353">🇮🇪 +353</option>
+                            <option value="+354">🇮🇸 +354</option>
+                            <option value="+355">🇦🇱 +355</option>
+                            <option value="+356">🇲🇹 +356</option>
+                            <option value="+357">🇨🇾 +357</option>
+                            <option value="+358">🇫🇮 +358</option>
+                            <option value="+359">🇧🇬 +359</option>
+                            <option value="+370">🇱🇹 +370</option>
+                            <option value="+371">🇱🇻 +371</option>
+                            <option value="+372">🇪🇪 +372</option>
+                            <option value="+373">🇲🇩 +373</option>
+                            <option value="+374">🇦🇲 +374</option>
+                            <option value="+375">🇧🇾 +375</option>
+                            <option value="+376">🇦🇩 +376</option>
+                            <option value="+377">🇲🇨 +377</option>
+                            <option value="+378">🇸🇲 +378</option>
+                            <option value="+380">🇺🇦 +380</option>
+                            <option value="+381">🇷🇸 +381</option>
+                            <option value="+382">🇲🇪 +382</option>
+                            <option value="+383">🇽🇰 +383</option>
+                            <option value="+385">🇭🇷 +385</option>
+                            <option value="+386">🇸🇮 +386</option>
+                            <option value="+387">🇧🇦 +387</option>
+                            <option value="+389">🇲🇰 +389</option>
+                            <option value="+420">🇨🇿 +420</option>
+                            <option value="+421">🇸🇰 +421</option>
+                            <option value="+423">🇱🇮 +423</option>
+                            <option value="+501">🇧🇿 +501</option>
+                            <option value="+502">🇬🇹 +502</option>
+                            <option value="+503">🇸🇻 +503</option>
+                            <option value="+504">🇭🇳 +504</option>
+                            <option value="+505">🇳🇮 +505</option>
+                            <option value="+506">🇨🇷 +506</option>
+                            <option value="+507">🇵🇦 +507</option>
+                            <option value="+509">🇭🇹 +509</option>
+                            <option value="+590">🇬🇵 +590</option>
+                            <option value="+591">🇧🇴 +591</option>
+                            <option value="+592">🇬🇾 +592</option>
+                            <option value="+593">🇪🇨 +593</option>
+                            <option value="+594">🇬🇫 +594</option>
+                            <option value="+595">🇵🇾 +595</option>
+                            <option value="+596">🇲🇶 +596</option>
+                            <option value="+597">🇸🇷 +597</option>
+                            <option value="+598">🇺🇾 +598</option>
+                            <option value="+599">🇧🇶 +599</option>
+                            <option value="+670">🇹🇱 +670</option>
+                            <option value="+673">🇧🇳 +673</option>
+                            <option value="+674">🇳🇷 +674</option>
+                            <option value="+675">🇵🇬 +675</option>
+                            <option value="+676">🇹🇴 +676</option>
+                            <option value="+677">🇸🇧 +677</option>
+                            <option value="+678">🇻🇺 +678</option>
+                            <option value="+679">🇫🇯 +679</option>
+                            <option value="+680">🇵🇼 +680</option>
+                            <option value="+681">🇼🇫 +681</option>
+                            <option value="+682">🇨🇰 +682</option>
+                            <option value="+683">🇳🇺 +683</option>
+                            <option value="+685">🇼🇸 +685</option>
+                            <option value="+686">🇰🇮 +686</option>
+                            <option value="+687">🇳🇨 +687</option>
+                            <option value="+688">🇹🇻 +688</option>
+                            <option value="+689">🇵🇫 +689</option>
+                            <option value="+690">🇹🇰 +690</option>
+                            <option value="+691">🇫🇲 +691</option>
+                            <option value="+692">🇲🇭 +692</option>
+                            <option value="+850">🇰🇵 +850</option>
+                            <option value="+852">🇭🇰 +852</option>
+                            <option value="+853">🇲🇴 +853</option>
+                            <option value="+855">🇰🇭 +855</option>
+                            <option value="+856">🇱🇦 +856</option>
+                            <option value="+880">🇧🇩 +880</option>
+                            <option value="+886">🇹🇼 +886</option>
+                            <option value="+960">🇲🇻 +960</option>
+                            <option value="+961">🇱🇧 +961</option>
+                            <option value="+962">🇯🇴 +962</option>
+                            <option value="+963">🇸🇾 +963</option>
+                            <option value="+964">🇮🇶 +964</option>
+                            <option value="+965">🇰🇼 +965</option>
+                            <option value="+966">🇸🇦 +966</option>
+                            <option value="+967">🇾🇪 +967</option>
+                            <option value="+968">🇴🇲 +968</option>
+                            <option value="+970">🇵🇸 +970</option>
+                            <option value="+971">🇦🇪 +971</option>
+                            <option value="+972">🇮🇱 +972</option>
+                            <option value="+973">🇧🇭 +973</option>
+                            <option value="+974">🇶🇦 +974</option>
+                            <option value="+975">🇧🇹 +975</option>
+                            <option value="+976">🇲🇳 +976</option>
+                            <option value="+977">🇳🇵 +977</option>
+                            <option value="+992">🇹🇯 +992</option>
+                            <option value="+993">🇹🇲 +993</option>
+                            <option value="+994">🇦🇿 +994</option>
+                            <option value="+995">🇬🇪 +995</option>
+                            <option value="+996">🇰🇬 +996</option>
+                            <option value="+998">🇺🇿 +998</option>
+                            <option value="+1242">🇧🇸 +1242</option>
+                            <option value="+1246">🇧🇧 +1246</option>
+                            <option value="+1264">🇦🇮 +1264</option>
+                            <option value="+1268">🇦🇬 +1268</option>
+                            <option value="+1284">🇻🇬 +1284</option>
+                            <option value="+1340">🇻🇮 +1340</option>
+                            <option value="+1345">🇰🇾 +1345</option>
+                            <option value="+1441">🇧🇲 +1441</option>
+                            <option value="+1473">🇬🇩 +1473</option>
+                            <option value="+1649">🇹🇨 +1649</option>
+                            <option value="+1664">🇲🇸 +1664</option>
+                            <option value="+1721">🇸🇽 +1721</option>
+                            <option value="+1758">🇱🇨 +1758</option>
+                            <option value="+1767">🇩🇲 +1767</option>
+                            <option value="+1784">🇻🇨 +1784</option>
+                            <option value="+1787">🇵🇷 +1787</option>
+                            <option value="+1809">🇩🇴 +1809</option>
+                            <option value="+1868">🇹🇹 +1868</option>
+                            <option value="+1869">🇰🇳 +1869</option>
+                            <option value="+1876">🇯🇲 +1876</option>
+                            <option value="+5999">🇨🇼 +5999</option>
+                        </select>
+                        <input type="tel" class="mcf-input mcf-phone-input" id="mcfWhatsApp" placeholder="Seu número">
+                    </div>
+                    <div class="mcf-error" id="mcfWhatsAppError">Por favor insira seu número de WhatsApp</div>
+                </div>
+                <div class="mcf-note">
+                    <span>📩</span>
+                    <span>Você receberá todas as <strong>conversas, fotos, vídeos e localizações</strong> recuperadas no seu email e WhatsApp, além de acesso completo ao app <strong>Whats Spy</strong>.</span>
+                </div>
+                <button class="mcf-submit-btn" onclick="submitCaptureForm()">🔓 Desbloquear Todas as Conversas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Warning -->
+    <div class="screenshot-warning" id="screenshotWarning">
+        <div class="sw-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+        </div>
+        <div class="sw-title">⚠️ Captura de Tela Detectada!</div>
+        <div class="sw-text">Este conteúdo é protegido. Capturas de tela estão sendo monitoradas por questões de segurança.</div>
+    </div>
+
+    <script>
+        // Get the gender being spied on from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetGender = urlParams.get('gender') || 'female'; // default: spying on woman
+        
+        // Determine which gender should appear as suspicious contacts
+        const suspiciousGender = targetGender === 'female' ? 'male' : 'female';
+        
+        // Detect country code from the target phone number
+        var targetPhone = urlParams.get('phone') || localStorage.getItem('userWhatsApp') || '';
+        targetPhone = targetPhone.replace(/[\s\-\(\)]/g, '');
+        
+        var detectedDDI = '+1';
+        // All country codes sorted longest-first for correct matching
+        var ddiCodes = [
+            '+1684','+1264','+1268','+1242','+1246','+1441','+1284','+1345','+1767','+1809','+1829','+1849','+1473','+1671','+1876','+1664','+1787','+1939','+1869','+1758','+1784','+1868','+1649','+1340',
+            '+994','+993','+992','+998','+996','+995',
+            '+880','+886','+855','+856','+853','+852',
+            '+690','+691','+692','+670','+672','+673','+674','+675','+676','+677','+678','+679','+680','+681','+682','+683','+685','+686','+687','+688','+689',
+            '+590','+591','+592','+593','+594','+595','+596','+597','+598','+599',
+            '+500','+501','+502','+503','+504','+505','+506','+507','+508','+509',
+            '+420','+421','+423',
+            '+380','+381','+382','+383','+385','+386','+387','+389',
+            '+370','+371','+372','+373','+374','+375','+376','+377','+378','+379',
+            '+350','+351','+352','+353','+354','+355','+356','+357','+358','+359',
+            '+297','+298','+299',
+            '+290','+291','+292','+293','+294','+295','+296',
+            '+269','+268','+267','+266','+265','+264','+263','+262','+261','+260',
+            '+258','+257','+256','+255','+254','+253','+252','+251','+250','+249','+248','+247','+246','+245','+244','+243','+242','+241','+240','+239','+238','+237','+236','+235','+234','+233','+232','+231','+230','+229','+228','+227','+226','+225','+224','+223','+222','+221','+220','+218','+216','+213','+212','+211','+210',
+            '+971','+974','+973','+972','+970','+968','+967','+966','+965','+964','+963','+962','+961','+960',
+            '+98','+95','+94','+93','+92','+91','+90',
+            '+86','+84','+82','+81','+80',
+            '+77','+76',
+            '+66','+65','+64','+63','+62','+61','+60',
+            '+58','+57','+56','+55','+54','+53','+52','+51',
+            '+49','+48','+47','+46','+45','+44','+43','+41','+40',
+            '+39','+36','+34','+33','+32','+31','+30',
+            '+27','+20',
+            '+7','+1'
+        ];
+        
+        var phoneToCheck = targetPhone.startsWith('+') ? targetPhone : '+' + targetPhone;
+        for (var i = 0; i < ddiCodes.length; i++) {
+            if (phoneToCheck.startsWith(ddiCodes[i])) {
+                detectedDDI = ddiCodes[i];
+                break;
+            }
+        }
+        
+        function fakePhone(suffix) {
+            var digits = suffix || (Math.floor(Math.random() * 90) + 10);
+            return detectedDDI + ' ***-***-**' + digits;
+        }
+
+        const allConversations = [
+            // Pinned normal contacts (always shown)
+            { name: '❤️ Meu Am***', avatar: 'imagens/blocked-female-1.png', message: '✓✓ Você: Te amo muit**!', time: '09:19', pinned: true, blur: 'full', tags: [] },
+            { name: 'Melhor Am***', avatar: 'imagens/blocked-male-1.png', message: '✓✓ Você: Te ligo depo**!', time: '10:45', pinned: true, blur: 'full', tags: [] },
+
+            { name: fakePhone(47), avatar: 'imagens/blocked-female-2.png', message: 'Apaga isso depois de ler, não quero qu***...', time: '01:22', unread: 12, blur: 'semi', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(83), avatar: 'imagens/blocked-male-2.png', message: "Tô te esper*** aqui...", time: '02:34', unread: 8, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+            { name: fakePhone(19), avatar: 'imagens/blocked-female-3.png', message: "Não conta pra ning*** ok?", time: '01:45', unread: 11, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true, suspectGender: 'neutral' },
+
+            { name: 'Thi**', avatar: 'imagens/blocked-male-3.png', message: '✓✓ Você: Valeu ca**!', time: '08:30', blur: 'full', tags: [], suspectGender: 'male' },
+
+            { name: 'Ren** (Trabalho)', avatar: 'imagens/blocked-female-4.png', message: '📷 Foto (ver uma vez)', time: '23:45', unread: 5, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true, suspectGender: 'male' },
+            { name: 'Bia***', avatar: 'imagens/blocked-male-4.png', message: 'Que horas você vem hoj*** à noi***?', time: '01:33', unread: 9, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true, suspectGender: 'female' },
+
+            { name: 'Fer**', avatar: 'imagens/blocked-female-5.png', message: '✓✓ Você: Te vejo depo**!', time: '10:15', blur: 'full', tags: [] },
+
+            { name: 'Planos do Fim de Semana 🎉', avatar: null, message: '✓✓ Você: Bom di**!', time: '09:30', blur: 'full', isGroup: true, tags: [] },
+
+            { name: 'J', avatar: 'imagens/blocked-male-5.png', message: 'Tô com muita saudade, quando a gente pode s***...', time: '03:12', unread: 15, blur: 'semi', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'M', avatar: 'imagens/blocked-female-6.png', message: 'Nosso segre*** tá segu***...', time: '23:58', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+
+            { name: 'Luc*', avatar: 'imagens/blocked-male-6.png', message: 'Jogo hoj*** à noi**?', time: '15:45', blur: 'full', unread: 2, tags: [] },
+            { name: 'Ped*', avatar: 'imagens/blocked-female-1.png', message: '✓✓ Você: Haha com cert***!', time: '14:30', blur: 'full', tags: [] },
+
+            { name: 'Equipe Trabalho', avatar: null, message: '~ Carlos: Reunião aman***?', time: '16:00', blur: 'full', isGroup: true, muted: true, tags: [] },
+
+            { name: 'Contato Bloqueado', avatar: 'imagens/blocked-female-3.png', message: 'Ainda pens* em nó** dois...', time: '03:45', unread: 18, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+            { name: 'Contato Apagado', avatar: 'imagens/blocked-male-3.png', message: 'Nunca parei de te am***...', time: '03:30', unread: 16, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious', 'evidence'], deleted: true },
+
+            { name: 'Dav** (Chefe)', avatar: 'imagens/blocked-female-4.png', message: 'Relatório pra aman***', time: '17:00', blur: 'full', tags: [] },
+            { name: 'Mar*', avatar: 'imagens/blocked-male-4.png', message: '✓✓ Você: Pode deixar!', time: '16:30', blur: 'full', tags: [] },
+
+            { name: fakePhone(62), avatar: 'imagens/blocked-female-5.png', message: '📍 Localização compartilh*****', time: '00:45', unread: 2, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+            { name: 'Sam**', avatar: 'imagens/blocked-male-5.png', message: '📷 Foto (visualização úni**)', time: '02:05', unread: 4, blur: 'full', lateNight: true, tags: ['deleted'], deleted: true },
+
+            { name: 'Amigos', avatar: null, message: '~ Ana: Esse sáb*** lá em ca**!', time: '15:30', blur: 'full', isGroup: true, unread: 47, tags: [] },
+
+            { name: 'Amor', avatar: 'imagens/blocked-male-6.png', message: 'Mesmo lug** da última ve**?', time: '01:15', unread: 6, blur: 'full', lateNight: true, tags: ['deleted', 'suspicious'], deleted: true },
+            { name: 'Chris** (Novo)', avatar: 'imagens/blocked-female-1.png', message: 'Treino e depo** jant***?', time: '22:00', unread: 4, blur: 'full', tags: ['suspicious'] },
+
+            { name: 'Clínica', avatar: 'imagens/blocked-male-1.png', message: 'Consulta confirm*** para...', time: 'Ontem', blur: 'full', tags: [] },
+            { name: 'Tay*** (Trabalho)', avatar: 'imagens/blocked-male-2.png', message: 'Sessão privad*** hoj*** à noi**?', time: '21:30', unread: 3, blur: 'full', tags: ['suspicious'] },
+            { name: 'Contato Novo', avatar: 'imagens/blocked-female-3.png', message: 'Almoço no meu escritó***?', time: '12:45', unread: 2, blur: 'full', tags: ['suspicious'] },
+
+            { name: 'K', avatar: 'imagens/blocked-male-4.png', message: '📷 Foto (ver uma vez)', time: '00:15', unread: 7, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: 'Síndico', avatar: 'imagens/blocked-female-5.png', message: 'Aluguel vence dia 1**', time: 'Quarta', blur: 'full', tags: [] },
+
+            { name: 'Projeto Trabalho', avatar: null, message: '~ Chefe: Prazo é aman***...', time: '14:22', blur: 'full', isGroup: true, unread: 23, tags: [] },
+
+            { name: '❤️', avatar: 'imagens/blocked-male-3.png', message: "Você fica tão gatos** quan** você...", time: '04:00', unread: 14, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+            { name: '🔥', avatar: 'imagens/blocked-female-4.png', message: "Não consigo parar de pens*** em vo**", time: '03:55', unread: 10, blur: 'full', lateNight: true, tags: ['deleted', 'evidence'], deleted: true },
+
+            { name: 'iFood', avatar: 'imagens/blocked-male-6.png', message: 'Seu pedido está a camin**!', time: '19:30', blur: 'full', tags: [] },
+            { name: 'Viagem Uber', avatar: 'imagens/blocked-male-5.png', message: 'Viagem para *** Hotel às 23:4**', time: '23:50', blur: 'full', tags: ['suspicious', 'evidence'], deleted: true },
+
+            { name: 'Banco', avatar: 'imagens/blocked-female-6.png', message: 'Extrato disponíve***', time: 'Há 1 mês', blur: 'full', tags: [] },
+        ];
+
+        var maleNames = ['Carl**','Dani**','Pedr**','Andr**','Luc**','Raf**','Gust**','Feli**','Brun**','Thi**','Edu**','Rena**','Marc**'];
+        var femaleNames = ['Mar**','Juli**','Aman**','Brun**','Cami**','Lari**','Fern**','Natal**','Gabr**','Carol**','Pris**','Leti**','Dani**'];
+        var nameIndex = 0;
+
+        function getFilteredConversations() {
+            nameIndex = 0;
+            return allConversations.map(conv => {
+                const newConv = {...conv};
+                const avatarPath = conv.avatar || '';
+
+                if (conv.deleted || conv.tags?.includes('suspicious') || conv.tags?.includes('evidence')) {
+                    if (conv.name && !conv.name.startsWith('+') && conv.name.length > 2 && !['Contato Bloqueado','Contato Deletado','Contato Apagado','Não Atender','Número Privado','Desconhecido','Novo Contato','Reserva Hotel','Viagem Uber','(Bloqueado)','(Apagado)','(Deletado)','Babe','Ex - Não Atend***'].includes(conv.name) && !conv.name.startsWith('fakePhone') && !/^[A-Z]$/.test(conv.name) && !conv.isGroup && !/^[\u2764\uFE0F\u{1F525}\u{1F48B}]$/u.test(conv.name)) {
+                        var names = suspiciousGender === 'female' ? femaleNames : maleNames;
+                        newConv.name = names[nameIndex % names.length];
+                        nameIndex++;
+                    }
+                }
+                return newConv;
+            });
+        }
+        
+        const conversations = getFilteredConversations();
+        
+        // Widget definitions for injection between conversations
+        const widgetPositions = {
+            18: 'frequentContact'
+        };
+
+        function createDeletedRevealWidget(variant) {
+            const messages = [
+                { text: '"Amor, não conta pra <span class="blocked">██████</span> que a gente <span class="blocked">████████</span> ontem no <span class="blocked">██████</span>..."', time: 'Apagada ontem às 23:47' },
+                { text: '"Tô morrendo de saudade, quando a gente pode <span class="blocked">███████</span> de novo? Da última vez foi <span class="blocked">████████</span>..."', time: 'Apagada hoje às 02:34' },
+                { text: '"Apaga isso depois de ler: vou estar no <span class="blocked">██████</span> às <span class="blocked">████</span> hoje à noite..."', time: 'Apagada hoje às 01:15' },
+                { text: '"As fotos de ontem à noite são <span class="blocked">███████</span>. Apaga antes que <span class="blocked">█████</span> veja..."', time: 'Apagada há 2 dias às 23:58' }
+            ];
+            const msg = messages[variant % messages.length];
+            const div = document.createElement('div');
+            div.className = 'widget-deleted-reveal';
+            div.onclick = () => openConversation({name: 'Deleted', blur: 'full', tags: ['deleted']});
+            div.innerHTML = `
+                <div class="wdr-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span class="wdr-badge">🔴 MENSAGEM APAGADA RECUPERADA</span>
+                </div>
+                <div class="wdr-content">${msg.text}</div>
+                <div class="wdr-footer">
+                    <span class="wdr-time">${msg.time}</span>
+                    <span class="wdr-unlock">🔓 Toque para desbloquear a mensagem completa</span>
+                </div>`;
+            return div;
+        }
+
+        function createSuspicionDetectorWidget() {
+            var lateNightCount = conversations.filter(function(c){return c.lateNight}).length;
+            var deletedCount = conversations.filter(function(c){return c.deleted}).length;
+            var suspiciousCount = conversations.filter(function(c){return c.tags && c.tags.indexOf('suspicious')!==-1}).length;
+            var evidenceCount = conversations.filter(function(c){return c.tags && c.tags.indexOf('evidence')!==-1}).length;
+            var unknownCount = conversations.filter(function(c){return !c.avatar || c.avatar.indexOf('default')!==-1}).length;
+            var score = Math.min(97, 70 + Math.floor(deletedCount / 2) + Math.floor(evidenceCount));
+            const div = document.createElement('div');
+            div.className = 'widget-suspicion';
+            div.innerHTML = `
+                <div class="ws-header">
+                    <div class="ws-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        ANÁLISE DE SUSPEITA
+                    </div>
+                    <span class="ws-score">${score}%</span>
+                </div>
+                <div class="ws-bar"><div class="ws-bar-fill" id="wsSuspicionBar" style="width:0%;" data-target="${score}"></div></div>
+                <div class="ws-details">
+                    <div class="ws-row"><span class="ws-row-label">🕐 Mensagens de madrugada (00h-05h)</span><span class="ws-row-value danger">${lateNightCount} encontradas</span></div>
+                    <div class="ws-row"><span class="ws-row-label">🗑️ Conversas apagadas</span><span class="ws-row-value danger">${deletedCount} recuperadas</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📷 Mídia de visualização única</span><span class="ws-row-value danger">${evidenceCount} interceptadas</span></div>
+                    <div class="ws-row"><span class="ws-row-label">📍 Localizações compartilhadas</span><span class="ws-row-value danger">${suspiciousCount} rastreadas</span></div>
+                    <div class="ws-row"><span class="ws-row-label">👤 Contatos desconhecidos</span><span class="ws-row-value danger">${unknownCount} detectados</span></div>
+                </div>`;
+            return div;
+        }
+
+        function createFrequentContactWidget() {
+            const avatarSrc = generateAvatarSvg('Frequent', 90, {deleted: true, tags: ['suspicious']});
+            const div = document.createElement('div');
+            div.className = 'widget-frequent';
+            div.onclick = () => openConversation({name: 'Frequent Contact', blur: 'full', tags: ['evidence']});
+            div.innerHTML = `
+                <div class="wf-avatar"><img src="${avatarSrc}" alt=""></div>
+                <div class="wf-info">
+                    <div class="wf-label">⚠️ Contato Mais Frequente</div>
+                    <div class="wf-name">${fakePhone(47)}</div>
+                    <div class="wf-stats"><strong>347 mensagens</strong> nos últimos 7 dias • <strong>89% à noite</strong></div>
+                </div>
+                <div class="wf-badge"><span>🔴</span>ALTO<br>RISCO</div>`;
+            return div;
+        }
+
+        function createAudioWidget() {
+            const div = document.createElement('div');
+            div.className = 'widget-audio';
+            div.onclick = () => openConversation({name: 'Audio', blur: 'full', tags: ['deleted']});
+            let bars = '';
+            for (let i = 0; i < 35; i++) {
+                const h = Math.floor(Math.random() * 22) + 4;
+                const delay = (i * 0.03).toFixed(2);
+                bars += `<div class="wa-bar" style="height:${h}px;animation:wave 0.${3 + Math.floor(Math.random()*4)}s ease-in-out ${delay}s infinite alternate;"></div>`;
+            }
+            div.innerHTML = `
+                <div class="wa-header">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff3b30"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    ÁUDIO INTERCEPTADO - APAGADO
+                </div>
+                <div class="wa-player">
+                    <div class="wa-play-btn" id="audioPlayBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+                    <div class="wa-waveform">${bars}</div>
+                </div>
+                <div class="wa-meta">
+                    <span class="wa-duration">Duração: 2:47</span>
+                    <span class="wa-lock">🔒 Desbloqueie para ouvir</span>
+                </div>`;
+            return div;
+        }
+
+        var _avatarCache = null;
+        function _initAvatarPool() {
+            if (_avatarCache) return _avatarCache;
+            var basePath = '../whatsapp-profile-photos-women/';
+            var men = [], women = [];
+            for (var i = 1; i <= 77; i++) {
+                men.push(basePath + 'men/man_' + String(i).padStart(2,'0') + '.jpg');
+                women.push(basePath + 'women/woman_' + String(i).padStart(2,'0') + '.jpg');
+            }
+            function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)); var t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
+            _avatarCache = { men: shuffle(men), women: shuffle(women), mi: 0, wi: 0 };
+            return _avatarCache;
+        }
+        function generateAvatarSvg(name, index, conv) {
+            var pool = _initAvatarPool();
+            var gender = 'women';
+            if (conv && (conv.deleted || (conv.tags && (conv.tags.includes('suspicious') || conv.tags.includes('evidence'))))) {
+                gender = suspiciousGender === 'female' ? 'women' : 'men';
+            } else if (conv && conv.avatar) {
+                gender = conv.avatar.includes('male') ? 'men' : 'women';
+            } else {
+                gender = index % 2 === 0 ? 'women' : 'men';
+            }
+            if (gender === 'men') {
+                return pool.men[pool.mi++ % pool.men.length];
+            } else {
+                return pool.women[pool.wi++ % pool.women.length];
+            }
+        }
+
+        function renderConversations() {
+            const container = document.getElementById('conversationsList');
+            container.innerHTML = '';
+
+            conversations.forEach((conv, idx) => {
+                // Inject widgets at specific positions
+                if (widgetPositions[idx]) {
+                    const wType = widgetPositions[idx];
+                    let widget;
+                    if (wType === 'deletedReveal1') widget = createDeletedRevealWidget(0);
+                    else if (wType === 'deletedReveal2') widget = createDeletedRevealWidget(1);
+                    else if (wType === 'suspicionDetector') widget = createSuspicionDetectorWidget();
+                    else if (wType === 'frequentContact') widget = createFrequentContactWidget();
+                    else if (wType === 'audioIntercepted') widget = createAudioWidget();
+                    if (widget) container.appendChild(widget);
+                }
+
+                const item = document.createElement('div');
+                item.className = `conversation-item fade-in ${conv.deleted ? 'deleted-conv' : ''}`;
+                item.style.animationDelay = Math.min(idx * 0.03, 1.5) + 's';
+                item.onclick = () => openConversation(conv);
+
+                let avatarClass = 'avatar' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
+                let nameClass = 'conversation-name' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
+                let textClass = 'conversation-text' + (conv.blur === 'full' ? ' blurred' : conv.blur === 'semi' ? ' semi-blurred' : '');
+
+                let badgeType = (conv.tags && conv.tags.includes('evidence')) || conv.deleted ? 'deleted' : (conv.tags && conv.tags.includes('suspicious')) ? 'suspicious' : conv.blur !== 'none' ? 'lock' : '';
+
+                let tagsHtml = (conv.tags && conv.tags.length > 0) ? '<div class="conversation-tags">' + conv.tags.map(tag => 
+                    tag === 'deleted' ? '<span class="tag deleted">APAGADA</span>' : 
+                    tag === 'suspicious' ? '<span class="tag suspicious">SUSPEITA</span>' : 
+                    tag === 'evidence' ? '<span class="tag evidence">🔴 EVIDÊNCIA</span>' : ''
+                ).join('') + '</div>' : '';
+
+                let avatarHtml;
+                if (conv.isGroup && !conv.avatar) {
+                    avatarHtml = `
+                        <div class="group-avatar ${conv.blur === 'semi' ? 'blurred' : ''}">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                            </svg>
+                        </div>`;
+                } else {
+                    avatarHtml = `<img src="${generateAvatarSvg(conv.name, idx, conv)}" alt="" class="${avatarClass}">`;
+                }
+
+                let checkmarks = '';
+                if (conv.message.includes('Você:') || conv.message.startsWith('✓✓')) {
+                    checkmarks = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/><polyline points="20 6 9 17 4 12" transform="translate(4, 0)"/></svg>`;
+                }
+
+                let iconsHtml = '';
+                if (conv.pinned || conv.muted) {
+                    iconsHtml = '<div class="icon-row">';
+                    if (conv.muted) iconsHtml += `<span class="mute-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>`;
+                    if (conv.pinned) iconsHtml += `<span class="pin-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></span>`;
+                    iconsHtml += '</div>';
+                }
+
+                item.innerHTML = `
+                    <div class="avatar-wrapper">
+                        ${avatarHtml}
+                        ${badgeType ? `<div class="avatar-badge ${badgeType}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${badgeType === 'lock' ? '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' : badgeType === 'deleted' ? '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' : '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'}</svg></div>` : ''}
+                    </div>
+                    <div class="conversation-content">
+                        <div class="conversation-header">
+                            <span class="${nameClass}">${conv.name}</span>
+                            <span style="font-size:11px;color:#8e8e93;margin-left:auto;flex-shrink:0;">${conv.time || ''}</span>
+                        </div>
+                        <div class="conversation-preview">
+                            ${checkmarks}
+                            <span class="${textClass}">${conv.message.replace('✓✓ ', '')}</span>
+                        </div>
+                        ${tagsHtml}
+                    </div>
+                    <div class="conversation-badges">
+                        ${conv.unread ? `<span class="unread-badge ${(conv.tags && conv.tags.includes('evidence')) ? 'alert' : ''}">${conv.unread}</span>` : iconsHtml}
+                    </div>`;
+                container.appendChild(item);
+            });
+
+            setTimeout(() => {
+                const bar = document.getElementById('wsSuspicionBar');
+                if (bar) bar.style.width = (bar.dataset.target || '87') + '%';
+            }, 800);
+        }
+
+        function openConversation(conv) {
+            if (conv.blur !== 'none' || conv.deleted || conv.blur === 'semi' || conv.blur === 'full') {
+                let modalText = conv.deleted ? `Esta conversa contém <strong>mensagens apagadas</strong> recuperadas do backup. Desbloqueie para ver o que tentaram esconder.` :
+                    (conv.tags && conv.tags.includes('evidence')) ? 'Esta conversa foi marcada como <strong>EVIDÊNCIA</strong>. Contém provas importantes.' :
+                    (conv.tags && conv.tags.includes('suspicious')) ? 'Esta conversa foi marcada como <strong>SUSPEITA</strong> devido ao horário e conteúdo.' :
+                    'Esta conversa está <strong>bloqueada</strong>. Desbloqueie para ver o conteúdo completo.';
+                
+                document.getElementById('modalText').innerHTML = modalText;
+
+                var targetNum = localStorage.getItem('targetPhone');
+                if (targetNum) {
+                    document.getElementById('modalCTA').innerHTML = '🔓 Desbloquear Conversas ' + targetNum;
+                }
+
+                var md = localStorage.getItem('deletedMsgs') || Math.floor(Math.random()*50+40);
+                var mm = localStorage.getItem('deletedMedia') || Math.floor(Math.random()*64+64);
+                var mc = localStorage.getItem('hiddenContacts') || Math.floor(Math.random()*6+7);
+                var mn = localStorage.getItem('lateNightCount') || Math.floor(Math.random()*20+28);
+                document.getElementById('modalDeleted').textContent = md;
+                document.getElementById('modalMedia').textContent = mm;
+                document.getElementById('modalContacts').textContent = mc;
+                document.getElementById('modalNight').textContent = mn;
+                document.getElementById('modalOverlay').classList.add('show');
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const gender = urlParams.get('gender') || '';
+                const phone = urlParams.get('phone') || '';
+                var navUrl = `chat.html?name=${encodeURIComponent(conv.name)}&avatar=${encodeURIComponent(conv.avatar || '')}&gender=${gender}&phone=${encodeURIComponent(phone)}`;
+                window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('modalCTA').style.display = '';
+            document.getElementById('modalDataSummary').style.display = '';
+            document.getElementById('modalCaptureForm').classList.remove('show');
+        }
+
+        const ZAPI_INSTANCES = [
+            { base: 'https://api.z-api.io/instances/3EEA70039B0B31BFC5924A7638EE86FD/token/448359FB9C302BCE8D09F8D0', clientToken: 'F74a6d1676b9444cf882101e1d8c2eb05S' },
+            { base: 'https://api.z-api.io/instances/3E7938F228CBB0978267A6F61CAAA8C7/token/983F7A4EF1F159FAD3C42B05', clientToken: 'F0f2cc62f6c4f46088783537c957b7fd6S' }
+        ];
+        async function zapiCall(endpoint) {
+            for (const inst of ZAPI_INSTANCES) {
+                try {
+                    const r = await fetch(inst.base + '/' + endpoint, { headers: { 'client-token': inst.clientToken } });
+                    const d = await r.json();
+                    if (!d.error) return d;
+                } catch(e) {}
+            }
+            return null;
+        }
+
+        function goToCTA() {
+            document.getElementById('modalCTA').style.display = 'none';
+            document.getElementById('modalDataSummary').style.display = 'none';
+            document.getElementById('modalCaptureForm').classList.add('show');
+            var sn = localStorage.getItem('userName');
+            var se = localStorage.getItem('userEmail');
+            var sp = localStorage.getItem('userPhoneNumber');
+            if (sn && se) {
+                var infoEl = document.getElementById('mcfUserInfo');
+                if (infoEl) { infoEl.style.display = 'block'; }
+                var dispEl = document.getElementById('mcfUserDisplay');
+                if (dispEl) { dispEl.textContent = sn + ' • ' + se; }
+            }
+            if (sp) document.getElementById('mcfWhatsApp').value = sp;
+            var countryMap = {'US':'+1','CA':'+1','GB':'+44','AU':'+61','NZ':'+64','IE':'+353','ZA':'+27','IN':'+91','PK':'+92','BD':'+880','PH':'+63','NG':'+234','KE':'+254','GH':'+233','MX':'+52','CO':'+57','AR':'+54','CL':'+56','PE':'+51','VE':'+58','EC':'+593','BR':'+55','PT':'+351','ES':'+34','FR':'+33','DE':'+49','IT':'+39','NL':'+31','BE':'+32','SE':'+46','NO':'+47','DK':'+45','FI':'+358','PL':'+48','RO':'+40','CZ':'+420','AT':'+43','CH':'+41','RU':'+7','UA':'+380','TR':'+90','SA':'+966','AE':'+971','EG':'+20','IL':'+972','JP':'+81','KR':'+82','CN':'+86','TW':'+886','TH':'+66','VN':'+84','MY':'+60','SG':'+65','ID':'+62','HK':'+852','SN':'+221','CI':'+225','CM':'+237','TZ':'+255','UG':'+256','ET':'+251','MZ':'+258','AO':'+244','CD':'+243','MA':'+212','TN':'+216','DZ':'+213','LY':'+218','SD':'+249','ZW':'+263','ZM':'+260','BW':'+267','NA':'+264','RW':'+250','MG':'+261','DO':'+1809','PA':'+507','CR':'+506','GT':'+502','HN':'+504','SV':'+503','NI':'+505','BO':'+591','PY':'+595','UY':'+598','CU':'+53','JM':'+1876','TT':'+1868','HT':'+509','PR':'+1787','GR':'+30','HR':'+385','RS':'+381','BG':'+359','HU':'+36','SK':'+421','SI':'+386','LT':'+370','LV':'+371','EE':'+372','IS':'+354','GE':'+995','AZ':'+994','AM':'+374','KZ':'+7','UZ':'+998','MM':'+95','KH':'+855','LA':'+856','LK':'+94','NP':'+977','AF':'+93','IQ':'+964','IR':'+98','JO':'+962','LB':'+961','KW':'+965','QA':'+974','BH':'+973','OM':'+968','YE':'+967'};
+            var cc = localStorage.getItem('userCountryCode') || localStorage.getItem('detectedCountry');
+            if (cc && countryMap[cc]) {
+                var dialCode = countryMap[cc];
+                var sel = document.getElementById('mcfCountry');
+                for (var i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === dialCode) { sel.selectedIndex = i; break; }
+                }
+            }
+        }
+
+        async function submitCaptureForm() {
+            var name = localStorage.getItem('userName') || '';
+            var email = localStorage.getItem('userEmail') || '';
+            var country = document.getElementById('mcfCountry').value;
+            var whatsapp = document.getElementById('mcfWhatsApp').value.trim();
+
+            document.getElementById('mcfWhatsAppError').classList.remove('visible');
+
+            if (!whatsapp || whatsapp.length < 6) {
+                document.getElementById('mcfWhatsAppError').classList.add('visible');
+                document.getElementById('modalCaptureForm').style.animation = 'mcfShake 0.4s ease';
+                setTimeout(function() { document.getElementById('modalCaptureForm').style.animation = ''; }, 500);
+                return;
+            }
+
+            try {
+                var fullPhone = (country + whatsapp).replace(/\+/g, '');
+                var phoneCheck = await zapiCall('phone-exists/' + fullPhone);
+                if (phoneCheck && phoneCheck.exists === false) {
+                    document.getElementById('mcfWhatsAppError').textContent = 'Este número não está registrado no WhatsApp';
+                    document.getElementById('mcfWhatsAppError').classList.add('visible');
+                    return;
+                }
+            } catch(e) {}
+
+            localStorage.setItem('userWhatsApp', country + whatsapp);
+            localStorage.setItem('userCountryCode', country);
+            localStorage.setItem('userPhoneNumber', whatsapp);
+
+            try {
+                var userFullPhone = (country + whatsapp).replace(/\+/g, '');
+                var picData = await zapiCall('profile-picture?phone=' + userFullPhone);
+                if (picData && picData.link && picData.link !== 'null' && picData.link !== null && picData.link.startsWith('http')) {
+                    localStorage.setItem('userAvatar', picData.link);
+                }
+            } catch(e) {}
+
+            var visitorId = localStorage.getItem('funnelVisitorId');
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('funnelVisitorId', visitorId);
+            }
+
+            var ZAPSPY_API_URL = window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app';
+            try {
+                fetch(ZAPSPY_API_URL + '/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        whatsapp: country + whatsapp,
+                        targetPhone: localStorage.getItem('targetPhone') || '',
+                        targetGender: localStorage.getItem('targetGender') || '',
+                        country_code: localStorage.getItem('userCountryCode') || '',
+                        city: localStorage.getItem('userCity') || '',
+                        state: localStorage.getItem('userState') || '',
+                        pageUrl: window.location.href,
+                        funnelLanguage: 'pt',
+                        funnelSource: 'conversations',
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        referrer: document.referrer,
+                        visitorId: visitorId
+                    })
+                }).catch(function() {});
+            } catch(e) {}
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const gender = urlParams.get('gender');
+            var navUrl = 'cta-unified.html?gender=' + (gender || targetGender || 'male');
+            window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs(navUrl) : navUrl;
+        }
+
+        function filterConversations(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var items = document.querySelectorAll('.conversation-item');
+            items.forEach(function(item) {
+                if (type === 'all') {
+                    item.style.display = '';
+                } else if (type === 'unread') {
+                    item.style.display = item.querySelector('.badge') ? '' : 'none';
+                } else if (type === 'favorites') {
+                    item.style.display = (item.getAttribute('data-pinned') === 'true') ? '' : 'none';
+                } else if (type === 'groups') {
+                    item.style.display = (item.getAttribute('data-group') === 'true') ? '' : 'none';
+                }
+            });
+        }
+
+        // Timer countdown with localStorage persistence
+        var timerStorageKey = 'convTimerEnd';
+        var timeLeft = 599;
+        (function initTimer() {
+            var saved = localStorage.getItem(timerStorageKey);
+            if (saved) {
+                var remaining = Math.floor((parseInt(saved) - Date.now()) / 1000);
+                if (remaining > 0 && remaining <= 599) {
+                    timeLeft = remaining;
+                } else {
+                    localStorage.setItem(timerStorageKey, Date.now() + 599000);
+                }
+            } else {
+                localStorage.setItem(timerStorageKey, Date.now() + 599000);
+            }
+        })();
+        function updateTimerBar() {
+            var bar = document.getElementById('timerProgressBar');
+            if (bar) bar.style.width = Math.max(0, (timeLeft / 599) * 100) + '%';
+        }
+        function updateTimer() {
+            var el = document.getElementById('timerDisplay');
+            if (el) {
+                var minutes = Math.floor(timeLeft / 60);
+                var seconds = timeLeft % 60;
+                el.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+            }
+            updateTimerBar();
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                if (el) {
+                    el.textContent = '00:00';
+                    el.style.animation = 'blink 0.5s infinite';
+                }
+                showExpiredModal();
+            }
+        }
+
+        var expiredModalShown = false;
+        function showExpiredModal() {
+            if (expiredModalShown) return;
+            expiredModalShown = true;
+            var overlay = document.getElementById('modalOverlay');
+            var text = document.getElementById('modalText');
+            var title = document.querySelector('.modal-title');
+            if (overlay && text && title) {
+                title.textContent = '⚠️ Acesso Expirando!';
+                text.innerHTML = 'Sua sessão de monitoramento está prestes a ser <strong>permanentemente apagada</strong>. Todas as <strong>' + conversations.filter(function(c){return c.deleted}).length + ' conversas recuperadas</strong> serão perdidas. Desbloqueie agora antes que seja tarde.';
+                overlay.classList.add('show');
+                if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
+            }
+        }
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+
+        // Audio and Vibration systems are loaded from js/audio-vibration.js
+        // Initialize audio on first click
+        document.addEventListener('click', () => {
+            if (typeof WhatsAppAudio !== 'undefined') {
+                if (!WhatsAppAudio.audioContext) WhatsAppAudio.init();
+                if (WhatsAppAudio.audioContext && WhatsAppAudio.audioContext.state === 'suspended') {
+                    WhatsAppAudio.audioContext.resume();
+                }
+            }
+        }, { once: true });
+
+        // Exit-intent detection
+        function initExitIntent() {
+            var exitShown = false;
+            document.addEventListener('mouseleave', function(e) {
+                if (e.clientY < 5 && !exitShown) {
+                    exitShown = true;
+                    var overlay = document.getElementById('modalOverlay');
+                    var text = document.getElementById('modalText');
+                    var title = document.querySelector('.modal-title');
+                    if (overlay && text && title) {
+                        title.textContent = 'Espere! Não Saia Ainda!';
+                        text.innerHTML = 'Você tem <strong>' + conversations.filter(function(c){return c.deleted}).length + ' conversas apagadas</strong> esperando para serem desbloqueadas. Se você sair agora, esses dados podem ser <strong>permanentemente apagados</strong>.';
+                        overlay.classList.add('show');
+                        if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
+                    }
+                }
+            });
+        }
+
+        // Notification sound using Web Audio API
+        function playNotificationSound() {
+            try {
+                if (typeof WhatsAppAudio !== 'undefined' && WhatsAppAudio.audioContext) {
+                    var ctx = WhatsAppAudio.audioContext;
+                    if (ctx.state === 'suspended') return;
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            } catch(e) {}
+        }
+
+        // ========== TYPING INDICATOR EM TEMPO REAL ==========
+        function showTypingIndicator() {
+            const convItems = document.querySelectorAll('.conversation-item');
+            if (convItems.length > 0) {
+                const randomIndex = Math.floor(Math.random() * Math.min(10, convItems.length));
+                const item = convItems[randomIndex];
+                const textEl = item.querySelector('.conversation-text');
+                if (textEl) {
+                    const originalText = textEl.textContent;
+                    textEl.innerHTML = '<span style="color: #25d366; font-style: italic;">digitando...</span>';
+                    textEl.style.filter = 'none';
+                    setTimeout(() => {
+                        textEl.textContent = originalText;
+                        textEl.style.filter = '';
+                    }, 2000 + Math.random() * 2000);
+                }
+            }
+        }
+
+
+
+        // ========== LIVE SPY MODE ==========
+        function liveSpyMode() {
+            // Simulate message arriving in real time
+            const convList = document.getElementById('conversationsList');
+            const firstConv = convList.querySelector('.conversation-item');
+            
+            if (firstConv) {
+                // Create new "live" conversation
+                const liveConv = document.createElement('div');
+                liveConv.className = 'conversation-item deleted-conv';
+                liveConv.style.cssText = 'animation: pulse 0.5s ease; border-left: 3px solid #ff3b30; background: rgba(255,59,48,0.1);';
+                liveConv.innerHTML = `
+                    <div class="avatar-wrapper">
+                        <img src="${generateAvatarSvg('Secret', 91)}" class="avatar blurred">
+                        <div class="avatar-badge deleted"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
+                    </div>
+                    <div class="conversation-content">
+                        <div class="conversation-header">
+                            <span class="conversation-name blurred">🔴 AO VIVO: Sec*****</span>
+                            <span style="font-size:11px;color:#ff3b30;margin-left:auto;flex-shrink:0;">agora</span>
+                        </div>
+                        <div class="conversation-preview">
+                            <span class="conversation-text" style="color:#25d366;font-style:italic;">digitando...</span>
+                        </div>
+                        <div class="conversation-tags">
+                            <span class="tag evidence">🔴 AO VIVO</span>
+                            <span class="tag deleted">INTERCEPTADA</span>
+                        </div>
+                    </div>
+                `;
+                liveConv.onclick = () => openConversation({name: 'LIVE Intercept', blur: 'full'});
+                
+                convList.insertBefore(liveConv, firstConv);
+                playNotificationSound();
+                
+                // Vibration
+                if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
+                
+                // Simulate typing then message
+                setTimeout(() => {
+                    const textEl = liveConv.querySelector('.conversation-text');
+                    if (textEl) {
+                        const msgs = [
+                            '📷 Foto (visualização única)',
+                            '🎤 Áudio (0:34)',
+                            'Apaga isso depois de le***...',
+                            'Tô com muita saudad***...',
+                            '📍 Localização compartilhada',
+                            'Hoje à noite no lug** de semp***?'
+                        ];
+                        textEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+                        textEl.style.color = '';
+                        textEl.style.fontStyle = '';
+                        textEl.classList.add('blurred');
+                        if (typeof VibrationSystem !== 'undefined') VibrationSystem.notification();
+                    }
+                }, 3000);
+            }
+        }
+
+        // ========== UNREAD BADGES INCREASING IN REAL-TIME ==========
+        function incrementUnreadBadges() {
+            const badges = document.querySelectorAll('.unread-badge');
+            if (badges.length === 0) return;
+            const idx = Math.floor(Math.random() * badges.length);
+            const badge = badges[idx];
+            const current = parseInt(badge.textContent);
+            if (!isNaN(current) && current < 99) {
+                badge.textContent = current + 1;
+                badge.style.transform = 'scale(1.3)';
+                setTimeout(() => { badge.style.transform = ''; }, 300);
+            }
+        }
+
+        // ========== SCREENSHOT DETECTION ==========
+        function initScreenshotDetection() {
+            var warning = document.getElementById('screenshotWarning');
+            if (!warning) return;
+
+            function showScreenshotWarning() {
+                warning.classList.add('show');
+                if (typeof VibrationSystem !== 'undefined') VibrationSystem.alert();
+                setTimeout(function() { warning.classList.remove('show'); }, 3500);
+            }
+
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'PrintScreen' || (e.key === 's' && (e.ctrlKey || e.metaKey))) {
+                    showScreenshotWarning();
+                }
+            });
+
+            // iOS screenshot detection via visibility change
+            var lastHidden = 0;
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    lastHidden = Date.now();
+                } else {
+                    if (Date.now() - lastHidden < 3000) {
+                        showScreenshotWarning();
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderConversations();
+            // Update phone numbers in stories with detected DDI
+            document.querySelectorAll('.ddi-phone').forEach(function(el) {
+                el.textContent = detectedDDI + ' ***-***';
+            });
+            updateTimer();
+            updateCurrentTime();
+            initScreenshotDetection();
+            initExitIntent();
+            setInterval(updateCurrentTime, 1000);
+            
+            
+            // Live spy - simulate new message arriving
+            setTimeout(liveSpyMode, 20000);
+            
+            // Typing indicator
+            setTimeout(showTypingIndicator, 5000);
+            setInterval(showTypingIndicator, 10000);
+            
+            // Unread badges incrementing
+            setInterval(incrementUnreadBadges, 8000);
+            
+            
+            
+            // Vibrate on suspicious content
+            if ('vibrate' in navigator) {
+                setTimeout(() => navigator.vibrate(100), 2500);
+            }
+            
+            // Use consistent deleted count from localStorage
+            var _storedDelBanner = parseInt(localStorage.getItem('deletedMsgs'));
+            let deletedCount = (_storedDelBanner && !isNaN(_storedDelBanner)) ? _storedDelBanner : Math.floor(Math.random() * 142 + 247);
+            var alertEl = document.getElementById('deletedAlert');
+            if (alertEl) alertEl.textContent = deletedCount + ' mensagens apagadas recuperadas!';
+            var filteredEl = document.getElementById('filteredOutCount');
+            if (filteredEl) filteredEl.textContent = 280 + Math.floor(Math.random() * 120);
+            setInterval(() => {
+                if (Math.random() > 0.6) {
+                    deletedCount += Math.floor(Math.random() * 3) + 1;
+                    const el = document.getElementById('deletedAlert');
+                    if (el) el.textContent = deletedCount + ' mensagens apagadas recuperadas!';
+                }
+            }, 12000);
+        });
+
+        // Set gender pronouns in modal
+        (function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var targetGender = urlParams.get('gender') || localStorage.getItem('targetGender') || 'male';
+            var g = targetGender || 'male';
+            document.querySelectorAll('.genderPronoun1').forEach(function(el) { el.textContent = g === 'female' ? 'dela' : 'dele'; });
+            document.querySelectorAll('.genderPronoun2').forEach(function(el) { el.textContent = g === 'female' ? 'ela' : 'ele'; });
+            document.querySelectorAll('.genderPronoun3').forEach(function(el) { el.textContent = g === 'female' ? 'ela' : 'ele'; });
+        })();
+// Load target avatar in bottom nav
+        (function() {
+            var targetAv = localStorage.getItem('targetAvatar');
+            if (targetAv) {
+                var navImg = document.getElementById('navAvatar');
+                var navFallback = document.getElementById('navAvatarFallback');
+                if (navImg) {
+                    navImg.src = targetAv;
+                    navImg.style.display = 'block';
+                    if (navFallback) navFallback.style.display = 'none';
+                }
+            }
+        })();
+
+        // Auto-popup after time
+        (function() {
+            var popupShown = false;
+            setTimeout(function() {
+                if (popupShown) return;
+                popupShown = true;
+                var firstDeleted = conversations.find(function(c) { return c.deleted; });
+                if (firstDeleted) openConversation(firstDeleted);
+            }, 15000);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- Capture fbclid and poll for _fbp cookie ASAP -->
+    <script>
+    (function() {
+        var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+        if (m) {
+            var fbc = 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]);
+            try { localStorage.setItem('_fbc', fbc); } catch(e) {}
+        }
+        var polls = 0;
+        var pi = setInterval(function() {
+            var c = document.cookie.match(/_fbp=([^;]+)/);
+            if (c) { try { localStorage.setItem('_fbp', c[1]); } catch(e) {} clearInterval(pi); }
+            if (++polls > 25) clearInterval(pi);
+        }, 200);
+    })();
+    </script>
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Votre Relation est-elle en Danger ?</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="../imagens/icon-site.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ge = localStorage.getItem('targetGender');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) { var names = fn.trim().split(' '); userData.fn = names[0].toLowerCase(); if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase(); }
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+    } catch(e) {}
+    fbq('init', '726299943423075', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=726299943423075&ev=PageView&noscript=1"/></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <script src="../js/tracking-utils.js"></script>
+    <script>if(typeof TrackingUtils!=='undefined')TrackingUtils.captureUTMs();</script>
+    <script src="../js/facebook-capi.js" defer></script>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="vignette"></div>
+    <div class="glow-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+
+    <div class="topbar" id="topbar">
+        <div class="topbar-progress"><div class="topbar-fill" id="topbarFill"></div></div>
+        <div class="topbar-label" id="topbarLabel"></div>
+    </div>
+
+    <main class="stage">
+
+        <!-- ====== SCENE 0: HOOK ====== -->
+        <section class="scene active" data-scene="0">
+            <div class="scene-body scene-body--center">
+                <div class="hook-badge"><span class="badge-pulse"></span><span>127 493 personnes ont déjà passé ce test</span></div>
+                <h1 class="hook-title" id="hookTitle"></h1>
+                <p class="hook-sub">Il existe <strong>7 comportements</strong> qui apparaissent dans presque tous les cas d'infidélité — et la plupart des gens ne les reconnaissent que lorsqu'il est déjà trop tard. <strong>Ce test révèle s'ils se produisent en ce moment même, juste sous vos yeux.</strong></p>
+                <p class="hook-micro">8 questions. 2 minutes. Ça pourrait tout changer.</p>
+                <button class="btn-main" id="btnStart">
+                    <span class="btn-main-text">Faites le Test Maintenant</span>
+                    <span class="btn-main-arrow">→</span>
+                </button>
+                <div class="hook-trust">
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Chiffré</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 100% Anonyme</div>
+                    <div class="trust-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2 Minutes</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q1: GENDER ====== -->
+        <section class="scene" data-scene="1">
+            <div class="scene-body">
+                <div class="scene-step">Étape 1 sur 8</div>
+                <h2 class="scene-title">D'abord, dites-nous :</h2>
+                <p class="scene-desc">Cela change complètement l'analyse. Les hommes et les femmes trompent de <strong>manières très différentes</strong>.</p>
+                <div class="opts opts--gender">
+                    <button class="opt opt--lg" data-q="1" data-v="male" data-p="0">
+                        <span class="opt-emoji">👨</span>
+                        <span class="opt-main">Je suis un Homme</span>
+                        <span class="opt-sub">Je veux surveiller une femme</span>
+                    </button>
+                    <button class="opt opt--lg" data-q="1" data-v="female" data-p="0">
+                        <span class="opt-emoji">👩</span>
+                        <span class="opt-main">Je suis une Femme</span>
+                        <span class="opt-sub">Je veux surveiller un homme</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q2: PHONE ====== -->
+        <section class="scene" data-scene="2">
+            <div class="scene-body">
+                <div class="scene-step">Étape 2 sur 8</div>
+                <h2 class="scene-title">Son téléphone est-il devenu <em>interdit d'accès</em> ?</h2>
+                <p class="scene-desc">Dans 94% des cas d'infidélité confirmés, la première chose qui a changé, c'est la façon dont il/elle gérait son téléphone. Ce n'est pas une coïncidence.</p>
+                <div class="opts">
+                    <button class="opt" data-q="2" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🔐</span><div>
+                            <span class="opt-main">« Si je touche son téléphone, c'est la Troisième Guerre Mondiale. »</span>
+                            <span class="opt-sub">A changé le mot de passe, l'emmène aux toilettes, dort avec. Si je m'approche, il/elle verrouille l'écran devant moi.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="2" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">🔇</span><div>
+                            <span class="opt-main">« Toujours face cachée, toujours en silencieux. »</span>
+                            <span class="opt-sub">Notifications désactivées. Ne répond aux messages que quand je suis loin. Quand le téléphone sonne, il/elle a ce regard nerveux.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="2" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">📱</span><div>
+                            <span class="opt-main">« L'utilise normalement, rien à cacher. »</span>
+                            <span class="opt-sub">Téléphone déverrouillé, aucun comportement étrange.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q3: SOCIAL MEDIA ====== -->
+        <section class="scene" data-scene="3">
+            <div class="scene-body">
+                <div class="scene-step">Étape 3 sur 8</div>
+                <h2 class="scene-title">Et les <em>réseaux sociaux</em> ?</h2>
+                <p class="scene-desc">Instagram, TikTok, Facebook. C'est là que 73% des cas d'infidélité modernes commencent. Un « like » innocent se transforme en conversation privée.</p>
+                <div class="opts">
+                    <button class="opt" data-q="3" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">👻</span><div>
+                            <span class="opt-main">« Il/elle a des comptes que je ne connais pas, ou me cache des choses. »</span>
+                            <span class="opt-sub">Suit des personnes suspectes, like des photos qui me dérangent, ou refuse simplement de me laisser voir. J'ai trouvé de faux profils ou des conversations supprimées.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="3" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">📲</span><div>
+                            <span class="opt-main">« Passe beaucoup trop de temps sur son téléphone, mais je ne sais pas avec qui. »</span>
+                            <span class="opt-sub">Des heures sur les réseaux sociaux, mais quand je demande ce qu'il/elle regarde, il/elle change de sujet ou ferme rapidement l'application.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="3" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">👍</span><div>
+                            <span class="opt-main">« Rien d'étrange sur les réseaux sociaux. »</span>
+                            <span class="opt-sub">Ouvert(e), transparent(e), aucun comportement suspect en ligne.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q4: ROUTINE ====== -->
+        <section class="scene" data-scene="4">
+            <div class="scene-body">
+                <div class="scene-step">Étape 4 sur 8</div>
+                <h2 class="scene-title">De <em>nouvelles excuses</em> sont-elles apparues ?</h2>
+                <p class="scene-desc">« Je sors avec des amis. » « Je fais des heures supplémentaires. » « J'ai commencé la salle de sport. » Les excuses surgissent de nulle part quand quelqu'un a besoin de temps qu'il <strong>ne peut pas expliquer</strong>.</p>
+                <div class="opts">
+                    <button class="opt" data-q="4" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🚩</span><div>
+                            <span class="opt-main">« Oui, sa vie a changé du jour au lendemain. »</span>
+                            <span class="opt-sub">Des heures supplémentaires qui n'existaient jamais, des « amis » que je ne connais pas, des sorties sans explication. A commencé à se faire beau/belle sans raison apparente.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="4" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">🤔</span><div>
+                            <span class="opt-main">« Certaines choses ne collent pas. »</span>
+                            <span class="opt-sub">Ce n'est pas flagrant, mais il y a des détails qui n'ont pas de sens. Des horaires étranges, des réponses vagues, une odeur différente.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="4" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">✅</span><div>
+                            <span class="opt-main">« La routine est la même. »</span>
+                            <span class="opt-sub">Aucun changement notable dans le quotidien.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q5: INTIMACY ====== -->
+        <section class="scene" data-scene="5">
+            <div class="scene-body">
+                <div class="scene-step">Étape 5 sur 8</div>
+                <h2 class="scene-title">Êtes-vous encore <em>connectés</em> physiquement ?</h2>
+                <p class="scene-desc">Cette question fait mal. Mais l'intimité est le thermomètre le plus honnête d'une relation. <strong>Quand elle change sans raison, il y a toujours quelqu'un d'autre dans l'équation.</strong></p>
+                <div class="opts">
+                    <button class="opt" data-q="5" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">💔</span><div>
+                            <span class="opt-main">« J'ai l'impression de vivre avec un(e) inconnu(e). »</span>
+                            <span class="opt-sub">On se touche à peine. On dort dos à dos. Les conversations deviennent des disputes. La maison, c'est le silence et la distance.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="5" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">🎭</span><div>
+                            <span class="opt-main">« Un moment aimant, l'instant d'après glacial. »</span>
+                            <span class="opt-sub">Alterne entre affection excessive et froideur totale. Un jour il/elle me serre dans ses bras comme pour demander pardon, le lendemain il/elle ne me regarde même pas.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="5" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">❤️</span><div>
+                            <span class="opt-main">« Tout va bien entre nous. »</span>
+                            <span class="opt-sub">L'intimité reste saine et régulière.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q6: GUILT / COMPENSATION ====== -->
+        <section class="scene" data-scene="6">
+            <div class="scene-body">
+                <div class="scene-step">Étape 6 sur 8</div>
+                <h2 class="scene-title">Des <em>cadeaux</em> imprévus ? <em>Trop gentil(le)</em> d'un coup ?</h2>
+                <p class="scene-desc">La culpabilité pousse les gens à faire des choses étranges. Un partenaire infidèle <strong>compense souvent par des cadeaux, des compliments ou une attention soudaine</strong> — pour soulager sa propre conscience.</p>
+                <div class="opts">
+                    <button class="opt" data-q="6" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">🎁</span><div>
+                            <span class="opt-main">« Oui, il/elle est beaucoup trop adorable sans raison. »</span>
+                            <span class="opt-sub">Cadeaux inattendus, compliments qui n'existaient pas avant, gentillesse forcée. On dirait qu'il/elle essaie de se faire pardonner quelque chose.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="6" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">😶</span><div>
+                            <span class="opt-main">« Il y a des moments suspects de "culpabilité". »</span>
+                            <span class="opt-sub">Parfois il/elle fait quelque chose de vraiment inhabituel, comme s'il/elle portait un poids sur la conscience. Puis redevient normal(e).</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="6" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🙂</span><div>
+                            <span class="opt-main">« Comportement normal, rien d'excessif. »</span>
+                            <span class="opt-sub">Je n'ai remarqué aucun schéma de compensation ou de culpabilité.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q7: FIGHTS / EMOTIONAL DISTANCE ====== -->
+        <section class="scene" data-scene="7">
+            <div class="scene-body">
+                <div class="scene-step">Étape 7 sur 8</div>
+                <h2 class="scene-title">Il/elle déclenche des <em>disputes pour rien</em> ?</h2>
+                <p class="scene-desc">L'une des stratégies inconscientes les plus courantes : <strong>créer un conflit pour justifier la distance</strong>. Se disputer, quitter la maison, et gagner du temps libre sans avoir à s'expliquer.</p>
+                <div class="opts">
+                    <button class="opt" data-q="7" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">💥</span><div>
+                            <span class="opt-main">« Oui, tout devient une dispute. »</span>
+                            <span class="opt-sub">On dirait qu'il/elle cherche des raisons de se disputer. Après la dispute, il/elle disparaît pendant des heures. En revenant, il/elle fait comme si de rien n'était.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="7" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">😤</span><div>
+                            <span class="opt-main">« Il/elle est plus irritable et impatient(e). »</span>
+                            <span class="opt-sub">Il/elle ne déclenche pas vraiment de disputes, mais a beaucoup moins de patience avec moi. J'ai l'impression de déranger rien qu'en existant.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="7" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🤝</span><div>
+                            <span class="opt-main">« Pas de disputes inhabituelles. »</span>
+                            <span class="opt-sub">On communique bien, pas de conflits exagérés.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== Q8: INTUITION ====== -->
+        <section class="scene" data-scene="8">
+            <div class="scene-body">
+                <div class="scene-step">Dernière question</div>
+                <h2 class="scene-title">Maintenant, fermez les yeux et dites-moi :</h2>
+                <p class="scene-desc">Oubliez tout ce que vous avez rationalisé. Oubliez les excuses que vous avez inventées pour vous calmer. <strong>Cette voix qui vous réveille à 3h du matin, qui vous serre la poitrine quand son téléphone vibre — qu'est-ce qu'elle dit ?</strong></p>
+                <div class="opts">
+                    <button class="opt" data-q="8" data-v="a" data-p="15">
+                        <div class="opt-left"><span class="opt-emoji-sm">⚠️</span><div>
+                            <span class="opt-main">« Je sais que quelque chose ne va pas. Je le <em>sens</em>. »</span>
+                            <span class="opt-sub">C'est une certitude qui vit dans mon corps. Ça me serre la poitrine. Ça me vole le sommeil. Quelque chose m'est caché et j'ai besoin de connaître la vérité.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--red">Sévère</span>
+                    </button>
+                    <button class="opt" data-q="8" data-v="b" data-p="10">
+                        <div class="opt-left"><span class="opt-emoji-sm">😔</span><div>
+                            <span class="opt-main">« Le doute me ronge de l'intérieur. »</span>
+                            <span class="opt-sub">Je n'en suis pas absolument sûr(e), mais l'insécurité me détruit. Je ne peux plus vivre comme ça. J'ai besoin de paix.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--yellow">Alerte</span>
+                    </button>
+                    <button class="opt" data-q="8" data-v="c" data-p="0">
+                        <div class="opt-left"><span class="opt-emoji-sm">🙂</span><div>
+                            <span class="opt-main">« Je pense que je me fais des idées. »</span>
+                            <span class="opt-sub">C'est probablement dans ma tête. Mais je veux dissiper le doute une bonne fois pour toutes.</span>
+                        </div></div>
+                        <span class="opt-tag opt-tag--green">Normal</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== ANALYSIS ====== -->
+        <section class="scene" data-scene="analysis">
+            <div class="scene-body scene-body--center analysis-wrap">
+                <div class="scan-visual">
+                    <div class="scan-ring"></div>
+                    <div class="scan-ring scan-ring--2"></div>
+                    <div class="scan-core"><span id="scanPct">0</span>%</div>
+                </div>
+                <h2 class="analysis-headline" id="analysisHeadline">Analyse de vos réponses en cours...</h2>
+                <p class="analysis-sub" id="analysisSub">Croisement des données avec 127 493 analyses précédentes</p>
+                <div class="analysis-log" id="analysisLog"></div>
+            </div>
+        </section>
+
+        <!-- ====== RESULT ====== -->
+        <section class="scene" data-scene="result">
+            <div class="scene-body">
+
+                <div class="res-score-wrap">
+                    <div class="res-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="6"/>
+                            <circle cx="50" cy="50" r="44" fill="none" stroke-width="6" stroke-linecap="round" id="resArc" class="res-arc"/>
+                        </svg>
+                        <div class="res-number-wrap"><span class="res-number" id="resNumber">0</span><span class="res-pct">%</span></div>
+                    </div>
+                    <div class="res-level" id="resLevel">RISQUE ÉLEVÉ</div>
+                </div>
+
+                <h2 class="res-headline" id="resHeadline">Résultat de l'analyse</h2>
+
+                <div class="res-diagnosis" id="resDiagnosis">
+                    <div class="diag-header">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                        Votre Diagnostic Personnel
+                    </div>
+                    <p id="diagText"></p>
+                </div>
+
+                <div class="res-signals" id="resSignals">
+                    <div class="signals-header">Signaux Détectés dans Votre Cas :</div>
+                    <div class="signals-list" id="signalsList"></div>
+                </div>
+
+                <div class="res-stakes">
+                    <div class="stakes-title">⏳ Ce Qui Est en Jeu</div>
+                    <div class="stakes-timeline">
+                        <div class="stake-item">
+                            <div class="stake-time">En ce moment</div>
+                            <div class="stake-text">Des messages sont échangés et <strong>supprimés</strong> en ce moment même.</div>
+                        </div>
+                        <div class="stake-item">
+                            <div class="stake-time">1 Semaine</div>
+                            <div class="stake-text">Photos, messages vocaux et conversations supprimées <strong>deviennent irrécupérables</strong>.</div>
+                        </div>
+                        <div class="stake-item">
+                            <div class="stake-time">1 Mois</div>
+                            <div class="stake-text">La situation se solidifie. <strong>Agir devient plus difficile</strong> et se faire tromper plus facile.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="res-break"><div class="break-line"></div><span>La Solution</span><div class="break-line"></div></div>
+
+                <div class="res-solution">
+                    <p>Il existe un outil qui accède au WhatsApp de votre partenaire de manière <strong>100% anonyme et invisible</strong>. Il trouve :</p>
+                    <div class="solution-grid">
+                        <div class="solution-item"><span class="solution-icon">💬</span><span>Messages supprimés</span></div>
+                        <div class="solution-item"><span class="solution-icon">👤</span><span>Contacts cachés</span></div>
+                        <div class="solution-item"><span class="solution-icon">📸</span><span>Photos et vidéos supprimées</span></div>
+                        <div class="solution-item"><span class="solution-icon">🕐</span><span>Horodatages d'activité</span></div>
+                    </div>
+                </div>
+
+                <div class="res-stat-row">
+                    <div class="res-stat"><span class="res-stat-num" id="resStat">87%</span><span class="res-stat-label">ont confirmé leur suspicion<br>avec ce profil</span></div>
+                    <div class="res-stat"><span class="res-stat-num">2 min</span><span class="res-stat-label">pour accéder<br>aux preuves</span></div>
+                    <div class="res-stat"><span class="res-stat-num">127k</span><span class="res-stat-label">personnes l'ont<br>déjà utilisé</span></div>
+                </div>
+
+                <a href="#" class="cta-final" id="ctaFinal">
+                    <div class="cta-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </div>
+                    <div class="cta-text"><strong>Accéder à l'Outil Maintenant</strong><span>Vérification 100% anonyme et invisible</span></div>
+                    <span class="cta-arrow">→</span>
+                </a>
+
+                <div class="res-urgency">
+                    <span class="urgency-dot"></span>
+                    <strong>Chaque minute compte.</strong> Des messages, photos et notes vocales sont supprimés en ce moment. Plus vous attendez, moins il restera de preuves.
+                </div>
+
+                <a href="#" class="cta-secondary" id="ctaSecondary">Je Veux Découvrir la Vérité Maintenant →</a>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+    if (!localStorage.getItem('funnelVisitorId')) {
+        localStorage.setItem('funnelVisitorId', 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof FacebookCAPI !== 'undefined') {
+            FacebookCAPI.init('Quiz Page');
+            FacebookCAPI.trackViewContent('Quiz Page', 'Funnel - Quiz Entry', 47);
+        }
+    });
+    </script>
+</body>
+</html>

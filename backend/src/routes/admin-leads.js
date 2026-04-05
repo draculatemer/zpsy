@@ -272,7 +272,7 @@ router.post('/api/admin/whatsapp/test-url', authenticateToken, async (req, res) 
         if (!url) return res.status(400).json({ error: 'URL is required' });
         
         // Extract base URL (remove /send-text or other endpoints)
-        let baseUrl = url.replace(/\/(send-text|send-message-text|status)\/?$/, '');
+        let baseUrl = url.replace(/\/(send-text|send-message-text|status|phone-exists\/\d+)\/?$/, '');
         
         const results = {};
         
