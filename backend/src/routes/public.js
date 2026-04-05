@@ -5,7 +5,6 @@ const { authenticateToken, requireAdmin, leadLimiter, apiLimiter, invalidateCach
 const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransactionFbcFbp } = require('../services/facebook-capi');
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = require('../services/geolocation');
-const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const { zapiProfilePicture } = require('../services/zapi');
 const activeCampaign = require('../services/activecampaign');
 

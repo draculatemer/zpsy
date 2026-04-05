@@ -5,7 +5,7 @@ const path = require('path');
 const { authenticateToken, requireAdmin, bulkLimiter } = require('../middleware');
 const { getCountryFromIP } = require('../services/geolocation');
 const { ZAPI_INSTANCE, ZAPI_TOKEN, ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
-const { ZAPI_INSTANCES, zapiRequest, zapiCheckStatus, zapiSendText, zapiProfilePicture } = require('../services/zapi');
+const { zapiCheckStatus, zapiSendText, zapiProfilePicture } = require('../services/zapi');
 
 // ==================== LEADS MANAGEMENT ====================
 

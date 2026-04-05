@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../database');
 const { authenticateToken } = require('../middleware');
-const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const { zapiSendText } = require('../services/zapi');
 
 // ==================== RECOVERY CENTER API ====================

@@ -5,7 +5,6 @@ const { authenticateToken, requireAdmin, invalidateCache } = require('../middlew
 const { sendToFacebookCAPI, hashData, normalizePhone, normalizeGender, sendMissingCAPIPurchases } = require('../services/facebook-capi');
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { parseMonetizzeDate } = require('../helpers');
-const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
 const activeCampaign = require('../services/activecampaign');
 const dispatchService = require('../services/email-dispatch');
 

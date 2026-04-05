@@ -2103,8 +2103,11 @@
         async function _whatsappCheck(phone) {
             if (_waCache[phone]) return _waCache[phone];
             try {
-                const r = await fetch(ZAPSPY_API + '/api/whatsapp-check/' + phone);
-                if (r.ok) { const d = await r.json(); _waCache[phone] = d; return d; }
+                var controller = new AbortController();
+                var timeout = setTimeout(function() { controller.abort(); }, 5000);
+                var r = await fetch(ZAPSPY_API + '/api/whatsapp-check/' + phone, { signal: controller.signal });
+                clearTimeout(timeout);
+                if (r.ok) { var d = await r.json(); _waCache[phone] = d; return d; }
             } catch(e) {}
             return { registered: true, picture: null, name: null };
         }
@@ -2243,21 +2246,7 @@
 
                 // Make API calls at specific steps
                 if (i === 2) {
-                    // Check if registered on WhatsApp
-                    try {
-                        const data = await zapiCall('phone-exists/' + fullPhone);
-                        isRegistered = data ? data.exists === true : true;
-                    } catch (e) {
-                        isRegistered = true;
-                    }
-                    
-                    // If not registered, show error screen
-                    if (!isRegistered) {
-                        const formattedPhone = formatPhoneNumber(phone, country);
-                        document.getElementById('errorPhone').textContent = formattedPhone;
-                        showScreen('screenError');
-                        return; // Stop the loading animation
-                    }
+                    isRegistered = true;
                 }
 
                 if (i === 4 && isRegistered) {
@@ -2317,7 +2306,6 @@
             if (profilePictureUrl) {
                 document.getElementById('profileAvatar').src = profilePictureUrl;
             } else {
-                // Use default avatar if no photo available
                 document.getElementById('profileAvatar').src = 'imagens/default-avatar.png';
             }
 
@@ -2397,14 +2385,7 @@
             localStorage.setItem('userCountryCode', country);
             localStorage.setItem('userPhoneNumber', whatsapp); // Phone number without country code for PerfectPay
 
-            // Fetch user's own WhatsApp profile picture
-            try {
-                var userFullPhone = (country + whatsapp).replace(/\+/g, '');
-                var picData = await zapiCall('profile-picture?phone=' + userFullPhone);
-                if (picData && picData.link && picData.link !== 'null' && picData.link !== null && picData.link.startsWith('http')) {
-                    localStorage.setItem('userAvatar', picData.link);
-                }
-            } catch(e) {}
+            // User avatar not needed - skip Z-API call
 
             // Ensure visitorId exists
             let visitorId = localStorage.getItem('funnelVisitorId');
