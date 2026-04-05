@@ -310,7 +310,7 @@ const UpsellTracker = {
         });
         
         // Track decline link clicks
-        document.querySelectorAll('.decline-link, a[href*="up2"], a[href*="up3"], a[href*="up4"], a[href*="up5"], a[href*="up6"], a[href*="up7"], a[href*="thankyou"]').forEach(link => {
+        document.querySelectorAll('.decline-link, a[href*="up2"], a[href*="up3"], a[href*="up4"], a[href*="up5"], a[href*="up6"], a[href*="up7"], a[href*="thankyou"], a[href*="merci"]').forEach(link => {
             // Only track if it's a decline action (not a buy button)
             if (!link.href.includes('centerpag.com') && !link.classList.contains('btn-mega')) {
                 link.addEventListener('click', () => {

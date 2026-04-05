@@ -23,6 +23,13 @@ const FB_PIXELS_BY_LANGUAGE = {
             token: process.env.FB_PIXEL_TOKEN_PT || 'EAALZCphpZCmcIBQ8cg9hswdI4uIXKLSil7qKGG3lY7tpz40BKqA0JYNay9qKon7SpOEFS7UxmvtizBaSzSiXZBNfXRHGFp0LW5rO4rhiYfS5C9UvoZAWDrW4A8RgwQOxFr011oCtMcyvRIwIUGci1yZAtd4iFaG7UUQh9pfBEbt129yMT4KUNRN9EsHmj7fEZAiAZDZD',
             name: 'PIXEL SPY PORTUGUES'
         }
+    ],
+    fr: [
+        {
+            id: '1152754042657342',
+            token: process.env.FB_PIXEL_TOKEN_FR || 'EAALZCphpZCmcIBRNf6zlLh4NEttMLWjZBLlIXVvyG7EEYNj0KUZCrlkcgbYLkfwiGfT4ZC9hcpftADrUTZC03Ghzz5bra0B16ZCxdfDs4NfSgL1gFFcWqQP7MUbx8RyUEb8Yq4mwKLExoWAnIiait6ZBb3LH2ZAZBfYnBDw1eUk8olUaLczZBC15t2OAjifiZC4Vi9zlYAZDZD',
+            name: 'PIXEL SPY FRANCES'
+        }
     ]
 };
 

@@ -796,6 +796,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 ? 'https://perfect.zappdetect.com/espanhol/' 
                 : funnelLanguage === 'pt'
                 ? 'https://perfect.zappdetect.com/portugues/'
+                : funnelLanguage === 'fr'
+                ? 'https://perfect.zappdetect.com/frances/'
                 : 'https://perfect.zappdetect.com/ingles/';
         } else if (funnelSource === 'affiliate') {
             eventSourceUrl = funnelLanguage === 'es' 
@@ -806,6 +808,8 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 ? 'https://espanhol.zappdetect.com/' 
                 : funnelLanguage === 'pt'
                 ? 'https://portugues.zappdetect.com/'
+                : funnelLanguage === 'fr'
+                ? 'https://perfect.zappdetect.com/frances/'
                 : 'https://ingles.zappdetect.com/';
         }
         
@@ -1193,6 +1197,15 @@ router.all('/api/postback/perfectpay', async (req, res) => {
         } else if (utmCampaignLower === 'pt' || utmSourceLower === 'pt' || utmMediumLower === 'pt' ||
             utmCampaignLower.includes('portugues') || utmSourceLower.includes('portugues') || utmMediumLower.includes('portugues')) {
             funnelLanguage = 'pt';
+        } else if (productNameLower.includes('accès vip') || productNameLower.includes('récupération') ||
+            productNameLower.includes('vision totale') || productNameLower.includes('accès instantané') ||
+            productNameLower.includes('cape invisible') || productNameLower.includes('salle en direct') ||
+            productNameLower.includes('multi-appareil') || productNameLower.includes('analyste de comportement') ||
+            productNameLower.includes('whats spy') && productNameLower.includes('français') ||
+            utmCampaign === 'fr' || utmSource === 'fr' || utmMediumLower.includes('funnel_fr') ||
+            utmCampaignLower.includes('funnel_fr') || utmSourceLower.includes('funnel_fr') ||
+            utmCampaignLower.includes('frances') || utmSourceLower.includes('frances')) {
+            funnelLanguage = 'fr';
         }
         
         // Identify product type (front/upsell1-7)
@@ -1468,6 +1481,8 @@ router.all('/api/postback/perfectpay', async (req, res) => {
                 ? 'https://perfect.zappdetect.com/espanhol/' 
                 : funnelLanguage === 'pt'
                 ? 'https://perfect.zappdetect.com/portugues/'
+                : funnelLanguage === 'fr'
+                ? 'https://perfect.zappdetect.com/frances/'
                 : 'https://perfect.zappdetect.com/ingles/';
             const eventId = `perfectpay_${transactionCode}_${statusEnum}`;
             const capiOptions = { language: funnelLanguage, eventTime: saleDate || null };
