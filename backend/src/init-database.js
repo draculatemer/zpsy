@@ -558,8 +558,11 @@ async function _initDatabaseCore() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        // Add content_name column if table already exists without it
+        // Add columns if table already exists without them
         try { await pool.query(`ALTER TABLE capi_event_logs ADD COLUMN IF NOT EXISTS content_name VARCHAR(200);`); } catch(e) {}
+        try { await pool.query(`ALTER TABLE capi_event_logs ADD COLUMN IF NOT EXISTS fbc VARCHAR(255);`); } catch(e) {}
+        try { await pool.query(`ALTER TABLE capi_event_logs ADD COLUMN IF NOT EXISTS fbp VARCHAR(255);`); } catch(e) {}
+        try { await pool.query(`ALTER TABLE capi_event_logs ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(255);`); } catch(e) {}
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_created ON capi_event_logs (created_at);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_name ON capi_event_logs (event_name);`);
 

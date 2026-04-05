@@ -658,6 +658,31 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 }
             }
             
+            // ===== LEVEL 4B: Match by visitor_id in capi_event_logs (first PageView fbc/fbp) =====
+            if (!leadData && resolvedVid) {
+                const capiResult = await pool.query(
+                    `SELECT ip_address, user_agent, fbc, fbp 
+                     FROM capi_event_logs 
+                     WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                     ORDER BY created_at ASC LIMIT 1`,
+                    [resolvedVid]
+                );
+                if (capiResult.rows.length > 0) {
+                    const row = capiResult.rows[0];
+                    leadData = {
+                        ip_address: row.ip_address,
+                        user_agent: row.user_agent,
+                        fbc: row.fbc,
+                        fbp: row.fbp,
+                        country_code: null, city: null, state: null,
+                        name: buyerName, target_gender: null,
+                        whatsapp: buyerPhone, visitor_id: resolvedVid,
+                        funnel_language: funnelLanguage, referrer: null
+                    };
+                    matchMethod = 'visitor_id_capi_logs';
+                }
+            }
+
             // ===== LEVEL 5: Match by IP address in funnel_events (last 48h) =====
             if (!leadData) {
                 const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
@@ -722,6 +747,22 @@ router.all('/api/postback/monetizze', async (req, res) => {
                         if (!leadData.fbc && enrichResult.rows[0].fbc) leadData.fbc = enrichResult.rows[0].fbc;
                         if (!leadData.fbp && enrichResult.rows[0].fbp) leadData.fbp = enrichResult.rows[0].fbp;
                         console.log(`📊 CAPI: Enriched lead with fbc/fbp from funnel_events (visitor_id: ${leadData.visitor_id})`);
+                    }
+                }
+                // Try capi_event_logs by visitor_id (captures fbc/fbp from first PageView)
+                if ((!leadData.fbc || !leadData.fbp) && leadData.visitor_id) {
+                    const capiEnrich = await pool.query(
+                        `SELECT fbc, fbp, ip_address, user_agent FROM capi_event_logs 
+                         WHERE visitor_id = $1 AND (fbc IS NOT NULL OR fbp IS NOT NULL)
+                         ORDER BY created_at ASC LIMIT 1`,
+                        [leadData.visitor_id]
+                    );
+                    if (capiEnrich.rows.length > 0) {
+                        if (!leadData.fbc && capiEnrich.rows[0].fbc) leadData.fbc = capiEnrich.rows[0].fbc;
+                        if (!leadData.fbp && capiEnrich.rows[0].fbp) leadData.fbp = capiEnrich.rows[0].fbp;
+                        if (!leadData.ip_address && capiEnrich.rows[0].ip_address) leadData.ip_address = capiEnrich.rows[0].ip_address;
+                        if (!leadData.user_agent && capiEnrich.rows[0].user_agent) leadData.user_agent = capiEnrich.rows[0].user_agent;
+                        console.log(`📊 CAPI: Enriched lead with fbc/fbp from capi_event_logs (visitor_id: ${leadData.visitor_id})`);
                     }
                 }
             }
