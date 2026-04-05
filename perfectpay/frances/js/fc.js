@@ -54,17 +54,23 @@ const FacebookCAPI = {
         return localStorage.getItem('_fbc') || null;
     },
 
-    // Get Facebook browser ID from cookie (_fbp set by Meta Pixel)
+    _generateFbp: function() {
+        var rand = Math.floor(1000000000 + Math.random() * 9000000000);
+        var fbp = 'fb.1.' + Date.now() + '.' + rand;
+        localStorage.setItem('_fbp', fbp);
+        try { document.cookie = '_fbp=' + fbp + ';path=/;max-age=7776000;SameSite=Lax'; } catch(e) {}
+        return fbp;
+    },
+
     getFbp: function() {
-        const cookieFbp = this._getCookie('_fbp');
+        var cookieFbp = this._getCookie('_fbp');
         if (cookieFbp) {
             localStorage.setItem('_fbp', cookieFbp);
             return cookieFbp;
         }
-        return localStorage.getItem('_fbp') || null;
+        return localStorage.getItem('_fbp') || this._generateFbp();
     },
 
-    // Wait for Meta Pixel to set _fbp cookie (async with retry)
     waitForFbp: function(maxWait) {
         maxWait = maxWait || 5000;
         var self = this;
@@ -78,21 +84,20 @@ const FacebookCAPI = {
                 } else if (Date.now() - start < maxWait) {
                     setTimeout(check, 200);
                 } else {
-                    resolve(localStorage.getItem('_fbp') || null);
+                    resolve(localStorage.getItem('_fbp') || self._generateFbp());
                 }
             };
             check();
         });
     },
 
-    // Refresh _fbp from cookie if available (handles late pixel load)
     refreshFbp: function() {
         var cookieFbp = this._getCookie('_fbp');
         if (cookieFbp) {
             localStorage.setItem('_fbp', cookieFbp);
             return cookieFbp;
         }
-        return localStorage.getItem('_fbp') || null;
+        return localStorage.getItem('_fbp') || this._generateFbp();
     },
 
     // Get user data from localStorage (including geo data for better match quality)
