@@ -2891,10 +2891,10 @@ router.get('/api/admin/whatsapp-stats', authenticateToken, async (req, res) => {
             WHERE created_at >= DATE_TRUNC('day', NOW())
         `);
 
-        // Recent checks (last 50, phone masked)
+        // Recent checks (last 50)
         const recent = await pool.query(`
             SELECT 
-                CONCAT(LEFT(phone, 4), '****', RIGHT(phone, 3)) as phone_masked,
+                phone,
                 has_picture,
                 created_at
             FROM whatsapp_check_logs
