@@ -548,9 +548,9 @@ const capiHandler = async (req, res) => {
         const fbSuccess = results && results.length > 0 && results.some(r => r.success);
         const fbReceived = results ? results.reduce((sum, r) => sum + (r.events_received || 0), 0) : 0;
         pool.query(
-            `INSERT INTO capi_event_logs (event_name, event_id, content_name, funnel_language, ip_address, user_agent, fb_success, fb_events_received)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [eventName, eventId || null, contentName || null, funnelLanguage || 'en', ipAddress, (userAgent || '').substring(0, 500), fbSuccess, fbReceived]
+            `INSERT INTO capi_event_logs (event_name, event_id, content_name, funnel_language, ip_address, user_agent, fb_success, fb_events_received, fbc, fbp, visitor_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [eventName, eventId || null, contentName || null, funnelLanguage || 'en', ipAddress, (userAgent || '').substring(0, 500), fbSuccess, fbReceived, fbc || null, fbp || null, externalId || null]
         ).catch(() => {});
 
         res.json({ 

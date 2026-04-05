@@ -3328,9 +3328,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="margin-bottom: 20px;">
-                                <canvas id="capiMonitorChart" height="220"></canvas>
-                            </div>
                             <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Breakdown por Idioma (Hoje)</h3>
                             <div style="overflow-x: auto;">
                                 <table class="data-table">
@@ -3386,9 +3383,6 @@
                                         <div class="stat-label">Taxa de Sucesso</div>
                                     </div>
                                 </div>
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <canvas id="waStatsChart" height="200"></canvas>
                             </div>
                             <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Últimas Verificações</h3>
                             <div style="overflow-x: auto; max-height: 320px; overflow-y: auto;">
@@ -11241,7 +11235,6 @@ Estou aqui para esclarecer tudo! 😊`
         }
 
         // ==================== CAPI MONITOR ====================
-        let capiMonitorChartInstance = null;
         async function loadCAPIMonitor() {
             try {
                 const res = await fetch(`${API_URL}/api/admin/capi-monitor?days=14`, { headers: { 'Authorization': `Bearer ${authToken}` } });
@@ -11259,44 +11252,8 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('capiMonitor7d').textContent = total7d.toLocaleString();
                 document.getElementById('capiMonitorSuccessRate').textContent = total7d > 0 ? Math.round(100 * success7d / total7d) + '%' : '-';
 
-                // Chart
-                function normalizeDay(d) { return (d || '').substring(0, 10); }
-                const dayMap = {};
-                data.daily.forEach(row => {
-                    var dk = normalizeDay(row.day);
-                    if (!dayMap[dk]) dayMap[dk] = {};
-                    dayMap[dk][row.event_name] = (dayMap[dk][row.event_name] || 0) + parseInt(row.total);
-                });
-                const days = Object.keys(dayMap).sort();
-                const eventTypes = ['PageView', 'ViewContent', 'Lead', 'InitiateCheckout', 'AddToCart', 'Purchase'];
-                const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
-                const datasets = eventTypes.map((evt, i) => ({
-                    label: evt,
-                    data: days.map(d => dayMap[d][evt] || 0),
-                    backgroundColor: colors[i] + '99',
-                    borderColor: colors[i],
-                    borderWidth: 1
-                }));
-
-                const ctx = document.getElementById('capiMonitorChart');
-                if (capiMonitorChartInstance) capiMonitorChartInstance.destroy();
-                capiMonitorChartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: days.map(d => { var p = d.split('-'); return p[2] + '/' + p[1]; }),
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
-                        scales: {
-                            x: { stacked: true, grid: { display: false } },
-                            y: { stacked: true, beginAtZero: true }
-                        }
-                    }
-                });
-
                 // Language table
+                const eventTypes = ['PageView', 'ViewContent', 'Lead', 'InitiateCheckout', 'AddToCart', 'Purchase'];
                 const langs = { en: {}, es: {}, fr: {}, pt: {} };
                 data.byLanguage.forEach(row => {
                     var l = row.lang || 'en';
@@ -11359,7 +11316,6 @@ Estou aqui para esclarecer tudo! 😊`
         }
 
         // ==================== WHATSAPP STATS ====================
-        let waStatsChartInstance = null;
         async function loadWhatsAppStats() {
             try {
                 const res = await fetch(`${API_URL}/api/admin/whatsapp-stats?days=14`, { headers: { 'Authorization': `Bearer ${authToken}` } });
@@ -11370,30 +11326,6 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('waStatsTotal').textContent = parseInt(t.total || 0).toLocaleString();
                 document.getElementById('waStatsWithPic').textContent = parseInt(t.with_picture || 0).toLocaleString();
                 document.getElementById('waStatsRate').textContent = t.success_rate ? t.success_rate + '%' : '0%';
-
-                // Chart
-                var days = (data.daily || []).sort(function(a, b) { return a.day < b.day ? -1 : 1; });
-                var labels = days.map(function(d) { var ds = (d.day || '').substring(0, 10); var p = ds.split('-'); return p[2] + '/' + p[1]; });
-                var totals = days.map(function(d) { return parseInt(d.total_checks); });
-                var withPic = days.map(function(d) { return parseInt(d.with_picture); });
-
-                var ctx = document.getElementById('waStatsChart');
-                if (waStatsChartInstance) waStatsChartInstance.destroy();
-                waStatsChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            { label: 'Total Checks', data: totals, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
-                            { label: 'Com Foto', data: withPic, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
-                        scales: { y: { beginAtZero: true } }
-                    }
-                });
 
                 // Recent table
                 var html = '';
