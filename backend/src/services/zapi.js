@@ -281,12 +281,11 @@ async function zapiProfilePicture(phone) {
         return cached.url;
     }
 
-    let url = await _tryGetPicture(phone);
-
-    if (!url) {
-        await new Promise(r => setTimeout(r, 1000));
-        url = await _tryGetPicture(phone);
-        if (url) console.log(`📸 Picture found on retry for ${phone}`);
+    // Single attempt — no retry, no /contacts fallback to reduce Z-API calls and prevent bans
+    const result = await zapiRequest(`profile-picture?phone=${phone}`);
+    let url = null;
+    if (result.ok && _validPicUrl(result.data?.link)) {
+        url = result.data.link;
     }
 
     if (url) {
@@ -301,9 +300,6 @@ async function zapiProfilePicture(phone) {
         console.log(`📸 Picture from DB cache for ${phone}`);
         pictureCache.set(phone, { url: dbUrl, expiresAt: Date.now() + PICTURE_CACHE_TTL });
     }
-
-    // Trigger auto-recovery in background if threshold reached
-    setImmediate(() => _autoRecoverIfNeeded());
 
     return dbUrl;
 }
