@@ -2862,6 +2862,66 @@ router.get('/api/admin/capi-monitor', authenticateToken, async (req, res) => {
     }
 });
 
+// ==================== CAPI FUNNEL BREAKDOWN ====================
+
+router.get('/api/admin/capi-funnel', authenticateToken, async (req, res) => {
+    try {
+        const lang = req.query.language || null;
+
+        // Breakdown by content_name (funnel step) for today
+        const params = [];
+        let langFilter = '';
+        if (lang) {
+            params.push(lang);
+            langFilter = ` AND funnel_language = $${params.length}`;
+        }
+
+        const breakdown = await pool.query(`
+            SELECT 
+                COALESCE(content_name, 'Unknown') as step,
+                event_name,
+                COUNT(*) as total,
+                SUM(CASE WHEN fb_success THEN 1 ELSE 0 END) as success
+            FROM capi_event_logs
+            WHERE created_at >= DATE_TRUNC('day', NOW())${langFilter}
+            GROUP BY content_name, event_name
+            ORDER BY total DESC
+        `, params);
+
+        // Ordered funnel steps for visual display
+        const funnelOrder = [
+            'Login Page', 'Landing Page', 'Home Page',
+            'Phone Capture', 'Quiz Page',
+            'Chat View', 'Conversations List', 'Dashboard',
+            'CTA Page',
+            'Upsell Page', 'Thank You Page',
+            'Refund Page'
+        ];
+
+        // Organize into step → events map
+        const steps = {};
+        breakdown.rows.forEach(row => {
+            if (!steps[row.step]) steps[row.step] = { step: row.step, events: {} };
+            steps[row.step].events[row.event_name] = parseInt(row.total);
+        });
+
+        // Sort by funnel order, unknown steps at the end
+        const sorted = Object.values(steps).sort((a, b) => {
+            const ai = funnelOrder.indexOf(a.step);
+            const bi = funnelOrder.indexOf(b.step);
+            if (ai === -1 && bi === -1) return 0;
+            if (ai === -1) return 1;
+            if (bi === -1) return -1;
+            return ai - bi;
+        });
+
+        res.json({ steps: sorted });
+    } catch (error) {
+        console.error('CAPI funnel error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== WHATSAPP STATS ====================
 
 router.get('/api/admin/whatsapp-stats', authenticateToken, async (req, res) => {

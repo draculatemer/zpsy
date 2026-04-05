@@ -548,6 +548,7 @@ async function _initDatabaseCore() {
                 id SERIAL PRIMARY KEY,
                 event_name VARCHAR(50) NOT NULL,
                 event_id VARCHAR(200),
+                content_name VARCHAR(200),
                 funnel_language VARCHAR(10),
                 ip_address VARCHAR(45),
                 user_agent TEXT,
@@ -557,6 +558,8 @@ async function _initDatabaseCore() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        // Add content_name column if table already exists without it
+        try { await pool.query(`ALTER TABLE capi_event_logs ADD COLUMN IF NOT EXISTS content_name VARCHAR(200);`); } catch(e) {}
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_created ON capi_event_logs (created_at);`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_capi_event_logs_name ON capi_event_logs (event_name);`);
 

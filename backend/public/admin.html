@@ -3341,6 +3341,22 @@
                         </div>
                     </div>
 
+                    <!-- ==================== FUNNEL BREAKDOWN ==================== -->
+                    <div class="data-panel" style="margin-bottom: 24px;">
+                        <div class="panel-header" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));">
+                            <div class="panel-title"><h2>🔀 Conversão por Etapa do Funil (Hoje)</h2></div>
+                            <button class="btn-secondary" style="padding: 6px 12px;" onclick="loadCapiFunnel()">🔄</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="overflow-x: auto;">
+                                <table class="data-table">
+                                    <thead><tr><th>Etapa</th><th>PageView</th><th>ViewContent</th><th>Lead</th><th>IC</th><th>AddToCart</th><th>Conv. vs Anterior</th></tr></thead>
+                                    <tbody id="capiFunnelTable"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Carregando...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ==================== WHATSAPP PHOTOS ==================== -->
                     <div class="data-panel" style="margin-bottom: 24px;">
                         <div class="panel-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));">
@@ -4975,7 +4991,7 @@ Estou aqui para esclarecer tudo! 😊`
                 loadGadsConfig();
             }
             else if (tabName === 'users') loadUsers();
-            else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); loadCAPIMonitor(); loadWhatsAppStats(); }
+            else if (tabName === 'pixel') { loadPixelStats(); loadPurchaseCAPILogs(); loadCAPIMonitor(); loadCapiFunnel(); loadWhatsAppStats(); }
             else if (tabName === 'abtests') loadABTests();
             else if (tabName === 'emailautomations') loadACDashboard();
             if (window.innerWidth <= 768 && document.body.classList.contains('sidebar-open')) toggleSidebarMobile();
@@ -11311,6 +11327,40 @@ Estou aqui para esclarecer tudo! 😊`
             } catch (e) {
                 console.error('CAPI monitor error:', e);
                 document.getElementById('capiMonitorLangTable').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
+            }
+        }
+
+        // ==================== FUNNEL BREAKDOWN ====================
+        async function loadCapiFunnel() {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/capi-funnel`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (!res.ok) throw new Error('Erro');
+                const data = await res.json();
+                const steps = data.steps || [];
+                const eventTypes = ['PageView', 'ViewContent', 'Lead', 'InitiateCheckout', 'AddToCart'];
+                var html = '';
+                var prevPV = 0;
+                steps.forEach(function(s) {
+                    var pv = s.events.PageView || 0;
+                    var convRate = '';
+                    if (prevPV > 0 && pv > 0) {
+                        var pct = Math.round(100 * pv / prevPV);
+                        var color = pct >= 50 ? '#10b981' : pct >= 25 ? '#f59e0b' : '#ef4444';
+                        convRate = '<span style="color:' + color + ';font-weight:600;">' + pct + '%</span>';
+                    } else if (prevPV === 0 && pv > 0) {
+                        convRate = '<span style="color:var(--text-muted);">—</span>';
+                    }
+                    html += '<tr><td style="font-weight:500;">' + s.step + '</td>';
+                    eventTypes.forEach(function(evt) {
+                        html += '<td>' + (s.events[evt] || 0) + '</td>';
+                    });
+                    html += '<td>' + convRate + '</td></tr>';
+                    if (pv > 0) prevPV = pv;
+                });
+                document.getElementById('capiFunnelTable').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Sem dados ainda. Os dados aparecem após o novo deploy.</td></tr>';
+            } catch (e) {
+                console.error('CAPI funnel error:', e);
+                document.getElementById('capiFunnelTable').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
             }
         }
 
