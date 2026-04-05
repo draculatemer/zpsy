@@ -5,6 +5,7 @@
  * Diagnóstico: logs no console; resposta JSON com _debug se WHATSAPP_CHECK_DEBUG=1 no .env.
  */
 
+const util = require('util');
 const RAPID_HOST = 'whatsapp-data1.p.rapidapi.com';
 const REQUEST_TIMEOUT_MS = 25000;
 
@@ -51,6 +52,75 @@ function pickNameFromRapidTopLevel(data) {
     return c && String(c).trim() ? String(c).trim() : null;
 }
 
+/** LeakCheck pode devolver `fields` como objeto, JSON string ou array de { key/name, value } */
+function normalizeLeakFields(fields) {
+    if (fields == null) return null;
+    if (typeof fields === 'string') {
+        const t = fields.trim();
+        if (!t) return null;
+        try {
+            const p = JSON.parse(t);
+            if (p && typeof p === 'object' && !Array.isArray(p)) return p;
+        } catch {
+            return null;
+        }
+        return null;
+    }
+    if (Array.isArray(fields)) {
+        const out = {};
+        for (const item of fields) {
+            if (!item || typeof item !== 'object') continue;
+            const k = item.name ?? item.key ?? item.field ?? item.id;
+            const v = item.value ?? item.val ?? item.data;
+            if (k != null && v != null && String(v).trim()) out[String(k)] = v;
+        }
+        return Object.keys(out).length ? out : null;
+    }
+    if (typeof fields === 'object') return fields;
+    return null;
+}
+
+function nameFromFlatLeakRecord(flat) {
+    if (!flat || typeof flat !== 'object') return null;
+    const fn =
+        flat.first_name ?? flat.firstName ?? flat.given_name ?? flat.givenName ?? flat.nome ?? null;
+    const ln =
+        flat.last_name ??
+        flat.lastName ??
+        flat.family_name ??
+        flat.familyName ??
+        flat.sobrenome ??
+        null;
+    const pf = fn && String(fn).trim();
+    const pl = ln && String(ln).trim();
+    if (pf && pl) return `${pf} ${pl}`;
+    if (pf) return pf;
+    if (pl) return pl;
+    const single =
+        flat.name ??
+        flat.full_name ??
+        flat.fullName ??
+        flat.display_name ??
+        flat.displayName ??
+        null;
+    return single && String(single).trim() ? String(single).trim() : null;
+}
+
+/** username do leak (ex. Telegram) — não usar se for só dígitos / o mesmo telefone */
+function displayNameFromLeakUsername(row, usernameRaw) {
+    if (!usernameRaw || typeof usernameRaw !== 'string') return null;
+    let s = usernameRaw.trim().replace(/^@+/, '');
+    if (!s) return null;
+    const digitsOnly = s.replace(/\D/g, '');
+    const phoneDigits = String(row.phone || '').replace(/\D/g, '');
+    if (digitsOnly.length >= 8 && /^\d+$/.test(digitsOnly)) return null;
+    if (phoneDigits && digitsOnly === phoneDigits) return null;
+    if (/[\s]/.test(s)) return s.replace(/\s+/g, ' ').trim();
+    if (/[._-]/.test(s)) return s.replace(/[._-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (s.length >= 2 && s.length <= 64) return s;
+    return null;
+}
+
 function extractDisplayNameFromLeakCheck(data) {
     const lc = getLeakCheckPro(data);
     const rows = leakResultRows(lc);
@@ -60,23 +130,15 @@ function extractDisplayNameFromLeakCheck(data) {
     const row = rows[0];
     if (!row || typeof row !== 'object') return null;
 
-    const fn =
-        row.first_name ?? row.firstName ?? row.given_name ?? row.givenName ?? row.nome ?? null;
-    const ln =
-        row.last_name ??
-        row.lastName ??
-        row.family_name ??
-        row.familyName ??
-        row.sobrenome ??
-        null;
-    const parts = [fn, ln]
-        .map((s) => (s && String(s).trim()) || '')
-        .filter(Boolean);
-    if (parts.length) return parts.join(' ');
+    const fromRow = nameFromFlatLeakRecord(row);
+    if (fromRow) return fromRow;
 
-    const single =
-        row.name ?? row.full_name ?? row.fullName ?? row.display_name ?? row.displayName ?? null;
-    if (single && String(single).trim()) return String(single).trim();
+    const fromFields = nameFromFlatLeakRecord(normalizeLeakFields(row.fields));
+    if (fromFields) return fromFields;
+
+    const fromUser = displayNameFromLeakUsername(row, row.username);
+    if (fromUser) return fromUser;
+
     return null;
 }
 
@@ -118,7 +180,7 @@ async function _fetchRapidJson(phoneDigits) {
         if (!r.ok) {
             const snippet = await r.text().catch(() => '');
             console.log(
-                `📇 Rapid whatsapp-data HTTP ${r.status} para ${phoneDigits} body=${String(snippet).slice(0, 120)}`
+                `\n📇 Rapid HTTP ${r.status} (${phoneDigits})\n${String(snippet).slice(0, 400)}\n`
             );
             return { ok: false, noKey: false, status: r.status, data: null, durationMs, error: `http_${r.status}`, snippet: String(snippet).slice(0, 200) };
         }
@@ -127,7 +189,7 @@ async function _fetchRapidJson(phoneDigits) {
     } catch (e) {
         const durationMs = Date.now() - t0;
         const err = e.name === 'AbortError' ? 'timeout' : e.message;
-        console.log(`📇 Rapid whatsapp-data: ${err} (${phoneDigits})`);
+        console.log(`\n📇 Rapid erro: ${err} (${phoneDigits})\n`);
         return { ok: false, noKey: false, status: null, data: null, durationMs, error: err, snippet: '' };
     } finally {
         clearTimeout(timer);
@@ -209,15 +271,27 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     diag.rapid.nameExtracted = !!name;
     diag.rapid.fallbackImageUsed = !!fallbackImage;
 
+    const rows = leakResultRows(lc);
+    const row0 = rows[0] && typeof rows[0] === 'object' ? rows[0] : null;
+    let row0Json = '';
+    if (row0) {
+        try {
+            row0Json = JSON.stringify(row0, null, 2);
+        } catch {
+            row0Json = util.inspect(row0, { depth: 4, maxStringLength: 300 });
+        }
+    }
     console.log(
-        `📇 Rapid ${phoneDigits}: busca OK em ${diag.rapid.durationMs}ms | leakCheckPro=${diag.rapid.leakCheckProPresent} ` +
-            `success=${diag.rapid.leakSuccess} found=${diag.rapid.leakFound} rows=${diag.rapid.leakResultCount} ` +
-            `name=${name ? `"${name}"` : 'VAZIO'} fallbackImg=${fallbackImage ? 'sim' : 'não'}`
+        `\n📇 Rapid OK ${phoneDigits}  ${diag.rapid.durationMs}ms\n` +
+            `   leakCheck  rows=${diag.rapid.leakResultCount}  name=${name ? JSON.stringify(name) : 'VAZIO'}  img=${fallbackImage ? 'sim' : 'não'}\n` +
+            (row0Json
+                ? `   leak row[0]:\n${row0Json.split('\n').map((l) => `   ${l}`).join('\n')}\n`
+                : '')
     );
 
     if (diag.rapid.leakCheckProPresent && diag.rapid.leakResultCount === 0) {
         console.log(
-            `📇 Rapid ${phoneDigits}: leakCheckPro sem linhas — API respondeu mas sem registro LeakCheck para este número (nome fica vazio).`
+            `📇 Rapid ${phoneDigits}: leakCheckPro sem linhas (nome fica vazio).\n`
         );
     }
 

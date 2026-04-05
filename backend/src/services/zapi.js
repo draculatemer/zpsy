@@ -132,6 +132,10 @@ async function zapiProfilePicture(phone) {
     // 1. Check in-memory cache first (fastest)
     const memCached = pictureCache.get(phone);
     if (memCached && Date.now() < memCached.expiresAt) {
+        console.log(
+            `📸 Foto perfil ${phone}  →  origem: memória (Map interno, TTL 2h)\n` +
+                '   (não foi consultado PostgreSQL nem Z-API neste pedido)\n'
+        );
         return memCached.url;
     }
 
@@ -141,6 +145,12 @@ async function zapiProfilePicture(phone) {
         const age = Date.now() - dbCached.fetchedAt;
         // If DB cache is fresh enough, use it without calling Z-API
         if (age < DB_CACHE_MAX_AGE) {
+            const ageH = (age / 3600000).toFixed(2);
+            console.log(
+                `📸 Foto perfil ${phone}  →  origem: PostgreSQL (tabela profile_picture_cache)\n` +
+                    `   · SELECT picture_url, fetched_at — idade do registo: ${ageH} h (< 24h = válido)\n` +
+                    '   (Z-API não foi chamada)\n'
+            );
             pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
             return dbCached.url;
         }
@@ -150,6 +160,9 @@ async function zapiProfilePicture(phone) {
     if (_isRateLimited()) {
         console.log(`📸 Rate limited — skipping Z-API call for ${phone}`);
         if (dbCached && dbCached.url) {
+            console.log(
+                `📸 Foto perfil ${phone}  →  origem: PostgreSQL (fallback por rate limit Z-API)\n`
+            );
             pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
             return dbCached.url;
         }
@@ -167,15 +180,25 @@ async function zapiProfilePicture(phone) {
     if (url) {
         pictureCache.set(phone, { url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
         _saveToDbCache(phone, url);
+        console.log(
+            `📸 Foto perfil ${phone}  →  origem: Z-API (chamada HTTP)\n` +
+                '   · gravado/atualizado em profile_picture_cache (UPSERT)\n'
+        );
         return url;
     }
 
     // 5. Z-API failed — use stale DB cache if available
     if (dbCached && dbCached.url) {
+        const ageH = ((Date.now() - dbCached.fetchedAt) / 3600000).toFixed(2);
+        console.log(
+            `📸 Foto perfil ${phone}  →  origem: PostgreSQL (cache antigo >24h — Z-API falhou)\n` +
+                `   · idade do registo: ${ageH} h\n`
+        );
         pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
         return dbCached.url;
     }
 
+    console.log(`📸 Foto perfil ${phone}  →  origem: nenhuma (sem Z-API, sem cache BD)\n`);
     return null;
 }
 

@@ -1,4 +1,5 @@
 const express = require('express');
+const util = require('util');
 const router = express.Router();
 const pool = require('../database');
 const { authenticateToken, requireAdmin, leadLimiter, apiLimiter, invalidateCache } = require('../middleware');
@@ -8,6 +9,102 @@ const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = 
 const { zapiProfilePicture } = require('../services/zapi');
 const { enrichWhatsappProfileFromRapid } = require('../services/whatsapp-data-rapid');
 const activeCampaign = require('../services/activecampaign');
+
+const WHATSAPP_CHECK_LOG_WIDTH = 76;
+
+function _truncateUrl(str, max) {
+    if (str == null || typeof str !== 'string') return str;
+    return str.length <= max ? str : `${str.slice(0, max - 1)}…`;
+}
+
+/**
+ * Log legível no terminal: resumo + JSON indentado igual ao enviado ao cliente.
+ */
+function logWhatsAppCheckReport({
+    phone,
+    hasRapidKey,
+    settled,
+    pictureZapi,
+    picture,
+    name,
+    rapidResult,
+    responsePayload
+}) {
+    const sep = '─'.repeat(WHATSAPP_CHECK_LOG_WIDTH);
+    const pad = '  ';
+    const rdiag = rapidResult?.diag?.rapid;
+    const lines = [
+        '',
+        sep,
+        `│ WhatsAppCheck  phone=${phone}  at=${new Date().toISOString()}`,
+        sep,
+        `${pad}■ Ambiente`,
+        `${pad}  · RAPIDAPI_KEY:  ${hasRapidKey ? 'OK' : 'AUSENTE'}`,
+        `${pad}  · aguarde até ~35s no cliente (Z-API + Rapid em paralelo)`,
+        sep,
+        `${pad}■ Z-API (foto de perfil)`,
+        `${pad}  · estado:     ${settled[0].status === 'fulfilled' ? 'fulfilled' : 'rejected'}`,
+        `${pad}  · url Z-API:  ${_truncateUrl(pictureZapi || '(null)', 100)}`
+    ];
+    if (settled[0].status === 'rejected') {
+        lines.push(`${pad}  · erro:       ${settled[0].reason?.message || settled[0].reason}`);
+    }
+    lines.push(`${pad}■ RapidAPI (whatsapp-data1)`);
+    lines.push(`${pad}  · estado:     ${settled[1].status === 'fulfilled' ? 'fulfilled' : 'rejected'}`);
+    if (rdiag) {
+        lines.push(`${pad}  · http:       ${rdiag.httpStatus ?? 'n/a'}  |  ${rdiag.durationMs ?? '?'} ms`);
+        lines.push(`${pad}  · erro API:   ${rdiag.error || 'nenhum'}`);
+        lines.push(
+            `${pad}  · leakCheck:  presente=${rdiag.leakCheckProPresent}  success=${rdiag.leakSuccess}  found=${rdiag.leakFound}  rows=${rdiag.leakResultCount}`
+        );
+        lines.push(`${pad}  · nome ok:    ${rdiag.nameExtracted === true}`);
+        if (rdiag.firstLeakRowKeys?.length) {
+            lines.push(`${pad}  · chaves[0]:  ${rdiag.firstLeakRowKeys.join(', ')}`);
+        }
+        if (rdiag.topLevelKeys?.length) {
+            lines.push(`${pad}  · keys JSON:  ${rdiag.topLevelKeys.join(', ')}`);
+        }
+    }
+    if (settled[1].status === 'rejected') {
+        lines.push(`${pad}  · enrich err: ${rapidResult?.diag?.rapid?.error || settled[1].reason}`);
+    }
+    lines.push(`${pad}■ Resposta agregada (foto final + nome)`);
+    lines.push(`${pad}  · foto:       ${_truncateUrl(picture || '(nenhuma)', 100)}`);
+    lines.push(`${pad}  · fallback:   ${picture && !pictureZapi && rapidResult?.fallbackImage ? 'Rapid' : pictureZapi ? 'Z-API' : picture ? 'Rapid' : '—'}`);
+    lines.push(`${pad}  · nome:       ${name != null && String(name).trim() ? JSON.stringify(name) : '(vazio)'}`);
+    lines.push(sep);
+    lines.push(`${pad}■ JSON enviado ao cliente (idem res.json):`);
+    const jsonBody = JSON.stringify(responsePayload, null, 2)
+        .split('\n')
+        .map((l) => `${pad}${l}`)
+        .join('\n');
+    lines.push(jsonBody);
+    lines.push(sep);
+    const debugFull =
+        process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true';
+    lines.push(
+        `${pad}■ Diagnóstico interno (rapid.diag)${debugFull ? '' : ' — defina WHATSAPP_CHECK_DEBUG=1 para mais profundidade'}`
+    );
+    try {
+        const inspected = util.inspect(rapidResult?.diag ?? {}, {
+            colors: true,
+            depth: debugFull ? 12 : 4,
+            maxArrayLength: debugFull ? 24 : 6,
+            maxStringLength: debugFull ? 800 : 200,
+            breakLength: 72
+        });
+        lines.push(
+            inspected
+                .split('\n')
+                .map((l) => `${pad}${l}`)
+                .join('\n')
+        );
+    } catch (e) {
+        lines.push(`${pad}(inspect falhou: ${e.message})`);
+    }
+    lines.push(sep, '');
+    console.log(lines.join('\n'));
+}
 
 // ==================== PUBLIC API ROUTES ====================
 
@@ -80,7 +177,6 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         }
 
         const hasRapidKey = Boolean(process.env.RAPIDAPI_KEY);
-        console.log(`[WhatsAppCheck] inicio phone=${phone} RAPIDAPI_KEY=${hasRapidKey ? 'OK' : 'AUSENTE'} ZAPI+Rapid em paralelo (aguarde ate ~35s no cliente)`);
 
         const settled = await Promise.allSettled([
             zapiProfilePicture(phone),
@@ -88,9 +184,6 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         ]);
 
         const pictureZapi = settled[0].status === 'fulfilled' ? settled[0].value : null;
-        if (settled[0].status === 'rejected') {
-            console.log(`[WhatsAppCheck] Z-API picture erro: ${settled[0].reason?.message || settled[0].reason}`);
-        }
 
         const rapidResult =
             settled[1].status === 'fulfilled'
@@ -108,26 +201,25 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
                           }
                       }
                   };
-        if (settled[1].status === 'rejected') {
-            console.log(`[WhatsAppCheck] Rapid enrich erro: ${rapidResult.diag.rapid.error}`);
-        }
 
         const picture = pictureZapi || rapidResult.fallbackImage || null;
         const name = rapidResult.name || null;
 
-        console.log(
-            `[WhatsAppCheck] fim phone=${phone} picture=${picture ? 'sim' : 'nao'} zapi=${pictureZapi ? 'sim' : 'nao'} rapidFallback=${!pictureZapi && rapidResult.fallbackImage ? 'sim' : 'nao'} name=${name ? `"${name}"` : 'vazio'} rapidRows=${rapidResult.diag?.rapid?.leakResultCount ?? '?'}`
-        );
-        // Sempre no terminal (como no histórico): diagnóstico Rapid compacto — útil sem depender só de WHATSAPP_CHECK_DEBUG
-        const rdiag = rapidResult.diag?.rapid;
-        if (rdiag) {
-            console.log(
-                `[WhatsAppCheck] diag rapid: attempted=${rdiag.attempted} durationMs=${rdiag.durationMs ?? 'n/a'} http=${rdiag.httpStatus ?? 'n/a'} err=${rdiag.error || 'none'} leak=${rdiag.leakCheckProPresent == null ? 'n/a' : rdiag.leakCheckProPresent} rows=${rdiag.leakResultCount ?? 0} keys=${rdiag.firstLeakRowKeys ? rdiag.firstLeakRowKeys.join(',') : 'n/a'} nameOk=${rdiag.nameExtracted === true}`
-            );
-        }
+        const responsePayload = { registered: true, picture, name };
         if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
-            console.log('[WhatsAppCheck] _debug JSON:', JSON.stringify(rapidResult.diag));
+            responsePayload._debug = rapidResult.diag;
         }
+
+        logWhatsAppCheckReport({
+            phone,
+            hasRapidKey,
+            settled,
+            pictureZapi,
+            picture,
+            name,
+            rapidResult,
+            responsePayload
+        });
 
         const checkIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
         pool.query(
@@ -135,11 +227,7 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             [phone, !!picture, picture || null, checkIp]
         ).catch(() => {});
 
-        const payload = { registered: true, picture, name };
-        if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
-            payload._debug = rapidResult.diag;
-        }
-        res.json(payload);
+        res.json(responsePayload);
     } catch (e) {
         console.log(`📱 WhatsApp check error:`, e.message);
         res.json({ registered: true, picture: null, name: null });
