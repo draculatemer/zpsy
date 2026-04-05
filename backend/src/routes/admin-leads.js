@@ -5,7 +5,7 @@ const path = require('path');
 const { authenticateToken, requireAdmin, bulkLimiter } = require('../middleware');
 const { getCountryFromIP } = require('../services/geolocation');
 const { ZAPI_INSTANCE, ZAPI_TOKEN, ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
-const { ZAPI_INSTANCES, zapiRequest, zapiCheckStatus, zapiSendText, zapiPhoneExists, zapiProfilePicture } = require('../services/zapi');
+const { ZAPI_INSTANCES, zapiRequest, zapiCheckStatus, zapiSendText, zapiProfilePicture } = require('../services/zapi');
 
 // ==================== LEADS MANAGEMENT ====================
 
@@ -262,20 +262,6 @@ router.get('/api/admin/whatsapp/diagnostics', authenticateToken, async (req, res
         results.tests.statusWithClientToken = { error: e.message };
     }
 
-    // Test 3: Try phone-exists with a known number
-    try {
-        const headers3 = {};
-        if (ZAPI_CLIENT_TOKEN) headers3['Client-Token'] = ZAPI_CLIENT_TOKEN;
-        const resp3 = await fetch(`${ZAPI_BASE_URL}/phone-exists/5511999999999`, { method: 'GET', headers: headers3 });
-        const text3 = await resp3.text();
-        results.tests.phoneExistsTest = {
-            httpStatus: resp3.status,
-            response: text3.substring(0, 500)
-        };
-    } catch (e) {
-        results.tests.phoneExistsTest = { error: e.message };
-    }
-
     res.json(results);
 });
 
@@ -304,16 +290,6 @@ router.post('/api/admin/whatsapp/test-url', authenticateToken, async (req, res) 
             results.statusTest = { url: statusUrl, httpStatus: resp.status, response: text.substring(0, 500) };
         } catch (e) {
             results.statusTest = { url: statusUrl, error: e.message };
-        }
-        
-        // Test phone-exists
-        const phoneUrl = `${baseUrl}/phone-exists/5511999999999`;
-        try {
-            const resp2 = await fetch(phoneUrl, { method: 'GET', headers });
-            const text2 = await resp2.text();
-            results.phoneTest = { url: phoneUrl, httpStatus: resp2.status, response: text2.substring(0, 500) };
-        } catch (e) {
-            results.phoneTest = { url: phoneUrl, error: e.message };
         }
         
         // Compare with our configured URL
@@ -416,20 +392,10 @@ router.post('/api/admin/leads/:id/verify-whatsapp', authenticateToken, async (re
         // Clean phone number - remove all non-digits
         phone = phone.replace(/\D/g, '');
         
-        console.log(`📱 Verifying WhatsApp: ${phone} (dual instance fallback)`);
+        console.log(`📱 Verifying WhatsApp: ${phone} (profile picture only — no phone-exists to prevent bans)`);
         
-        const { exists: isRegistered, raw } = await zapiPhoneExists(phone);
-        
-        if (!raw.ok && !isRegistered) {
-            console.error(`📱 All Z-API instances failed for phone-exists/${phone}`);
-            return res.status(500).json({ 
-                error: 'Todas as instâncias Z-API falharam', 
-                details: 'Verifique se as instâncias Z-API estão conectadas',
-                verified: false 
-            });
-        }
-        
-        const profilePicture = isRegistered ? await zapiProfilePicture(phone) : null;
+        const profilePicture = await zapiProfilePicture(phone);
+        const isRegistered = !!profilePicture;
         
         await pool.query(`
             UPDATE leads SET 
@@ -483,19 +449,21 @@ router.post('/api/admin/leads/bulk-verify-whatsapp', authenticateToken, async (r
             phone = phone.replace(/\D/g, '');
             
             try {
-                const { exists: isRegistered } = await zapiPhoneExists(phone);
+                const profilePicture = await zapiProfilePicture(phone);
+                const isRegistered = !!profilePicture;
                 
                 await pool.query(`
                     UPDATE leads SET 
                         whatsapp_verified = $1,
                         whatsapp_verified_at = NOW(),
+                        whatsapp_profile_pic = COALESCE($3, whatsapp_profile_pic),
                         updated_at = NOW()
                     WHERE id = $2
-                `, [isRegistered, lead.id]);
+                `, [isRegistered, lead.id, profilePicture]);
                 
                 results.push({ id: lead.id, verified: isRegistered });
                 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
             } catch (e) {
                 results.push({ id: lead.id, verified: false, error: e.message });
@@ -562,8 +530,8 @@ router.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (re
                 phone = phone.replace(/\D/g, '');
 
                 try {
-                    const { exists: isRegistered } = await zapiPhoneExists(phone);
-                    const profilePicture = isRegistered ? await zapiProfilePicture(phone) : null;
+                    const profilePicture = await zapiProfilePicture(phone);
+                    const isRegistered = !!profilePicture;
 
                     await pool.query(`
                         UPDATE leads SET 
@@ -589,7 +557,7 @@ router.post('/api/admin/leads/verify-all-whatsapp', authenticateToken, async (re
                     console.log(`📱 Verify-all progress: ${verifyAllJob.processed}/${totalLeads} (${verifyAllJob.percent}%) - ✓${verifyAllJob.verified} ✕${verifyAllJob.invalid} ⚠${verifyAllJob.errors}`);
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 600));
+                await new Promise(resolve => setTimeout(resolve, 1500));
             }
 
             verifyAllJob.status = 'complete';

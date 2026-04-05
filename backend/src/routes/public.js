@@ -6,7 +6,7 @@ const { sendToFacebookCAPI, hashData, sendMissingCAPIPurchases, backfillTransact
 const { sendMissingGoogleAdsPurchases } = require('../services/google-ads-conversion');
 const { getCountryFromIP, getDetailedGeoFromIP, generateSuspiciousLocations } = require('../services/geolocation');
 const { ZAPI_BASE_URL, ZAPI_CLIENT_TOKEN } = require('../config');
-const { zapiPhoneExists, zapiProfilePicture, zapiContactName } = require('../services/zapi');
+const { zapiProfilePicture } = require('../services/zapi');
 const activeCampaign = require('../services/activecampaign');
 
 // ==================== PUBLIC API ROUTES ====================
