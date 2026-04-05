@@ -11,6 +11,21 @@ const ZAPI_INSTANCES = [
 const deadInstances = new Map();
 const DEAD_INSTANCE_TTL = 10 * 60 * 1000;
 
+// Global rate limiter: max Z-API profile-picture calls per minute
+const ZAPI_RATE_LIMIT = 10;
+const ZAPI_RATE_WINDOW = 60 * 1000;
+let _zapiCallTimestamps = [];
+
+function _isRateLimited() {
+    const now = Date.now();
+    _zapiCallTimestamps = _zapiCallTimestamps.filter(t => now - t < ZAPI_RATE_WINDOW);
+    return _zapiCallTimestamps.length >= ZAPI_RATE_LIMIT;
+}
+
+function _recordZapiCall() {
+    _zapiCallTimestamps.push(Date.now());
+}
+
 async function zapiRequest(endpoint, options = {}) {
     for (const inst of ZAPI_INSTANCES) {
         const instKey = inst.instance.slice(0, 8);
@@ -73,10 +88,11 @@ async function zapiSendText(phone, message) {
     });
 }
 
-// ==================== Profile Picture with DB Cache ====================
+// ==================== Profile Picture with DB-first Cache ====================
 
 const pictureCache = new Map();
-const PICTURE_CACHE_TTL = 30 * 60 * 1000;
+const PICTURE_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours in-memory
+const DB_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;  // Only re-fetch from Z-API if DB cache is older than 24h
 
 function _validPicUrl(url) {
     return url && url !== 'null' && url !== null && typeof url === 'string' && url.startsWith('http');
@@ -101,7 +117,10 @@ async function _getFromDbCache(phone) {
             [phone]
         );
         if (result.rows.length > 0) {
-            return result.rows[0].picture_url;
+            return {
+                url: result.rows[0].picture_url,
+                fetchedAt: new Date(result.rows[0].fetched_at).getTime()
+            };
         }
     } catch (e) {
         console.log(`📸 DB cache read failed for ${phone}: ${e.message}`);
@@ -110,11 +129,35 @@ async function _getFromDbCache(phone) {
 }
 
 async function zapiProfilePicture(phone) {
-    const cached = pictureCache.get(phone);
-    if (cached && Date.now() < cached.expiresAt) {
-        return cached.url;
+    // 1. Check in-memory cache first (fastest)
+    const memCached = pictureCache.get(phone);
+    if (memCached && Date.now() < memCached.expiresAt) {
+        return memCached.url;
     }
 
+    // 2. Check DB cache BEFORE calling Z-API (avoids unnecessary API calls)
+    const dbCached = await _getFromDbCache(phone);
+    if (dbCached && dbCached.url) {
+        const age = Date.now() - dbCached.fetchedAt;
+        // If DB cache is fresh enough, use it without calling Z-API
+        if (age < DB_CACHE_MAX_AGE) {
+            pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+            return dbCached.url;
+        }
+    }
+
+    // 3. Rate limit check — if too many calls recently, return DB cache or null
+    if (_isRateLimited()) {
+        console.log(`📸 Rate limited — skipping Z-API call for ${phone}`);
+        if (dbCached && dbCached.url) {
+            pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+            return dbCached.url;
+        }
+        return null;
+    }
+
+    // 4. Call Z-API (single attempt, no fallback)
+    _recordZapiCall();
     const result = await zapiRequest(`profile-picture?phone=${phone}`);
     let url = null;
     if (result.ok && _validPicUrl(result.data?.link)) {
@@ -127,13 +170,13 @@ async function zapiProfilePicture(phone) {
         return url;
     }
 
-    const dbUrl = await _getFromDbCache(phone);
-    if (dbUrl) {
-        console.log(`📸 Picture from DB cache for ${phone}`);
-        pictureCache.set(phone, { url: dbUrl, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+    // 5. Z-API failed — use stale DB cache if available
+    if (dbCached && dbCached.url) {
+        pictureCache.set(phone, { url: dbCached.url, expiresAt: Date.now() + PICTURE_CACHE_TTL });
+        return dbCached.url;
     }
 
-    return dbUrl;
+    return null;
 }
 
 module.exports = {
