@@ -240,6 +240,8 @@ app.use((req, res, next) => {
         express.static(path.join(funnelPath, 'espanhol'))(req, res, next);
     } else if (host.includes('portugues') || host.includes('portugues.zappdetect')) {
         express.static(path.join(funnelPath, 'portugues'))(req, res, next);
+    } else if (host.includes('gbperfect')) {
+        express.static(path.join(zapgbPath, 'ingles'))(req, res, next);
     } else if (host.includes('perfect')) {
         express.static(path.join(funnelPath, 'ingles'))(req, res, next);
     } else {
