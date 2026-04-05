@@ -11250,10 +11250,12 @@ Estou aqui para esclarecer tudo! 😊`
                 document.getElementById('capiMonitorSuccessRate').textContent = total7d > 0 ? Math.round(100 * success7d / total7d) + '%' : '-';
 
                 // Chart
+                function normalizeDay(d) { return (d || '').substring(0, 10); }
                 const dayMap = {};
                 data.daily.forEach(row => {
-                    if (!dayMap[row.day]) dayMap[row.day] = {};
-                    dayMap[row.day][row.event_name] = (dayMap[row.day][row.event_name] || 0) + parseInt(row.total);
+                    var dk = normalizeDay(row.day);
+                    if (!dayMap[dk]) dayMap[dk] = {};
+                    dayMap[dk][row.event_name] = (dayMap[dk][row.event_name] || 0) + parseInt(row.total);
                 });
                 const days = Object.keys(dayMap).sort();
                 const eventTypes = ['PageView', 'ViewContent', 'Lead', 'InitiateCheckout', 'AddToCart', 'Purchase'];
@@ -11327,7 +11329,7 @@ Estou aqui para esclarecer tudo! 😊`
 
                 // Chart
                 var days = (data.daily || []).sort(function(a, b) { return a.day < b.day ? -1 : 1; });
-                var labels = days.map(function(d) { var p = d.day.split('-'); return p[2] + '/' + p[1]; });
+                var labels = days.map(function(d) { var ds = (d.day || '').substring(0, 10); var p = ds.split('-'); return p[2] + '/' + p[1]; });
                 var totals = days.map(function(d) { return parseInt(d.total_checks); });
                 var withPic = days.map(function(d) { return parseInt(d.with_picture); });
 
