@@ -218,9 +218,11 @@ const funnelPath = path.join(__dirname, '..', 'perfectpay');
 app.use('/ingles', express.static(path.join(funnelPath, 'ingles')));
 app.use('/espanhol', express.static(path.join(funnelPath, 'espanhol')));
 app.use('/portugues', express.static(path.join(funnelPath, 'portugues')));
+app.use('/frances', express.static(path.join(funnelPath, 'frances')));
 app.use('/en', express.static(path.join(funnelPath, 'ingles')));
 app.use('/es', express.static(path.join(funnelPath, 'espanhol')));
 app.use('/pt', express.static(path.join(funnelPath, 'portugues')));
+app.use('/fr', express.static(path.join(funnelPath, 'frances')));
 
 // Domain-based routing
 app.use((req, res, next) => {

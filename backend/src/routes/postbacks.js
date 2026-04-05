@@ -492,7 +492,7 @@ router.all('/api/postback/monetizze', async (req, res) => {
                 postbackFbc || null,
                 postbackFbp || null,
                 resolvedVid || null,
-                leadData?.gclid || null
+                null
             ]);
             console.log(`✅ Transaction saved: ${transactionId}`);
         } catch (dbError) {

@@ -412,7 +412,8 @@ router.post('/api/capi/test', async (req, res) => {
 });
 
 // Send event to Facebook CAPI (from frontend)
-router.post('/api/capi/event', async (req, res) => {
+// Also available at /api/t/e to bypass ad blockers
+const capiHandler = async (req, res) => {
     try {
         const {
             eventName,
@@ -499,7 +500,10 @@ router.post('/api/capi/event', async (req, res) => {
         console.error('CAPI endpoint error:', error);
         res.status(500).json({ error: 'Failed to send event' });
     }
-});
+};
+
+router.post('/api/capi/event', capiHandler);
+router.post('/api/t/e', capiHandler);
 
 // ==================== FUNNEL TRACKING API ====================
 
