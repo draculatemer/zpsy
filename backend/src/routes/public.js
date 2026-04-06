@@ -185,7 +185,7 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
 
         const pictureZapi = settled[0].status === 'fulfilled' ? settled[0].value : null;
 
-        const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null };
+        const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null, googleResultsCount: 0, aiReportSummary: null, carrier: null, riskLevel: null };
         const rapidResult =
             settled[1].status === 'fulfilled'
                 ? settled[1].value

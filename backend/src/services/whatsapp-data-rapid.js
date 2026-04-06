@@ -178,6 +178,10 @@ function extractOsintData(data, lc) {
         location: null,
         countryCode: null,
         businessCategory: null,
+        googleResultsCount: 0,
+        aiReportSummary: null,
+        carrier: null,
+        riskLevel: null,
     };
     if (!data || typeof data !== 'object') return osint;
 
@@ -210,6 +214,22 @@ function extractOsintData(data, lc) {
 
     if (bp?.categories?.[0]?.localized_display_name) {
         osint.businessCategory = bp.categories[0].localized_display_name;
+    }
+
+    if (data.google && Array.isArray(data.google.results)) {
+        osint.googleResultsCount = data.google.results.length;
+    }
+
+    if (data.aiReport && typeof data.aiReport === 'object' && data.aiReport.report) {
+        const report = data.aiReport.report;
+        const summaryMatch = report.match(/\*?\*?1\.\s*(?:\*?\*?)?Summary\*?\*?\s*\n([\s\S]*?)(?:\n\*?\*?2\.|$)/i);
+        osint.aiReportSummary = summaryMatch ? summaryMatch[1].replace(/\*\*/g, '').trim().slice(0, 300) : report.slice(0, 300);
+
+        const carrierMatch = report.match(/Carrier[:\s]*(.+)/i);
+        if (carrierMatch) osint.carrier = carrierMatch[1].replace(/\*\*/g, '').trim();
+
+        const riskMatch = report.match(/(?:Scam|Spam|Risk)[^:]*:\s*([^\n]+)/i);
+        if (riskMatch) osint.riskLevel = riskMatch[1].replace(/\*\*/g, '').trim().slice(0, 100);
     }
 
     return osint;
@@ -290,7 +310,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     diag.rapid.httpStatus = fetched.status;
     diag.rapid.error = fetched.error;
 
-    const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null };
+    const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null, googleResultsCount: 0, aiReportSummary: null, carrier: null, riskLevel: null };
 
     if (fetched.noKey) {
         diag.rapid.skippedReason = 'no_rapidapi_key';
