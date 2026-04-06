@@ -142,10 +142,22 @@ function extractDisplayNameFromLeakCheck(data) {
     return null;
 }
 
+function cleanDisplayName(raw) {
+    if (!raw || typeof raw !== 'string') return raw;
+    let s = raw.trim();
+    s = s.replace(/^[A-Z]{2,5}_/, '');
+    s = s.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+    if (s === s.toUpperCase() && s.length > 2) {
+        s = s.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+    }
+    return s || null;
+}
+
 function extractDisplayNameFromRapid(data) {
     const fromLeak = extractDisplayNameFromLeakCheck(data);
-    if (fromLeak) return fromLeak;
-    return pickNameFromRapidTopLevel(data);
+    if (fromLeak) return cleanDisplayName(fromLeak);
+    const fromTop = pickNameFromRapidTopLevel(data);
+    return fromTop ? cleanDisplayName(fromTop) : null;
 }
 
 function pickRapidProfileImage(data) {
