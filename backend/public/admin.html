@@ -11390,8 +11390,8 @@ Estou aqui para esclarecer tudo! 😊`
                     var src = r.picture_source || '—';
                     var srcColor = src === 'zapi' ? '#10b981' : src === 'rapid' ? '#8b5cf6' : '#666';
                     var srcBadge = '<span style="color:' + srcColor + ';font-weight:600;font-size:12px;">' + src + '</span>';
-                    var zapiBadge = r.zapi_found ? '<span style="color:#10b981;">OK</span>' : '<span style="color:#ef4444;">—</span>';
-                    var rapidBadge = r.rapid_found ? '<span style="color:#8b5cf6;">OK</span>' : (r.rapid_attempted ? '<span style="color:#ef4444;">—</span>' : '<span style="color:#666;">skip</span>');
+                    var zapiBadge = r.zapi_found ? '<span style="color:#10b981;">✓ foto</span>' : '<span style="color:#f59e0b;">sem foto</span>';
+                    var rapidBadge = r.rapid_found ? '<span style="color:#8b5cf6;">✓ foto</span>' : (r.rapid_attempted ? '<span style="color:#f59e0b;">sem foto</span>' : '<span style="color:#666;">skip</span>');
                     var rapidErr = r.rapid_error || '—';
                     if (rapidErr.length > 15) rapidErr = rapidErr.substring(0, 15) + '...';
                     var rapidErrColor = rapidErr === '—' ? '#666' : '#ef4444';
