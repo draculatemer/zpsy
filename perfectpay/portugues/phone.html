@@ -1758,7 +1758,7 @@
                         <option value="+692">🇲🇭 +692</option>
                         <option value="+674">🇳🇷 +674</option>
                     </select>
-                    <input type="tel" class="phone-input" id="phoneInput" placeholder="Número de telefone" maxlength="15">
+                    <input type="tel" class="phone-input" id="phoneInput" placeholder="11 98765-4321" maxlength="12">
                 </div>
 
                 <div id="phoneError" style="display:none;color:#ef4444;font-size:12px;margin-top:-8px;margin-bottom:8px;text-align:center;"></div>
@@ -2146,12 +2146,32 @@
             return null;
         }
 
+        function sanitizePhone(raw, countryCode) {
+            var phone = raw.replace(/\D/g, '');
+            if (phone.startsWith('0') && phone.length > 8) phone = phone.substring(1);
+            var cc = countryCode.replace('+', '');
+            if (cc.length >= 2 && phone.startsWith(cc) && phone.length > cc.length + 6) {
+                phone = phone.substring(cc.length);
+            }
+            return phone;
+        }
+
+        var _phoneExamples = {'+1':'(555) 123-4567','+44':'7700 900123','+61':'412 345 678','+64':'21 123 4567','+353':'87 123 4567','+27':'71 234 5678','+91':'98765 43210','+234':'801 234 5678','+254':'712 345678','+49':'1512 3456789','+33':'6 12 34 56 78','+34':'612 345 678','+39':'312 345 6789','+351':'912 345 678','+55':'11 98765-4321','+52':'55 1234 5678','+56':'9 1234 5678','+57':'301 234 5678','+58':'412 123 4567','+507':'6123 4567','+502':'5123 4567','+504':'9123 4567','+506':'8123 4567','+593':'99 123 4567','+595':'981 234567','+598':'94 123 456','+54':'11 1234-5678','+51':'912 345 678','+7':'916 123-45-67','+90':'532 123 4567','+86':'138 1234 5678','+81':'90 1234 5678','+82':'10 1234 5678','+66':'81 234 5678','+62':'812 345 6789','+63':'917 123 4567','+65':'9123 4567','+60':'12 345 6789','+84':'91 234 56 78','+971':'50 123 4567','+966':'50 123 4567','+92':'300 1234567','+880':'1712 345678','+20':'10 1234 5678','+212':'612 345678','+213':'551 234 567','+216':'20 123 456','+218':'91 1234567','+31':'6 12345678','+32':'470 12 34 56','+41':'78 123 45 67','+43':'664 123 4567','+46':'70 123 45 67','+47':'412 34 567','+45':'20 12 34 56','+358':'40 123 4567','+48':'512 345 678','+30':'691 234 5678','+380':'50 123 4567'};
+        (function() {
+            var sel = document.getElementById('countryCode');
+            var inp = document.getElementById('phoneInput');
+            if (!sel || !inp) return;
+            sel.addEventListener('change', function() {
+                inp.placeholder = _phoneExamples[sel.value] || 'Número de telefone';
+            });
+        })();
+
         // Start spy process
         function startSpy() {
-            const phone = document.getElementById('phoneInput').value.replace(/\D/g, '');
             const country = document.getElementById('countryCode').value;
+            const phone = sanitizePhone(document.getElementById('phoneInput').value, country);
             
-            if (phone.length < 8) {
+            if (phone.length < 7 || phone.length > 12) {
                 const phoneInput = document.getElementById('phoneInput');
                 const phoneError = document.getElementById('phoneError');
                 phoneInput.style.borderColor = '#ef4444';
