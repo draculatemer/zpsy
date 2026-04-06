@@ -323,6 +323,10 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
             else if (typeof v === 'object') snap[k] = `{${Object.keys(v).join(',')}}`;
         }
         diag.rapid.snapshot = snap;
+        if (data.google) diag.rapid.googleData = data.google;
+        if (data.aiReport) diag.rapid.aiReport = data.aiReport;
+        if (data.telegram) diag.rapid.telegramData = data.telegram;
+        if (data.fbLeak) diag.rapid.fbLeak = data.fbLeak;
     }
 
     const lc = getLeakCheckPro(data);
