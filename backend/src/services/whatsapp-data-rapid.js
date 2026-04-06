@@ -221,15 +221,20 @@ function extractOsintData(data, lc) {
     }
 
     if (data.aiReport && typeof data.aiReport === 'object' && data.aiReport.report) {
-        const report = data.aiReport.report;
-        const summaryMatch = report.match(/\*?\*?1\.\s*(?:\*?\*?)?Summary\*?\*?\s*\n([\s\S]*?)(?:\n\*?\*?2\.|$)/i);
-        osint.aiReportSummary = summaryMatch ? summaryMatch[1].replace(/\*\*/g, '').trim().slice(0, 300) : report.slice(0, 300);
+        const clean = data.aiReport.report.replace(/\*\*/g, '');
+        const summaryMatch = clean.match(/1\.\s*Summary\s*\n([\s\S]*?)(?:\n\s*2\.|$)/i);
+        osint.aiReportSummary = summaryMatch ? summaryMatch[1].trim().slice(0, 300) : clean.slice(0, 300);
 
-        const carrierMatch = report.match(/Carrier[:\s]*(.+)/i);
-        if (carrierMatch) osint.carrier = carrierMatch[1].replace(/\*\*/g, '').trim();
+        const carrierMatch = clean.match(/Carrier\s*:\s*(.+)/i);
+        if (carrierMatch) osint.carrier = carrierMatch[1].trim();
 
-        const riskMatch = report.match(/(?:Scam|Spam|Risk)[^:]*:\s*([^\n]+)/i);
-        if (riskMatch) osint.riskLevel = riskMatch[1].replace(/\*\*/g, '').trim().slice(0, 100);
+        const spamMatch = clean.match(/Spam\s*:\s*(.+)/i);
+        const scamMatch = clean.match(/Scam\s*:\s*(.+)/i);
+        if (spamMatch || scamMatch) {
+            const spam = spamMatch ? spamMatch[1].trim() : 'unknown';
+            const scam = scamMatch ? scamMatch[1].trim() : 'unknown';
+            osint.riskLevel = (spam === 'no' && scam === 'no') ? 'low' : (spam === 'yes' || scam === 'yes') ? 'high' : 'moderate';
+        }
     }
 
     return osint;
