@@ -2941,28 +2941,68 @@ router.get('/api/admin/whatsapp-stats', authenticateToken, async (req, res) => {
             ORDER BY day DESC
         `, [days]);
 
-        // Today summary
+        // Today summary with source breakdown
         const today = await pool.query(`
             SELECT 
                 COUNT(*) as total,
                 SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) as with_picture,
-                ROUND(100.0 * SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as success_rate
+                ROUND(100.0 * SUM(CASE WHEN has_picture THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as success_rate,
+                SUM(CASE WHEN zapi_found THEN 1 ELSE 0 END) as zapi_found,
+                SUM(CASE WHEN rapid_found AND NOT COALESCE(zapi_found, false) THEN 1 ELSE 0 END) as rapid_saved,
+                SUM(CASE WHEN rapid_attempted THEN 1 ELSE 0 END) as rapid_attempted,
+                SUM(CASE WHEN rapid_found THEN 1 ELSE 0 END) as rapid_found_total,
+                SUM(CASE WHEN rapid_error IS NOT NULL AND rapid_error != '' THEN 1 ELSE 0 END) as rapid_errors
             FROM whatsapp_check_logs
             WHERE created_at >= DATE_TRUNC('day', NOW())
         `);
 
-        // Recent checks (last 50)
+        // RapidAPI error breakdown (today)
+        const rapidErrors = await pool.query(`
+            SELECT 
+                COALESCE(rapid_error, 'unknown') as error_type,
+                COUNT(*) as count
+            FROM whatsapp_check_logs
+            WHERE created_at >= DATE_TRUNC('day', NOW())
+              AND rapid_error IS NOT NULL AND rapid_error != ''
+            GROUP BY rapid_error
+            ORDER BY count DESC
+        `);
+
+        // Source breakdown (today)
+        const sourceBreakdown = await pool.query(`
+            SELECT 
+                COALESCE(picture_source, 'none') as source,
+                COUNT(*) as count
+            FROM whatsapp_check_logs
+            WHERE created_at >= DATE_TRUNC('day', NOW())
+            GROUP BY picture_source
+            ORDER BY count DESC
+        `);
+
+        // Recent checks (last 50) with new columns
         const recent = await pool.query(`
             SELECT 
                 phone,
                 has_picture,
+                picture_source,
+                zapi_found,
+                rapid_attempted,
+                rapid_found,
+                rapid_error,
+                rapid_duration_ms,
                 created_at
             FROM whatsapp_check_logs
             ORDER BY created_at DESC
             LIMIT 50
         `);
 
-        res.json({ daily: daily.rows, today: today.rows[0], recent: recent.rows });
+        res.json({
+            daily: daily.rows,
+            today: today.rows[0],
+            recent: recent.rows,
+            rapidErrors: rapidErrors.rows,
+            sourceBreakdown: sourceBreakdown.rows
+        });
     } catch (error) {
         console.error('WhatsApp stats error:', error.message);
         res.status(500).json({ error: error.message });

@@ -3384,11 +3384,42 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Fonte da Foto (Hoje)</h3>
+                            <div class="stats-grid" style="margin-bottom: 20px;">
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">📡</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waZapiFound">-</div>
+                                        <div class="stat-label">Z-API (foto)</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🔄</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waRapidSaved">-</div>
+                                        <div class="stat-label">Rapid Fallback (salvou)</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">❌</div>
+                                    <div class="stat-content">
+                                        <div class="stat-value" id="waRapidErrors">-</div>
+                                        <div class="stat-label">Rapid Erros</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="waRapidErrorBreakdown" style="display:none; margin-bottom: 16px;">
+                                <h3 style="margin: 0 0 8px; font-size: 14px; color: var(--text-muted);">Erros RapidAPI</h3>
+                                <div id="waRapidErrorList" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                            </div>
+
                             <h3 style="margin: 16px 0 8px; font-size: 14px; color: var(--text-muted);">Últimas Verificações</h3>
-                            <div style="overflow-x: auto; max-height: 320px; overflow-y: auto;">
+                            <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
                                 <table class="data-table">
-                                    <thead style="position: sticky; top: 0;"><tr><th>Telefone</th><th>Foto</th><th>Horário</th></tr></thead>
-                                    <tbody id="waStatsRecentTable"><tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Carregando...</td></tr></tbody>
+                                    <thead style="position: sticky; top: 0;"><tr><th>Telefone</th><th>Foto</th><th>Fonte</th><th>Z-API</th><th>Rapid</th><th>Erro Rapid</th><th>Horário</th></tr></thead>
+                                    <tbody id="waStatsRecentTable"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Carregando...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -6256,6 +6287,12 @@ Estou aqui para esclarecer tudo! 😊`
                         <div style="background:#0d1117;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;">
                             <div>HTTP: <span style="color:${data.tests?.statusWithClientToken?.httpStatus === 200 ? '#10b981' : '#ef4444'};">${data.tests?.statusWithClientToken?.httpStatus || 'N/A'}</span></div>
                             <div style="margin-top:4px;color:#888;word-break:break-all;">${data.tests?.statusWithClientToken?.response || data.tests?.statusWithClientToken?.error || 'N/A'}</div>
+                        </div>
+                        
+                        <h3 style="color:#10b981;margin:16px 0 8px;">🧪 Teste: phone-exists (número teste)</h3>
+                        <div style="background:#0d1117;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;">
+                            <div>HTTP: <span style="color:${data.tests?.phoneExistsTest?.httpStatus === 200 ? '#10b981' : '#ef4444'};">${data.tests?.phoneExistsTest?.httpStatus || 'N/A'}</span></div>
+                            <div style="margin-top:4px;color:#888;word-break:break-all;">${data.tests?.phoneExistsTest?.response || data.tests?.phoneExistsTest?.error || 'N/A'}</div>
                         </div>
                         
                         <h3 style="color:#f59e0b;margin:20px 0 8px;">🔗 Teste com URL do Painel Z-API</h3>
@@ -11322,25 +11359,50 @@ Estou aqui para esclarecer tudo! 😊`
                 if (!res.ok) throw new Error('Erro');
                 const data = await res.json();
 
-                var t = data.today || { total: 0, with_picture: 0, success_rate: 0 };
+                var t = data.today || {};
                 document.getElementById('waStatsTotal').textContent = parseInt(t.total || 0).toLocaleString();
                 document.getElementById('waStatsWithPic').textContent = parseInt(t.with_picture || 0).toLocaleString();
                 document.getElementById('waStatsRate').textContent = t.success_rate ? t.success_rate + '%' : '0%';
 
-                // Recent table
+                document.getElementById('waZapiFound').textContent = parseInt(t.zapi_found || 0).toLocaleString();
+                document.getElementById('waRapidSaved').textContent = parseInt(t.rapid_saved || 0).toLocaleString();
+                document.getElementById('waRapidErrors').textContent = parseInt(t.rapid_errors || 0).toLocaleString();
+
+                var errList = data.rapidErrors || [];
+                var errContainer = document.getElementById('waRapidErrorBreakdown');
+                var errHtml = '';
+                if (errList.length > 0) {
+                    errContainer.style.display = '';
+                    errList.forEach(function(e) {
+                        var color = e.error_type === 'timeout' ? '#f59e0b' : e.error_type.indexOf('429') >= 0 ? '#ef4444' : '#8b5cf6';
+                        errHtml += '<span style="background:rgba(255,255,255,0.05);border:1px solid ' + color + '33;color:' + color + ';padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500;">' + e.error_type + ': ' + e.count + '</span>';
+                    });
+                    document.getElementById('waRapidErrorList').innerHTML = errHtml;
+                } else {
+                    errContainer.style.display = 'none';
+                }
+
                 var html = '';
                 (data.recent || []).forEach(function(r) {
                     var badge = r.has_picture
-                        ? '<span class="status-badge" style="background:rgba(16,185,129,0.15);color:#10b981;">✅ SIM</span>'
-                        : '<span class="status-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">❌ NÃO</span>';
+                        ? '<span class="status-badge" style="background:rgba(16,185,129,0.15);color:#10b981;">SIM</span>'
+                        : '<span class="status-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">NAO</span>';
+                    var src = r.picture_source || '—';
+                    var srcColor = src === 'zapi' ? '#10b981' : src === 'rapid' ? '#8b5cf6' : '#666';
+                    var srcBadge = '<span style="color:' + srcColor + ';font-weight:600;font-size:12px;">' + src + '</span>';
+                    var zapiBadge = r.zapi_found ? '<span style="color:#10b981;">OK</span>' : '<span style="color:#ef4444;">—</span>';
+                    var rapidBadge = r.rapid_found ? '<span style="color:#8b5cf6;">OK</span>' : (r.rapid_attempted ? '<span style="color:#ef4444;">—</span>' : '<span style="color:#666;">skip</span>');
+                    var rapidErr = r.rapid_error || '—';
+                    if (rapidErr.length > 15) rapidErr = rapidErr.substring(0, 15) + '...';
+                    var rapidErrColor = rapidErr === '—' ? '#666' : '#ef4444';
                     var dt = new Date(r.created_at);
                     var time = dt.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-                    html += '<tr><td style="font-family:monospace;">' + r.phone + '</td><td>' + badge + '</td><td>' + time + '</td></tr>';
+                    html += '<tr><td style="font-family:monospace;font-size:12px;">' + r.phone + '</td><td>' + badge + '</td><td>' + srcBadge + '</td><td>' + zapiBadge + '</td><td>' + rapidBadge + '</td><td style="color:' + rapidErrColor + ';font-size:11px;">' + rapidErr + '</td><td style="font-size:12px;">' + time + '</td></tr>';
                 });
-                document.getElementById('waStatsRecentTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Sem dados ainda</td></tr>';
+                document.getElementById('waStatsRecentTable').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Sem dados ainda</td></tr>';
             } catch (e) {
                 console.error('WhatsApp stats error:', e);
-                document.getElementById('waStatsRecentTable').innerHTML = '<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
+                document.getElementById('waStatsRecentTable').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Erro ao carregar dados</td></tr>';
             }
         }
 

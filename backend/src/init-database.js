@@ -579,6 +579,13 @@ async function _initDatabaseCore() {
         `);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_wa_check_logs_created ON whatsapp_check_logs (created_at);`);
 
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS picture_source VARCHAR(10) DEFAULT NULL`);
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS zapi_found BOOLEAN DEFAULT FALSE`);
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS rapid_attempted BOOLEAN DEFAULT FALSE`);
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS rapid_found BOOLEAN DEFAULT FALSE`);
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS rapid_error VARCHAR(100) DEFAULT NULL`);
+        await pool.query(`ALTER TABLE whatsapp_check_logs ADD COLUMN IF NOT EXISTS rapid_duration_ms INTEGER DEFAULT NULL`);
+
         console.log('✅ Database ready');
         
         // ==================== CLEANUP: Remove duplicate refund_requests ====================

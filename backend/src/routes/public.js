@@ -230,9 +230,15 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         });
 
         const checkIp = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+        const rdiag = rapidResult?.diag?.rapid;
+        const pictureSource = picture ? (pictureZapi ? 'zapi' : 'rapid') : 'none';
+        const rapidAttempted = rdiag?.attempted || false;
+        const rapidFoundImg = !!rapidResult?.fallbackImage;
+        const rapidErr = rdiag?.error || null;
+        const rapidDur = rdiag?.durationMs || null;
         pool.query(
-            `INSERT INTO whatsapp_check_logs (phone, has_picture, picture_url, ip_address) VALUES ($1, $2, $3, $4)`,
-            [phone, !!picture, picture || null, checkIp]
+            `INSERT INTO whatsapp_check_logs (phone, has_picture, picture_url, ip_address, picture_source, zapi_found, rapid_attempted, rapid_found, rapid_error, rapid_duration_ms) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [phone, !!picture, picture || null, checkIp, pictureSource, !!pictureZapi, rapidAttempted, rapidFoundImg, rapidErr, rapidDur]
         ).catch(() => {});
 
         res.json(responsePayload);
