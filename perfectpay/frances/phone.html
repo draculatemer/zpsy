@@ -155,18 +155,11 @@
 
     <!-- Facebook CAPI Client -->
     <script src="js/fc.js"></script>
-    <!-- A/B Testing -->
-    <script src="js/ab-testing.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             if (typeof FacebookCAPI !== 'undefined') {
                 FacebookCAPI.init('Phone Capture');
                 FacebookCAPI.trackViewContent('Phone Capture', 'Funnel - Lead Step', 47);
-            }
-            
-            // Initialize A/B Testing
-            if (typeof ABTesting !== 'undefined') {
-                await ABTesting.init('frances');
             }
         });
     </script>
@@ -2922,10 +2915,6 @@
         function startHacking() {
             localStorage.setItem('phoneResume_phone', currentPhone);
             localStorage.setItem('phoneResume_country', currentCountry);
-
-            if (typeof ABTesting !== 'undefined' && localStorage.getItem('ab_test_id')) {
-                ABTesting.trackConversion('phone_verify', 0);
-            }
 
             var quizUrl = 'quiz/index.html?from_phone=true';
             var urlParams = new URLSearchParams(window.location.search);
