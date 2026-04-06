@@ -153,6 +153,10 @@
             0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
             30% { transform: translateY(-4px); opacity: 1; }
         }
+        @keyframes ctaPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
 
         .live-counter-bar span {
             color: #FF9500;
@@ -1717,6 +1721,10 @@
                         <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12" style="width:12px;height:12px;flex-shrink:0;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
                         <span id="profileLocationText"></span>
                     </div>
+                    <div style="display:flex;align-items:center;gap:4px;margin-top:2px;font-size:11px;color:#22c55e;">
+                        <span style="display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;animation:ctaPulse 1.5s infinite;"></span>
+                        Connexion active
+                    </div>
                 </div>
             </div>
         </div>
@@ -2493,12 +2501,10 @@
 
         if (savedName) {
             nameEl.textContent = savedName;
-            phoneEl.textContent = savedPhone;
         } else {
-            var masked = savedPhone.substring(0, 4) + '****' + savedPhone.substring(savedPhone.length - 2);
-            nameEl.textContent = masked;
-            phoneEl.textContent = savedPhone;
+            nameEl.textContent = 'Cible Surveillée';
         }
+        phoneEl.textContent = savedPhone;
 
         if (savedCity && locEl && locText) {
             locText.textContent = savedCity + (savedState ? ', ' + savedState : '');
