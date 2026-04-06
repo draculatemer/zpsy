@@ -2557,8 +2557,19 @@
             element.parentElement.classList.toggle('open');
         }
 
-        // Handle purchase - show responsibility popup directly
+        // Handle purchase - fire AddToCart on CTA click, then show popup
+        var addToCartFired = false;
         function handlePurchase() {
+            if (!addToCartFired) {
+                addToCartFired = true;
+                var val = window.productValue || 37;
+                if (typeof FacebookCAPI !== 'undefined') {
+                    FacebookCAPI.trackAddToCart(val, 'Whats Spy VIP Access');
+                } else if (typeof fbq !== 'undefined') {
+                    var eid = 'AddToCart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    fbq('track', 'AddToCart', { content_name: 'Whats Spy VIP Access', currency: 'USD', value: val }, { eventID: eid });
+                }
+            }
             showResponsibilityPopup();
         }
 
@@ -2639,26 +2650,16 @@
             const currentValue = window.productValue || 37;
             const currentCheckoutCode = window.checkoutCode || 'PPU38CQ7KHI';
             
-            console.log('🛒 proceedToCheckout: starting...', { FacebookCAPI: typeof FacebookCAPI, fbq: typeof fbq, value: currentValue });
+            console.log('🛒 proceedToCheckout: firing InitiateCheckout...', { FacebookCAPI: typeof FacebookCAPI, fbq: typeof fbq, value: currentValue });
             if (typeof FacebookCAPI !== 'undefined') {
-                console.log('🛒 Sending AddToCart + InitiateCheckout via FacebookCAPI');
-                FacebookCAPI.trackAddToCart(currentValue, 'Whats Spy VIP Access');
                 FacebookCAPI.trackInitiateCheckout(currentValue, 'Whats Spy VIP Access');
             } else if (typeof fbq !== 'undefined') {
-                console.log('🛒 Sending AddToCart + InitiateCheckout via fbq fallback');
-                // Fallback: browser pixel + direct CAPI call
-                const cartEventId = 'AddToCart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 const checkoutEventId = 'InitiateCheckout_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                fbq('track', 'AddToCart', { content_name: 'Whats Spy VIP Access', currency: 'USD', value: currentValue }, { eventID: cartEventId });
                 fbq('track', 'InitiateCheckout', { content_name: 'Whats Spy VIP Access', currency: 'USD', value: currentValue }, { eventID: checkoutEventId });
-                // Send to CAPI directly as fallback
-                const capiUrl = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/capi/event';
+                const capiUrl = (window.ZAPSPY_API_URL || 'https://zapspy-funnel-production.up.railway.app') + '/api/t/e';
                 const capiData = { eventSourceUrl: window.location.href, funnelLanguage: 'en', email: localStorage.getItem('userEmail'), phone: localStorage.getItem('userWhatsApp'), fbc: document.cookie.match(/_fbc=([^;]+)/)?.[1] || '', fbp: document.cookie.match(/_fbp=([^;]+)/)?.[1] || '' };
-                fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, keepalive: true, body: JSON.stringify({...capiData, eventName: 'AddToCart', eventId: cartEventId, value: currentValue, currency: 'USD', content_name: 'Whats Spy VIP Access'}) }).catch(() => {});
                 fetch(capiUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, keepalive: true, body: JSON.stringify({...capiData, eventName: 'InitiateCheckout', eventId: checkoutEventId, value: currentValue, currency: 'USD', content_name: 'Whats Spy VIP Access'}) }).catch(() => {});
             }
-            
-            // AddToCart already tracked above by FacebookCAPI.trackAddToCart() with deduplication
             
             // Track checkout click in funnel
             if (typeof FunnelTracker !== 'undefined') {
