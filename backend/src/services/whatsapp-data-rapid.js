@@ -301,6 +301,16 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
 
     if (data && typeof data === 'object') {
         diag.rapid.topLevelKeys = Object.keys(data);
+        const snap = {};
+        for (const k of Object.keys(data)) {
+            const v = data[k];
+            if (v == null) snap[k] = null;
+            else if (typeof v === 'string') snap[k] = v.length > 80 ? v.slice(0, 80) + '…' : v;
+            else if (typeof v === 'boolean' || typeof v === 'number') snap[k] = v;
+            else if (Array.isArray(v)) snap[k] = `[Array(${v.length})]`;
+            else if (typeof v === 'object') snap[k] = `{${Object.keys(v).join(',')}}`;
+        }
+        diag.rapid.snapshot = snap;
     }
 
     const lc = getLeakCheckPro(data);

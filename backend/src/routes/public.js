@@ -217,8 +217,9 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             face: rapidResult.face || null,
             osint: rapidResult.osint || emptyOsint
         };
-        if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
+        if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true' || req.query.debug === '1') {
             responsePayload._debug = rapidResult.diag;
+            responsePayload._rapidFull = process.env.WHATSAPP_DATA_RAPID_FULL || 'not_set';
         }
 
         logWhatsAppCheckReport({
