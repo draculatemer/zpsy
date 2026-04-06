@@ -2197,7 +2197,7 @@ router.get('/api/admin/platform-comparison', authenticateToken, async (req, res)
         // Monetizze domains: monetizze.zappdetect.com, ingles.zappdetect.com, espanhol.zappdetect.com, ingles2.zappdetect.com, espanhol2.zappdetect.com
         // Affiliate domains: afiliado.whatstalker.com
         
-        const ppDomains = `('perfect.zappdetect.com', 'gbperfect.zappdetect.com')`;
+        const ppDomains = `('perfect.zappdetect.com')`;
         const mDomains = `('monetizze.zappdetect.com', 'ingles.zappdetect.com', 'espanhol.zappdetect.com', 'ingles2.zappdetect.com', 'espanhol2.zappdetect.com')`;
         
         // ===== TOTAL FUNNEL DATA (for reference) =====

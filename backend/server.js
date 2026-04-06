@@ -224,13 +224,6 @@ app.use('/es', express.static(path.join(funnelPath, 'espanhol')));
 app.use('/pt', express.static(path.join(funnelPath, 'portugues')));
 app.use('/fr', express.static(path.join(funnelPath, 'frances')));
 
-// ZAPGB affiliate funnels
-const zapgbPath = path.join(funnelPath, 'ZAPGB');
-app.use('/zapgb/ingles', express.static(path.join(zapgbPath, 'ingles')));
-app.use('/zapgb/espanhol', express.static(path.join(zapgbPath, 'espanhol')));
-app.use('/zapgb/en', express.static(path.join(zapgbPath, 'ingles')));
-app.use('/zapgb/es', express.static(path.join(zapgbPath, 'espanhol')));
-
 // Domain-based routing
 app.use((req, res, next) => {
     const host = req.hostname || req.headers.host || '';
@@ -240,8 +233,6 @@ app.use((req, res, next) => {
         express.static(path.join(funnelPath, 'espanhol'))(req, res, next);
     } else if (host.includes('portugues') || host.includes('portugues.zappdetect')) {
         express.static(path.join(funnelPath, 'portugues'))(req, res, next);
-    } else if (host.includes('gbperfect')) {
-        express.static(path.join(zapgbPath, 'ingles'))(req, res, next);
     } else if (host.includes('perfect')) {
         express.static(path.join(funnelPath, 'ingles'))(req, res, next);
     } else {
