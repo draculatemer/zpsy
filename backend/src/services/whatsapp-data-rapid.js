@@ -12,15 +12,15 @@ const REQUEST_TIMEOUT_MS = 25000;
 function buildQueryString() {
     const qs = new URLSearchParams({
         base64: 'false',
-        telegram: 'false',
+        telegram: 'true',
         google: 'false',
         includeLeakCheckPro: 'true',
         fullAiReport: 'false',
-        reverseImageSearch: 'false'
+        reverseImageSearch: 'true'
     });
     if (process.env.WHATSAPP_DATA_RAPID_FULL === '1' || process.env.WHATSAPP_DATA_RAPID_FULL === 'true') {
         qs.set('fullAiReport', 'true');
-        qs.set('reverseImageSearch', 'true');
+        qs.set('google', 'true');
     }
     return qs.toString();
 }
@@ -156,6 +156,53 @@ function pickRapidProfileImage(data) {
     return null;
 }
 
+function extractOsintData(data, lc) {
+    const osint = {
+        breachesCount: 0,
+        telegramFound: false,
+        telegramUsername: null,
+        reverseImageMatches: 0,
+        aboutHistory: [],
+        location: null,
+        countryCode: null,
+        businessCategory: null,
+    };
+    if (!data || typeof data !== 'object') return osint;
+
+    const leakFound = lc?.found ?? lc?.Found ?? 0;
+    osint.breachesCount = typeof leakFound === 'number' ? leakFound : parseInt(leakFound) || 0;
+
+    if (data.telegram && typeof data.telegram === 'object' && !data.telegram.error) {
+        osint.telegramFound = true;
+        osint.telegramUsername = data.telegram.username || data.telegram.first_name || null;
+    }
+
+    const ris = data.reverseImageSearch;
+    if (ris && typeof ris === 'object' && ris.success) {
+        osint.reverseImageMatches = ris.visualMatchesCount || ris.exactMatchesCount || 0;
+    }
+
+    if (Array.isArray(data.aboutHistory) && data.aboutHistory.length > 0) {
+        osint.aboutHistory = data.aboutHistory.slice(0, 5).map(h => ({
+            text: h.about || '',
+            date: h.aboutSetAt || h.date || null
+        }));
+    }
+
+    const bp = data.businessProfile;
+    if (bp && typeof bp === 'object' && bp.address) {
+        osint.location = bp.address;
+    }
+
+    osint.countryCode = data.countryCode || null;
+
+    if (bp?.categories?.[0]?.localized_display_name) {
+        osint.businessCategory = bp.categories[0].localized_display_name;
+    }
+
+    return osint;
+}
+
 async function _fetchRapidJson(phoneDigits) {
     const key = process.env.RAPIDAPI_KEY;
     if (!key) {
@@ -231,10 +278,12 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     diag.rapid.httpStatus = fetched.status;
     diag.rapid.error = fetched.error;
 
+    const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null };
+
     if (fetched.noKey) {
         diag.rapid.skippedReason = 'no_rapidapi_key';
         console.log(`📇 Rapid ${phoneDigits}: busca NÃO executada (sem RAPIDAPI_KEY)`);
-        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, diag };
+        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, osint: emptyOsint, diag };
     }
 
     diag.rapid.attempted = true;
@@ -243,7 +292,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         console.log(
             `📇 Rapid ${phoneDigits}: busca executada → falha (${diag.rapid.error || 'unknown'}) em ${diag.rapid.durationMs}ms`
         );
-        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, diag };
+        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, osint: emptyOsint, diag };
     }
 
     const data = fetched.data;
@@ -280,6 +329,8 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         description: data.faceAnalysis.description || null
     } : null;
 
+    const osint = extractOsintData(data, lc);
+
     const rows = leakResultRows(lc);
     const row0 = rows[0] && typeof rows[0] === 'object' ? rows[0] : null;
     let row0Json = '';
@@ -294,6 +345,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         `\n📇 Rapid OK ${phoneDigits}  ${diag.rapid.durationMs}ms\n` +
             `   leakCheck  rows=${diag.rapid.leakResultCount}  name=${name ? JSON.stringify(name) : 'VAZIO'}  img=${fallbackImage ? 'sim' : 'não'}\n` +
             `   about=${about ? JSON.stringify(about) : '—'}  business=${isBusiness}  face=${face ? face.gender + '/' + face.age : '—'}\n` +
+            `   osint: breaches=${osint.breachesCount}  telegram=${osint.telegramFound}  reverseImg=${osint.reverseImageMatches}  location=${osint.location || '—'}\n` +
             (row0Json
                 ? `   leak row[0]:\n${row0Json.split('\n').map((l) => `   ${l}`).join('\n')}\n`
                 : '')
@@ -305,7 +357,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         );
     }
 
-    return { name, fallbackImage, about, isBusiness, face, diag };
+    return { name, fallbackImage, about, isBusiness, face, osint, diag };
 }
 
 module.exports = {

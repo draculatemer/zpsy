@@ -185,6 +185,7 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
 
         const pictureZapi = settled[0].status === 'fulfilled' ? settled[0].value : null;
 
+        const emptyOsint = { breachesCount: 0, telegramFound: false, telegramUsername: null, reverseImageMatches: 0, aboutHistory: [], location: null, countryCode: null, businessCategory: null };
         const rapidResult =
             settled[1].status === 'fulfilled'
                 ? settled[1].value
@@ -194,6 +195,7 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
                       about: null,
                       isBusiness: false,
                       face: null,
+                      osint: emptyOsint,
                       diag: {
                           rapid: {
                               attempted: true,
@@ -212,7 +214,8 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
             registered: true, picture, name,
             about: rapidResult.about || null,
             isBusiness: rapidResult.isBusiness || false,
-            face: rapidResult.face || null
+            face: rapidResult.face || null,
+            osint: rapidResult.osint || emptyOsint
         };
         if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
             responsePayload._debug = rapidResult.diag;

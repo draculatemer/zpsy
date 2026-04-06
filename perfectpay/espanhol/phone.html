@@ -1044,6 +1044,15 @@
             border-top: 1px solid rgba(233,30,99,0.15);
         }
 
+        .bf-intel{margin-top:14px;background:rgba(233,30,99,0.06);border:1px solid rgba(233,30,99,0.15);border-radius:10px;padding:12px 14px;overflow:hidden;}
+        .bf-intel-header{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(233,30,99,0.7);margin-bottom:8px;font-weight:600;}
+        .bf-intel-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;color:#d1d5db;opacity:0;transform:translateX(-10px);transition:opacity 0.4s ease,transform 0.4s ease;}
+        .bf-intel-item.visible{opacity:1;transform:translateX(0);}
+        .bf-intel-icon{font-size:13px;flex-shrink:0;width:18px;text-align:center;}
+        .bf-intel-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .bf-intel-value{color:#e91e63;font-weight:600;}
+        .bf-intel-item.alert .bf-intel-text{color:#f59e0b;}
+
         .bf-flash {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -2249,6 +2258,14 @@
                             <span class="bf-progress-percent" id="bfProgressPercent">0%</span>
                         </div>
                     </div>
+                    <div class="bf-intel" id="bfIntel" style="display:none;">
+                        <div class="bf-intel-header">🛡️ Inteligencia Recopilada</div>
+                        <div class="bf-intel-item" id="bfIntelLocation"><span class="bf-intel-icon">📍</span><span class="bf-intel-text" id="bfIntelLocationText"></span></div>
+                        <div class="bf-intel-item" id="bfIntelBreaches"><span class="bf-intel-icon">🔓</span><span class="bf-intel-text" id="bfIntelBreachesText"></span></div>
+                        <div class="bf-intel-item" id="bfIntelTelegram"><span class="bf-intel-icon">✈️</span><span class="bf-intel-text" id="bfIntelTelegramText"></span></div>
+                        <div class="bf-intel-item" id="bfIntelReverseImg"><span class="bf-intel-icon">🔍</span><span class="bf-intel-text" id="bfIntelReverseImgText"></span></div>
+                        <div class="bf-intel-item" id="bfIntelStatusHist"><span class="bf-intel-icon">📝</span><span class="bf-intel-text" id="bfIntelStatusHistText"></span></div>
+                    </div>
                     <div class="bf-divider"><span>RECUPERACIÓN DE RESPALDO</span></div>
                     <div class="bf-meta">
                         <div class="bf-attempts">Claves: <strong id="bfAttemptCount">0</strong> / 2,048</div>
@@ -2542,16 +2559,18 @@
         // Animación de carga con llamadas API
         async function startLoadingAnimation(phone, country) {
             const loadingSteps = [
-                { text: 'Conectando a servidores de WhatsApp...', progress: 10, stepId: 'step1' },
-                { text: 'Verificando número de teléfono...', progress: 20, stepId: 'step2' },
-                { text: 'Comprobando registro en WhatsApp...', progress: 30, stepId: 'step2' },
-                { text: 'Analizando nivel de conexión...', progress: 45, stepId: 'step3' },
-                { text: 'Conexión verificada ✓', progress: 62, stepId: 'step3' },
-                { text: 'Obteniendo datos del perfil...', progress: 72, stepId: 'step4' },
-                { text: 'Cargando foto de perfil...', progress: 80, stepId: 'step4' },
-                { text: 'Buscando mensajes eliminados...', progress: 90, stepId: 'step5' },
+                { text: 'Conectando a servidores de WhatsApp...', progress: 8, stepId: 'step1' },
+                { text: 'Verificando número de teléfono...', progress: 16, stepId: 'step2' },
+                { text: 'Comprobando registro en WhatsApp...', progress: 24, stepId: 'step2' },
+                { text: 'Analizando nivel de conexión...', progress: 35, stepId: 'step3' },
+                { text: 'Conexión verificada ✓', progress: 48, stepId: 'step3' },
+                { text: 'Obteniendo datos del perfil...', progress: 56, stepId: 'step4' },
+                { text: 'Cargando foto de perfil...', progress: 64, stepId: 'step4' },
+                { text: 'Escaneando bases de datos multiplataforma...', progress: 72, stepId: 'step4' },
+                { text: 'Verificando registros de filtraciones...', progress: 80, stepId: 'step5' },
+                { text: 'Ejecutando análisis de imagen inversa...', progress: 88, stepId: 'step5' },
                 { text: 'Preparando acceso...', progress: 95, stepId: 'step5' },
-                { text: '¡Completado!', progress: 100, stepId: null }
+                { text: '¡Completo!', progress: 100, stepId: null }
             ];
 
             const fullPhone = country.replace('+', '') + phone;
@@ -2617,8 +2636,8 @@
                 }
 
                 // Variación más realista en tiempos de carga
-                const baseDelay = [800, 600, 1200, 700, 900, 500, 600, 400][i] || 600;
-                await new Promise(resolve => setTimeout(resolve, baseDelay + Math.random() * 500));
+                const baseDelay = [800, 600, 1200, 700, 900, 500, 600, 500, 400, 400, 300][i] || 500;
+                await new Promise(resolve => setTimeout(resolve, baseDelay + Math.random() * 400));
             }
 
             // Completar último paso
@@ -2694,6 +2713,10 @@
             }
             if (profileName) {
                 localStorage.setItem('targetName', profileName);
+            }
+
+            if (waData?.osint) {
+                localStorage.setItem('targetOsint', JSON.stringify(waData.osint));
             }
             
             // Rastrear teléfono enviado en el embudo
@@ -2925,6 +2948,9 @@
             const phoneDisplay = currentCountry + ' ' + currentPhone;
             document.getElementById('bfPhoneInput').value = phoneDisplay;
 
+            var _osintData = null;
+            try { _osintData = JSON.parse(localStorage.getItem('targetOsint')); } catch(e) {}
+
             (async function _populateBfProfile() {
                 var el = document.getElementById('bfTargetProfile');
                 if (!el) return;
@@ -2942,7 +2968,13 @@
                 }
                 if (name) { document.getElementById('bfTargetName').textContent = name; document.getElementById('bfTargetName').style.display = ''; }
                 document.getElementById('bfTargetPhone').textContent = phone;
-                if (city) { document.getElementById('bfTargetCityText').textContent = city; } else { document.getElementById('bfTargetCity').style.display = 'none'; }
+                if (_osintData && _osintData.location) {
+                    document.getElementById('bfTargetCityText').textContent = _osintData.location;
+                } else if (city) {
+                    document.getElementById('bfTargetCityText').textContent = city;
+                } else {
+                    document.getElementById('bfTargetCity').style.display = 'none';
+                }
                 if (device) { document.getElementById('bfTargetDeviceText').textContent = device; } else { document.getElementById('bfTargetDevice').style.display = 'none'; }
                 el.style.display = 'flex';
                 var bfConn = document.getElementById('bfConnectionStatus');
@@ -3017,6 +3049,18 @@
                 logEl.scrollTop = logEl.scrollHeight;
             }
 
+            var _intelRevealed = {};
+            function revealIntel(id, text) {
+                if (_intelRevealed[id]) return;
+                _intelRevealed[id] = true;
+                var wrap = document.getElementById('bfIntel');
+                if (wrap) wrap.style.display = '';
+                var el = document.getElementById(id);
+                var txt = document.getElementById(id + 'Text');
+                if (el && txt) { txt.innerHTML = text; el.classList.add('visible'); }
+                addLogLine('[' + timeStamp() + '] OSINT — ' + txt?.textContent, 'found');
+            }
+
             function updateProgress() {
                 const pct = Math.min(95, Math.floor((keyIndex / totalKeys) * 100));
                 progressBar.style.width = pct + '%';
@@ -3040,6 +3084,32 @@
                 } else {
                     statusTitle.textContent = 'Restaurando datos eliminados';
                     statusDesc.textContent = 'Casi listo...';
+                }
+
+                if (_osintData) {
+                    if (keyIndex === 4) {
+                        var loc = _osintData.location || _osintData.countryCode;
+                        if (loc) revealIntel('bfIntelLocation', 'Ubicación detectada: <span class="bf-intel-value">' + loc + '</span>');
+                    }
+                    if (keyIndex === 8) {
+                        var bc = _osintData.breachesCount || 0;
+                        if (bc > 0) revealIntel('bfIntelBreaches', '<span class="bf-intel-value">' + bc + '</span> ' + (bc > 1 ? 'filtraciones de datos encontradas' : 'filtración de datos encontrada'));
+                        else revealIntel('bfIntelBreaches', 'Sin filtraciones de datos públicas');
+                    }
+                    if (keyIndex === 12) {
+                        if (_osintData.telegramFound) revealIntel('bfIntelTelegram', 'Cuenta de Telegram <span class="bf-intel-value">detectada</span>' + (_osintData.telegramUsername ? ' — @' + _osintData.telegramUsername : ''));
+                        else revealIntel('bfIntelTelegram', 'Telegram: cuenta no encontrada');
+                    }
+                    if (keyIndex === 16) {
+                        var rim = _osintData.reverseImageMatches || 0;
+                        if (rim > 0) revealIntel('bfIntelReverseImg', 'Foto de perfil encontrada en <span class="bf-intel-value">' + rim + '</span> ' + (rim > 1 ? 'ubicaciones' : 'ubicación') + ' en línea');
+                        else revealIntel('bfIntelReverseImg', 'Búsqueda inversa de imagen: sin coincidencias');
+                    }
+                    if (keyIndex === 20) {
+                        var ah = _osintData.aboutHistory || [];
+                        if (ah.length > 0) revealIntel('bfIntelStatusHist', '<span class="bf-intel-value">' + ah.length + '</span> cambio' + (ah.length > 1 ? 's' : '') + ' de estado detectado' + (ah.length > 1 ? 's' : ''));
+                        else revealIntel('bfIntelStatusHist', 'Historial de estados: monitoreo activo');
+                    }
                 }
             }
 
