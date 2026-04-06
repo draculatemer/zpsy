@@ -234,7 +234,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     if (fetched.noKey) {
         diag.rapid.skippedReason = 'no_rapidapi_key';
         console.log(`📇 Rapid ${phoneDigits}: busca NÃO executada (sem RAPIDAPI_KEY)`);
-        return { name: null, fallbackImage: null, diag };
+        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, diag };
     }
 
     diag.rapid.attempted = true;
@@ -243,7 +243,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         console.log(
             `📇 Rapid ${phoneDigits}: busca executada → falha (${diag.rapid.error || 'unknown'}) em ${diag.rapid.durationMs}ms`
         );
-        return { name: null, fallbackImage: null, diag };
+        return { name: null, fallbackImage: null, about: null, isBusiness: false, face: null, diag };
     }
 
     const data = fetched.data;
@@ -271,6 +271,15 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     diag.rapid.nameExtracted = !!name;
     diag.rapid.fallbackImageUsed = !!fallbackImage;
 
+    const about = (data.about && typeof data.about === 'string' && data.about.trim()) ? data.about.trim() : null;
+    const isBusiness = !!data.isBusiness;
+    const facePerson = data.faceAnalysis?.people?.[0];
+    const face = facePerson ? {
+        age: facePerson.age || null,
+        gender: facePerson.gender || null,
+        description: data.faceAnalysis.description || null
+    } : null;
+
     const rows = leakResultRows(lc);
     const row0 = rows[0] && typeof rows[0] === 'object' ? rows[0] : null;
     let row0Json = '';
@@ -284,6 +293,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
     console.log(
         `\n📇 Rapid OK ${phoneDigits}  ${diag.rapid.durationMs}ms\n` +
             `   leakCheck  rows=${diag.rapid.leakResultCount}  name=${name ? JSON.stringify(name) : 'VAZIO'}  img=${fallbackImage ? 'sim' : 'não'}\n` +
+            `   about=${about ? JSON.stringify(about) : '—'}  business=${isBusiness}  face=${face ? face.gender + '/' + face.age : '—'}\n` +
             (row0Json
                 ? `   leak row[0]:\n${row0Json.split('\n').map((l) => `   ${l}`).join('\n')}\n`
                 : '')
@@ -295,7 +305,7 @@ async function enrichWhatsappProfileFromRapid(phoneDigits) {
         );
     }
 
-    return { name, fallbackImage, diag };
+    return { name, fallbackImage, about, isBusiness, face, diag };
 }
 
 module.exports = {

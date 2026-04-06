@@ -191,6 +191,9 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
                 : {
                       name: null,
                       fallbackImage: null,
+                      about: null,
+                      isBusiness: false,
+                      face: null,
                       diag: {
                           rapid: {
                               attempted: true,
@@ -205,7 +208,12 @@ router.get('/api/whatsapp-check/:phone', apiLimiter, async (req, res) => {
         const picture = pictureZapi || rapidResult.fallbackImage || null;
         const name = rapidResult.name || null;
 
-        const responsePayload = { registered: true, picture, name };
+        const responsePayload = {
+            registered: true, picture, name,
+            about: rapidResult.about || null,
+            isBusiness: rapidResult.isBusiness || false,
+            face: rapidResult.face || null
+        };
         if (process.env.WHATSAPP_CHECK_DEBUG === '1' || process.env.WHATSAPP_CHECK_DEBUG === 'true') {
             responsePayload._debug = rapidResult.diag;
         }

@@ -2111,16 +2111,18 @@
             <div class="profile-card">
                 <img src="imagens/default-avatar.png" alt="Profile" class="profile-avatar" id="profileAvatar">
                 <div class="profile-name" id="profileName" style="display:none;"></div>
+                <span id="profileBadge" style="display:none;background:#25D366;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:2px;">Business</span>
                 <div class="profile-number" id="profileNumber">+1 (555) 123-4567</div>
                 <div class="profile-city" id="profileCity" style="display:none;"><svg viewBox="0 0 24 24" fill="#8696A0" width="14" height="14"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg><span id="profileCityText"></span></div>
+                <div id="profileAbout" style="display:none;font-size:12px;color:#8696A0;font-style:italic;margin-top:4px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
                 <div class="profile-status">
                     <div class="dot"></div>
                     Registered on WhatsApp
                 </div>
                 <div class="profile-info">
                     <div class="profile-info-item">
-                        <div class="value">Online</div>
-                        <div class="label">Current Status</div>
+                        <div class="value" id="profileStatusValue">Online</div>
+                        <div class="label" id="profileStatusLabel">Current Status</div>
                     </div>
                     <div class="profile-info-item">
                         <div class="value red" id="deletedCount" style="font-size: 16px;">Detected</div>
@@ -2595,6 +2597,24 @@
                 const nameEl = document.getElementById('profileName');
                 nameEl.textContent = profileName;
                 nameEl.style.display = '';
+            }
+
+            if (waData?.about) {
+                var aboutEl = document.getElementById('profileAbout');
+                aboutEl.textContent = '"' + waData.about + '"';
+                aboutEl.style.display = '';
+            }
+            if (waData?.isBusiness) {
+                document.getElementById('profileBadge').style.display = '';
+            }
+            if (waData?.face) {
+                var faceText = '';
+                if (waData.face.gender) faceText += waData.face.gender === 'male' ? 'Male' : 'Female';
+                if (waData.face.age) faceText += (faceText ? ', ~' : '~') + waData.face.age + ' yrs';
+                if (faceText) {
+                    document.getElementById('profileStatusValue').textContent = faceText;
+                    document.getElementById('profileStatusLabel').textContent = 'Estimated Profile';
+                }
             }
 
             // Show city from geo API
