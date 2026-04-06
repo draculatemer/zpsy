@@ -9,12 +9,12 @@
     var LOGS = [
         'Processando padrões de comportamento digital...',
         'Analisando indicadores de proteção do celular...',
-        'Cruzando atividade em redes sociais...',
-        'Mapeando mudanças de rotina...',
+        'Medindo nível de conexão emocional...',
+        'Cruzando profundidade do vínculo com nível de acesso...',
         'Avaliando padrões emocionais e de intimidade...',
         'Detectando sinais de compensação por culpa...',
         'Comparando com 127.493 análises anteriores...',
-        'Identificando nível de risco...',
+        'Verificando limiar de conexão...',
         'Gerando diagnóstico personalizado...'
     ];
 
@@ -22,9 +22,9 @@
         2: { a: 'Motivo legítimo: suspeita fundamentada que requer investigação', b: 'Dúvidas iniciais que requerem esclarecimento' },
         3: { a: 'Preparo emocional confirmado para receber informações sensíveis', b: 'Preparo parcial — necessita acompanhamento' },
         4: { a: 'Exposição prolongada a estresse emocional — caso prioritário', b: 'Impacto recente mas crescente na saúde mental' },
-        5: { a: 'Compromisso total de sigilo e uso responsável confirmado', b: 'Compromisso parcial de confidencialidade' },
+        5: { a: 'Conexão emocional profunda detectada — acesso máximo a dados habilitado', b: 'Conexão moderada — acesso parcial a dados disponível' },
         6: { a: 'Métodos alternativos esgotados — necessidade comprovada', b: 'Hesitação em agir por medo de confronto' },
-        7: { a: 'Perfil de reação responsável e controlada', b: 'Intenção de buscar a verdade antes de agir' },
+        7: { a: 'Vínculo emocional verificado — força de conexão suficiente para acesso total', b: 'Vínculo parcial detectado — força de conexão abaixo do limiar' },
         8: { a: 'Aceitação completa dos termos e responsabilidades', b: 'Aceitação com ressalvas — perfil cauteloso' }
     };
 

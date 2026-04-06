@@ -9,12 +9,12 @@
     var LOGS = [
         'Processing digital behavior patterns...',
         'Analyzing phone protection indicators...',
-        'Cross-referencing social media activity...',
-        'Mapping routine changes...',
+        'Measuring emotional connection strength...',
+        'Cross-referencing bond depth with access level...',
         'Evaluating emotional and intimacy patterns...',
         'Detecting guilt compensation signals...',
         'Comparing with 127,493 previous analyses...',
-        'Identifying risk level...',
+        'Verifying connection threshold...',
         'Generating personalized diagnosis...'
     ];
 
@@ -22,9 +22,9 @@
         2: { a: 'Legitimate motive: well-founded suspicion requiring investigation', b: 'Initial doubts requiring clarification' },
         3: { a: 'Emotional readiness confirmed for receiving sensitive information', b: 'Partial readiness — monitoring recommended' },
         4: { a: 'Prolonged exposure to emotional stress — priority case', b: 'Recent but growing impact on mental health' },
-        5: { a: 'Full commitment to confidentiality and responsible use confirmed', b: 'Partial confidentiality commitment' },
+        5: { a: 'Deep emotional connection detected — maximum data access enabled', b: 'Moderate connection — partial data access available' },
         6: { a: 'Alternative methods exhausted — proven necessity', b: 'Hesitation to act due to fear of confrontation' },
-        7: { a: 'Responsible and controlled reaction profile', b: 'Intent to seek truth before acting' },
+        7: { a: 'Emotional bond verified — connection strength sufficient for full access', b: 'Partial bond detected — connection strength under threshold' },
         8: { a: 'Full acceptance of terms and responsibilities', b: 'Acceptance with reservations — cautious profile' }
     };
 

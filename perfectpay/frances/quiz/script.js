@@ -9,12 +9,12 @@
     var LOGS = [
         'Analyse des comportements numériques...',
         'Évaluation des indicateurs de protection du téléphone...',
-        'Croisement de l\'activité sur les réseaux sociaux...',
-        'Cartographie des changements de routine...',
+        'Mesure du niveau de connexion émotionnelle...',
+        'Croisement de la profondeur du lien avec le niveau d\'accès...',
         'Évaluation des schémas émotionnels et d\'intimité...',
         'Détection des signaux de compensation de culpabilité...',
         'Comparaison avec 127 493 analyses précédentes...',
-        'Identification du niveau de risque...',
+        'Vérification du seuil de connexion...',
         'Génération du diagnostic personnalisé...'
     ];
 
@@ -22,9 +22,9 @@
         2: { a: 'Motif légitime : soupçon fondé nécessitant une investigation', b: 'Doutes initiaux nécessitant un éclaircissement' },
         3: { a: 'Préparation émotionnelle confirmée pour recevoir des informations sensibles', b: 'Préparation partielle — suivi recommandé' },
         4: { a: 'Exposition prolongée au stress émotionnel — cas prioritaire', b: 'Impact récent mais croissant sur la santé mentale' },
-        5: { a: 'Engagement total de confidentialité et d\'utilisation responsable confirmé', b: 'Engagement partiel de confidentialité' },
+        5: { a: 'Connexion émotionnelle profonde détectée — accès maximal aux données activé', b: 'Connexion modérée — accès partiel aux données disponible' },
         6: { a: 'Méthodes alternatives épuisées — nécessité prouvée', b: 'Hésitation à agir par peur de la confrontation' },
-        7: { a: 'Profil de réaction responsable et contrôlée', b: 'Intention de chercher la vérité avant d\'agir' },
+        7: { a: 'Lien émotionnel vérifié — force de connexion suffisante pour un accès complet', b: 'Lien partiel détecté — force de connexion sous le seuil' },
         8: { a: 'Acceptation complète des conditions et responsabilités', b: 'Acceptation avec réserves — profil prudent' }
     };
 
