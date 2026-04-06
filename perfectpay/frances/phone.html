@@ -633,6 +633,15 @@
             border-radius: 50%;
             border: 4px solid #e91e63;
             object-fit: cover;
+            transition: filter 0.3s ease;
+        }
+        .profile-avatar.blurred {
+            filter: blur(12px);
+            -webkit-filter: blur(12px);
+        }
+        .bf-target-avatar.blurred {
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
         }
 
         .profile-name {
@@ -2579,15 +2588,19 @@
             } catch(e) {}
 
             // Set profile picture
+            var avatarEl = document.getElementById('profileAvatar');
             if (profilePictureUrl) {
-                document.getElementById('profileAvatar').src = profilePictureUrl;
+                avatarEl.src = profilePictureUrl;
+                avatarEl.classList.remove('blurred');
             } else {
-                document.getElementById('profileAvatar').src = 'imagens/default-avatar.png';
+                avatarEl.src = 'imagens/default-avatar.png';
+                avatarEl.classList.add('blurred');
             }
 
             // Save progress to localStorage
             localStorage.setItem('targetPhone', fullNumber);
             localStorage.setItem('funnelProgress', 'confirmation');
+            localStorage.setItem('targetAvatarBlurred', profilePictureUrl ? 'false' : 'true');
             if (profilePictureUrl) {
                 localStorage.setItem('targetAvatar', profilePictureUrl);
             }
@@ -2817,7 +2830,12 @@
                 var geo = _geoData || await _fetchGeo();
                 var city = geo && geo.city ? geo.city + (geo.state ? ', ' + geo.state : '') : null;
                 var device = geo && geo.device ? geo.device + (geo.browser ? ' · ' + geo.browser : '') : null;
-                if (avatar) document.getElementById('bfTargetAvatar').src = avatar;
+                var bfAvatarEl = document.getElementById('bfTargetAvatar');
+                if (avatar) {
+                    bfAvatarEl.src = avatar;
+                    if (localStorage.getItem('targetAvatarBlurred') === 'true') bfAvatarEl.classList.add('blurred');
+                    else bfAvatarEl.classList.remove('blurred');
+                }
                 if (name) { document.getElementById('bfTargetName').textContent = name; document.getElementById('bfTargetName').style.display = ''; }
                 document.getElementById('bfTargetPhone').textContent = phone;
                 if (city) { document.getElementById('bfTargetCityText').textContent = city; } else { document.getElementById('bfTargetCity').style.display = 'none'; }
