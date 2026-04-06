@@ -1428,6 +1428,14 @@
                 padding: 14px 24px;
                 font-size: 16px;
             }
+            .loading-step {
+                padding: 8px 12px;
+                font-size: 13px;
+                gap: 8px;
+            }
+            .loading-step .step-icon {
+                font-size: 14px;
+            }
         }
 
         @media (max-width: 380px) {
@@ -1442,6 +1450,12 @@
             }
             h1 {
                 font-size: 20px;
+            }
+            .profile-number {
+                font-size: 20px;
+            }
+            .profile-info-item .value {
+                font-size: 18px;
             }
         }
         
@@ -2123,7 +2137,7 @@
                 <span id="profileBadge" style="display:none;background:#25D366;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:2px;">Business</span>
                 <div class="profile-number" id="profileNumber">+1 (555) 123-4567</div>
                 <div class="profile-city" id="profileCity" style="display:none;"><svg viewBox="0 0 24 24" fill="#8696A0" width="14" height="14"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg><span id="profileCityText"></span></div>
-                <div id="profileAbout" style="display:none;font-size:12px;color:#8696A0;font-style:italic;margin-top:4px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                <div id="profileAbout" style="display:none;font-size:12px;color:#8696A0;font-style:italic;margin-top:4px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
                 <div class="profile-status">
                     <div class="dot"></div>
                     Registered on WhatsApp
@@ -2203,10 +2217,10 @@
                             <div class="bf-target-detail" id="bfTargetPhone"></div>
                             <div class="bf-target-detail" id="bfTargetCity"><span class="bf-target-icon">📍</span> <span id="bfTargetCityText"></span></div>
                             <div class="bf-target-detail" id="bfTargetDevice"><span class="bf-target-icon">📱</span> <span id="bfTargetDeviceText"></span></div>
-                        </div>
-                        <div id="bfConnectionStatus" style="display:none;margin-top:6px;font-size:11px;color:#22c55e;display:none;align-items:center;gap:4px;">
-                            <span style="display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;animation:bfPulse 1.5s infinite;"></span>
-                            Connection active &mdash; monitoring enabled
+                            <div id="bfConnectionStatus" style="display:none;margin-top:4px;font-size:10px;color:#22c55e;align-items:center;gap:3px;">
+                                <span style="display:inline-block;width:5px;height:5px;background:#22c55e;border-radius:50%;animation:bfPulse 1.5s infinite;"></span>
+                                Connection active
+                            </div>
                         </div>
                     </div>
                     <div class="bf-form">
