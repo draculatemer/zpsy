@@ -1611,6 +1611,32 @@
             color: #8696A0;
         }
 
+        /* OSINT Intelligence Section */
+        .osint-section{background:linear-gradient(145deg,rgba(233,30,99,0.06),rgba(0,0,0,0.4));border:1px solid rgba(233,30,99,0.15);border-radius:16px;padding:18px;margin-bottom:20px;}
+        .osint-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+        .osint-header-icon{width:32px;height:32px;background:rgba(233,30,99,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+        .osint-header-text{font-size:13px;font-weight:700;color:#e91e63;text-transform:uppercase;letter-spacing:0.5px;}
+        .osint-header-sub{font-size:11px;color:#8696A0;font-weight:400;text-transform:none;letter-spacing:0;}
+        .osint-grid{display:flex;flex-direction:column;gap:8px;}
+        .osint-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;}
+        .osint-item-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;}
+        .osint-item-label{font-size:12px;color:#8696A0;flex:1;min-width:0;}
+        .osint-item-value{font-size:13px;font-weight:600;color:#e91e63;text-align:right;flex-shrink:0;}
+        .osint-item-value.green{color:#22c55e;}
+        .osint-item-value.red{color:#FF3B30;}
+        .osint-item-value.muted{color:#8696A0;font-weight:400;}
+
+        /* Countdown Timer */
+        .countdown-bar{background:linear-gradient(135deg,rgba(255,59,48,0.12),rgba(255,149,0,0.08));border:1px solid rgba(255,59,48,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;}
+        .countdown-label{font-size:11px;color:#FF9500;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+        .countdown-timer{font-size:28px;font-weight:800;color:#FF3B30;font-variant-numeric:tabular-nums;letter-spacing:2px;}
+        .countdown-sub{font-size:11px;color:#667781;margin-top:4px;}
+
+        /* Activity Alert */
+        .activity-alert{position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-100px);background:rgba(233,30,99,0.95);backdrop-filter:blur(8px);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:600;z-index:200;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);white-space:nowrap;box-shadow:0 4px 20px rgba(233,30,99,0.4);}
+        .activity-alert.show{transform:translateX(-50%) translateY(0);}
+        .activity-alert .alert-dot{display:inline-block;width:6px;height:6px;background:#fff;border-radius:50%;margin-right:6px;animation:pulse-dot 1s infinite;}
+
         /* Responsive */
         @media (max-width: 480px) {
             .container {
@@ -1694,6 +1720,25 @@
             </div>
         </div>
 
+        <!-- Countdown Timer -->
+        <div class="countdown-bar">
+            <div class="countdown-label">Re-encriptação dos dados em</div>
+            <div class="countdown-timer" id="countdownTimer">14:59</div>
+            <div class="countdown-sub">Após esse tempo, os dados recuperados serão perdidos permanentemente</div>
+        </div>
+
+        <!-- OSINT Intelligence Section -->
+        <div class="osint-section" id="osintSection" style="display:none;">
+            <div class="osint-header">
+                <div class="osint-header-icon">🛡️</div>
+                <div>
+                    <div class="osint-header-text">Relatório de Inteligência</div>
+                    <div class="osint-header-sub">Dados coletados da análise multiplataforma</div>
+                </div>
+            </div>
+            <div class="osint-grid" id="osintGrid"></div>
+        </div>
+
         <!-- Success Badge -->
         <div class="success-badge">
             <div class="badge-title">Análise Concluída — Alertas Detectados</div>
@@ -1737,7 +1782,7 @@
             </div>
             <div class="frequent-contact-info">
                 <div class="frequent-contact-label">⚠️ CONTATO SINALIZADO — MAIOR ATIVIDADE</div>
-                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J***</span><span class="hidden">S***</span></div>
+                <div class="frequent-contact-name" id="frequentContactName"><span class="hidden">J. S.</span></div>
                 <div class="frequent-contact-stats"><span id="ctaTotalMsgs">1.062</span> mensagens este mês • <strong><span id="ctaDeletedMsgs">317</span> APAGADAS</strong></div>
             </div>
             <div class="frequent-contact-badge">
@@ -2264,7 +2309,11 @@
 
     <!-- Fixed CTA removido -->
 
-    <!-- Activity Notification - Removido -->
+    <!-- Activity Alert -->
+    <div class="activity-alert" id="activityAlert">
+        <span class="alert-dot"></span>
+        <span id="activityAlertText">Nova mensagem detectada há 2 min</span>
+    </div>
 
     <!-- Main Script -->
     <script>
@@ -2290,7 +2339,7 @@
         if (gender === 'female') {
             // User spying on female, show male photos
             frequentContactImg.src = 'imagens/spy-male-7.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">R***</span><span class="hidden">S***</span>';
+            frequentContactName.innerHTML = '<span class="hidden">M. J.</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/spy-male-1.jpg" alt="">
@@ -2350,7 +2399,7 @@
         } else {
             // User spying on male (default), show female photos
             frequentContactImg.src = 'imagens/spy-female-7.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">S***</span>';
+            frequentContactName.innerHTML = '<span class="hidden">J. S.</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/spy-female-1.jpg" alt="">
@@ -2771,8 +2820,10 @@
                 convsMale[0].msg = 'Borra esto después de le***...'; convsMale[1].msg = 'Todavía pien** en nosotr**...';
                 convsMale[2].msg = 'Te extrañ** much**...'; convsMale[4].msg = 'Nadie tiene que sab***...';
             } else if (lang === 'pt') {
-                convsFemale[0].name = 'Luc***'; convsFemale[1].name = 'Cam***'; convsFemale[2].name = 'Contato Bloqueado'; convsFemale[3].name = 'Bru***'; convsFemale[4].name = 'Contato Excluído';
-                convsMale[0].name = 'Mar***'; convsMale[1].name = 'And*** (Trabalho)'; convsMale[2].name = 'Contato Bloqueado'; convsMale[3].name = 'Die***'; convsMale[4].name = 'Contato Excluído';
+                convsFemale[0].name = 'L. D.'; convsFemale[1].name = 'C. M.'; convsFemale[2].name = 'Contato Bloqueado'; convsFemale[3].name = 'B. R.'; convsFemale[4].name = 'Contato Excluído';
+                convsFemale[0].badge = 'SUSPEITO'; convsFemale[1].badge = 'ALTA FREQ'; convsFemale[2].badge = ''; convsFemale[3].badge = 'SUSPEITO'; convsFemale[4].badge = 'ALTA FREQ';
+                convsMale[0].name = 'M. J.'; convsMale[1].name = 'A. P.'; convsMale[2].name = 'Contato Bloqueado'; convsMale[3].name = 'D. R.'; convsMale[4].name = 'Contato Excluído';
+                convsMale[0].badge = 'SUSPEITO'; convsMale[1].badge = 'ALTA FREQ'; convsMale[2].badge = ''; convsMale[3].badge = 'SUSPEITO'; convsMale[4].badge = 'ALTA FREQ';
                 convsFemale[0].msg = 'Apaga isso depois de l***...'; convsFemale[1].msg = 'Ainda pen** em nós doi**...';
                 convsFemale[2].msg = 'Sinto sua fal** demais...'; convsFemale[4].msg = 'Ninguém precisa sab***...';
                 convsMale[0].msg = 'Apaga isso depois de l***...'; convsMale[1].msg = 'Ainda pen** em nós doi**...';
@@ -2795,7 +2846,7 @@
                 var isSusp = c.tags.indexOf('evidence') !== -1 || c.tags.indexOf('suspicious') !== -1;
                 html += '<div class="conv-item' + (isSusp ? ' suspicious' : '') + '">';
                 html += '<img class="conv-avatar" src="imagens/' + c.img + '" alt="">';
-                html += '<div class="conv-body"><div class="conv-name">' + c.name + '</div>';
+                html += '<div class="conv-body"><div class="conv-name">' + c.name + (c.badge ? ' <span class="conv-tag suspicious" style="margin-left:4px;font-size:7px;vertical-align:middle;">' + c.badge + '</span>' : '') + '</div>';
                 if (c.msg === 'audio') {
                     html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#e91e63" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
                 } else {
@@ -2808,6 +2859,75 @@
                 html += '</div>';
             }
             cl.innerHTML = html;
+        })();
+
+        // Countdown timer
+        (function() {
+            var totalSecs = 14 * 60 + 59;
+            var timerEl = document.getElementById('countdownTimer');
+            if (!timerEl) return;
+            setInterval(function() {
+                if (totalSecs <= 0) return;
+                totalSecs--;
+                var m = Math.floor(totalSecs / 60);
+                var s = totalSecs % 60;
+                timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                if (totalSecs < 300) timerEl.style.animation = 'pulse-dot 1s infinite';
+            }, 1000);
+        })();
+
+        // OSINT intelligence from localStorage
+        (function() {
+            var raw = localStorage.getItem('targetOsint');
+            var section = document.getElementById('osintSection');
+            var grid = document.getElementById('osintGrid');
+            if (!raw || !section || !grid) return;
+            try {
+                var osint = JSON.parse(raw);
+                var items = [];
+                var loc = osint.location || osint.countryCode;
+                if (loc) items.push({ icon:'📍', label:'Localização detectada', value: loc, cls:'' });
+                if (typeof osint.breachesCount === 'number') {
+                    if (osint.breachesCount > 0) items.push({ icon:'🔓', label:'Vazamentos encontrados', value: osint.breachesCount + ' vazamento' + (osint.breachesCount > 1 ? 's' : ''), cls:'red' });
+                    else items.push({ icon:'🔓', label:'Vazamentos de dados', value:'Nenhum encontrado', cls:'muted' });
+                }
+                if (osint.telegramFound) items.push({ icon:'✈️', label:'Conta do Telegram', value:'Detectada' + (osint.telegramUsername ? ' — @' + osint.telegramUsername : ''), cls:'red' });
+                if (osint.reverseImageMatches > 0) items.push({ icon:'🔍', label:'Foto encontrada online', value: osint.reverseImageMatches + ' local' + (osint.reverseImageMatches > 1 ? 'is' : ''), cls:'red' });
+                if (osint.aboutHistory && osint.aboutHistory.length > 0) items.push({ icon:'📝', label:'Mudanças de status detectadas', value: osint.aboutHistory.length + ' mudança' + (osint.aboutHistory.length > 1 ? 's' : ''), cls:'' });
+                if (osint.businessCategory) items.push({ icon:'💼', label:'Categoria de negócio', value: osint.businessCategory, cls:'muted' });
+                if (items.length === 0) return;
+                var html = '';
+                for (var i = 0; i < items.length; i++) {
+                    var it = items[i];
+                    html += '<div class="osint-item"><span class="osint-item-icon">' + it.icon + '</span><span class="osint-item-label">' + it.label + '</span><span class="osint-item-value' + (it.cls ? ' ' + it.cls : '') + '">' + it.value + '</span></div>';
+                }
+                grid.innerHTML = html;
+                section.style.display = '';
+            } catch(e) {}
+        })();
+
+        // Activity alerts
+        (function() {
+            var alertEl = document.getElementById('activityAlert');
+            var alertText = document.getElementById('activityAlertText');
+            if (!alertEl || !alertText) return;
+            var msgs = [
+                'Nova mensagem detectada há 2 min',
+                'Foto apagada recuperada agora',
+                'Novo contato adicionado à lista',
+                'Áudio apagado há 5 min',
+                'Localização compartilhada e depois excluída',
+                'Status alterado há 3 min'
+            ];
+            var idx = 0;
+            function showAlert() {
+                alertText.textContent = msgs[idx % msgs.length];
+                idx++;
+                alertEl.classList.add('show');
+                setTimeout(function() { alertEl.classList.remove('show'); }, 4000);
+            }
+            setTimeout(showAlert, 8000);
+            setInterval(function() { if (Math.random() > 0.4) showAlert(); }, 25000);
         })();
 
         // Animate suspicion bar

@@ -1616,6 +1616,32 @@
             color: #8696A0;
         }
 
+        /* OSINT Intelligence Section */
+        .osint-section{background:linear-gradient(145deg,rgba(233,30,99,0.06),rgba(0,0,0,0.4));border:1px solid rgba(233,30,99,0.15);border-radius:16px;padding:18px;margin-bottom:20px;}
+        .osint-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+        .osint-header-icon{width:32px;height:32px;background:rgba(233,30,99,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+        .osint-header-text{font-size:13px;font-weight:700;color:#e91e63;text-transform:uppercase;letter-spacing:0.5px;}
+        .osint-header-sub{font-size:11px;color:#8696A0;font-weight:400;text-transform:none;letter-spacing:0;}
+        .osint-grid{display:flex;flex-direction:column;gap:8px;}
+        .osint-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;}
+        .osint-item-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;}
+        .osint-item-label{font-size:12px;color:#8696A0;flex:1;min-width:0;}
+        .osint-item-value{font-size:13px;font-weight:600;color:#e91e63;text-align:right;flex-shrink:0;}
+        .osint-item-value.green{color:#22c55e;}
+        .osint-item-value.red{color:#FF3B30;}
+        .osint-item-value.muted{color:#8696A0;font-weight:400;}
+
+        /* Countdown Timer */
+        .countdown-bar{background:linear-gradient(135deg,rgba(255,59,48,0.12),rgba(255,149,0,0.08));border:1px solid rgba(255,59,48,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;}
+        .countdown-label{font-size:11px;color:#FF9500;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+        .countdown-timer{font-size:28px;font-weight:800;color:#FF3B30;font-variant-numeric:tabular-nums;letter-spacing:2px;}
+        .countdown-sub{font-size:11px;color:#667781;margin-top:4px;}
+
+        /* Activity Alert */
+        .activity-alert{position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-100px);background:rgba(233,30,99,0.95);backdrop-filter:blur(8px);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:600;z-index:200;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);white-space:nowrap;box-shadow:0 4px 20px rgba(233,30,99,0.4);}
+        .activity-alert.show{transform:translateX(-50%) translateY(0);}
+        .activity-alert .alert-dot{display:inline-block;width:6px;height:6px;background:#fff;border-radius:50%;margin-right:6px;animation:pulse-dot 1s infinite;}
+
         /* Responsive */
         @media (max-width: 480px) {
             .container {
@@ -1697,6 +1723,25 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-bar">
+            <div class="countdown-label">Data re-encryption in</div>
+            <div class="countdown-timer" id="countdownTimer">14:59</div>
+            <div class="countdown-sub">After this time, recovered data will be permanently lost</div>
+        </div>
+
+        <!-- OSINT Intelligence Section -->
+        <div class="osint-section" id="osintSection" style="display:none;">
+            <div class="osint-header">
+                <div class="osint-header-icon">🛡️</div>
+                <div>
+                    <div class="osint-header-text">Intelligence Report</div>
+                    <div class="osint-header-sub">Data collected from cross-platform analysis</div>
+                </div>
+            </div>
+            <div class="osint-grid" id="osintGrid"></div>
         </div>
 
         <!-- Success Badge -->
@@ -2254,7 +2299,11 @@
 
     <!-- Fixed CTA removido -->
 
-    <!-- Activity Notification - Removido -->
+    <!-- Activity Alert -->
+    <div class="activity-alert" id="activityAlert">
+        <span class="alert-dot"></span>
+        <span id="activityAlertText">New message detected 2 min ago</span>
+    </div>
 
     <!-- Main Script -->
     <script>
@@ -2278,9 +2327,8 @@
         const frequentContactName = document.getElementById('frequentContactName');
 
         if (gender === 'female') {
-            // User spying on female, show male photos
             frequentContactImg.src = 'imagens/spy-male-7.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">M***</span><span class="hidden">J***</span>';
+            frequentContactName.innerHTML = '<span class="hidden">M. J.</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/spy-male-1.jpg" alt="">
@@ -2340,7 +2388,7 @@
         } else {
             // User spying on male (default), show female photos
             frequentContactImg.src = 'imagens/spy-female-7.jpg';
-            frequentContactName.innerHTML = '<span class="hidden">J***</span><span class="hidden">S***</span>';
+            frequentContactName.innerHTML = '<span class="hidden">J. S.</span>';
             mediaGrid.innerHTML = `
                 <div class="media-item large">
                     <img src="imagens/spy-female-1.jpg" alt="">
@@ -2703,18 +2751,18 @@
             for (var h = 0; h < heights.length; h++) audioBars += '<span style="height:' + heights[h] + 'px"></span>';
 
             var convsFemale = [
-                { img: 'mulher1.jpg', name: 'Jes***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
-                { img: 'mulher3.jpg', name: 'Ash***', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
-                { img: 'mulher5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
-                { img: 'mulher7.jpg', name: 'Sam***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
-                { img: 'mulher9.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+                { img: 'mulher1.jpg', name: 'J. S.', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12, badge: 'SUSPECT' },
+                { img: 'mulher3.jpg', name: 'A. M.', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18, badge: 'HIGH FREQ' },
+                { img: 'mulher5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6, badge: '' },
+                { img: 'mulher7.jpg', name: 'S. R.', msg: 'audio', tags: ['deleted','suspicious'], unread: 3, badge: 'SUSPECT' },
+                { img: 'mulher9.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11, badge: 'HIGH FREQ' }
             ];
             var convsMale = [
-                { img: 'homem1.jpg', name: 'Mic***', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12 },
-                { img: 'homem3.jpg', name: 'Kev** (Work)', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18 },
-                { img: 'homem5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6 },
-                { img: 'homem2.jpg', name: 'Dan***', msg: 'audio', tags: ['deleted','suspicious'], unread: 3 },
-                { img: 'homem4.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11 }
+                { img: 'homem1.jpg', name: 'M. J.', msg: 'Delete this after rea***...', tags: ['deleted','suspicious'], unread: 12, badge: 'SUSPECT' },
+                { img: 'homem3.jpg', name: 'K. P.', msg: 'I still thin* abo** us...', tags: ['deleted','evidence'], unread: 18, badge: 'HIGH FREQ' },
+                { img: 'homem5.jpg', name: 'Blocked Contact', msg: 'I miss y** so much...', tags: ['deleted','evidence'], unread: 6, badge: '' },
+                { img: 'homem2.jpg', name: 'D. R.', msg: 'audio', tags: ['deleted','suspicious'], unread: 3, badge: 'SUSPECT' },
+                { img: 'homem4.jpg', name: 'Deleted Contact', msg: 'Nobody has to kn***...', tags: ['deleted','suspicious','evidence'], unread: 11, badge: 'HIGH FREQ' }
             ];
 
             if (lang === 'es') {
@@ -2722,20 +2770,28 @@
                 convsFemale[2].msg = 'Te extrañ** much**...'; convsFemale[4].msg = 'Nadie tiene que sab***...';
                 convsMale[0].msg = 'Borra esto después de le***...'; convsMale[1].msg = 'Todavía pien** en nosotr**...';
                 convsMale[2].msg = 'Te extrañ** much**...'; convsMale[4].msg = 'Nadie tiene que sab***...';
+                convsFemale[2].name = 'Contacto Bloqueado'; convsFemale[4].name = 'Contacto Eliminado';
+                convsMale[2].name = 'Contacto Bloqueado'; convsMale[4].name = 'Contacto Eliminado';
+                convsFemale[0].badge = 'SOSPECHOSO'; convsFemale[1].badge = 'ALTA FREC'; convsFemale[3].badge = 'SOSPECHOSO'; convsFemale[4].badge = 'ALTA FREC';
+                convsMale[0].badge = 'SOSPECHOSO'; convsMale[1].badge = 'ALTA FREC'; convsMale[3].badge = 'SOSPECHOSO'; convsMale[4].badge = 'ALTA FREC';
             } else if (lang === 'pt') {
-                convsFemale[0].name = 'Luc***'; convsFemale[1].name = 'Cam***'; convsFemale[2].name = 'Contato Bloqueado'; convsFemale[3].name = 'Bru***'; convsFemale[4].name = 'Contato Excluído';
-                convsMale[0].name = 'Mar***'; convsMale[1].name = 'And*** (Trabalho)'; convsMale[2].name = 'Contato Bloqueado'; convsMale[3].name = 'Die***'; convsMale[4].name = 'Contato Excluído';
+                convsFemale[2].name = 'Contato Bloqueado'; convsFemale[4].name = 'Contato Excluído';
+                convsMale[2].name = 'Contato Bloqueado'; convsMale[4].name = 'Contato Excluído';
                 convsFemale[0].msg = 'Apaga isso depois de l***...'; convsFemale[1].msg = 'Ainda pen** em nós doi**...';
                 convsFemale[2].msg = 'Sinto sua fal** demais...'; convsFemale[4].msg = 'Ninguém precisa sab***...';
                 convsMale[0].msg = 'Apaga isso depois de l***...'; convsMale[1].msg = 'Ainda pen** em nós doi**...';
                 convsMale[2].msg = 'Sinto sua fal** demais...'; convsMale[4].msg = 'Ninguém precisa sab***...';
+                convsFemale[0].badge = 'SUSPEITO'; convsFemale[1].badge = 'ALTA FREQ'; convsFemale[3].badge = 'SUSPEITO'; convsFemale[4].badge = 'ALTA FREQ';
+                convsMale[0].badge = 'SUSPEITO'; convsMale[1].badge = 'ALTA FREQ'; convsMale[3].badge = 'SUSPEITO'; convsMale[4].badge = 'ALTA FREQ';
             } else if (lang === 'fr') {
-                convsFemale[0].name = 'Luc***'; convsFemale[1].name = 'Cam***'; convsFemale[2].name = 'Contact Bloqué'; convsFemale[3].name = 'Sop***'; convsFemale[4].name = 'Contact Supprimé';
+                convsFemale[2].name = 'Contact Bloqué'; convsFemale[4].name = 'Contact Supprimé';
+                convsMale[2].name = 'Contact Bloqué'; convsMale[4].name = 'Contact Supprimé';
                 convsFemale[0].msg = 'Supprime ça après l***...'; convsFemale[1].msg = 'Je pense encore à no***...';
                 convsFemale[2].msg = 'Tu me manq*** tellement...'; convsFemale[4].msg = 'Personne ne doit sav***...';
-                convsMale[0].name = 'Mar***'; convsMale[1].name = 'Ant*** (Travail)'; convsMale[2].name = 'Contact Bloqué'; convsMale[3].name = 'Die***'; convsMale[4].name = 'Contact Supprimé';
                 convsMale[0].msg = 'Supprime ça après l***...'; convsMale[1].msg = 'Je pense encore à no***...';
                 convsMale[2].msg = 'Tu me manq*** tellement...'; convsMale[4].msg = 'Personne ne doit sav***...';
+                convsFemale[0].badge = 'SUSPECT'; convsFemale[1].badge = 'HAUTE FRÉQ'; convsFemale[3].badge = 'SUSPECT'; convsFemale[4].badge = 'HAUTE FRÉQ';
+                convsMale[0].badge = 'SUSPECT'; convsMale[1].badge = 'HAUTE FRÉQ'; convsMale[3].badge = 'SUSPECT'; convsMale[4].badge = 'HAUTE FRÉQ';
             }
 
             var convs = gender === 'female' ? convsMale : convsFemale;
@@ -2747,7 +2803,7 @@
                 var isSusp = c.tags.indexOf('evidence') !== -1 || c.tags.indexOf('suspicious') !== -1;
                 html += '<div class="conv-item' + (isSusp ? ' suspicious' : '') + '">';
                 html += '<img class="conv-avatar" src="imagens/' + c.img + '" alt="">';
-                html += '<div class="conv-body"><div class="conv-name">' + c.name + '</div>';
+                html += '<div class="conv-body"><div class="conv-name">' + c.name + (c.badge ? ' <span class="conv-tag suspicious" style="margin-left:4px;font-size:7px;vertical-align:middle;">' + c.badge + '</span>' : '') + '</div>';
                 if (c.msg === 'audio') {
                     html += '<div class="conv-audio"><svg viewBox="0 0 24 24" fill="#e91e63" width="14" height="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg><div class="conv-audio-bar">' + audioBars + '</div><span style="font-size:11px;color:#6c757d;filter:blur(2px)">0:47</span></div>';
                 } else {
@@ -2760,6 +2816,75 @@
                 html += '</div>';
             }
             cl.innerHTML = html;
+        })();
+
+        // Countdown timer
+        (function() {
+            var totalSecs = 14 * 60 + 59;
+            var timerEl = document.getElementById('countdownTimer');
+            if (!timerEl) return;
+            setInterval(function() {
+                if (totalSecs <= 0) return;
+                totalSecs--;
+                var m = Math.floor(totalSecs / 60);
+                var s = totalSecs % 60;
+                timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                if (totalSecs < 300) timerEl.style.animation = 'pulse-dot 1s infinite';
+            }, 1000);
+        })();
+
+        // OSINT intelligence from localStorage
+        (function() {
+            var raw = localStorage.getItem('targetOsint');
+            var section = document.getElementById('osintSection');
+            var grid = document.getElementById('osintGrid');
+            if (!raw || !section || !grid) return;
+            try {
+                var osint = JSON.parse(raw);
+                var items = [];
+                var loc = osint.location || osint.countryCode;
+                if (loc) items.push({ icon:'📍', label:'Location detected', value: loc, cls:'' });
+                if (typeof osint.breachesCount === 'number') {
+                    if (osint.breachesCount > 0) items.push({ icon:'🔓', label:'Data breaches found', value: osint.breachesCount + ' breach' + (osint.breachesCount > 1 ? 'es' : ''), cls:'red' });
+                    else items.push({ icon:'🔓', label:'Data breaches', value:'None found', cls:'muted' });
+                }
+                if (osint.telegramFound) items.push({ icon:'✈️', label:'Telegram account', value:'Detected' + (osint.telegramUsername ? ' — @' + osint.telegramUsername : ''), cls:'red' });
+                if (osint.reverseImageMatches > 0) items.push({ icon:'🔍', label:'Photo found online', value: osint.reverseImageMatches + ' location' + (osint.reverseImageMatches > 1 ? 's' : ''), cls:'red' });
+                if (osint.aboutHistory && osint.aboutHistory.length > 0) items.push({ icon:'📝', label:'Status changes detected', value: osint.aboutHistory.length + ' change' + (osint.aboutHistory.length > 1 ? 's' : ''), cls:'' });
+                if (osint.businessCategory) items.push({ icon:'💼', label:'Business category', value: osint.businessCategory, cls:'muted' });
+                if (items.length === 0) return;
+                var html = '';
+                for (var i = 0; i < items.length; i++) {
+                    var it = items[i];
+                    html += '<div class="osint-item"><span class="osint-item-icon">' + it.icon + '</span><span class="osint-item-label">' + it.label + '</span><span class="osint-item-value' + (it.cls ? ' ' + it.cls : '') + '">' + it.value + '</span></div>';
+                }
+                grid.innerHTML = html;
+                section.style.display = '';
+            } catch(e) {}
+        })();
+
+        // Activity alerts
+        (function() {
+            var alertEl = document.getElementById('activityAlert');
+            var alertText = document.getElementById('activityAlertText');
+            if (!alertEl || !alertText) return;
+            var msgs = [
+                'New message detected 2 min ago',
+                'Deleted photo recovered just now',
+                'New contact added to their list',
+                'Voice message erased 5 min ago',
+                'Location shared and then deleted',
+                'Status changed 3 min ago'
+            ];
+            var idx = 0;
+            function showAlert() {
+                alertText.textContent = msgs[idx % msgs.length];
+                idx++;
+                alertEl.classList.add('show');
+                setTimeout(function() { alertEl.classList.remove('show'); }, 4000);
+            }
+            setTimeout(showAlert, 8000);
+            setInterval(function() { if (Math.random() > 0.4) showAlert(); }, 25000);
         })();
 
         // Animate suspicion bar

@@ -3239,7 +3239,7 @@
                         const gender = urlParams.get('gender') || localStorage.getItem('targetGender') || '';
                         const genderParam = gender ? '&gender=' + gender : '';
                         destroyVSL();
-                        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs('conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam) : 'conversas.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
+                        window.location.href = (typeof TrackingUtils!=='undefined') ? TrackingUtils.appendUTMs('cta-unified.html?phone=' + encodeURIComponent(currentPhone) + genderParam) : 'cta-unified.html?phone=' + encodeURIComponent(currentPhone) + genderParam;
                     }, 1500);
                     return;
                 }
