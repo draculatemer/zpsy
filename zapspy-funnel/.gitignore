@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Zip files
+*.zip
+
+# Backup files
+server.original.js
+
+# Sensitive/diagnostic files
+login-payload.json
+diagnostic-output.json
+*.credentials
+*.secret
+
+# Railway Deploy Optimization
+.git/
+_git_backup/
+.gitattributes
+backend/
+docs/
+*.md
+*.bat
+*.ps1
+quick-fetch.js
+fetch-debug-data.js
+fetch-refund-data.js
+fetch-refund-check.html
+
+# Large Asset Folders (Design/Source)
+perfectpay/whats-spy-mockups-EN/
+perfectpay/whats-spy-mockups-ES/
+perfectpay/function-icons-pack/
+perfectpay/whatsapp-profile-photos-women/
+perfectpay/IMG SPY/
