@@ -3,7 +3,7 @@
  * Full integration with Browser Pixel + Server CAPI for 10/10 event quality
  *
  * Pixel para funil espanhol:
- * - Pixel: 534495082571779 (PIXEL SPY ESPANHOL)
+ * - Pixel: 1123687999653173 (PIXEL SPY ESPANHOL)
  * - O backend gerencia os tokens via funnelLanguage: 'es'
  */
 

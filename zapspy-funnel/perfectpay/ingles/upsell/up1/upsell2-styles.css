@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #0f1115;
     --card: #171a21;
     --muted: #8b93a7;
@@ -753,10 +753,16 @@ body {
 }
 @media (max-width: 720px) {
     .btn-mega {
-        font-size: 20px !important;
-        padding: 24px 20px !important;
-        min-height: 85px;
+        font-size: 26px !important; /* Aumentado de 20px */
+        padding: 32px 20px !important; /* Aumentado de 24px */
+        min-height: 100px;
         border-width: 3px !important;
+        margin-top: -60px !important; /* Força sobreposição (tampa os valores) */
+        z-index: 10;
+        box-shadow: 
+            0 0 30px rgba(34, 197, 94, 1),
+            0 0 60px rgba(34, 197, 94, 0.8),
+            0 0 90px rgba(34, 197, 94, 0.6) !important;
     }
 }
 

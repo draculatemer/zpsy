@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --bg: #0f1115;
     --card: #171a21;
     --text: #eef1f7;
@@ -582,9 +582,15 @@ body {
     .timer-bar { font-size: 14px; padding: 10px 14px; }
     .timer-bar #countdown { font-size: 16px; }
     .btn-mega {
-        font-size: 20px !important;
-        padding: 24px 20px !important;
-        min-height: 85px;
+        font-size: 26px !important;
+        padding: 35px 20px !important;
+        min-height: 100px;
         border-width: 3px !important;
+        margin-top: -65px !important; /* TAMPA OS VALORES */
+        z-index: 10;
+        position: relative;
+        box-shadow: 
+            0 0 30px rgba(139, 92, 246, 1),
+            0 0 60px rgba(139, 92, 246, 0.8) !important;
     }
 }

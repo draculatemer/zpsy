@@ -1337,22 +1337,22 @@ router.get('/api/admin/recovery/templates', authenticateToken, async (req, res) 
                     id: 'discount',
                     name: 'Special Discount',
                     icon: '💰',
-                    message_en: "Hi {name}! 🎁 I have a special offer just for you: Get 50% OFF on X AI Monitor for the next 24 hours! Use this exclusive link: https://go.centerpag.com/PPU38CQ7OM5\n\nDon't let this opportunity slip away!",
-                    message_es: "¡Hola {name}! 🎁 Tengo una oferta especial solo para ti: ¡50% DE DESCUENTO en X AI Monitor por las próximas 24 horas! Usa este link exclusivo: https://go.centerpag.com/PPU38CQ7OM5\n\n¡No dejes escapar esta oportunidad!"
+                    message_en: "Hi {name}! 🎁 I have a special offer just for you: Get 50% OFF on X AI Monitor for the next 24 hours! Use this exclusive link: https://go.centerpag.com/PPU38CQ9Q3O\n\nDon't let this opportunity slip away!",
+                    message_es: "¡Hola {name}! 🎁 Tengo una oferta especial solo para ti: ¡50% DE DESCUENTO en X AI Monitor por las próximas 24 horas! Usa este link exclusivo: https://go.centerpag.com/PPU38CQ9Q3O\n\n¡No dejes escapar esta oportunidad!"
                 },
                 {
                     id: 'support',
                     name: 'Support',
                     icon: '🤝',
-                    message_en: "Hey {name}! 👋 I noticed you were interested in X AI Monitor. Is there anything I can help you with? Any questions about how it works? I'm here to help! 😊\n\nYou can complete your purchase anytime here: https://go.centerpag.com/PPU38CQ7OM5",
-                    message_es: "¡Hola {name}! 👋 Vi que te interesó X AI Monitor. ¿Hay algo en lo que pueda ayudarte? ¿Alguna pregunta sobre cómo funciona? ¡Estoy aquí para ayudar! 😊\n\nPuedes completar tu compra en cualquier momento aquí: https://go.centerpag.com/PPU38CQ7OM5"
+                    message_en: "Hey {name}! 👋 I noticed you were interested in X AI Monitor. Is there anything I can help you with? Any questions about how it works? I'm here to help! 😊\n\nYou can complete your purchase anytime here: https://go.centerpag.com/PPU38CQ9Q3O",
+                    message_es: "¡Hola {name}! 👋 Vi que te interesó X AI Monitor. ¿Hay algo en lo que pueda ayudarte? ¿Alguna pregunta sobre cómo funciona? ¡Estoy aquí para ayudar! 😊\n\nPuedes completar tu compra en cualquier momento aquí: https://go.centerpag.com/PPU38CQ9Q3O"
                 },
                 {
                     id: 'direct_checkout',
                     name: 'Direct Checkout Link',
                     icon: '🛒',
-                    message_en: "Hey {name}! 👋 You were so close to unlocking X AI Monitor! I saved your spot. Click below to complete your purchase in just 2 minutes:\n\n👉 https://go.centerpag.com/PPU38CQ7OM5\n\nSecure payment with credit card, Google Pay or Apple Pay. Don't miss out! 🔥",
-                    message_es: "¡Hola {name}! 👋 ¡Estabas tan cerca de desbloquear X AI Monitor! Guardé tu lugar. Haz clic abajo para completar tu compra en solo 2 minutos:\n\n👉 https://go.centerpag.com/PPU38CQ7OM5\n\nPago seguro con tarjeta de crédito, Google Pay o Apple Pay. ¡No te lo pierdas! 🔥"
+                    message_en: "Hey {name}! 👋 You were so close to unlocking X AI Monitor! I saved your spot. Click below to complete your purchase in just 2 minutes:\n\n👉 https://go.centerpag.com/PPU38CQ9Q3O\n\nSecure payment with credit card, Google Pay or Apple Pay. Don't miss out! 🔥",
+                    message_es: "¡Hola {name}! 👋 ¡Estabas tan cerca de desbloquear X AI Monitor! Guardé tu lugar. Haz clic abajo para completar tu compra en solo 2 minutos:\n\n👉 https://go.centerpag.com/PPU38CQ9Q3O\n\nPago seguro con tarjeta de crédito, Google Pay ou Apple Pay. ¡No te lo pierdas! 🔥"
                 }
             ],
             payment_failed: [
@@ -1360,17 +1360,17 @@ router.get('/api/admin/recovery/templates', authenticateToken, async (req, res) 
                     id: 'retry',
                     name: 'Tentar Novamente',
                     icon: '🔄',
-                    message_en: "Hi {name}! I noticed there was an issue with your payment for {product}. Sometimes this happens due to bank limits. Would you like to try again with a different card or payment method? I can help! 💳\n\nTry again here: https://go.centerpag.com/PPU38CQ7OM5",
-                    message_es: "¡Hola {name}! Vi que hubo un problema con tu pago de {product}. A veces esto pasa por límites del banco. ¿Te gustaría intentar con otra tarjeta o método de pago? ¡Puedo ayudarte! 💳\n\nIntenta de nuevo aquí: https://go.centerpag.com/PPU38CQ7OM5",
-                    message_pt: "Oi {name}! Vi que houve um problema com seu pagamento do {product}. Às vezes isso acontece por limites do banco. Quer tentar com outro cartão ou forma de pagamento? Posso ajudar! 💳\n\nTente novamente aqui: https://go.centerpag.com/PPU38CQ7OM5"
+                    message_en: "Hi {name}! I noticed there was an issue with your payment for {product}. Sometimes this happens due to bank limits. Would you like to try again with a different card or payment method? I can help! 💳\n\nTry again here: https://go.centerpag.com/PPU38CQ9Q3O",
+                    message_es: "¡Hola {name}! Vi que hubo un problema con tu pago de {product}. A veces esto pasa por límites del banco. ¿Te gustaría intentar con otra tarjeta o método de pago? ¡Puedo ayudarte! 💳\n\nIntenta de nuevo aquí: https://go.centerpag.com/PPU38CQ9Q3O",
+                    message_pt: "Oi {name}! Vi que houve um problema com seu pagamento do {product}. Às vezes isso acontece por limites do banco. Quer tentar com outro cartão ou forma de pagamento? Posso ajudar! 💳\n\nTente novamente aqui: https://go.centerpag.com/PPU38CQ9Q3O"
                 },
                 {
                     id: 'alternative',
                     name: 'Pagamento Alternativo',
                     icon: '💳',
-                    message_en: "Hey {name}! Your payment for {product} didn't go through. No worries! We have other payment options available. Use this secure link to try again:\n\n👉 https://go.centerpag.com/PPU38CQ7OM5\n\nCredit card, Google Pay and Apple Pay accepted!",
-                    message_es: "¡Hola {name}! Tu pago de {product} no se procesó. ¡No te preocupes! Tenemos otras opciones de pago disponibles. Usa este link seguro para intentar de nuevo:\n\n👉 https://go.centerpag.com/PPU38CQ7OM5\n\n¡Aceptamos tarjeta de crédito, Google Pay y Apple Pay!",
-                    message_pt: "Oi {name}! Seu pagamento do {product} não foi processado. Sem problemas! Temos outras opções de pagamento disponíveis. Use este link seguro para tentar novamente:\n\n👉 https://go.centerpag.com/PPU38CQ7OM5\n\nAceitamos cartão de crédito, Google Pay e Apple Pay!"
+                    message_en: "Hey {name}! Your payment for {product} didn't go through. No worries! We have other payment options available. Use this secure link to try again:\n\n👉 https://go.centerpag.com/PPU38CQ9Q3O\n\nCredit card, Google Pay and Apple Pay accepted!",
+                    message_es: "¡Hola {name}! Tu pago de {product} no se procesó. ¡No te preocupes! Tenemos otras opciones de pago disponibles. Usa este link seguro para intentar de nuevo:\n\n👉 https://go.centerpag.com/PPU38CQ9Q3O\n\n¡Aceptamos tarjeta de crédito, Google Pay y Apple Pay!",
+                    message_pt: "Oi {name}! Seu pagamento do {product} não foi processado. Sem problemas! Temos outras opções de pagamento disponíveis. Use este link seguro para tentar novamente:\n\n👉 https://go.centerpag.com/PPU38CQ9Q3O\n\nAceitamos cartão de crédito, Google Pay e Apple Pay!"
                 }
             ],
             refund_requests: [

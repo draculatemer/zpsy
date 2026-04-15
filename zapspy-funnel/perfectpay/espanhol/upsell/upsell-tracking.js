@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Upsell Funnel Tracking
  * Tracks visitor journey through upsell pages
  * Uses the same visitorId from main funnel for complete journey tracking
@@ -26,7 +26,7 @@ const UpsellTracker = {
         // Priority 3: Create new one if nothing found
         if (!visitorId) {
             visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            console.log('⚠️ UpsellTracker: Created new visitorId (no URL param or localStorage found)');
+            console.log('?? UpsellTracker: Created new visitorId (no URL param or localStorage found)');
         }
         
         // Always save to localStorage for future use
@@ -100,7 +100,7 @@ const UpsellTracker = {
             TrackingUtils.sendWithRetry(`${this.API_URL}/api/track`, data)
                 .then(result => {
                     if (!result.success) {
-                        console.warn('📊 Upsell tracking failed after retries:', event);
+                        console.warn('?? Upsell tracking failed after retries:', event);
                     }
                 });
         } else {
@@ -111,7 +111,7 @@ const UpsellTracker = {
             }).catch(err => console.log('Tracking error:', err));
         }
         
-        console.log('📊 Upsell Event:', event, data);
+        console.log('?? Upsell Event:', event, data);
     },
     
     // Pre-defined events
@@ -273,7 +273,7 @@ const UpsellTracker = {
             blob
         );
         
-        console.log('📊 Upsell Accept Event (sendBeacon):', event, beaconSent ? '✅ sent' : '❌ failed', data);
+        console.log('?? Upsell Accept Event (sendBeacon):', event, beaconSent ? '? sent' : '? failed', data);
     },
     
     // Track decline (no thanks click)
@@ -421,7 +421,7 @@ const UpsellTracker = {
     enrichPurchase: function() {
         const email = localStorage.getItem('userEmail');
         if (!email) {
-            console.log('📊 Enrich: No email found, skipping');
+            console.log('?? Enrich: No email found, skipping');
             return;
         }
         
@@ -431,7 +431,7 @@ const UpsellTracker = {
         const gclid = (typeof TrackingUtils !== 'undefined') ? TrackingUtils.getGclid() : (localStorage.getItem('gclid') || null);
         
         if (!fbIds.fbc && !fbIds.fbp && !gclid && !visitorId) {
-            console.log('📊 Enrich: No fbc/fbp/gclid/vid found, skipping');
+            console.log('?? Enrich: No fbc/fbp/gclid/vid found, skipping');
             return;
         }
         
@@ -445,7 +445,7 @@ const UpsellTracker = {
             userAgent: navigator.userAgent
         };
         
-        console.log(`📊 Enriching purchase for ${email}: fbc=${fbIds.fbc ? 'Yes' : 'No'}, fbp=${fbIds.fbp ? 'Yes' : 'No'}, gclid=${gclid ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
+        console.log(`?? Enriching purchase for ${email}: fbc=${fbIds.fbc ? 'Yes' : 'No'}, fbp=${fbIds.fbp ? 'Yes' : 'No'}, gclid=${gclid ? 'Yes' : 'No'}, vid=${visitorId || 'none'}`);
         
         fetch(`${this.API_URL}/api/enrich-purchase`, {
             method: 'POST',
@@ -454,9 +454,9 @@ const UpsellTracker = {
         })
         .then(r => r.json())
         .then(result => {
-            console.log('📊 Enrich result:', result);
+            console.log('?? Enrich result:', result);
         })
-        .catch(err => console.log('📊 Enrich error:', err));
+        .catch(err => console.log('?? Enrich error:', err));
     },
     
     // Initialize
@@ -494,7 +494,7 @@ const UpsellTracker = {
             }
         }
         
-        console.log('📊 Upsell Tracker v2.0 initialized - Visitor:', this.getVisitorId());
+        console.log('?? Upsell Tracker v2.0 initialized - Visitor:', this.getVisitorId());
     }
 };
 
