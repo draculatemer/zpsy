@@ -77,7 +77,7 @@
     <link rel="stylesheet" href="upsell1-styles.css?v=9.0">
     <style>
     .stealth-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#0a0a0a 0%,#0d1117 40%,#0f1a2e 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,transform .8s ease;overflow:hidden}
-    .stealth-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none}
+    .stealth-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none !important;visibility:hidden;transition:all 0.8s ease-in-out}
     .stealth-container{position:relative;z-index:2;width:90%;max-width:420px;text-align:center}
     .stealth-icon{font-size:44px;margin-bottom:10px;animation:ghostPulse 1.5s ease-in-out infinite}
     @keyframes ghostPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(99,102,241,.4))}50%{transform:scale(1.1);filter:drop-shadow(0 0 20px rgba(99,102,241,.8))}}
@@ -298,6 +298,16 @@
         var o=document.getElementById('stealthOverlay'),m=document.getElementById('mainPage'),
             pb=document.getElementById('stealthProgressBar'),result=document.getElementById('stealthResult');
         if(!o||!m)return;
+        
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (o && o.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                o.classList.add('fade-out');
+                m.classList.add('reveal-content');
+                setTimeout(function() { o.style.display = 'none'; }, 800);
+            }
+        }, 8000);
 
         var steps=[
             {el:document.getElementById('step1'),ind:document.getElementById('ind1'),time:700},

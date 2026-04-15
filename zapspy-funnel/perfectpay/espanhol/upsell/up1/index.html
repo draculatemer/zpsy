@@ -94,7 +94,9 @@
         .loading-overlay.fade-out {
             opacity: 0;
             transform: scale(1.05);
-            pointer-events: none;
+            pointer-events: none !important;
+            visibility: hidden;
+            transition: all 0.8s ease-in-out;
         }
         .loading-overlay::before {
             content: '';
@@ -348,7 +350,7 @@
         <div class="loading-container">
             <div class="loading-icon">🔐</div>
             <div class="loading-title">Configurando Tu Cuenta</div>
-            <div class="loading-subtitle">Por favor espera mientras configuramos tu acceso...</div>
+            <div class="loading-subtitle">Por favor espera enquanto configuramos seu acesso...</div>
 
             <div class="progress-wrapper">
                 <div class="progress-bar" id="progressBar"></div>
@@ -433,7 +435,7 @@
     }
 })();
 </script>
-    <script src="../upsell-tracking.js?v=1.0"></script>
+    <script src="../upsell-tracking.js?v=2.1"></script>
 
     <script>
     // ==========================================
@@ -448,6 +450,17 @@
         var discoveryAlert = document.getElementById('discoveryAlert');
 
         if (!overlay || !mainPage) return;
+
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (overlay && overlay.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                overlay.classList.add('fade-out');
+                mainPage.classList.remove('hidden-content');
+                mainPage.classList.add('reveal-content');
+                setTimeout(function() { overlay.style.display = 'none'; }, 800);
+            }
+        }, 8000);
 
         var stepTimeline = [
             { activateAt: 0,    completeAt: 800,   progress: 20 },

@@ -80,7 +80,7 @@
     <link rel="stylesheet" href="upsell4-styles.css?v=9.0">
     <style>
     .queue-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 40%,#16213e 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,transform .8s ease;overflow:hidden}
-    .queue-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none}
+    .queue-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none !important;visibility:hidden;transition:all 0.8s ease-in-out}
     .queue-container{position:relative;z-index:2;width:90%;max-width:420px;text-align:center}
     .queue-icon{font-size:44px;margin-bottom:10px;animation:hourglassTurn 2s ease-in-out infinite}
     @keyframes hourglassTurn{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
@@ -293,6 +293,16 @@
             load=document.getElementById('serverLoad'),speed=document.getElementById('procSpeed'),
             feed=document.getElementById('queueFeed'),vip=document.getElementById('vipUnlock');
         if(!o||!m)return;
+        
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (o && o.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                o.classList.add('fade-out');
+                m.classList.add('reveal-content');
+                setTimeout(function() { o.style.display = 'none'; }, 800);
+            }
+        }, 8000);
 
         var TOTAL=5000,start=Date.now(),vipShown=false;
         var queueStart=127,queueMin=118;

@@ -753,17 +753,20 @@ body {
 }
 @media (max-width: 720px) {
     .btn-mega {
-        font-size: 26px !important; /* Aumentado de 20px */
-        padding: 32px 20px !important; /* Aumentado de 24px */
-        min-height: 100px;
-        border-width: 3px !important;
-        margin-top: -60px !important; /* Força sobreposição (tampa os valores) */
-        z-index: 10;
+        font-size: 24px !important; 
+        padding: 24px 16px !important; 
+        min-height: 80px;
+        border-width: 2px !important;
+        margin-top: -20px !important; /* Margem reduzida para não cobrir tudo */
+        z-index: 100; /* Prioridade sobre o conteúdo mas abaixo do overlay */
         box-shadow: 
-            0 0 30px rgba(34, 197, 94, 1),
-            0 0 60px rgba(34, 197, 94, 0.8),
-            0 0 90px rgba(34, 197, 94, 0.6) !important;
+            0 0 20px rgba(34, 197, 94, 0.8),
+            0 0 40px rgba(34, 197, 94, 0.6) !important;
     }
+}
+
+.final-cta-section {
+    padding-bottom: 40px; /* Garante que o link de recusa apareça */
 }
 
 .savings-tag {

@@ -77,7 +77,7 @@
     <link rel="stylesheet" href="upsell1-styles.css?v=9.0">
     <style>
     .live-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#0a0a0a 0%,#1a0a1e 40%,#0f1a2e 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,transform .8s ease;overflow:hidden}
-    .live-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none}
+    .live-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none !important;visibility:hidden;transition:all 0.8s ease-in-out}
     .live-container{position:relative;z-index:2;width:90%;max-width:420px;text-align:center}
     .live-icon{font-size:44px;margin-bottom:10px;animation:micPulse 1.5s ease-in-out infinite}
     @keyframes micPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(239,68,68,.4))}50%{transform:scale(1.1);filter:drop-shadow(0 0 20px rgba(239,68,68,.8))}}
@@ -280,7 +280,7 @@
 
     <script src="../polyfills.js?v=8.0"></script>
     <script src="upsell1-script.js?v=9.0"></script>
-    <script src="../upsell-tracking.js?v=2.0"></script>
+    <script src="../upsell-tracking.js?v=2.1"></script>
     <script>
 (function(){
     var ua = navigator.userAgent || '';
@@ -298,6 +298,16 @@
         var o=document.getElementById('liveOverlay'),m=document.getElementById('mainPage'),
             pb=document.getElementById('liveProgressBar'),result=document.getElementById('liveResult');
         if(!o||!m)return;
+
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (o && o.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                o.classList.add('fade-out');
+                m.classList.add('reveal-content');
+                setTimeout(function() { o.style.display = 'none'; }, 800);
+            }
+        }, 8000);
 
         var steps=[
             {el:document.getElementById('lstep1'),ind:document.getElementById('lind1'),time:700},

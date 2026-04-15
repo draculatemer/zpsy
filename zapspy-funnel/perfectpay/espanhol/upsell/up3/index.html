@@ -79,7 +79,7 @@
     <link rel="stylesheet" href="upsell4-styles.css?v=9.0">
     <style>
     .queue-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 40%,#16213e 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,transform .8s ease;overflow:hidden}
-    .queue-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none}
+    .queue-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none !important;visibility:hidden;transition:all 0.8s ease-in-out}
     .queue-container{position:relative;z-index:2;width:90%;max-width:420px;text-align:center}
     .queue-icon{font-size:44px;margin-bottom:10px;animation:hourglassTurn 2s ease-in-out infinite}
     @keyframes hourglassTurn{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
@@ -109,7 +109,7 @@
     .vip-unlock-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:#e91e63;margin-bottom:4px;letter-spacing:.5px}
     .vip-unlock-text{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.5}
     .vip-unlock-text strong{color:#fff}
-    .page.hidden-content{opacity:1;pointer-events:auto}
+    .page.hidden-content{opacity:0;pointer-events:none}
     .page.reveal-content{animation:contentReveal .8s ease forwards}
     @keyframes contentReveal{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
     </style>
@@ -172,7 +172,7 @@
                 <h1 class="main-title">⚡ Obtén Resultados en 5 Minutos en Lugar de 3 Días</h1>
                 
                 <div class="intro-section">
-                    <p class="problem-text">🐌 <strong>Procesamiento Estándar (Lo Que Tienes Ahora):</strong> Tus datos están en una cola con miles de otros usuarios. <strong>Espera 24-72 horas</strong> antes de ver cualquier resultado. Para entonces, evidencia crítica puede haber desaparecido.</p>
+                    <p class="problem-text">🐌 <strong>Procesamiento Estándar (Lo Que Tienes Agora):</strong> Tus datos están en una cola con miles de otros usuarios. <strong>Espera 24-72 horas</strong> antes de ver cualquier resultado. Para entonces, evidencia crítica puede haber desaparecido.</p>
                     
                     <p class="solution-text">⚡ <strong>Procesamiento Prioritario VIP (Acceso Instantáneo):</strong> Salta al frente de la fila. Tus datos se procesan <strong>PRIMERO</strong>, siempre. Ve mensajes eliminados, fotos y ubicaciones en <strong>menos de 5 minutos</strong> — no días.</p>
                 </div>
@@ -281,7 +281,7 @@
     }
 })();
 </script>
-    <script src="../upsell-tracking.js?v=1.0"></script>
+    <script src="../upsell-tracking.js?v=2.1"></script>
     <script>
     (function(){
         var o=document.getElementById('queueOverlay'),m=document.getElementById('mainPage'),
@@ -290,6 +290,17 @@
             load=document.getElementById('serverLoad'),speed=document.getElementById('procSpeed'),
             feed=document.getElementById('queueFeed'),vip=document.getElementById('vipUnlock');
         if(!o||!m)return;
+
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (o && o.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                o.classList.add('fade-out');
+                m.classList.remove('hidden-content');
+                m.classList.add('reveal-content');
+                setTimeout(function() { o.style.display = 'none'; }, 800);
+            }
+        }, 8000);
 
         var TOTAL=5000,start=Date.now(),vipShown=false;
         var queueStart=127,queueMin=118;

@@ -95,7 +95,9 @@
         .loading-overlay.fade-out {
             opacity: 0;
             transform: scale(1.05);
-            pointer-events: none;
+            pointer-events: none !important;
+            visibility: hidden;
+            transition: all 0.8s ease-in-out;
         }
         .loading-overlay::before {
             content: '';
@@ -463,6 +465,14 @@
         var mainPage = document.getElementById('mainPage');
         var progressBar = document.getElementById('progressBar');
         var progressPercent = document.getElementById('progressPercent');
+
+        // FALLBACK: Garante que o loader suma mesmo se houver erro
+        setTimeout(function() {
+            if (overlay && overlay.style.display !== 'none') {
+                console.log('Loader fallback triggered');
+                finishLoading();
+            }
+        }, 8000);
         var steps = document.querySelectorAll('.loading-step');
         var discoveryAlert = document.getElementById('discoveryAlert');
 
