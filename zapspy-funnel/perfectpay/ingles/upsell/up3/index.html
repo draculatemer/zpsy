@@ -112,8 +112,8 @@
     .vip-unlock-text strong{color:#fff}
     .page{opacity:0;pointer-events:none}
     .page.hidden-content{opacity:0;pointer-events:none}
-    .page.reveal-content{animation:contentReveal .8s ease forwards}
-    @keyframes contentReveal{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+    .page.reveal-content{animation:contentReveal .8s ease forwards;pointer-events:auto !important}
+    @keyframes contentReveal{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0);pointer-events:auto !important}}
     </style>
 </head>
 <body>
