@@ -148,29 +148,29 @@ body {
 
 /* Content */
 .content { padding: 20px 0; }
-.hero-section { text-align: center; margin-bottom: 32px; }
+.hero-section { text-align: center; margin-bottom: 16px; }
 .success-header .confetti-icon { font-size: 48px; margin-bottom: 8px; display: block; }
 .main-title { font-size: 32px; font-weight: 800; margin: 0 0 8px; color: var(--text); }
 .congratulations { font-size: 18px; color: var(--muted); margin: 0; }
 
-.product-intro { margin-bottom: 24px; }
+.product-intro { margin-bottom: 12px; }
 .intro-card {
     background: linear-gradient(180deg, #1a1f2c, #161a24);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 12px;
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.45);
 }
 .product-name { font-size: 28px; font-weight: 700; margin: 0 0 12px; color: var(--primary); }
 .product-description { font-size: 16px; color: var(--muted); margin: 0; }
 
-.features-section { margin-bottom: 24px; }
+.features-section { margin-bottom: 12px; }
 .features-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 .features-title { font-size: 22px; font-weight: 700; margin: 0 0 20px; text-align: center; color: var(--text); }
@@ -210,7 +210,7 @@ body {
     margin: 0 auto;
 }
 
-.exclusive-offer { margin-bottom: 24px; }
+.exclusive-offer { margin-bottom: 12px; }
 .exclusive-card {
     background: linear-gradient(135deg, #ec4899, #be185d);
     border-radius: 16px;
@@ -222,12 +222,12 @@ body {
 .exclusive-icon { font-size: 24px; margin-bottom: 8px; display: block; }
 .exclusive-text { font-size: 16px; font-weight: 600; margin: 0; }
 
-.final-cta { margin-bottom: 32px; }
+.final-cta { margin-bottom: 16px; }
 .cta-card {
     background: linear-gradient(135deg, #1a2030, #0f1520);
     border: 2px solid var(--primary);
     border-radius: 16px;
-    padding: 24px;
+    padding: 12px;
     text-align: center;
     box-shadow: 0 20px 50px rgba(34, 197, 94, 0.2);
 }
@@ -358,7 +358,6 @@ body {
         padding: 35px 20px !important;
         min-height: 100px;
         border-width: 3px !important;
-        margin-top: -65px !important; /* TAMPA OS VALORES */
         z-index: 10;
         position: relative;
         box-shadow: 
