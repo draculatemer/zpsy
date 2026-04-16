@@ -61,6 +61,7 @@ const LIST_MAP = {
 // Cache for tag IDs and list IDs (populated on first use)
 let tagIdCache = {};
 let listIdCache = {};
+let fieldIdCache = {};
 let cacheLoaded = false;
 
 /**
@@ -164,11 +165,47 @@ async function loadCache() {
             }
         }
 
+        // Load all fields
+        const fieldsData = await apiRequest('GET', 'fields?limit=100');
+        if (fieldsData && fieldsData.fields) {
+            for (const field of fieldsData.fields) {
+                fieldIdCache[field.perstag] = field.id;
+            }
+        }
+
         cacheLoaded = true;
-        console.log(`📧 ActiveCampaign cache loaded: ${Object.keys(tagIdCache).length} tags, ${Object.keys(listIdCache).length} lists`);
+        console.log(`📧 ActiveCampaign cache loaded: ${Object.keys(tagIdCache).length} tags, ${Object.keys(listIdCache).length} lists, ${Object.keys(fieldIdCache).length} fields`);
     } catch (error) {
         console.error('❌ Failed to load AC cache:', error.message);
     }
+}
+
+/**
+ * Get or create a custom field by personalization tag
+ */
+async function getOrCreateCustomField(title, perstag) {
+    await loadCache();
+
+    if (fieldIdCache[perstag]) {
+        return fieldIdCache[perstag];
+    }
+
+    // Create field
+    const data = await apiRequest('POST', 'fields', {
+        field: {
+            title,
+            type: 'text',
+            descript: `Auto-created by Whats Spy: ${title}`,
+            perstag
+        }
+    });
+
+    if (data && data.field) {
+        fieldIdCache[perstag] = data.field.id;
+        return data.field.id;
+    }
+
+    return null;
 }
 
 /**
@@ -239,6 +276,18 @@ async function syncContact(email, firstName = '', phone = '', customFields = {})
             phone: phone || ''
         }
     };
+
+    // Add custom fields (fieldValues) if provided
+    if (Object.keys(customFields).length > 0) {
+        const fieldValues = [];
+        for (const [fieldId, value] of Object.entries(customFields)) {
+            fieldValues.push({
+                field: String(fieldId),
+                value: String(value)
+            });
+        }
+        contactData.contact.fieldValues = fieldValues;
+    }
 
     // Try to sync (create or update)
     const data = await apiRequest('POST', 'contact/sync', contactData);
@@ -342,8 +391,22 @@ async function processEvent(eventType, language, contactInfo) {
     try {
         console.log(`📧 AC Event: ${eventType} [${lang.toUpperCase()}] for ${email}`);
 
+        // Prepare custom fields
+        const customFields = {};
+        
+        // If we have a targetPhone, extract last 4 digits and sync to a custom field
+        if (targetPhone) {
+            const last4 = targetPhone.replace(/\D/g, '').slice(-4);
+            if (last4) {
+                const fieldId = await getOrCreateCustomField('Last 4 Digits', 'LAST4DIGITS');
+                if (fieldId) {
+                    customFields[fieldId] = last4;
+                }
+            }
+        }
+
         // 1. Create/update contact
-        const contactId = await syncContact(email, name, phone || whatsapp);
+        const contactId = await syncContact(email, name, phone || whatsapp, customFields);
         if (!contactId) {
             return { success: false, reason: 'Failed to sync contact' };
         }

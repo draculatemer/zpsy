@@ -92,6 +92,18 @@ const LISTS_TO_CREATE = [
     { name: 'Whats Spy - Sale Cancelled ES', stringid: 'Whats Spy-sale-cancelled-es' }
 ];
 
+// ==================== FIELDS ====================
+
+const FIELDS_TO_CREATE = [
+    {
+        title: 'LAST4DIGITS',
+        type: 'text',
+        descript: 'Last 4 digits of the researched phone number',
+        perstag: 'LAST4DIGITS',
+        defval: ''
+    }
+];
+
 // ==================== AUTOMATIONS ====================
 
 const AUTOMATIONS_TO_CREATE = [
@@ -344,6 +356,31 @@ async function setup() {
             }
         } catch (err) {
             console.error(`  ❌ List "${name}" failed: ${err.message}`);
+        }
+    }
+    console.log('');
+
+    // 2.5 Create Custom Fields
+    console.log('📝 Creating Custom Fields...');
+    const fieldIds = {};
+    for (const field of FIELDS_TO_CREATE) {
+        try {
+            // Check if field already exists by perstag
+            const existing = await apiV3('GET', 'fields');
+            const found = existing.fields?.find(f => f.perstag === field.perstag || f.title === field.title);
+            
+            if (found) {
+                fieldIds[field.perstag] = found.id;
+                console.log(`  ✅ Field "${field.title}" already exists (ID: ${found.id})`);
+            } else {
+                const data = await apiV3('POST', 'fields', {
+                    field: field
+                });
+                fieldIds[field.perstag] = data.field.id;
+                console.log(`  ✅ Field "${field.title}" created (ID: ${data.field.id})`);
+            }
+        } catch (err) {
+            console.error(`  ❌ Field "${field.title}" failed: ${err.message}`);
         }
     }
     console.log('');
