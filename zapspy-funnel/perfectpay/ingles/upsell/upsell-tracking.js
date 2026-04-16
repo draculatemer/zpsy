@@ -304,7 +304,8 @@ const UpsellTracker = {
         
         // Track buy button clicks (PerfectPay upsell)
         document.querySelectorAll('a[href*="centerpag.com"], .btn-primary.btn-mega').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                // DO NOT use e.preventDefault() here - we want the link to work!
                 this.trackAccept();
             });
         });
