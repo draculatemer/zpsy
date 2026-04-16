@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cape d'Invisibilité - Surveillance Indétectable</title>
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    
+    fbq('init', '1152754042657342', userData);
+    var pvId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    fbq('track', 'PageView', {}, { eventID: pvId });
+    window._fbPageViewFired = true;
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1152754042657342&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="../../js/fc.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Upsell 4 - Invisibility Cloak');
+                FacebookCAPI.trackViewContent('Upsell Page', 'Funnel - Upsell', 41);
+            }
+        });
+    </script>
+    
+    <meta name="description" content="Rendez votre surveillance complètement indétectable grâce à une technologie furtive de niveau militaire.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../vip-overlay-styles.css?v=8.0">
+    <link rel="stylesheet" href="upsell1-styles.css?v=9.0">
+    <style>
+    .stealth-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#0a0a0a 0%,#0d1117 40%,#0f1a2e 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,transform .8s ease;overflow:hidden}
+    .stealth-overlay.fade-out{opacity:0;transform:scale(1.05);pointer-events:none}
+    .stealth-container{position:relative;z-index:2;width:90%;max-width:420px;text-align:center}
+    .stealth-icon{font-size:44px;margin-bottom:10px;animation:ghostPulse 1.5s ease-in-out infinite}
+    @keyframes ghostPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 8px rgba(99,102,241,.4))}50%{transform:scale(1.1);filter:drop-shadow(0 0 20px rgba(99,102,241,.8))}}
+    .stealth-title{font-family:'DM Sans',sans-serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:5px}
+    .stealth-subtitle{font-family:'DM Sans',sans-serif;font-size:12.5px;color:rgba(255,255,255,.4);margin-bottom:22px}
+    .stealth-steps{background:rgba(255,255,255,.04);border:1px solid rgba(99,102,241,.15);border-radius:14px;padding:18px;margin-bottom:16px;text-align:left}
+    .stealth-step{display:flex;align-items:center;gap:10px;padding:8px 0;font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,.3);transition:all .5s ease}
+    .stealth-step.active{color:rgba(255,255,255,.7)}
+    .stealth-step.done{color:#4ade80}
+    .stealth-step.warning{color:#f87171;font-weight:600}
+    .step-indicator{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .4s ease}
+    .stealth-step.active .step-indicator{border-color:rgba(99,102,241,.6);background:rgba(99,102,241,.15)}
+    .stealth-step.done .step-indicator{border-color:#4ade80;background:rgba(74,222,128,.15)}
+    .stealth-step.warning .step-indicator{border-color:#f87171;background:rgba(248,113,113,.15)}
+    .stealth-progress{width:100%;height:4px;background:rgba(255,255,255,.06);border-radius:20px;overflow:hidden;margin-top:12px}
+    .stealth-progress-bar{height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#6366f1,#818cf8);transition:width .3s ease}
+    .stealth-result{display:none;margin-top:16px;padding:16px 18px;border-radius:12px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(239,68,68,.12));border:1px solid rgba(239,68,68,.3)}
+    .stealth-result.visible{display:block;animation:resultAppear .7s cubic-bezier(.22,1,.36,1)}
+    @keyframes resultAppear{0%{opacity:0;transform:translateY(20px) scale(.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    .stealth-result-icon{font-size:26px;display:block;margin-bottom:6px;animation:shieldBounce .6s ease-in-out infinite alternate}
+    @keyframes shieldBounce{0%{transform:translateY(0)}100%{transform:translateY(-5px)}}
+    .stealth-result-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:#f87171;margin-bottom:4px;letter-spacing:.5px}
+    .stealth-result-text{font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.5}
+    .stealth-result-text strong{color:#fff}
+    .page.hidden-content{opacity:1;pointer-events:auto}
+    .page.reveal-content{animation:contentReveal .8s ease forwards}
+    @keyframes contentReveal{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+    </style>
+</head>
+<body>
+    <div class="stealth-overlay" id="stealthOverlay">
+        <div class="stealth-container">
+            <div class="stealth-icon">👻</div>
+            <h2 class="stealth-title">Activation du mode furtif...</h2>
+            <p class="stealth-subtitle">Sécurisation de votre activité de surveillance pour être 100% indétectable.</p>
+
+            <div class="stealth-steps">
+                <div class="stealth-step" id="step1">
+                    <span class="step-indicator" id="ind1"></span>
+                    <span>Application de la couche de chiffrement militaire</span>
+                </div>
+                <div class="stealth-step" id="step2">
+                    <span class="step-indicator" id="ind2"></span>
+                    <span>Masquage de votre adresse IP et identifiant appareil</span>
+                </div>
+                <div class="stealth-step" id="step3">
+                    <span class="step-indicator" id="ind3"></span>
+                    <span>Suppression de toutes les empreintes numériques</span>
+                </div>
+                <div class="stealth-step" id="step4">
+                    <span class="step-indicator" id="ind4"></span>
+                    <span>Activation du bouclier anti-détection</span>
+                </div>
+                <div class="stealth-step" id="step5">
+                    <span class="step-indicator" id="ind5"></span>
+                    <span>⚠️ ALERTE : Vulnérabilité détectée — votre activité pourrait être visible</span>
+                </div>
+                <div class="stealth-progress">
+                    <div class="stealth-progress-bar" id="stealthProgressBar"></div>
+                </div>
+            </div>
+
+            <div class="stealth-result" id="stealthResult">
+                <span class="stealth-result-icon">🛡️</span>
+                <div class="stealth-result-title">SERVICE DE SÉCURITÉ DISPONIBLE</div>
+                <div class="stealth-result-text"><strong>Votre configuration actuelle laisse des traces qui pourraient exposer votre surveillance.</strong> Ajouter ce service vous rend complètement invisible.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="mainPage">
+        <main class="content">
+            <section class="hero">
+                <h1 class="main-title">⚠️ ALERTE : Ils peuvent voir que vous les surveillez</h1>
+                
+                <div class="intro-section">
+                    <p class="problem-text">😰 <strong>Sans la Cape d'Invisibilité, votre activité de surveillance laisse des traces numériques.</strong> S'ils vérifient l'utilisation de la batterie, la consommation de données ou les connexions actives de leur téléphone — ils sauront. Ne laissez pas des mois de collecte de preuves être ruinés parce que vous vous êtes fait prendre.</p>
+                    
+                    <p class="solution-text">👻 <strong>Avec la Cape d'Invisibilité :</strong> Votre surveillance devient <strong>100% indétectable</strong>. Zéro trace dans les statistiques de batterie, routage de données invisible, suppression complète des notifications. Ils ne sauront jamais que vous regardez.</p>
+                </div>
+            </section>
+
+            <section class="ai-features-section">
+                <div class="ai-features-card">
+                    <h2 class="ai-features-title">👻 Fonctionnalités de protection furtive</h2>
+                    <div class="ai-features-grid">
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">🛡️</span>
+                            <span class="ai-feature-name">Technologie zéro trace</span>
+                            <span class="ai-feature-desc">Supprime tous les signes de surveillance des statistiques de batterie, d'utilisation de données et de processus actifs.</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">👻</span>
+                            <span class="ai-feature-name">Mode fantôme</span>
+                            <span class="ai-feature-desc">Votre surveillance fonctionne dans un processus d'arrière-plan complètement invisible.</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">🔒</span>
+                            <span class="ai-feature-name">Bouclier anti-détection</span>
+                            <span class="ai-feature-desc">Bloque toutes les tentatives de détection de logiciel de surveillance sur leur appareil.</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">📱</span>
+                            <span class="ai-feature-name">Masquage des notifications</span>
+                            <span class="ai-feature-desc">Empêche toute notification suspecte d'apparaître sur leur appareil.</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">🌐</span>
+                            <span class="ai-feature-name">Masquage IP</span>
+                            <span class="ai-feature-desc">Achemine toutes les données via des tunnels chiffrés pour qu'elles ne puissent pas être retracées jusqu'à vous.</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="ai-feature-icon">⏰</span>
+                            <span class="ai-feature-name">Planification intelligente</span>
+                            <span class="ai-feature-desc">Met automatiquement en pause la surveillance pendant les fenêtres de détection à haut risque.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="comparison-section">
+                <div class="comparison-card">
+                    <h2 class="comparison-title">🛡️ Sans vs Avec la Cape d'Invisibilité</h2>
+                    <div class="comparison-grid">
+                        <div class="comparison-item manual">
+                            <span class="comparison-icon">😰</span>
+                            <div class="comparison-text">
+                                <strong>Sans la Cape d'Invisibilité :</strong>
+                                <p>• Activité visible dans les statistiques de batterie<br>• Pics de consommation de données détectables<br>• Risque de fuites de notifications<br>• Empreintes numériques partout</p>
+                            </div>
+                        </div>
+                        <div class="comparison-item ai">
+                            <span class="comparison-icon">👻</span>
+                            <div class="comparison-text">
+                                <strong>Avec la Cape d'Invisibilité :</strong>
+                                <p>• Zéro impact sur la batterie<br>• Routage de données invisible<br>• Suppression complète des notifications<br>• Aucune trace</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="benefits">
+                <div class="benefits-card">
+                    <h2 class="benefits-title">🛡️ Ce qui est inclus dans la Cape d'Invisibilité :</h2>
+                    <div class="benefits-grid">
+                        <div class="benefit-item">
+                            <span class="benefit-icon">🛡️</span>
+                            <span class="benefit-text"><strong>Tech zéro trace :</strong> Invisible dans la batterie, les données et les processus</span>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">👻</span>
+                            <span class="benefit-text"><strong>Mode fantôme :</strong> Fonctionnement d'arrière-plan complètement invisible</span>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">🔒</span>
+                            <span class="benefit-text"><strong>Anti-détection :</strong> Bloque toutes les tentatives de détection</span>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">📱</span>
+                            <span class="benefit-text"><strong>Masquage des notifications :</strong> Aucune alerte suspecte sur leur téléphone</span>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">🌐</span>
+                            <span class="benefit-text"><strong>Masquage IP :</strong> Tunnels chiffrés, données intraçables</span>
+                        </div>
+                        <div class="benefit-item">
+                            <span class="benefit-icon">⏰</span>
+                            <span class="benefit-text"><strong>Planification intelligente :</strong> Pause automatique pendant les fenêtres de détection risquées</span>
+                        </div>
+                    </div>
+                    
+                    <p class="benefits-summary">👻 Ne laissez pas toute votre collecte de preuves être ruinée parce qu'ils vous ont surpris en train de regarder.</p>
+                </div>
+            </section>
+
+            <section class="final-cta">
+                <div class="cta-section">
+                    <h2 class="cta-title">Une seule erreur et des mois de preuves disparaissent</h2>
+                    <p class="cta-text">Votre compte est configuré pour la surveillance. Maintenant, assurez-vous qu'ils ne le découvrent jamais. La Cape d'Invisibilité est votre protection contre la détection.</p>
+                    <div id="geoPrice" style="display:none; text-align:center; margin:20px 0 8px;">
+                        <span style="display:inline-block; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:4px 14px; border-radius:20px; margin-bottom:10px;">Offre Limitée</span><br>
+                        <span style="font-size:42px; font-weight:900; background:linear-gradient(135deg,#22c55e,#4ade80); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1;">$41</span><br>
+                        <span style="font-size:12px; color:#6b7280; letter-spacing:0.5px; margin-top:6px; display:inline-block;">PAIEMENT UNIQUE &nbsp;·&nbsp; ACCÈS À VIE</span>
+                    </div>
+                    
+                    <div class="cta-buttons">
+<a href='https://go.centerpag.com/PPU38CQ7TCA?upsell=true' class="btn btn-primary btn-large btn-pulse btn-mega" aria-label="Activer la Cape d'Invisibilité maintenant" role="button">Oui, ajouter la Cape d'Invisibilité à mon compte</a>
+                <a href="https://go.centerpag.com/PPU38CQ7TCA?upsell=true" class="decline-link">Non merci, je n'ai pas besoin de la cape d'invisibilité</a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="footer">
+            <div class="smallprint">© <span id="year"></span> Whats Spy. Tous droits réservés.</div>
+        </footer>
+    </div>
+
+    <script src="../polyfills.js?v=8.0"></script>
+    <script src="upsell1-script.js?v=9.0"></script>
+    <script src="../upsell-tracking.js?v=2.0"></script>
+    <script>
+(function(){
+    var ua = navigator.userAgent || '';
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+    if (!isMobile) {
+        var el = document.getElementById('geoPrice');
+        if (el) el.style.display = '';
+        var links = document.querySelectorAll('.decline-link');
+        for (var i = 0; i < links.length; i++) links[i].style.display = 'none';
+    }
+})();
+</script>
+    <script>
+    (function(){
+        var o=document.getElementById('stealthOverlay'),m=document.getElementById('mainPage'),
+            pb=document.getElementById('stealthProgressBar'),result=document.getElementById('stealthResult');
+        if(!o||!m)return;
+
+        var steps=[
+            {el:document.getElementById('step1'),ind:document.getElementById('ind1'),time:700},
+            {el:document.getElementById('step2'),ind:document.getElementById('ind2'),time:1500},
+            {el:document.getElementById('step3'),ind:document.getElementById('ind3'),time:2300},
+            {el:document.getElementById('step4'),ind:document.getElementById('ind4'),time:3200},
+            {el:document.getElementById('step5'),ind:document.getElementById('ind5'),time:3800}
+        ];
+
+        var TOTAL=5000,start=Date.now(),resultShown=false,currentStep=-1;
+
+        function tick(){
+            var e=Date.now()-start;
+            var progress=Math.min(e/TOTAL,1);
+            pb.style.width=(progress*100)+'%';
+
+            for(var i=0;i<steps.length;i++){
+                if(e>=steps[i].time&&i>currentStep){
+                    currentStep=i;
+                    for(var j=0;j<i;j++){
+                        steps[j].el.className='stealth-step done';
+                        steps[j].ind.textContent='✓';
+                    }
+                    if(i===4){
+                        steps[i].el.className='stealth-step warning';
+                        steps[i].ind.textContent='⚠';
+                    } else {
+                        steps[i].el.className='stealth-step active';
+                        steps[i].ind.textContent='●';
+                    }
+                }
+            }
+
+            if(e>=4200&&!resultShown){
+                resultShown=true;
+                result.classList.add('visible');
+                if(navigator.vibrate)navigator.vibrate([150,80,150]);
+            }
+
+            if(e>=TOTAL){
+                setTimeout(function(){
+                    o.classList.add('fade-out');
+                    m.classList.remove('hidden-content');
+                    m.classList.add('reveal-content');
+                    setTimeout(function(){o.style.display='none'},800);
+                },500);
+                return;
+            }
+            requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    })();
+    </script>
+</body>
+</html>

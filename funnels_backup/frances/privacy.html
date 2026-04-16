@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Politique de Confidentialité - Whats Spy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    fbq('init', '1152754042657342', userData);
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1152754042657342&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/fc.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Privacy Policy');
+            }
+        });
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #e9edef;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #e91e63;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .last-updated {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #e91e63;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #a0a0a0;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #a0a0a0;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Retour à l'accueil
+        </a>
+
+        <h1>Politique de Confidentialité</h1>
+        <p class="last-updated">Dernière mise à jour : <script>document.write(new Date().toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'}))</script></p>
+
+        <h2>1. Informations que nous collectons</h2>
+        <p>Lorsque vous utilisez Whats Spy, nous pouvons collecter les informations suivantes :</p>
+        <ul>
+            <li>Adresse e-mail (pour la création de compte et la communication)</li>
+            <li>Informations de paiement (traitées de manière sécurisée par notre prestataire de paiement)</li>
+            <li>Données d'utilisation et analyses</li>
+            <li>Informations sur l'appareil et le navigateur</li>
+        </ul>
+
+        <h2>2. Comment nous utilisons vos informations</h2>
+        <p>Nous utilisons les informations collectées pour :</p>
+        <ul>
+            <li>Fournir et maintenir nos services</li>
+            <li>Traiter les transactions et envoyer les informations associées</li>
+            <li>Envoyer des communications promotionnelles (avec votre consentement)</li>
+            <li>Améliorer nos services et l'expérience utilisateur</li>
+        </ul>
+
+        <h2>3. Sécurité des données</h2>
+        <p>Nous mettons en œuvre des mesures de sécurité conformes aux normes de l'industrie pour protéger vos informations personnelles. Toutes les transmissions de données sont chiffrées à l'aide de la technologie SSL.</p>
+
+        <h2>4. Services tiers</h2>
+        <p>Nous pouvons utiliser des services tiers pour le traitement des paiements, l'analyse et le marketing. Ces services ont leurs propres politiques de confidentialité régissant l'utilisation de vos informations.</p>
+
+        <h2>5. Cookies</h2>
+        <p>Nous utilisons des cookies et des technologies de suivi similaires pour améliorer votre expérience de navigation, analyser le trafic du site et comprendre d'où viennent nos visiteurs.</p>
+
+        <h2>6. Vos droits</h2>
+        <p>Vous avez le droit de :</p>
+        <ul>
+            <li>Accéder à vos données personnelles</li>
+            <li>Demander la correction de vos données</li>
+            <li>Demander la suppression de vos données</li>
+            <li>Vous désabonner des communications marketing</li>
+        </ul>
+
+        <h2>7. Nous contacter</h2>
+        <p>Si vous avez des questions concernant cette Politique de Confidentialité, veuillez nous contacter à :</p>
+        <p><strong>E-mail :</strong> support@Whats Spy</p>
+
+        <div class="footer">
+            <p>&copy; <script>document.write(new Date().getFullYear())</script> Whats Spy. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

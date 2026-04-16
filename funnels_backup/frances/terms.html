@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- UTMify tracking -->
+    <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Conditions d'Utilisation - Whats Spy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    var userData = {};
+    try {
+        var em = localStorage.getItem('userEmail');
+        var ph = localStorage.getItem('userWhatsApp');
+        var fn = localStorage.getItem('userName');
+        var ct = localStorage.getItem('userCity');
+        var co = localStorage.getItem('userCountryCode');
+        var ge = localStorage.getItem('targetGender');
+        var st = localStorage.getItem('userState');
+        if (em) userData.em = em.toLowerCase().trim();
+        if (ph) userData.ph = ph.replace(/\D/g, '');
+        if (fn) {
+            var names = fn.trim().split(' ');
+            userData.fn = names[0].toLowerCase();
+            if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+        }
+        if (ct) userData.ct = ct.toLowerCase().replace(/[^a-z]/g, '');
+        if (co) userData.country = co.toLowerCase();
+        if (ge) userData.ge = ge === 'female' ? 'f' : 'm';
+        if (st) userData.st = st.toLowerCase().replace(/[^a-z]/g, '');
+    } catch(e) {}
+    fbq('init', '1152754042657342', userData);
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1152754042657342&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
+    <!-- Facebook CAPI Client -->
+    <script src="js/fc.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FacebookCAPI !== 'undefined') {
+                FacebookCAPI.init('Terms of Service');
+            }
+        });
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #e9edef;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #e91e63;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .last-updated {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #e91e63;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #a0a0a0;
+        }
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #a0a0a0;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Retour à l'accueil
+        </a>
+
+        <h1>Conditions d'Utilisation</h1>
+        <p class="last-updated">Dernière mise à jour : <script>document.write(new Date().toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'}))</script></p>
+
+        <h2>1. Acceptation des conditions</h2>
+        <p>En accédant et en utilisant Whats Spy, vous acceptez et vous engagez à respecter ces Conditions d'Utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.</p>
+
+        <h2>2. Description du service</h2>
+        <p>Whats Spy fournit des services de surveillance numérique et de récupération d'informations. Notre plateforme est conçue à des fins éducatives et informatives.</p>
+
+        <h2>3. Responsabilités de l'utilisateur</h2>
+        <p>En utilisant notre service, vous acceptez de :</p>
+        <ul>
+            <li>Utiliser le service uniquement à des fins légales</li>
+            <li>Ne pas violer les lois ou réglementations applicables</li>
+            <li>Ne pas porter atteinte aux droits d'autrui</li>
+            <li>Fournir des informations exactes lors de l'inscription</li>
+            <li>Maintenir la confidentialité de votre compte</li>
+        </ul>
+
+        <h2>4. Paiement et remboursements</h2>
+        <p>Tous les achats sont soumis à notre garantie de remboursement de 30 jours. Si vous n'êtes pas satisfait de notre service pour quelque raison que ce soit, contactez notre équipe de support dans les 30 jours suivant l'achat pour un remboursement complet.</p>
+
+        <h2>5. Propriété intellectuelle</h2>
+        <p>Tout le contenu, les fonctionnalités et les fonctionnalités de Whats Spy nous appartiennent et sont protégés par les lois internationales sur le droit d'auteur, les marques déposées et autres lois sur la propriété intellectuelle.</p>
+
+        <h2>6. Limitation de responsabilité</h2>
+        <p>Whats Spy ne saurait être tenu responsable de tout dommage indirect, accessoire, spécial, consécutif ou punitif résultant de votre utilisation ou de votre incapacité à utiliser le service.</p>
+
+        <h2>7. Clause de non-responsabilité</h2>
+        <p>Le service est fourni « tel quel » sans garantie d'aucune sorte, expresse ou implicite. Nous ne garantissons pas que le service sera ininterrompu, sécurisé ou exempt d'erreurs.</p>
+
+        <h2>8. Modifications des conditions</h2>
+        <p>Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet immédiatement après leur publication. Votre utilisation continue du service après les modifications constitue une acceptation des nouvelles conditions.</p>
+
+        <h2>9. Droit applicable</h2>
+        <p>Ces conditions sont régies et interprétées conformément aux lois applicables, sans tenir compte des principes de conflit de lois.</p>
+
+        <h2>10. Informations de contact</h2>
+        <p>Pour toute question concernant ces Conditions d'Utilisation, veuillez nous contacter à :</p>
+        <p><strong>E-mail :</strong> support@Whats Spy</p>
+
+        <div class="footer">
+            <p>&copy; <script>document.write(new Date().getFullYear())</script> Whats Spy. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>
