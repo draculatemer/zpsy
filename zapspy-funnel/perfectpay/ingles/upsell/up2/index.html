@@ -287,20 +287,25 @@
             if(e>=TOTAL){
                 up(100);
                 pp.textContent='100%';
+                console.log('UP2: Loading complete, triggering reveal...');
                 setTimeout(function(){
                     o.classList.add('fade-out');
                     m.classList.remove('hidden-content');
                     m.classList.add('reveal-content');
+                    
                     // Aguarda a animação de fade-out e remove o elemento completamente
                     setTimeout(function(){
                         if (o) {
+                            console.log('UP2: Removing overlay from DOM');
                             o.style.display='none';
                             if (o.parentNode) o.parentNode.removeChild(o);
                         }
-                        // Força interatividade no corpo e na página
+                        // Força interatividade total no corpo e na página
                         document.body.style.pointerEvents = 'auto';
+                        document.documentElement.style.pointerEvents = 'auto';
                         m.style.pointerEvents = 'auto';
-                    }, 800);
+                        console.log('UP2: Interactivity restored');
+                    }, 850);
                 }, 500);
                 return;
             }
